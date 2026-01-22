@@ -4,6 +4,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.permissions import IsAdminUser
 from apps.projects.models import Project
 from apps.projects.permissions import IsClient, IsFreelancer
 
@@ -34,7 +35,7 @@ class EscrowDepositView(APIView):
 
 
 class EscrowAdminApproveView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def post(self, request, escrow_id):
         escrow = get_object_or_404(Escrow, id=escrow_id)
