@@ -1,0 +1,238 @@
+{
+  "info": {
+    "name": "Itzuun MVP API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Request OTP",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/auth/request-otp",
+            "body": {"mode": "raw", "raw": "{\"email\": \"a@b.com\"}"}
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/auth/verify-otp",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"a@b.com\", \"otp\": \"123456\", \"otp_token\": \"...\"}"
+            }
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/auth/refresh",
+            "body": {"mode": "raw", "raw": "{\"refresh\": \"...\"}"}
+          }
+        },
+        {
+          "name": "Me",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/me"}
+        },
+        {
+          "name": "Update Me",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/me",
+            "body": {"mode": "raw", "raw": "{\"role\": \"client\"}"}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profiles",
+      "item": [
+        {"name": "Profile Detail", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/profiles/1"}},
+        {
+          "name": "Profile Me",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/profiles/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"full_name\": \"\", \"bio\": \"\", \"skills\": [\"Next.js\"], \"hourly_rate\": 50000}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"\", \"description\": \"\", \"budget\": 1000000, \"timeline_days\": 14, \"category\": \"web\"}"
+            }
+          }
+        },
+        {"name": "List Projects", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/projects?status=open"}},
+        {"name": "Project Detail", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/projects/1"}},
+        {
+          "name": "Close Project",
+          "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/projects/1/close"}
+        },
+        {
+          "name": "Select Freelancer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/select-freelancer",
+            "body": {"mode": "raw", "raw": "{\"proposal_id\": 123}"}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Proposals",
+      "item": [
+        {
+          "name": "Create Proposal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/proposals",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"price\": 950000, \"timeline_days\": 10, \"message\": \"\"}"
+            }
+          }
+        },
+        {"name": "List Proposals", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/projects/1/proposals"}},
+        {"name": "My Proposals", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/me/proposals"}},
+        {
+          "name": "Update Proposal",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/proposals/1",
+            "body": {"mode": "raw", "raw": "{\"message\": \"Updated\"}"}
+          }
+        },
+        {"name": "Withdraw Proposal", "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/proposals/1/withdraw"}}
+      ]
+    },
+    {
+      "name": "Messaging",
+      "item": [
+        {"name": "List Messages", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/projects/1/messages"}},
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/messages",
+            "body": {"mode": "raw", "raw": "{\"type\": \"text\", \"text\": \"Hello\"}"}
+          }
+        },
+        {"name": "Upload File", "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/projects/1/files"}}
+      ]
+    },
+    {
+      "name": "Escrow",
+      "item": [
+        {
+          "name": "Deposit",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/escrow/deposit",
+            "body": {"mode": "raw", "raw": "{\"amount\": 1000000}"}
+          }
+        },
+        {"name": "Admin Approve", "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/escrow/1/admin/approve"}},
+        {
+          "name": "Submit Result",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/submit-result",
+            "body": {"mode": "raw", "raw": "{\"note\": \"Done\", \"files\": [1,2]}"}
+          }
+        },
+        {
+          "name": "Confirm Completion",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/confirm-completion",
+            "body": {"mode": "raw", "raw": "{}"}
+          }
+        },
+        {
+          "name": "Dispute",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/dispute",
+            "body": {"mode": "raw", "raw": "{\"reason\": \"\", \"evidence_files\": []}"}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/projects/1/reviews",
+            "body": {"mode": "raw", "raw": "{\"reviewee_id\": 55, \"rating\": 5, \"comment\": \"\"}"}
+          }
+        },
+        {"name": "User Reviews", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/users/1/reviews"}},
+        {"name": "Rating Summary", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/users/1/rating-summary"}}
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {"name": "Users", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/admin/users?verified=false"}},
+        {"name": "Verify User", "request": {"method": "POST", "url": "{{baseUrl}}/api/v1/admin/users/1/verify"}},
+        {"name": "Disputed Projects", "request": {"method": "GET", "url": "{{baseUrl}}/api/v1/admin/projects?status=disputed"}},
+        {
+          "name": "Resolve Dispute",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/admin/disputes/1/resolve",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"action\": \"release\", \"release_amount\": 700000, \"refund_amount\": 300000, \"note\": \"\"}"
+            }
+          }
+        },
+        {
+          "name": "Update Commission",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{baseUrl}}/api/v1/admin/settings/commission",
+            "body": {"mode": "raw", "raw": "{\"platform_fee_pct\": 12}"}
+          }
+        }
+      ]
+    }
+  ]
+}
