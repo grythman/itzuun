@@ -10,39 +10,50 @@ This blueprint defines cache policy for high-read, high-concurrency operations.
 
 ## Redis Roles
 
-1. Primary cache backend for API reads.
-2. Session store (`SESSION_ENGINE=cache`).
-3. DRF throttle counters.
-4. Pub/Sub layer for realtime chat (Channels).
+- Primary cache backend for API reads.
+- Session store (`SESSION_ENGINE=cache`).
+- DRF throttle counters.
+- Pub/Sub layer for realtime chat (Channels).
 
-## Cache Policy Matrix
+## Cache Policy
 
-| Domain | Key Pattern | TTL | Invalidate On |
-|---|---|---:|---|
-| Project list | `projects:list:{filters_hash}:p{page}` | 30-60s | Project create/update/status change/proposal select |
-| Project detail | `projects:detail:{project_id}:v{version}` | 60s | Any project/proposal/escrow/dispute mutation affecting project |
-| Proposal list | `proposals:list:{project_id}:p{page}` | 30s | Proposal create/update/withdraw/select |
-| Profile public | `profiles:public:{user_id}` | 300s | Profile update |
-| Rating summary | `reviews:summary:{user_id}` | 300s | New review / review update |
+- Project list
+  - Key: `projects:list:{filters_hash}:p{page}`
+  - TTL: `30-60s`
+  - Invalidate on: project create/update/status change/proposal select.
+- Project detail
+  - Key: `projects:detail:{project_id}:v{version}`
+  - TTL: `60s`
+  - Invalidate on: any project/proposal/escrow/dispute mutation affecting project.
+- Proposal list
+  - Key: `proposals:list:{project_id}:p{page}`
+  - TTL: `30s`
+  - Invalidate on: proposal create/update/withdraw/select.
+- Profile public
+  - Key: `profiles:public:{user_id}`
+  - TTL: `300s`
+  - Invalidate on: profile update.
+- Rating summary
+  - Key: `reviews:summary:{user_id}`
+  - TTL: `300s`
+  - Invalidate on: new review or review update.
 
 ## Key Design Rules
 
 - Include paging and filter hash in list keys.
 - Use version token (`v{n}`) for detail keys to avoid mass delete scans.
-- Prefix all keys with environment/app tag (e.g., `itzuun:prod:`).
+- Prefix all keys with environment/app tag (example: `itzuun:prod:`).
 - Keep payload JSON-serializable and small.
 
 ## Invalidation Strategy
 
-### 1) Targeted key delete
-- Known keys (detail/summary) are deleted directly when entity changes.
-
-### 2) Version bump
-- Maintain a Redis version key per entity (`project:{id}:version`).
-- On mutation, increment version; new reads use new versioned key.
-
-### 3) Time-bound eventual consistency
-- List endpoints can rely on short TTL if full key map invalidation is costly.
+- Targeted key delete
+  - Known keys (detail/summary) are deleted directly when entity changes.
+- Version bump
+  - Maintain a Redis version key per entity (`project:{id}:version`).
+  - On mutation, increment version; new reads use new versioned key.
+- Time-bound eventual consistency
+  - List endpoints can rely on short TTL if full key map invalidation is costly.
 
 ## Django Integration Pattern
 
@@ -72,28 +83,23 @@ def invalidate_project_detail(project_id: int):
         cache.set(version_key, 2, timeout=None)
 ```
 
-## Safety Rules (Fintech-sensitive)
+## Safety Rules
 
 - Never cache mutable financial source-of-truth values as authoritative state.
 - Escrow/dispute mutation endpoints must always read/write DB in transaction.
 - Cache is optimization only; DB remains source of truth.
 
-## Capacity & Ops Baseline
+## Capacity and Ops Baseline
 
 - Redis max memory policy: `allkeys-lru` (for non-critical cache tier).
 - Enable persistence only if Redis also used for message/session durability needs.
-- Monitor:
-  - hit ratio
-  - evictions/sec
-  - used memory
-  - keyspace misses
-  - command latency (p95/p99)
+- Monitor hit ratio, evictions/sec, used memory, keyspace misses, and command latency p95/p99.
 
 ## Rollout Plan
 
 1. Enable Redis backend and throttle/session storage.
-2. Add cache for project list + detail endpoints.
-3. Add rating/profile caches.
+2. Add cache for project list and detail endpoints.
+3. Add rating and profile caches.
 4. Add key invalidation hooks on write services.
 5. Track hit ratio and DB read QPS reduction.
 
