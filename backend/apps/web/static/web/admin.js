@@ -17,6 +17,18 @@ async function api(path, options = {}) {
     credentials: "include",
     ...options,
   });
+
+  if (response.status === 401 && !options._retried && path !== "/auth/refresh") {
+    const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      headers: authHeaders(),
+    });
+    if (refreshResponse.ok) {
+      return api(path, { ...options, _retried: true });
+    }
+  }
+
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const msg = data?.detail || "Request failed";
