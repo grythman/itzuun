@@ -40,7 +40,7 @@ class Project(models.Model):
                 check=Q(status__in=[
                     "open",
                     "in_progress",
-                    "awaiting_review",
+                    "awaiting_client_review",
                     "completed",
                     "closed_refunded",
                     "disputed",
