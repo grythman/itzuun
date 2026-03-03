@@ -14,10 +14,17 @@ function log(message, payload) {
 function showBanner(message, type = "info", autoHideMs = 0) {
   const banner = document.getElementById("sessionBanner");
   if (!banner) return;
-  banner.textContent = message;
+  banner.innerHTML = `
+    <span class="session-banner-text">${message}</span>
+    <button type="button" class="session-banner-close" aria-label="Close">×</button>
+  `;
   banner.classList.remove("hidden");
   banner.classList.remove("warn", "info", "success");
   banner.classList.add(type);
+  const closeBtn = banner.querySelector(".session-banner-close");
+  if (closeBtn) {
+    closeBtn.onclick = () => clearSessionBanner();
+  }
   if (autoHideMs > 0) {
     setTimeout(() => {
       clearSessionBanner();

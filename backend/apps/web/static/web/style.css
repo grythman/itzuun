@@ -30,9 +30,22 @@ body {
   z-index: 40;
   margin: 0;
   padding: 10px 16px;
-  text-align: center;
   font-size: 14px;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.session-banner-text { flex: 1; text-align: center; }
+.session-banner-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
 }
 .session-banner.warn {
   background: #fef3c7;
