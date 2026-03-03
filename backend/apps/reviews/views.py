@@ -40,7 +40,7 @@ class UserReviewsListView(generics.ListAPIView):
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        return Review.objects.filter(reviewee_id=self.kwargs["user_id"])
+        return Review.objects.filter(reviewee_id=self.kwargs["user_id"]).order_by("-created_at")
 
 
 class UserRatingSummaryView(APIView):

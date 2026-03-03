@@ -27,7 +27,7 @@ class ProjectMessageListCreateView(generics.ListCreateAPIView):
         project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=self.kwargs["project_id"])
         if not _assert_project_member(self.request.user, project):
             return ProjectMessage.objects.none()
-        return ProjectMessage.objects.filter(project=project).select_related("sender")
+        return ProjectMessage.objects.filter(project=project).select_related("sender").order_by("-created_at")
 
     def perform_create(self, serializer):
         project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=self.kwargs["project_id"])

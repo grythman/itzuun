@@ -18,7 +18,12 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        queryset = Project.objects.all()
+        queryset = (
+            Project.objects.select_related("owner", "selected_proposal__freelancer")
+            .prefetch_related("proposals")
+            .all()
+            .order_by("-created_at")
+        )
         status_filter = self.request.query_params.get("status")
         category_filter = self.request.query_params.get("category")
         search = self.request.query_params.get("search")
@@ -41,7 +46,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
 
 class ProjectDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = ProjectSerializer
-    queryset = Project.objects.all()
+    queryset = Project.objects.select_related("owner", "selected_proposal__freelancer").prefetch_related("proposals")
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -85,7 +90,7 @@ class ProjectProposalListCreateView(generics.ListCreateAPIView):
         return super().get_permissions()
 
     def get_queryset(self):
-        return Proposal.objects.filter(project_id=self.kwargs["project_id"])
+        return Proposal.objects.filter(project_id=self.kwargs["project_id"]).order_by("-created_at")
 
     def list(self, request, *args, **kwargs):
         project = get_object_or_404(Project, id=kwargs["project_id"])
@@ -105,12 +110,12 @@ class ProposalMeListView(generics.ListAPIView):
     permission_classes = [IsFreelancer]
 
     def get_queryset(self):
-        return Proposal.objects.filter(freelancer=self.request.user)
+        return Proposal.objects.filter(freelancer=self.request.user).order_by("-created_at")
 
 
 class ProposalDetailView(generics.UpdateAPIView):
     serializer_class = ProposalSerializer
-    queryset = Proposal.objects.all()
+    queryset = Proposal.objects.all().order_by("-created_at")
     permission_classes = [IsFreelancer]
 
     def patch(self, request, *args, **kwargs):

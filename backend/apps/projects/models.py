@@ -50,6 +50,8 @@ class Project(models.Model):
         ]
         indexes = [
             models.Index(fields=["status", "category", "-created_at"], name="idx_project_status_cat_created"),
+            models.Index(fields=["status", "-created_at"], name="idx_project_status_created"),
+            models.Index(fields=["-created_at"], name="idx_project_created"),
         ]
 
 
@@ -82,6 +84,9 @@ class Proposal(models.Model):
         ]
         indexes = [
             models.Index(fields=["project", "status", "-created_at"], name="idx_prop_proj_status_created"),
+            models.Index(fields=["project", "status"], name="idx_prop_project_status"),
+            models.Index(fields=["freelancer", "status"], name="idx_prop_freelancer_status"),
+            models.Index(fields=["-created_at"], name="idx_prop_created"),
         ]
 
 

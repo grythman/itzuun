@@ -32,6 +32,9 @@
 - Roadmap: [backend/docs/ROADMAP_30_60_90.md](backend/docs/ROADMAP_30_60_90.md)
 - Monetization: [backend/docs/MONETIZATION_MODEL.md](backend/docs/MONETIZATION_MODEL.md)
 - Changelog: [backend/docs/CHANGELOG_MVP.md](backend/docs/CHANGELOG_MVP.md)
+- Scalable infra diagram: [backend/docs/INFRASTRUCTURE_SCALABLE.md](backend/docs/INFRASTRUCTURE_SCALABLE.md)
+- Redis caching blueprint: [backend/docs/REDIS_CACHING_BLUEPRINT.md](backend/docs/REDIS_CACHING_BLUEPRINT.md)
+- Production deployment checklist: [backend/docs/DEPLOYMENT_CHECKLIST_PROD.md](backend/docs/DEPLOYMENT_CHECKLIST_PROD.md)
 
 ## API Summary
 
@@ -93,6 +96,12 @@ Base URL: `/api/v1`
    - `/admin/settings/commission`
 - `submit-result` хийхээс өмнө хамгийн багадаа 1 deliverable заавал бүртгэгдсэн байна.
 - Client commission override устсан; payout fee нь server policy-аас тооцогдоно.
+
+### Read Scalability Baseline
+- Global pagination policy идэвхтэй (`PageNumberPagination`, `PAGE_SIZE=20`).
+- List endpoint-үүд deterministic `order_by("-created_at")` ашиглана.
+- Hot-query index-ууд `projects`, `proposals`, `escrow`, `dispute` дээр нэмэгдсэн.
+- `REDIS_URL` тохируулсан үед cache backend автоматаар Redis рүү шилжинэ (`django-redis`).
 
 ## Quick Start (Backend)
 1. Install dependencies:

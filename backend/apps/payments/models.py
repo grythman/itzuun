@@ -34,6 +34,8 @@ class Escrow(models.Model):
         ]
         indexes = [
             models.Index(fields=["status", "-updated_at"], name="idx_escrow_status_updated"),
+            models.Index(fields=["status", "project"], name="idx_escrow_status_project"),
+            models.Index(fields=["project", "status", "-created_at"], name="idx_escrow_proj_stat_created"),
         ]
 
 
@@ -68,6 +70,11 @@ class Dispute(models.Model):
     resolved_at = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["project", "-created_at"], name="idx_dispute_project_created"),
+        ]
 
 
 class IdempotencyKey(models.Model):

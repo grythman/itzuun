@@ -30,7 +30,7 @@ class AdminUserListView(APIView):
 
     def get(self, request):
         verified = request.query_params.get("verified")
-        queryset = User.objects.all()
+        queryset = User.objects.all().order_by("-created_at")
         if verified is not None:
             queryset = queryset.filter(is_verified=verified.lower() == "true")
         return _paginated_response(request, queryset, UserSerializer, self)
@@ -50,7 +50,7 @@ class AdminProjectListView(APIView):
 
     def get(self, request):
         status_param = request.query_params.get("status")
-        queryset = Project.objects.all()
+        queryset = Project.objects.all().order_by("-created_at")
         if status_param:
             queryset = queryset.filter(status=status_param)
         return _paginated_response(request, queryset, ProjectSerializer, self)
@@ -61,7 +61,7 @@ class AdminEscrowListView(APIView):
 
     def get(self, request):
         status_param = request.query_params.get("status")
-        queryset = Escrow.objects.select_related("project").all()
+        queryset = Escrow.objects.select_related("project").all().order_by("-created_at")
         if status_param:
             queryset = queryset.filter(status=status_param)
         return _paginated_response(request, queryset, EscrowSerializer, self)
@@ -72,7 +72,7 @@ class AdminDisputeListView(APIView):
 
     def get(self, request):
         unresolved = request.query_params.get("unresolved")
-        queryset = Dispute.objects.select_related("project", "raised_by", "resolved_by").all()
+        queryset = Dispute.objects.select_related("project", "raised_by", "resolved_by").all().order_by("-created_at")
         if unresolved is not None and unresolved.lower() == "true":
             queryset = queryset.filter(resolved_at__isnull=True)
         return _paginated_response(request, queryset, DisputeSerializer, self)
