@@ -1,10 +1,5 @@
 const API_BASE = "/api/v1";
 
-const state = {
-  access: localStorage.getItem("access") || "",
-  refresh: localStorage.getItem("refresh") || "",
-};
-
 function log(message, payload) {
   const el = document.getElementById("logBox");
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -14,12 +9,14 @@ function log(message, payload) {
 function authHeaders(json = true) {
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
-  if (state.access) headers.Authorization = `Bearer ${state.access}`;
   return headers;
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, options);
+  const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+    ...options,
+  });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const msg = data?.detail || "Request failed";
@@ -33,7 +30,6 @@ function setMeText(text) {
 }
 
 async function loadMe() {
-  if (!state.access) return;
   try {
     const me = await api("/auth/me", { headers: authHeaders(false) });
     setMeText(`${me.email} (${me.role})`);
@@ -71,10 +67,6 @@ function bindAuth() {
         headers: authHeaders(),
         body: JSON.stringify({ email, otp, otp_token }),
       });
-      state.access = data.access;
-      state.refresh = data.refresh;
-      localStorage.setItem("access", state.access);
-      localStorage.setItem("refresh", state.refresh);
       setMeText(`${data.user.email} (${data.user.role})`);
       log("Нэвтэрлээ", data.user);
     } catch (error) {
@@ -82,11 +74,14 @@ function bindAuth() {
     }
   };
 
-  document.getElementById("logoutBtn").onclick = () => {
-    state.access = "";
-    state.refresh = "";
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
+  document.getElementById("logoutBtn").onclick = async () => {
+    try {
+      await api("/auth/logout", {
+        method: "POST",
+        headers: authHeaders(),
+      });
+    } catch (_error) {
+    }
     setMeText("Нэвтрээгүй");
     log("Logout хийгдлээ");
   };

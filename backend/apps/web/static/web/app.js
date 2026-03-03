@@ -1,21 +1,9 @@
 const API_BASE = "/api/v1";
 
 const state = {
-  access: localStorage.getItem("access") || "",
-  refresh: localStorage.getItem("refresh") || "",
   currentProject: null,
   projects: [],
 };
-
-function syncAdminLink() {
-  const link = document.getElementById("adminDashboardLink");
-  if (!link) return;
-  if (state.access) {
-    link.href = `/dashboard/admin?access=${encodeURIComponent(state.access)}`;
-  } else {
-    link.href = "/dashboard/admin";
-  }
-}
 
 function log(message, payload) {
   const el = document.getElementById("logBox");
@@ -26,7 +14,6 @@ function log(message, payload) {
 function authHeaders(json = true) {
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
-  if (state.access) headers.Authorization = `Bearer ${state.access}`;
   return headers;
 }
 
@@ -41,7 +28,10 @@ function setAdminVisibility(role) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, options);
+  const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+    ...options,
+  });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const msg = data?.detail || "Request failed";
@@ -76,11 +66,6 @@ function bindAuthUI() {
         headers: authHeaders(),
         body: JSON.stringify({ email, otp, otp_token }),
       });
-      state.access = data.access;
-      state.refresh = data.refresh;
-      localStorage.setItem("access", state.access);
-      localStorage.setItem("refresh", state.refresh);
-      syncAdminLink();
       document.getElementById("meBox").textContent = `${data.user.email} (${data.user.role})`;
       document.getElementById("roleSelect").value = data.user.role;
       setAdminVisibility(data.user.role);
@@ -107,13 +92,15 @@ function bindAuthUI() {
     }
   };
 
-  document.getElementById("logoutBtn").onclick = () => {
-    state.access = "";
-    state.refresh = "";
+  document.getElementById("logoutBtn").onclick = async () => {
     state.currentProject = null;
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    syncAdminLink();
+    try {
+      await api("/auth/logout", {
+        method: "POST",
+        headers: authHeaders(),
+      });
+    } catch (_error) {
+    }
     document.getElementById("meBox").textContent = "Нэвтрээгүй";
     setAdminVisibility("");
     log("Logout хийгдлээ");
@@ -121,7 +108,6 @@ function bindAuthUI() {
 }
 
 async function loadMe() {
-  if (!state.access) return;
   try {
     const me = await api("/auth/me", { headers: authHeaders(false) });
     document.getElementById("meBox").textContent = `${me.email} (${me.role})`;
@@ -370,7 +356,7 @@ function bindMessaging() {
     try {
       const response = await fetch(`${API_BASE}/projects/${state.currentProject.id}/files`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${state.access}` },
+        credentials: "include",
         body: formData,
       });
       const data = await response.json();
@@ -462,7 +448,6 @@ function bindAdminOps() {
 }
 
 function init() {
-  syncAdminLink();
   bindAuthUI();
   bindProjectCreate();
   bindProposal();

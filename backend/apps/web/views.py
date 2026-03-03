@@ -12,16 +12,7 @@ class AdminDashboardView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         auth = JWTAuthentication()
-        raw_token = None
-
-        header = auth.get_header(request)
-        if header is not None:
-            parsed = auth.get_raw_token(header)
-            if parsed is not None:
-                raw_token = parsed.decode("utf-8") if isinstance(parsed, bytes) else parsed
-
-        if raw_token is None:
-            raw_token = request.GET.get("access")
+        raw_token = request.COOKIES.get("access_token")
 
         if not raw_token:
             return redirect("/")
