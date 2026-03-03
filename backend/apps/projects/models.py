@@ -1,6 +1,7 @@
 """Project and proposal models."""
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 
 
 class Project(models.Model):
@@ -33,6 +34,24 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(status__in=[
+                    STATUS_OPEN,
+                    STATUS_IN_PROGRESS,
+                    STATUS_AWAITING_REVIEW,
+                    STATUS_COMPLETED,
+                    STATUS_CLOSED_REFUNDED,
+                    STATUS_DISPUTED,
+                ]),
+                name="ck_project_valid_status",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["status", "category", "-created_at"], name="idx_project_status_cat_created"),
+        ]
+
 
 class Proposal(models.Model):
     STATUS_PENDING = "pending"
@@ -56,3 +75,11 @@ class Proposal(models.Model):
     message = models.TextField(blank=True)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["project", "freelancer"], name="uq_proposal_project_freelancer"),
+        ]
+        indexes = [
+            models.Index(fields=["project", "status", "-created_at"], name="idx_prop_proj_status_created"),
+        ]

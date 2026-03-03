@@ -1,6 +1,7 @@
 """Payments and escrow models."""
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 
 from apps.projects.models import Project
 
@@ -25,6 +26,14 @@ class Escrow(models.Model):
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING_ADMIN)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(amount__gte=0), name="ck_escrow_amount_non_negative"),
+        ]
+        indexes = [
+            models.Index(fields=["status", "-updated_at"], name="idx_escrow_status_updated"),
+        ]
 
 
 class LedgerEntry(models.Model):

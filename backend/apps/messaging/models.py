@@ -16,6 +16,11 @@ class ProjectMessage(models.Model):
     text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["project", "-created_at"], name="idx_msg_project_created"),
+        ]
+
 
 class ProjectFile(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="files")

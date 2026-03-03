@@ -1,13 +1,17 @@
 """Project domain services."""
 from django.db import transaction
 
+from backend.common.exceptions import DomainError
+from backend.common.state_guards import guard_project_transition
+
 from .models import Project, Proposal
 
 
 @transaction.atomic
 def select_freelancer(project: Project, proposal: Proposal) -> Project:
     if project.status != Project.STATUS_OPEN:
-        raise ValueError("Project is not open")
+        raise DomainError("Project is not open")
+    guard_project_transition(project.status, Project.STATUS_IN_PROGRESS)
     project.status = Project.STATUS_IN_PROGRESS
     project.selected_proposal = proposal
     proposal.status = Proposal.STATUS_ACCEPTED
@@ -18,7 +22,8 @@ def select_freelancer(project: Project, proposal: Proposal) -> Project:
 
 def close_project(project: Project) -> Project:
     if project.status != Project.STATUS_OPEN:
-        raise ValueError("Project is not open")
+        raise DomainError("Project is not open")
+    guard_project_transition(project.status, Project.STATUS_CLOSED_REFUNDED)
     project.status = Project.STATUS_CLOSED_REFUNDED
     project.save(update_fields=["status"])
     return project

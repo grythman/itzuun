@@ -11,9 +11,17 @@ from apps.payments.models import Dispute, Escrow
 from apps.payments.serializers import DisputeSerializer, EscrowSerializer
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
+from backend.common.pagination import StandardResultsSetPagination
 from backend.common.models import PlatformSetting
 
 from .services import resolve_project_dispute, update_platform_fee, verify_user
+
+
+def _paginated_response(request, queryset, serializer_class, view):
+    paginator = StandardResultsSetPagination()
+    page = paginator.paginate_queryset(queryset, request, view=view)
+    serializer = serializer_class(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
 
 
 class AdminUserListView(APIView):
@@ -24,7 +32,7 @@ class AdminUserListView(APIView):
         queryset = User.objects.all()
         if verified is not None:
             queryset = queryset.filter(is_verified=verified.lower() == "true")
-        return Response(UserSerializer(queryset, many=True).data)
+        return _paginated_response(request, queryset, UserSerializer, self)
 
 
 class AdminUserVerifyView(APIView):
@@ -44,7 +52,7 @@ class AdminProjectListView(APIView):
         queryset = Project.objects.all()
         if status_param:
             queryset = queryset.filter(status=status_param)
-        return Response(ProjectSerializer(queryset, many=True).data)
+        return _paginated_response(request, queryset, ProjectSerializer, self)
 
 
 class AdminEscrowListView(APIView):
@@ -55,7 +63,7 @@ class AdminEscrowListView(APIView):
         queryset = Escrow.objects.select_related("project").all()
         if status_param:
             queryset = queryset.filter(status=status_param)
-        return Response(EscrowSerializer(queryset, many=True).data)
+        return _paginated_response(request, queryset, EscrowSerializer, self)
 
 
 class AdminDisputeListView(APIView):
@@ -66,7 +74,7 @@ class AdminDisputeListView(APIView):
         queryset = Dispute.objects.select_related("project", "raised_by", "resolved_by").all()
         if unresolved is not None and unresolved.lower() == "true":
             queryset = queryset.filter(resolved_at__isnull=True)
-        return Response(DisputeSerializer(queryset, many=True).data)
+        return _paginated_response(request, queryset, DisputeSerializer, self)
 
 
 class AdminDisputeResolveView(APIView):

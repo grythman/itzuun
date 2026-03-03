@@ -50,8 +50,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class EmailOTP(models.Model):
     email = models.EmailField()
-    otp_code = models.CharField(max_length=6)
+    otp_hash = models.CharField(max_length=255)
     otp_token = models.CharField(max_length=64, unique=True)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["email", "is_used", "expires_at"], name="idx_otp_email_used_exp"),
+        ]
