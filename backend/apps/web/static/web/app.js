@@ -17,6 +17,7 @@ function showBanner(message, type = "info", autoHideMs = 0) {
   banner.innerHTML = `
     <span class="session-banner-text">${message}</span>
     <button type="button" class="session-banner-close" aria-label="Close">×</button>
+    <span class="session-banner-progress"></span>
   `;
   banner.classList.remove("hidden");
   banner.classList.remove("warn", "info", "success");
@@ -26,6 +27,15 @@ function showBanner(message, type = "info", autoHideMs = 0) {
     closeBtn.onclick = () => clearSessionBanner();
   }
   if (autoHideMs > 0) {
+    const progress = banner.querySelector(".session-banner-progress");
+    if (progress) {
+      progress.style.transition = "none";
+      progress.style.transform = "scaleX(1)";
+      requestAnimationFrame(() => {
+        progress.style.transition = `transform ${autoHideMs}ms linear`;
+        progress.style.transform = "scaleX(0)";
+      });
+    }
     setTimeout(() => {
       clearSessionBanner();
     }, autoHideMs);
