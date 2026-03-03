@@ -1,8 +1,8 @@
 """Project domain services."""
 from django.db import transaction
 
-from backend.common.exceptions import DomainError
-from backend.common.state_guards import guard_project_transition
+from common.exceptions import DomainError
+from common.state_guards import guard_project_transition
 
 from .models import Project, Proposal
 

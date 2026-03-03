@@ -38,12 +38,12 @@ class Project(models.Model):
         constraints = [
             models.CheckConstraint(
                 check=Q(status__in=[
-                    STATUS_OPEN,
-                    STATUS_IN_PROGRESS,
-                    STATUS_AWAITING_REVIEW,
-                    STATUS_COMPLETED,
-                    STATUS_CLOSED_REFUNDED,
-                    STATUS_DISPUTED,
+                    "open",
+                    "in_progress",
+                    "awaiting_review",
+                    "completed",
+                    "closed_refunded",
+                    "disputed",
                 ]),
                 name="ck_project_valid_status",
             ),

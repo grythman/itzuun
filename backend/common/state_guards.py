@@ -1,6 +1,6 @@
 """State transition guards for core transactional entities."""
 
-from backend.common.exceptions import DomainError
+from common.exceptions import DomainError
 
 
 ALLOWED_PROJECT_TRANSITIONS = {

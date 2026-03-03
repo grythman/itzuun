@@ -4,7 +4,7 @@ from django.db import transaction
 from apps.accounts.models import User
 from apps.payments.models import Dispute
 from apps.payments.services import resolve_dispute
-from backend.common.models import PlatformSetting
+from common.models import PlatformSetting
 
 
 @transaction.atomic

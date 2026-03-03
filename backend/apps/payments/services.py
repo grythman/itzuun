@@ -2,9 +2,9 @@
 from django.db import transaction
 from django.utils import timezone
 
-from backend.common.exceptions import DomainError
-from backend.common.models import PlatformSetting
-from backend.common.state_guards import guard_escrow_transition, guard_project_transition
+from common.exceptions import DomainError
+from common.models import PlatformSetting
+from common.state_guards import guard_escrow_transition, guard_project_transition
 from apps.projects.models import Project
 
 from .models import Dispute, Escrow, LedgerEntry

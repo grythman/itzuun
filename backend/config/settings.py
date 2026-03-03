@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "apps.reviews",
     "apps.adminpanel",
     "apps.web",
+    "common",
 ]
 
 MIDDLEWARE = [
@@ -104,7 +105,7 @@ REST_FRAMEWORK = {
         "apps.accounts.authentication.CookieJWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_PAGINATION_CLASS": "backend.common.pagination.StandardResultsSetPagination",
+    "DEFAULT_PAGINATION_CLASS": "common.pagination.StandardResultsSetPagination",
     "PAGE_SIZE": 20,
 }
 

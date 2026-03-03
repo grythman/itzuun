@@ -11,8 +11,8 @@ from apps.payments.models import Dispute, Escrow
 from apps.payments.serializers import DisputeSerializer, EscrowSerializer
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
-from backend.common.pagination import StandardResultsSetPagination
-from backend.common.models import PlatformSetting
+from common.pagination import StandardResultsSetPagination
+from common.models import PlatformSetting
 
 from .services import resolve_project_dispute, update_platform_fee, verify_user
 
