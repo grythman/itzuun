@@ -3,6 +3,7 @@ const API_BASE = "/api/v1";
 const state = {
   currentProject: null,
   projects: [],
+  bannerTimer: null,
 };
 
 function log(message, payload) {
@@ -14,29 +15,48 @@ function log(message, payload) {
 function showBanner(message, type = "info", autoHideMs = 0) {
   const banner = document.getElementById("sessionBanner");
   if (!banner) return;
-  banner.innerHTML = `
-    <span class="session-banner-text">${message}</span>
-    <button type="button" class="session-banner-close" aria-label="Close">×</button>
-    <span class="session-banner-progress"></span>
-  `;
+  if (state.bannerTimer) {
+    clearTimeout(state.bannerTimer);
+    state.bannerTimer = null;
+  }
+
+  banner.innerHTML = "";
+  const textNode = document.createElement("span");
+  textNode.className = "session-banner-text";
+  textNode.textContent = message;
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "session-banner-close";
+  closeBtn.setAttribute("aria-label", "Close notification");
+  closeBtn.textContent = "×";
+
+  const progress = document.createElement("span");
+  progress.className = "session-banner-progress";
+
+  banner.appendChild(textNode);
+  banner.appendChild(closeBtn);
+  banner.appendChild(progress);
   banner.classList.remove("hidden");
   banner.classList.remove("warn", "info", "success");
   banner.classList.add(type);
-  const closeBtn = banner.querySelector(".session-banner-close");
-  if (closeBtn) {
-    closeBtn.onclick = () => clearSessionBanner();
-  }
+
+  closeBtn.onclick = () => clearSessionBanner();
+
   if (autoHideMs > 0) {
-    const progress = banner.querySelector(".session-banner-progress");
-    if (progress) {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reducedMotion) {
       progress.style.transition = "none";
       progress.style.transform = "scaleX(1)";
       requestAnimationFrame(() => {
         progress.style.transition = `transform ${autoHideMs}ms linear`;
         progress.style.transform = "scaleX(0)";
       });
+    } else {
+      progress.style.display = "none";
     }
-    setTimeout(() => {
+
+    state.bannerTimer = setTimeout(() => {
       clearSessionBanner();
     }, autoHideMs);
   }
@@ -45,9 +65,13 @@ function showBanner(message, type = "info", autoHideMs = 0) {
 function clearSessionBanner() {
   const banner = document.getElementById("sessionBanner");
   if (!banner) return;
+  if (state.bannerTimer) {
+    clearTimeout(state.bannerTimer);
+    state.bannerTimer = null;
+  }
   banner.textContent = "";
   banner.classList.add("hidden");
-  banner.classList.remove("warn");
+  banner.classList.remove("warn", "info", "success");
 }
 
 function authHeaders(json = true) {

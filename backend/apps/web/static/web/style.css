@@ -48,6 +48,11 @@ body {
   cursor: pointer;
   padding: 0 4px;
 }
+.session-banner-close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 .session-banner.warn {
   background: #fef3c7;
   color: #92400e;
@@ -74,6 +79,11 @@ body {
 .session-banner.info .session-banner-progress { background: #60a5fa; }
 .session-banner.warn .session-banner-progress { background: #f59e0b; }
 .session-banner.success .session-banner-progress { background: #22c55e; }
+@media (prefers-reduced-motion: reduce) {
+  .session-banner-progress {
+    display: none;
+  }
+}
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
