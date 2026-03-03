@@ -6,12 +6,18 @@ function log(message, payload) {
   el.textContent = `${line}${payload ? `\n${JSON.stringify(payload, null, 2)}` : ""}\n\n${el.textContent}`;
 }
 
-function showSessionBanner(message) {
+function showBanner(message, type = "info", autoHideMs = 0) {
   const banner = document.getElementById("sessionBanner");
   if (!banner) return;
   banner.textContent = message;
   banner.classList.remove("hidden");
-  banner.classList.add("warn");
+  banner.classList.remove("warn", "info", "success");
+  banner.classList.add(type);
+  if (autoHideMs > 0) {
+    setTimeout(() => {
+      clearSessionBanner();
+    }, autoHideMs);
+  }
 }
 
 function clearSessionBanner() {
@@ -30,7 +36,7 @@ function authHeaders(json = true) {
 
 function handleAuthExpired() {
   setMeText("Нэвтрээгүй");
-  showSessionBanner("Session дууссан тул Main UI руу шилжиж байна...");
+  showBanner("Session дууссан тул Main UI руу шилжиж байна...", "warn");
   log("Session дууссан. Main UI руу шилжүүлж байна.");
   setTimeout(() => {
     window.location.href = "/";
@@ -108,6 +114,7 @@ function bindAuth() {
       });
       clearSessionBanner();
       setMeText(`${data.user.email} (${data.user.role})`);
+      showBanner("Амжилттай нэвтэрлээ.", "success", 2200);
       log("Нэвтэрлээ", data.user);
     } catch (error) {
       log(`Нэвтрэх алдаа: ${error.message}`);
@@ -123,6 +130,7 @@ function bindAuth() {
     } catch (_error) {
     }
     setMeText("Нэвтрээгүй");
+    showBanner("Logout амжилттай.", "info", 1800);
     log("Logout хийгдлээ");
   };
 }
