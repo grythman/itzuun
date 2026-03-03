@@ -12,6 +12,14 @@ function authHeaders(json = true) {
   return headers;
 }
 
+function handleAuthExpired() {
+  setMeText("Нэвтрээгүй");
+  log("Session дууссан. Main UI руу шилжүүлж байна.");
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 600);
+}
+
 async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -27,6 +35,8 @@ async function api(path, options = {}) {
     if (refreshResponse.ok) {
       return api(path, { ...options, _retried: true });
     }
+    handleAuthExpired();
+    throw new Error("Session expired");
   }
 
   const data = await response.json().catch(() => ({}));

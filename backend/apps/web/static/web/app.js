@@ -27,6 +27,20 @@ function setAdminVisibility(role) {
   }
 }
 
+function handleAuthExpired() {
+  state.currentProject = null;
+  state.projects = [];
+  document.getElementById("meBox").textContent = "Нэвтрээгүй";
+  setAdminVisibility("");
+  document.getElementById("projectsList").innerHTML = "";
+  document.getElementById("proposalsList").innerHTML = "";
+  document.getElementById("chatList").innerHTML = "";
+  document.getElementById("selectedProjectBox").textContent = "Төсөл сонгоогүй";
+  const emailInput = document.getElementById("emailInput");
+  if (emailInput) emailInput.focus();
+  log("Session дууссан. Дахин нэвтэрнэ үү.");
+}
+
 async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
@@ -42,6 +56,8 @@ async function api(path, options = {}) {
     if (refreshResponse.ok) {
       return api(path, { ...options, _retried: true });
     }
+    handleAuthExpired();
+    throw new Error("Session expired");
   }
 
   const data = await response.json().catch(() => ({}));
