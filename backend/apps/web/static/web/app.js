@@ -11,6 +11,22 @@ function log(message, payload) {
   el.textContent = `${line}${payload ? `\n${JSON.stringify(payload, null, 2)}` : ""}\n\n${el.textContent}`;
 }
 
+function showSessionBanner(message) {
+  const banner = document.getElementById("sessionBanner");
+  if (!banner) return;
+  banner.textContent = message;
+  banner.classList.remove("hidden");
+  banner.classList.add("warn");
+}
+
+function clearSessionBanner() {
+  const banner = document.getElementById("sessionBanner");
+  if (!banner) return;
+  banner.textContent = "";
+  banner.classList.add("hidden");
+  banner.classList.remove("warn");
+}
+
 function authHeaders(json = true) {
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
@@ -38,6 +54,7 @@ function handleAuthExpired() {
   document.getElementById("selectedProjectBox").textContent = "Төсөл сонгоогүй";
   const emailInput = document.getElementById("emailInput");
   if (emailInput) emailInput.focus();
+  showSessionBanner("Session дууссан тул дахин нэвтэрнэ үү.");
   log("Session дууссан. Дахин нэвтэрнэ үү.");
 }
 
@@ -97,6 +114,7 @@ function bindAuthUI() {
       document.getElementById("meBox").textContent = `${data.user.email} (${data.user.role})`;
       document.getElementById("roleSelect").value = data.user.role;
       setAdminVisibility(data.user.role);
+      clearSessionBanner();
       log("Нэвтэрлээ", data.user);
       await loadProjects();
     } catch (error) {

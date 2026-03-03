@@ -6,6 +6,22 @@ function log(message, payload) {
   el.textContent = `${line}${payload ? `\n${JSON.stringify(payload, null, 2)}` : ""}\n\n${el.textContent}`;
 }
 
+function showSessionBanner(message) {
+  const banner = document.getElementById("sessionBanner");
+  if (!banner) return;
+  banner.textContent = message;
+  banner.classList.remove("hidden");
+  banner.classList.add("warn");
+}
+
+function clearSessionBanner() {
+  const banner = document.getElementById("sessionBanner");
+  if (!banner) return;
+  banner.textContent = "";
+  banner.classList.add("hidden");
+  banner.classList.remove("warn");
+}
+
 function authHeaders(json = true) {
   const headers = {};
   if (json) headers["Content-Type"] = "application/json";
@@ -14,6 +30,7 @@ function authHeaders(json = true) {
 
 function handleAuthExpired() {
   setMeText("Нэвтрээгүй");
+  showSessionBanner("Session дууссан тул Main UI руу шилжиж байна...");
   log("Session дууссан. Main UI руу шилжүүлж байна.");
   setTimeout(() => {
     window.location.href = "/";
@@ -89,6 +106,7 @@ function bindAuth() {
         headers: authHeaders(),
         body: JSON.stringify({ email, otp, otp_token }),
       });
+      clearSessionBanner();
       setMeText(`${data.user.email} (${data.user.role})`);
       log("Нэвтэрлээ", data.user);
     } catch (error) {
