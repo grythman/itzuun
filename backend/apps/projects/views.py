@@ -1,7 +1,7 @@
 """Project and proposal views."""
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status
+from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,7 +31,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsClient()]
-        return super().get_permissions()
+        return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -40,6 +40,11 @@ class ProjectListCreateView(generics.ListCreateAPIView):
 class ProjectDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [permissions.AllowAny()]
+        return super().get_permissions()
 
     def patch(self, request, *args, **kwargs):
         project = self.get_object()

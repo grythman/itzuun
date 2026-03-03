@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITZuun MVP</title>
+  <link rel="stylesheet" href="{% static 'web/style.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <h1>ITZuun MVP</h1>
+    <div id="meBox" class="badge">Нэвтрээгүй</div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>1) OTP Нэвтрэх</h2>
+      <div class="row">
+        <input id="emailInput" type="email" placeholder="email@example.com">
+        <button id="requestOtpBtn">OTP авах</button>
+      </div>
+      <div class="row">
+        <input id="otpTokenInput" type="text" placeholder="otp_token">
+        <input id="otpCodeInput" type="text" placeholder="6 оронтой OTP">
+        <button id="verifyOtpBtn">Баталгаажуулах</button>
+      </div>
+      <div class="row">
+        <select id="roleSelect">
+          <option value="client">Client</option>
+          <option value="freelancer">Freelancer</option>
+        </select>
+        <button id="changeRoleBtn">Role солих</button>
+        <button id="logoutBtn" class="ghost">Гарах</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2) Төсөл үүсгэх (Client)</h2>
+      <div class="row"><input id="projectTitle" type="text" placeholder="Төслийн нэр"></div>
+      <div class="row"><textarea id="projectDesc" placeholder="Тайлбар"></textarea></div>
+      <div class="row">
+        <input id="projectBudget" type="number" placeholder="Төсөв">
+        <input id="projectTimeline" type="number" placeholder="Хугацаа (хоног)">
+        <input id="projectCategory" type="text" placeholder="Category (web/erp/pos)">
+        <button id="createProjectBtn">Төсөл нэмэх</button>
+      </div>
+    </section>
+
+    <section class="card span2">
+      <h2>3) Төслийн жагсаалт</h2>
+      <div class="row">
+        <input id="searchInput" type="text" placeholder="Search">
+        <select id="statusFilter">
+          <option value="">Бүгд</option>
+          <option value="open">open</option>
+          <option value="in_progress">in_progress</option>
+          <option value="awaiting_client_review">awaiting_client_review</option>
+          <option value="completed">completed</option>
+          <option value="disputed">disputed</option>
+        </select>
+        <button id="loadProjectsBtn">Дахин ачаалах</button>
+      </div>
+      <div id="projectsList" class="list"></div>
+    </section>
+
+    <section class="card span2">
+      <h2>4) Сонгосон төсөл</h2>
+      <div id="selectedProjectBox">Төсөл сонгоогүй</div>
+      <hr>
+      <h3>Proposal</h3>
+      <div class="row">
+        <input id="proposalPrice" type="number" placeholder="Үнэ">
+        <input id="proposalTimeline" type="number" placeholder="Хугацаа (хоног)">
+        <input id="proposalMessage" type="text" placeholder="Тайлбар">
+        <button id="submitProposalBtn">Санал илгээх</button>
+      </div>
+      <div id="proposalsList" class="list"></div>
+    </section>
+
+    <section class="card span2">
+      <h2>5) Escrow / Delivery</h2>
+      <div class="row">
+        <input id="depositAmount" type="number" placeholder="Escrow amount">
+        <button id="depositBtn">Escrow хийх</button>
+        <button id="submitResultBtn">Result submit</button>
+        <button id="confirmCompletionBtn">Completion confirm</button>
+      </div>
+      <div class="row">
+        <input id="disputeReason" type="text" placeholder="Dispute reason">
+        <button id="disputeBtn" class="warn">Dispute raise</button>
+      </div>
+    </section>
+
+    <section class="card span2">
+      <h2>6) Chat + File</h2>
+      <div class="row">
+        <input id="chatText" type="text" placeholder="Message">
+        <button id="sendChatBtn">Илгээх</button>
+        <button id="refreshChatBtn" class="ghost">Refresh</button>
+      </div>
+      <div class="row">
+        <input id="fileInput" type="file">
+        <button id="uploadFileBtn">Файл илгээх</button>
+      </div>
+      <div id="chatList" class="list"></div>
+    </section>
+
+    <section class="card span2">
+      <h2>Log</h2>
+      <pre id="logBox"></pre>
+    </section>
+  </main>
+
+  <script src="{% static 'web/app.js' %}"></script>
+</body>
+</html>
