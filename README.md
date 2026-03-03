@@ -62,8 +62,9 @@ Base URL: `/api/v1`
 ### Escrow, Messaging, Reviews
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/projects/{id}/escrow/deposit` | Escrow санхүүжүүлэх |
+| POST | `/projects/{id}/escrow/deposit` | Escrow санхүүжүүлэх (proposal price-тэй автоматаар таарна) |
 | POST | `/escrow/{id}/admin/approve` | Admin escrow approve |
+| POST | `/projects/{id}/deliverables` | Freelancer deliverable бүртгэх (`file_id`, `checksum`) |
 | POST | `/projects/{id}/submit-result` | Freelancer result submit |
 | POST | `/projects/{id}/confirm-completion` | Client completion confirm |
 | POST | `/projects/{id}/dispute` | Dispute үүсгэх |
@@ -82,6 +83,16 @@ Base URL: `/api/v1`
 | POST | `/admin/disputes/{id}/resolve` | Dispute шийдвэрлэх |
 | PATCH | `/admin/settings/commission` | Commission шинэчлэх |
 | GET | `/admin/settings/commission/detail` | Commission утга харах |
+
+### Financial Safety Rules
+- Money mutation endpoint-үүд `Idempotency-Key` header шаардана:
+   - `/projects/{id}/escrow/deposit`
+   - `/escrow/{id}/admin/approve`
+   - `/projects/{id}/confirm-completion`
+   - `/admin/disputes/{id}/resolve`
+   - `/admin/settings/commission`
+- `submit-result` хийхээс өмнө хамгийн багадаа 1 deliverable заавал бүртгэгдсэн байна.
+- Client commission override устсан; payout fee нь server policy-аас тооцогдоно.
 
 ## Quick Start (Backend)
 1. Install dependencies:

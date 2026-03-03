@@ -83,3 +83,22 @@ class Proposal(models.Model):
         indexes = [
             models.Index(fields=["project", "status", "-created_at"], name="idx_prop_proj_status_created"),
         ]
+
+
+class ProjectDeliverable(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="deliverables")
+    file = models.ForeignKey("messaging.ProjectFile", on_delete=models.CASCADE, related_name="deliverables")
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="submitted_deliverables"
+    )
+    description = models.TextField(blank=True)
+    checksum = models.CharField(max_length=128)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["project", "file"], name="uq_deliverable_project_file"),
+        ]
+        indexes = [
+            models.Index(fields=["project", "-submitted_at"], name="idx_deliv_proj_subm"),
+        ]

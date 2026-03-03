@@ -1,7 +1,7 @@
 """Project and proposal serializers."""
 from rest_framework import serializers
 
-from .models import Project, Proposal
+from .models import Project, ProjectDeliverable, Proposal
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -26,3 +26,12 @@ class ProposalSerializer(serializers.ModelSerializer):
         model = Proposal
         fields = ("id", "project", "freelancer", "price", "timeline_days", "message", "status")
         read_only_fields = ("id", "project", "freelancer", "status")
+
+
+class ProjectDeliverableSerializer(serializers.ModelSerializer):
+    file_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = ProjectDeliverable
+        fields = ("id", "project", "file", "file_id", "submitted_by", "description", "checksum", "submitted_at")
+        read_only_fields = ("id", "project", "file", "submitted_by", "submitted_at")

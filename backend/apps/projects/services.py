@@ -11,6 +11,8 @@ from .models import Project, Proposal
 def select_freelancer(project: Project, proposal: Proposal) -> Project:
     if project.status != Project.STATUS_OPEN:
         raise DomainError("Project is not open")
+    if proposal.project_id != project.id:
+        raise DomainError("Selected proposal must belong to the project")
     guard_project_transition(project.status, Project.STATUS_IN_PROGRESS)
     project.status = Project.STATUS_IN_PROGRESS
     project.selected_proposal = proposal

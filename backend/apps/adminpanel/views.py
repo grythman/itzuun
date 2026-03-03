@@ -8,6 +8,7 @@ from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUser
 from apps.accounts.serializers import UserSerializer
 from apps.payments.models import Dispute, Escrow
+from apps.payments.idempotency import execute_idempotent
 from apps.payments.serializers import DisputeSerializer, EscrowSerializer
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
@@ -82,23 +83,43 @@ class AdminDisputeResolveView(APIView):
 
     def post(self, request, dispute_id):
         dispute = get_object_or_404(Dispute, id=dispute_id)
-        resolved = resolve_project_dispute(
-            dispute,
-            action=request.data.get("action"),
-            release_amount=int(request.data.get("release_amount", 0)),
-            refund_amount=int(request.data.get("refund_amount", 0)),
-            note=request.data.get("note", ""),
-            resolver=request.user,
+
+        def _executor():
+            resolved = resolve_project_dispute(
+                dispute,
+                action=request.data.get("action"),
+                release_amount=int(request.data.get("release_amount", 0)),
+                refund_amount=int(request.data.get("refund_amount", 0)),
+                note=request.data.get("note", ""),
+                resolver=request.user,
+            )
+            return DisputeSerializer(resolved).data, status.HTTP_200_OK
+
+        payload, status_code = execute_idempotent(
+            request,
+            endpoint=f"POST:/api/v1/admin/disputes/{dispute_id}/resolve",
+            actor=request.user,
+            executor=_executor,
         )
-        return Response(DisputeSerializer(resolved).data)
+        return Response(payload, status=status_code)
 
 
 class AdminCommissionUpdateView(APIView):
     permission_classes = [IsAdminUser]
 
     def patch(self, request):
-        setting = update_platform_fee(int(request.data.get("platform_fee_pct", 12)))
-        return Response({"platform_fee_pct": setting.platform_fee_pct}, status=status.HTTP_200_OK)
+
+        def _executor():
+            setting = update_platform_fee(int(request.data.get("platform_fee_pct", 12)), actor=request.user)
+            return {"platform_fee_pct": setting.platform_fee_pct}, status.HTTP_200_OK
+
+        payload, status_code = execute_idempotent(
+            request,
+            endpoint="PATCH:/api/v1/admin/settings/commission",
+            actor=request.user,
+            executor=_executor,
+        )
+        return Response(payload, status=status_code)
 
 
 class AdminCommissionDetailView(APIView):

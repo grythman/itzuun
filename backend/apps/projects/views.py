@@ -6,9 +6,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Project, Proposal
+from apps.messaging.models import ProjectFile
+
+from .models import Project, ProjectDeliverable, Proposal
 from .permissions import IsClient, IsFreelancer
-from .serializers import ProjectSerializer, ProposalSerializer
+from .serializers import ProjectDeliverableSerializer, ProjectSerializer, ProposalSerializer
 from .services import close_project, select_freelancer
 
 
@@ -128,3 +130,29 @@ class ProposalWithdrawView(APIView):
         proposal.status = Proposal.STATUS_WITHDRAWN
         proposal.save(update_fields=["status"])
         return Response({"status": proposal.status})
+
+
+class ProjectDeliverableCreateView(APIView):
+    permission_classes = [IsFreelancer]
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=project_id)
+        selected_freelancer_id = getattr(getattr(project, "selected_proposal", None), "freelancer_id", None)
+        if selected_freelancer_id != request.user.id:
+            return Response({"detail": "Only selected freelancer can submit deliverables"}, status=status.HTTP_403_FORBIDDEN)
+
+        file_id = request.data.get("file_id")
+        if not file_id:
+            raise ValidationError({"file_id": "This field is required"})
+        file_obj = get_object_or_404(ProjectFile, id=file_id, project=project, uploader=request.user)
+
+        serializer = ProjectDeliverableSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        deliverable = ProjectDeliverable.objects.create(
+            project=project,
+            file=file_obj,
+            submitted_by=request.user,
+            description=serializer.validated_data.get("description", ""),
+            checksum=serializer.validated_data["checksum"],
+        )
+        return Response(ProjectDeliverableSerializer(deliverable).data, status=status.HTTP_201_CREATED)

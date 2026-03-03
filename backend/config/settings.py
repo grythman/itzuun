@@ -113,3 +113,6 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
 }
+
+PLATFORM_FEE_PCT = int(os.getenv("PLATFORM_FEE_PCT", "12"))
+PLATFORM_FEE_MAX_PCT = int(os.getenv("PLATFORM_FEE_MAX_PCT", "30"))

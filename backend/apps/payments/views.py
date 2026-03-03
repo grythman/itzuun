@@ -9,6 +9,7 @@ from apps.projects.models import Project
 from apps.projects.permissions import IsClient, IsFreelancer
 
 from .models import Dispute, Escrow
+from .idempotency import execute_idempotent
 from .serializers import DisputeSerializer, EscrowSerializer
 from .services import (
     approve_escrow,
@@ -24,14 +25,18 @@ class EscrowDepositView(APIView):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id, owner=request.user)
-        amount = request.data.get("amount")
-        try:
-            parsed_amount = int(amount) if amount is not None else None
-        except (TypeError, ValueError):
-            return Response({"detail": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
 
-        escrow = deposit_to_escrow(project, amount=parsed_amount)
-        return Response(EscrowSerializer(escrow).data, status=status.HTTP_201_CREATED)
+        def _executor():
+            escrow = deposit_to_escrow(project, actor=request.user)
+            return EscrowSerializer(escrow).data, status.HTTP_201_CREATED
+
+        payload, status_code = execute_idempotent(
+            request,
+            endpoint=f"POST:/api/v1/projects/{project_id}/escrow/deposit",
+            actor=request.user,
+            executor=_executor,
+        )
+        return Response(payload, status=status_code)
 
 
 class EscrowAdminApproveView(APIView):
@@ -39,8 +44,18 @@ class EscrowAdminApproveView(APIView):
 
     def post(self, request, escrow_id):
         escrow = get_object_or_404(Escrow, id=escrow_id)
-        approve_escrow(escrow)
-        return Response(EscrowSerializer(escrow).data)
+
+        def _executor():
+            approved = approve_escrow(escrow, actor=request.user)
+            return EscrowSerializer(approved).data, status.HTTP_200_OK
+
+        payload, status_code = execute_idempotent(
+            request,
+            endpoint=f"POST:/api/v1/escrow/{escrow_id}/admin/approve",
+            actor=request.user,
+            executor=_executor,
+        )
+        return Response(payload, status=status_code)
 
 
 class ProjectSubmitResultView(APIView):
@@ -57,13 +72,18 @@ class ProjectConfirmCompletionView(APIView):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id, owner=request.user)
-        platform_fee_pct = request.data.get("platform_fee_pct")
-        escrow = confirm_completion(
-            project,
-            approved_by=request.user,
-            platform_fee_pct=int(platform_fee_pct) if platform_fee_pct is not None else None,
+
+        def _executor():
+            escrow = confirm_completion(project, approved_by=request.user)
+            return EscrowSerializer(escrow).data, status.HTTP_200_OK
+
+        payload, status_code = execute_idempotent(
+            request,
+            endpoint=f"POST:/api/v1/projects/{project_id}/confirm-completion",
+            actor=request.user,
+            executor=_executor,
         )
-        return Response(EscrowSerializer(escrow).data)
+        return Response(payload, status=status_code)
 
 
 class ProjectDisputeView(APIView):

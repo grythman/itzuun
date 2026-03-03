@@ -1,4 +1,5 @@
 """Payments and escrow models."""
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
@@ -67,3 +68,57 @@ class Dispute(models.Model):
     resolved_at = models.DateTimeField(null=True, blank=True)
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class IdempotencyKey(models.Model):
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="idempotency_keys")
+    endpoint = models.CharField(max_length=128)
+    key = models.CharField(max_length=128)
+    response_hash = models.CharField(max_length=64)
+    response_body = models.JSONField(default=dict)
+    status_code = models.PositiveSmallIntegerField(default=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["actor", "endpoint", "key"], name="uq_idempotency_actor_ep_key"),
+        ]
+        indexes = [
+            models.Index(fields=["endpoint", "created_at"], name="idx_idempo_endpoint_created"),
+        ]
+
+
+class FinancialAuditLog(models.Model):
+    ENTITY_ESCROW = "escrow"
+    ENTITY_DISPUTE = "dispute"
+    ENTITY_COMMISSION = "commission"
+
+    ACTION_DEPOSIT = "deposit"
+    ACTION_APPROVE = "approve"
+    ACTION_RELEASE = "release"
+    ACTION_REFUND = "refund"
+    ACTION_DISPUTE = "dispute"
+    ACTION_COMMISSION_UPDATE = "commission_update"
+
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    action_type = models.CharField(max_length=40)
+    entity_type = models.CharField(max_length=24)
+    entity_id = models.PositiveBigIntegerField()
+    before_state = models.JSONField(default=dict)
+    after_state = models.JSONField(default=dict)
+    reason = models.TextField(blank=True)
+    hash_chain = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["entity_type", "entity_id", "-created_at"], name="idx_fin_audit_entity_created"),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValidationError("FinancialAuditLog is immutable and cannot be updated.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("FinancialAuditLog is immutable and cannot be deleted.")
