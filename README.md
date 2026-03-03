@@ -33,6 +33,56 @@
 - Monetization: [backend/docs/MONETIZATION_MODEL.md](backend/docs/MONETIZATION_MODEL.md)
 - Changelog: [backend/docs/CHANGELOG_MVP.md](backend/docs/CHANGELOG_MVP.md)
 
+## API Summary
+
+Base URL: `/api/v1`
+
+### Auth
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/auth/request-otp` | OTP token үүсгэх |
+| POST | `/auth/verify-otp` | OTP баталгаажуулах, auth cookie set |
+| POST | `/auth/refresh` | Access cookie refresh |
+| POST | `/auth/logout` | Auth cookie clear |
+| GET | `/auth/me` | Одоогийн хэрэглэгч |
+| PATCH | `/auth/me` | Role шинэчлэх (`client`/`freelancer`) |
+
+### Projects & Proposals
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/projects` | Project жагсаалт (public read) |
+| POST | `/projects` | Client project үүсгэх |
+| GET | `/projects/{id}` | Project дэлгэрэнгүй |
+| PATCH | `/projects/{id}` | Owner project засах (`open` үед) |
+| POST | `/projects/{id}/close` | Project хаах |
+| POST | `/projects/{id}/select-freelancer` | Proposal сонгох |
+| GET | `/projects/{id}/proposals` | Proposal жагсаалт |
+| POST | `/projects/{id}/proposals` | Freelancer proposal илгээх |
+
+### Escrow, Messaging, Reviews
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/projects/{id}/escrow/deposit` | Escrow санхүүжүүлэх |
+| POST | `/escrow/{id}/admin/approve` | Admin escrow approve |
+| POST | `/projects/{id}/submit-result` | Freelancer result submit |
+| POST | `/projects/{id}/confirm-completion` | Client completion confirm |
+| POST | `/projects/{id}/dispute` | Dispute үүсгэх |
+| GET/POST | `/projects/{id}/messages` | Chat list / message send |
+| POST | `/projects/{id}/files` | File upload |
+| POST | `/projects/{id}/reviews` | Review үлдээх |
+
+### Admin
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/admin/users` | User жагсаалт |
+| POST | `/admin/users/{id}/verify` | User verify хийх |
+| GET | `/admin/projects` | Project хяналт |
+| GET | `/admin/escrow` | Escrow жагсаалт |
+| GET | `/admin/disputes` | Dispute жагсаалт |
+| POST | `/admin/disputes/{id}/resolve` | Dispute шийдвэрлэх |
+| PATCH | `/admin/settings/commission` | Commission шинэчлэх |
+| GET | `/admin/settings/commission/detail` | Commission утга харах |
+
 ## Quick Start (Backend)
 1. Install dependencies:
    - `cd backend`
