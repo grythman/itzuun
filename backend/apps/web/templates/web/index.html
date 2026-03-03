@@ -10,7 +10,10 @@
 <body>
   <header class="topbar">
     <h1>ITZuun MVP</h1>
-    <div id="meBox" class="badge">Нэвтрээгүй</div>
+    <div class="row">
+      <a id="adminDashboardLink" href="/dashboard/admin" class="link-btn">Admin Dashboard</a>
+      <div id="meBox" class="badge">Нэвтрээгүй</div>
+    </div>
   </header>
 
   <main class="grid">
@@ -106,8 +109,35 @@
       <div id="chatList" class="list"></div>
     </section>
 
+    <section id="adminSection" class="card span2 hidden">
+      <h2>7) Admin Ops</h2>
+      <div class="row">
+        <button id="loadAdminEscrowBtn">Pending escrow авах</button>
+        <input id="approveEscrowId" type="number" placeholder="Escrow ID">
+        <button id="approveEscrowBtn">Escrow approve</button>
+      </div>
+      <div id="adminEscrowList" class="list"></div>
+      <hr>
+      <div class="row">
+        <button id="loadAdminDisputesBtn">Unresolved dispute авах</button>
+      </div>
+      <div class="row">
+        <input id="resolveDisputeId" type="number" placeholder="Dispute ID">
+        <select id="resolveAction">
+          <option value="release">release</option>
+          <option value="refund">refund</option>
+          <option value="split">split</option>
+        </select>
+        <input id="resolveReleaseAmount" type="number" placeholder="Release amount">
+        <input id="resolveRefundAmount" type="number" placeholder="Refund amount">
+        <input id="resolveNote" type="text" placeholder="Note">
+        <button id="resolveDisputeBtn" class="warn">Dispute resolve</button>
+      </div>
+      <div id="adminDisputeList" class="list"></div>
+    </section>
+
     <section class="card span2">
-      <h2>Log</h2>
+      <h2>8) Log</h2>
       <pre id="logBox"></pre>
     </section>
   </main>

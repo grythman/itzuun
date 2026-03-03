@@ -7,6 +7,16 @@ const state = {
   projects: [],
 };
 
+function syncAdminLink() {
+  const link = document.getElementById("adminDashboardLink");
+  if (!link) return;
+  if (state.access) {
+    link.href = `/dashboard/admin?access=${encodeURIComponent(state.access)}`;
+  } else {
+    link.href = "/dashboard/admin";
+  }
+}
+
 function log(message, payload) {
   const el = document.getElementById("logBox");
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -18,6 +28,16 @@ function authHeaders(json = true) {
   if (json) headers["Content-Type"] = "application/json";
   if (state.access) headers.Authorization = `Bearer ${state.access}`;
   return headers;
+}
+
+function setAdminVisibility(role) {
+  const adminSection = document.getElementById("adminSection");
+  if (!adminSection) return;
+  if (role === "admin") {
+    adminSection.classList.remove("hidden");
+  } else {
+    adminSection.classList.add("hidden");
+  }
 }
 
 async function api(path, options = {}) {
@@ -60,8 +80,10 @@ function bindAuthUI() {
       state.refresh = data.refresh;
       localStorage.setItem("access", state.access);
       localStorage.setItem("refresh", state.refresh);
+      syncAdminLink();
       document.getElementById("meBox").textContent = `${data.user.email} (${data.user.role})`;
       document.getElementById("roleSelect").value = data.user.role;
+      setAdminVisibility(data.user.role);
       log("Нэвтэрлээ", data.user);
       await loadProjects();
     } catch (error) {
@@ -78,6 +100,7 @@ function bindAuthUI() {
         body: JSON.stringify({ role }),
       });
       document.getElementById("meBox").textContent = `${data.email} (${data.role})`;
+      setAdminVisibility(data.role);
       log("Role шинэчлэгдлээ", data);
     } catch (error) {
       log(`Алдаа: ${error.message}`);
@@ -90,7 +113,9 @@ function bindAuthUI() {
     state.currentProject = null;
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
+    syncAdminLink();
     document.getElementById("meBox").textContent = "Нэвтрээгүй";
+    setAdminVisibility("");
     log("Logout хийгдлээ");
   };
 }
@@ -101,6 +126,7 @@ async function loadMe() {
     const me = await api("/auth/me", { headers: authHeaders(false) });
     document.getElementById("meBox").textContent = `${me.email} (${me.role})`;
     document.getElementById("roleSelect").value = me.role;
+    setAdminVisibility(me.role);
   } catch (error) {
     log(`Me унших алдаа: ${error.message}`);
   }
@@ -356,12 +382,93 @@ function bindMessaging() {
   };
 }
 
+function renderAdminEscrows(escrows) {
+  const list = document.getElementById("adminEscrowList");
+  list.innerHTML = "";
+  escrows.forEach((escrow) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<strong>Escrow #${escrow.id}</strong> · project ${escrow.project} · ${escrow.amount}₮ · ${escrow.status}`;
+    list.appendChild(div);
+  });
+}
+
+function renderAdminDisputes(disputes) {
+  const list = document.getElementById("adminDisputeList");
+  list.innerHTML = "";
+  disputes.forEach((dispute) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<strong>Dispute #${dispute.id}</strong> · project ${dispute.project} · raised_by ${dispute.raised_by}<br>${dispute.reason || ""}`;
+    list.appendChild(div);
+  });
+}
+
+function bindAdminOps() {
+  document.getElementById("loadAdminEscrowBtn").onclick = async () => {
+    try {
+      const data = await api("/admin/escrow?status=pending_admin", { headers: authHeaders(false) });
+      renderAdminEscrows(data);
+      log("Pending escrow жагсаалт", { count: data.length });
+    } catch (error) {
+      log(`Admin escrow list алдаа: ${error.message}`);
+    }
+  };
+
+  document.getElementById("approveEscrowBtn").onclick = async () => {
+    try {
+      const escrowId = Number(document.getElementById("approveEscrowId").value);
+      if (!escrowId) return log("Escrow ID оруулна уу");
+      const data = await api(`/escrow/${escrowId}/admin/approve`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      log("Escrow approve амжилттай", data);
+    } catch (error) {
+      log(`Escrow approve алдаа: ${error.message}`);
+    }
+  };
+
+  document.getElementById("loadAdminDisputesBtn").onclick = async () => {
+    try {
+      const data = await api("/admin/disputes?unresolved=true", { headers: authHeaders(false) });
+      renderAdminDisputes(data);
+      log("Unresolved dispute жагсаалт", { count: data.length });
+    } catch (error) {
+      log(`Admin disputes list алдаа: ${error.message}`);
+    }
+  };
+
+  document.getElementById("resolveDisputeBtn").onclick = async () => {
+    try {
+      const disputeId = Number(document.getElementById("resolveDisputeId").value);
+      if (!disputeId) return log("Dispute ID оруулна уу");
+      const payload = {
+        action: document.getElementById("resolveAction").value,
+        release_amount: Number(document.getElementById("resolveReleaseAmount").value || 0),
+        refund_amount: Number(document.getElementById("resolveRefundAmount").value || 0),
+        note: document.getElementById("resolveNote").value.trim(),
+      };
+      const data = await api(`/admin/disputes/${disputeId}/resolve`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      log("Dispute resolve амжилттай", data);
+    } catch (error) {
+      log(`Dispute resolve алдаа: ${error.message}`);
+    }
+  };
+}
+
 function init() {
+  syncAdminLink();
   bindAuthUI();
   bindProjectCreate();
   bindProposal();
   bindEscrow();
   bindMessaging();
+  bindAdminOps();
   loadMe();
   loadProjects();
 }

@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUser
 from apps.accounts.serializers import UserSerializer
-from apps.payments.models import Dispute
-from apps.payments.serializers import DisputeSerializer
+from apps.payments.models import Dispute, Escrow
+from apps.payments.serializers import DisputeSerializer, EscrowSerializer
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
 from backend.common.models import PlatformSetting
@@ -45,6 +45,28 @@ class AdminProjectListView(APIView):
         if status_param:
             queryset = queryset.filter(status=status_param)
         return Response(ProjectSerializer(queryset, many=True).data)
+
+
+class AdminEscrowListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        status_param = request.query_params.get("status")
+        queryset = Escrow.objects.select_related("project").all()
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        return Response(EscrowSerializer(queryset, many=True).data)
+
+
+class AdminDisputeListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        unresolved = request.query_params.get("unresolved")
+        queryset = Dispute.objects.select_related("project", "raised_by", "resolved_by").all()
+        if unresolved is not None and unresolved.lower() == "true":
+            queryset = queryset.filter(resolved_at__isnull=True)
+        return Response(DisputeSerializer(queryset, many=True).data)
 
 
 class AdminDisputeResolveView(APIView):
