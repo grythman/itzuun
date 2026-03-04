@@ -16,10 +16,11 @@ vi.mock("@/lib/hooks", () => ({
 }));
 
 describe("HomePage", () => {
-  it("renders project list happy path", () => {
+  it("renders landing and latest projects", () => {
     render(<HomePage />);
 
-    expect(screen.getByText("Projects")).toBeInTheDocument();
+    expect(screen.getByText("ITZuun MVP")).toBeInTheDocument();
+    expect(screen.getByText("Latest Projects")).toBeInTheDocument();
     expect(screen.getByText("Landing page build")).toBeInTheDocument();
     expect(screen.getByText("Need freelancer")).toBeInTheDocument();
   });

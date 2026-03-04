@@ -4,6 +4,7 @@ from django.urls import path
 from .views import (
     EscrowAdminApproveView,
     EscrowDepositView,
+    EscrowReleaseView,
     ProjectConfirmCompletionView,
     ProjectDisputeView,
     ProjectSubmitResultView,
@@ -12,6 +13,7 @@ from .views import (
 urlpatterns = [
     path("projects/<int:project_id>/escrow/deposit", EscrowDepositView.as_view(), name="escrow-deposit"),
     path("escrow/<int:escrow_id>/admin/approve", EscrowAdminApproveView.as_view(), name="escrow-approve"),
+    path("escrow/<int:escrow_id>/release", EscrowReleaseView.as_view(), name="escrow-release"),
     path("projects/<int:project_id>/submit-result", ProjectSubmitResultView.as_view(), name="submit-result"),
     path(
         "projects/<int:project_id>/confirm-completion",

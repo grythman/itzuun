@@ -18,7 +18,7 @@ export default function NewProjectPage() {
   const toast = useToastStore((s) => s.push);
   const form = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
-    defaultValues: { title: "", description: "", budget: "" },
+    defaultValues: { title: "", description: "", budget: 1000000, timeline_days: 14, category: "web" },
   });
 
   const mutation = useMutation({
@@ -43,8 +43,16 @@ export default function NewProjectPage() {
           <textarea {...form.register("description")} aria-label="Project description" rows={4} />
         </label>
         <label className="block text-sm">
-          Budget (optional)
-          <input {...form.register("budget")} aria-label="Project budget" />
+          Budget
+          <input type="number" {...form.register("budget", { valueAsNumber: true })} aria-label="Project budget" />
+        </label>
+        <label className="block text-sm">
+          Timeline (days)
+          <input type="number" {...form.register("timeline_days", { valueAsNumber: true })} aria-label="Project timeline" />
+        </label>
+        <label className="block text-sm">
+          Category
+          <input {...form.register("category")} aria-label="Project category" />
         </label>
         <button type="submit" className="bg-slate-900 text-white" disabled={mutation.isPending}>
           {mutation.isPending ? "Saving..." : "Create"}

@@ -5,30 +5,22 @@ import Link from "next/link";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { useProjects } from "@/lib/hooks";
 
-export default function HomePage() {
+export default function ProjectsPage() {
   const projects = useProjects(1);
 
   if (projects.isLoading) return <LoadingState label="Loading projects..." />;
   if (projects.isError) return <ErrorState label="Could not load projects." />;
 
-  const items = (projects.data?.results || []).slice(0, 3);
+  const items = projects.data?.results || [];
 
   return (
     <section className="space-y-4">
-      <div className="rounded-md border border-slate-200 bg-white p-5">
-        <h1 className="text-2xl font-semibold">ITZuun MVP</h1>
-        <p className="mt-2 text-sm text-slate-600">Mongolia-focused IT freelance marketplace with escrow and role-based operations.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link href="/projects" className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white">
-            Browse Projects
-          </Link>
-          <Link href="/auth" className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white">
-            Sign in
-          </Link>
-        </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Projects</h1>
+        <Link href="/projects/new" className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white">
+          Create Project
+        </Link>
       </div>
-
-      <h2 className="text-xl font-semibold">Latest Projects</h2>
 
       {!items.length ? (
         <EmptyState label="No projects found." />

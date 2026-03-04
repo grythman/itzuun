@@ -266,3 +266,112 @@ class CacheInvalidationSmokeTests(TestCase):
         self.assertEqual(summary_after.json()["total"], 1)
         self.assertEqual(summary_after.json()["average"], 5)
         self.assertEqual(reviews_after.json()["count"], 1)
+
+
+class MvPHappyPathApiTests(TestCase):
+    def setUp(self):
+        self.client_api = APIClient()
+        self.client_user = User.objects.create_user(email="client-e2e@test.com", role="client", password="pass1234")
+        self.freelancer = User.objects.create_user(email="freelancer-e2e@test.com", role="freelancer", password="pass1234")
+        self.admin = User.objects.create_user(email="admin-e2e@test.com", role="admin", password="pass1234")
+
+    def test_e2e_happy_path_project_to_review(self):
+        self.client_api.force_authenticate(self.admin)
+        verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify", format="json")
+        self.assertEqual(verify_resp.status_code, status.HTTP_200_OK)
+
+        self.client_api.force_authenticate(self.client_user)
+        create_project = self.client_api.post(
+            "/api/v1/projects",
+            {
+                "title": "E2E Project",
+                "description": "End-to-end happy path",
+                "budget": 900000,
+                "timeline_days": 10,
+                "category": "web",
+            },
+            format="json",
+        )
+        self.assertEqual(create_project.status_code, status.HTTP_201_CREATED)
+        project_id = create_project.json()["id"]
+
+        self.client_api.force_authenticate(self.freelancer)
+        submit_proposal = self.client_api.post(
+            f"/api/v1/projects/{project_id}/proposals",
+            {
+                "price": 850000,
+                "timeline_days": 9,
+                "message": "Ready to deliver",
+            },
+            format="json",
+        )
+        self.assertEqual(submit_proposal.status_code, status.HTTP_201_CREATED)
+        proposal_id = submit_proposal.json()["id"]
+
+        self.client_api.force_authenticate(self.client_user)
+        select_resp = self.client_api.post(
+            f"/api/v1/projects/{project_id}/select-freelancer",
+            {"proposal_id": proposal_id},
+            format="json",
+        )
+        self.assertEqual(select_resp.status_code, status.HTTP_200_OK)
+
+        deposit_resp = self.client_api.post(
+            f"/api/v1/projects/{project_id}/escrow/deposit",
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="e2e-deposit-key",
+        )
+        self.assertEqual(deposit_resp.status_code, status.HTTP_201_CREATED)
+        escrow_id = deposit_resp.json()["id"]
+
+        self.client_api.force_authenticate(self.admin)
+        approve_resp = self.client_api.post(
+            f"/api/v1/escrow/{escrow_id}/admin/approve",
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="e2e-approve-key",
+        )
+        self.assertEqual(approve_resp.status_code, status.HTTP_200_OK)
+
+        self.client_api.force_authenticate(self.freelancer)
+        project = Project.objects.get(id=project_id)
+        file_obj = ProjectFile.objects.create(
+            project=project,
+            uploader=self.freelancer,
+            file="project_files/e2e.txt",
+            name="e2e.txt",
+            size=3,
+        )
+        file_id = file_obj.id
+
+        deliverable = self.client_api.post(
+            f"/api/v1/projects/{project_id}/deliverables",
+            {
+                "file_id": file_id,
+                "checksum": "e2e-checksum",
+                "description": "Final delivery",
+            },
+            format="json",
+        )
+        self.assertEqual(deliverable.status_code, status.HTTP_201_CREATED)
+
+        submit_result_resp = self.client_api.post(f"/api/v1/projects/{project_id}/submit-result", format="json")
+        self.assertEqual(submit_result_resp.status_code, status.HTTP_200_OK)
+
+        self.client_api.force_authenticate(self.client_user)
+        release_resp = self.client_api.post(
+            f"/api/v1/projects/{project_id}/confirm-completion",
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="e2e-release-key",
+        )
+        self.assertEqual(release_resp.status_code, status.HTTP_200_OK)
+
+        review_resp = self.client_api.post(
+            f"/api/v1/projects/{project_id}/reviews",
+            {"rating": 5, "comment": "Great freelancer"},
+            format="json",
+        )
+        self.assertEqual(review_resp.status_code, status.HTTP_201_CREATED)
+
+        summary_resp = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
+        self.assertEqual(summary_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(summary_resp.json()["total"], 1)

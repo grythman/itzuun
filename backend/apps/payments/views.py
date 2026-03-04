@@ -86,6 +86,28 @@ class ProjectConfirmCompletionView(APIView):
         return Response(payload, status=status_code)
 
 
+class EscrowReleaseView(APIView):
+    permission_classes = [IsClient]
+
+    def post(self, request, escrow_id):
+        escrow = get_object_or_404(Escrow.objects.select_related("project"), id=escrow_id)
+        project = escrow.project
+        if project.owner_id != request.user.id:
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        def _executor():
+            released = confirm_completion(project, approved_by=request.user)
+            return EscrowSerializer(released).data, status.HTTP_200_OK
+
+        payload, status_code = execute_idempotent(
+            request,
+            endpoint=f"POST:/api/v1/escrow/{escrow_id}/release",
+            actor=request.user,
+            executor=_executor,
+        )
+        return Response(payload, status=status_code)
+
+
 class ProjectDisputeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

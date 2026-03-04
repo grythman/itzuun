@@ -192,7 +192,7 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     if not platform_setting.partial_escrow_mode and escrow.amount != expected_amount:
         raise DomainError("Escrow amount must match selected proposal price.")
 
-    pct = settings.PLATFORM_FEE_PCT
+    pct = platform_setting.platform_fee_pct
     if pct < 0 or pct > settings.PLATFORM_FEE_MAX_PCT:
         raise DomainError("Platform fee policy is out of allowed bounds.")
 
