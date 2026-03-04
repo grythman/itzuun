@@ -11,6 +11,8 @@ const links = [
 export function Nav() {
   const pathname = usePathname();
 
+  const iconClass = "h-4 w-4 text-slate-500";
+
   return (
     <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3" aria-label="Main">
@@ -27,10 +29,21 @@ export function Nav() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`rounded-xl px-3 py-2 text-sm ${
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
                     active ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-100"
                   }`}
                 >
+                  {link.href === "/projects" ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={iconClass}>
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M8 5V3m8 2V3m-5 8h2" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={iconClass}>
+                      <circle cx="11" cy="11" r="6" />
+                      <path d="m20 20-4-4" />
+                    </svg>
+                  )}
                   {link.label}
                 </Link>
               );

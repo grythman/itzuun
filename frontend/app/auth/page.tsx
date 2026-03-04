@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 
+import { ActionButton, StatusPill } from "@/components/ui-kit";
 import { ErrorState, LoadingState } from "@/components/states";
 import { authApi } from "@/lib/api/endpoints";
 import { useToastStore } from "@/lib/toast-store";
@@ -101,21 +102,41 @@ export default function AuthPage() {
   });
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold">Welcome back</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Use email/password register-login or OTP flow. Both start secure JWT cookie sessions.
-        </p>
-      </div>
+    <section className="mx-auto max-w-5xl space-y-8">
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7 text-blue-600">
+              <path d="M12 3 5 6v6c0 4.5 3 7 7 9 4-2 7-4.5 7-9V6l-7-3Z" />
+              <path d="m9.5 12 1.8 1.8 3.2-3.6" />
+            </svg>
+          </div>
+          <h1 className="text-center text-3xl font-semibold tracking-tight text-slate-900">Welcome back</h1>
+          <p className="mt-2 text-center text-sm text-slate-600">Login to your ITZuun account to manage your projects.</p>
 
-      <div className="grid gap-6 md:grid-cols-2">
+          <form className="mt-6 space-y-4" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
+            <label className="block text-sm font-medium text-slate-800">
+              Email
+              <input type="email" placeholder="name@example.com" {...loginForm.register("email")} />
+            </label>
+            <label className="block text-sm font-medium text-slate-800">
+              Password
+              <input type="password" placeholder="••••••••" {...loginForm.register("password")} />
+            </label>
+            <ActionButton className="w-full" type="submit" loading={loginMutation.isPending}>Sign In</ActionButton>
+          </form>
+
+          <p className="mt-5 text-center text-sm text-slate-600">
+            Don&apos;t have an account? <span className="font-semibold text-blue-700">Register below</span>
+          </p>
+        </div>
+
         <form
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           onSubmit={registerForm.handleSubmit((values) => registerMutation.mutate(values))}
         >
           <div>
-            <h2 className="text-lg font-medium">Register</h2>
+            <h2 className="text-lg font-medium">Create Account</h2>
             <p className="mt-1 text-sm text-slate-600">Create a client or freelancer account.</p>
           </div>
           <label className="block text-sm font-medium">
@@ -133,30 +154,11 @@ export default function AuthPage() {
               <option value="freelancer">Freelancer</option>
             </select>
           </label>
-          <button className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={registerMutation.isPending}>
-            {registerMutation.isPending ? "Registering..." : "Register"}
-          </button>
-        </form>
+          <ActionButton className="w-full" type="submit" loading={registerMutation.isPending}>Register</ActionButton>
 
-        <form
-          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-          onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}
-        >
-          <div>
-            <h2 className="text-lg font-medium">Password Login</h2>
-            <p className="mt-1 text-sm text-slate-600">Sign in directly using email and password.</p>
+          <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
+            Password login is the primary method. OTP flow remains available below.
           </div>
-          <label className="block text-sm font-medium">
-            Email
-            <input type="email" {...loginForm.register("email")} />
-          </label>
-          <label className="block text-sm font-medium">
-            Password
-            <input type="password" {...loginForm.register("password")} />
-          </label>
-          <button className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? "Logging in..." : "Login"}
-          </button>
         </form>
       </div>
 
@@ -170,31 +172,31 @@ export default function AuthPage() {
               <p className="font-medium text-emerald-900">Signed in as: {meQuery.data.email}</p>
               <p className="text-emerald-800">Role: {meQuery.data.role}</p>
             </div>
-            <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-900">Active Session</span>
+            <StatusPill label="Active Session" tone="success" />
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              className="bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            <ActionButton
               onClick={() => roleMutation.mutate("client")}
               disabled={roleMutation.isPending || meQuery.data.role === "client"}
+              loading={roleMutation.isPending}
             >
               Set Client
-            </button>
-            <button
-              className="bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            </ActionButton>
+            <ActionButton
               onClick={() => roleMutation.mutate("freelancer")}
               disabled={roleMutation.isPending || meQuery.data.role === "freelancer"}
+              loading={roleMutation.isPending}
             >
               Set Freelancer
-            </button>
-            <button
-              className="bg-red-600 text-white disabled:cursor-not-allowed disabled:opacity-60"
+            </ActionButton>
+            <ActionButton
+              tone="danger"
               onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
+              loading={logoutMutation.isPending}
             >
-              {logoutMutation.isPending ? "Logging out..." : "Logout"}
-            </button>
+              Logout
+            </ActionButton>
           </div>
         </div>
       ) : null}
@@ -217,13 +219,7 @@ export default function AuthPage() {
             <p className="text-xs text-red-700">{requestForm.formState.errors.email.message}</p>
           ) : null}
 
-          <button
-            className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            type="submit"
-            disabled={requestMutation.isPending}
-          >
-            {requestMutation.isPending ? "Requesting..." : "Request OTP"}
-          </button>
+          <ActionButton className="w-full" type="submit" loading={requestMutation.isPending}>Request OTP</ActionButton>
         </form>
 
         <form
@@ -259,13 +255,7 @@ export default function AuthPage() {
             <p className="text-xs text-red-700">{verifyForm.formState.errors.otp.message}</p>
           ) : null}
 
-          <button
-            className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            type="submit"
-            disabled={verifyMutation.isPending}
-          >
-            {verifyMutation.isPending ? "Verifying..." : "Verify OTP"}
-          </button>
+          <ActionButton className="w-full" type="submit" loading={verifyMutation.isPending}>Verify OTP</ActionButton>
         </form>
       </div>
     </section>

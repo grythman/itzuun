@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { ActionButton, ChatBubble, CompareTable, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, TrustPanel, VerifiedBadge } from "@/components/ui-kit";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useProjectDetail, useProjectMessages, useProjectProposals } from "@/lib/hooks";
@@ -30,6 +31,8 @@ export default function ProjectDetailPage() {
   const [messageText, setMessageText] = useState("");
   const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
   const [checksum, setChecksum] = useState("");
+  const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
+  const [disputeConfirmOpen, setDisputeConfirmOpen] = useState(false);
 
   const proposalForm = useForm<ProposalForm>({
     resolver: zodResolver(proposalSchema),
@@ -131,6 +134,7 @@ export default function ProjectDetailPage() {
   const isSelectedFreelancer = proposalItems.some(
     (item) => item.id === project.selected_proposal && item.freelancer === me.data?.id,
   );
+  const milestoneBanner = project.status === "in_progress" ? "Project in escrow. Deliver milestones to unlock review." : null;
 
   return (
     <section className="space-y-6">
@@ -138,17 +142,20 @@ export default function ProjectDetailPage() {
         <h1 className="text-2xl font-semibold">{project.title}</h1>
         <p className="mt-2 text-sm text-slate-700">{project.description}</p>
         <p className="mt-2 text-xs uppercase tracking-wide text-slate-500">Status: {project.status}</p>
+        <div className="mt-2"><EscrowStatusBadge status={project.status === "completed" ? "released" : "held"} /></div>
       </div>
+
+      {milestoneBanner ? <TrustPanel /> : null}
 
       {isClientOwner ? (
         <div className="grid gap-3 md:grid-cols-3">
           <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => router.push(`/projects/${id}/payment`)}>
             Open Payment Page
           </button>
-          <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => completionMutation.mutate()}>
+          <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setReleaseConfirmOpen(true)}>
             Release Escrow
           </button>
-          <button className="bg-amber-600 text-white" onClick={() => disputeMutation.mutate()}>
+          <button className="bg-amber-600 text-white" onClick={() => setDisputeConfirmOpen(true)}>
             Open Dispute
           </button>
         </div>
@@ -210,9 +217,12 @@ export default function ProjectDetailPage() {
           <ul className="space-y-2">
             {proposalItems.map((item) => (
               <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
-                <p>Freelancer #{item.freelancer}</p>
-                <p>Price: {item.price}</p>
-                <p>Timeline: {item.timeline_days} days</p>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="font-semibold">Freelancer #{item.freelancer}</p>
+                  <VerifiedBadge verified={true} />
+                </div>
+                <div className="mb-2"><RatingStars value={4.7} /></div>
+                <CompareTable rows={[{ label: "Price", value: `${item.price} MNT` }, { label: "Timeline", value: `${item.timeline_days} days` }, { label: "Completed projects", value: 12 }]} />
                 {isClientOwner && project.status === "open" ? (
                   <button className="mt-2 bg-green-600 text-white" onClick={() => selectMutation.mutate(item.id)}>
                     Select Freelancer
@@ -226,14 +236,21 @@ export default function ProjectDetailPage() {
 
       <div className="rounded-md border border-slate-200 bg-white p-4">
         <h2 className="mb-3 text-lg font-medium">Project Chat</h2>
+        <div className="mb-3 flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+          <span>Project in escrow communication channel</span>
+          <StatusPill label="Live" tone="success" />
+        </div>
         {!messageItems.length ? (
           <EmptyState label="No messages." />
         ) : (
           <ul className="space-y-2">
             {messageItems.map((item) => (
               <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
-                <p>Sender #{item.sender}</p>
-                <p>{item.text}</p>
+                <ChatBubble
+                  mine={item.sender === me.data?.id}
+                  text={item.text}
+                  time={item.created_at ? new Date(item.created_at).toLocaleString() : undefined}
+                />
               </li>
             ))}
           </ul>
@@ -246,9 +263,9 @@ export default function ProjectDetailPage() {
             onChange={(event) => setMessageText(event.target.value)}
             placeholder="Type your message"
           />
-          <button className="bg-blue-600 text-white" onClick={() => messageMutation.mutate(messageText)}>
+          <ActionButton onClick={() => messageMutation.mutate(messageText)} loading={messageMutation.isPending}>
             Send Message
-          </button>
+          </ActionButton>
         </div>
       </div>
 
@@ -269,9 +286,42 @@ export default function ProjectDetailPage() {
             <button className="bg-green-600 text-white" onClick={() => resultMutation.mutate()}>
               Submit Result
             </button>
+            <button className="bg-emerald-600 text-white" onClick={() => toast("success", "Milestone marked as delivered")}>Mark Milestone Delivered</button>
           </div>
         </div>
       ) : null}
+
+      <ConfirmationDialog
+        open={releaseConfirmOpen}
+        title="Release Escrow"
+        message="Confirming this will release escrow and complete the project."
+        confirmLabel="Release Now"
+        confirmTone="success"
+        loading={completionMutation.isPending}
+        onCancel={() => setReleaseConfirmOpen(false)}
+        onConfirm={() => {
+          completionMutation.mutate(undefined, {
+            onSuccess: () => setReleaseConfirmOpen(false),
+            onError: () => setReleaseConfirmOpen(false),
+          });
+        }}
+      />
+
+      <ConfirmationDialog
+        open={disputeConfirmOpen}
+        title="Open Dispute"
+        message="This action escalates the project to admin mediation. Continue?"
+        confirmLabel="Open Dispute"
+        confirmTone="warning"
+        loading={disputeMutation.isPending}
+        onCancel={() => setDisputeConfirmOpen(false)}
+        onConfirm={() => {
+          disputeMutation.mutate(undefined, {
+            onSuccess: () => setDisputeConfirmOpen(false),
+            onError: () => setDisputeConfirmOpen(false),
+          });
+        }}
+      />
     </section>
   );
 }

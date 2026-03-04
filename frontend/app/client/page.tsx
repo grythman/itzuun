@@ -1,25 +1,22 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
+import { AppCard, DashboardBottomBar, RoleSidebar, TrustPanel } from "@/components/ui-kit";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useProjectProposals, useProjects } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 
 export default function ClientDashboardPage() {
+  const router = useRouter();
   const me = useMe();
   const projects = useProjects(1);
   const toast = useToastStore((s) => s.push);
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const proposals = useProjectProposals(activeProjectId || "");
-
-  const depositMutation = useMutation({
-    mutationFn: (projectId: number) => projectsApi.depositEscrow(projectId),
-    onSuccess: () => toast("success", "Escrow deposited"),
-    onError: (error: Error) => toast("error", error.message),
-  });
 
   const releaseMutation = useMutation({
     mutationFn: (projectId: number) => projectsApi.confirmCompletion(projectId),
@@ -48,61 +45,70 @@ export default function ClientDashboardPage() {
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath="/auth">
-      <section className="space-y-6">
+      <section className="space-y-6 pb-20">
         <h1 className="text-2xl font-semibold">Client Dashboard</h1>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-lg font-medium">My Projects</h2>
-          {!myProjects.length ? (
-            <EmptyState label="No projects created yet." />
-          ) : (
-            <ul className="space-y-2">
-              {myProjects.map((project) => (
-                <li key={project.id} className="rounded border border-slate-200 p-3 text-sm space-y-2">
-                  <p className="font-medium">{project.title}</p>
-                  <p>Status: {project.status}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setActiveProjectId(project.id)}>
-                      View Proposals
-                    </button>
-                    <button className="bg-blue-600 text-white" onClick={() => depositMutation.mutate(project.id)}>
-                      Deposit Escrow
-                    </button>
-                    <button className="bg-green-600 text-white" onClick={() => releaseMutation.mutate(project.id)}>
-                      Release Escrow
-                    </button>
-                    <button className="bg-amber-600 text-white" onClick={() => disputeMutation.mutate(project.id)}>
-                      Open Dispute
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="flex gap-4">
+          <RoleSidebar role="client" />
+          <div className="flex-1 space-y-4">
+            <TrustPanel />
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="mb-3 text-lg font-medium">My Projects</h2>
+              {!myProjects.length ? (
+                <EmptyState label="No projects created yet." />
+              ) : (
+                <ul className="space-y-2">
+                  {myProjects.map((project) => (
+                    <li key={project.id} className="rounded border border-slate-200 p-3 text-sm space-y-2">
+                      <p className="font-medium">{project.title}</p>
+                      <p>Status: {project.status}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setActiveProjectId(project.id)}>
+                          View Proposals
+                        </button>
+                        <button className="bg-blue-700 text-white hover:bg-blue-800" onClick={() => router.push(`/projects/${project.id}/payment`)}>
+                          Open Escrow Payment
+                        </button>
+                        <button className="bg-green-600 text-white" onClick={() => releaseMutation.mutate(project.id)}>
+                          Release Escrow
+                        </button>
+                        <button className="bg-amber-600 text-white" onClick={() => disputeMutation.mutate(project.id)}>
+                          Open Dispute
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="mb-3 text-lg font-medium">Project Proposals</h2>
+              {!activeProjectId ? (
+                <EmptyState label="Select a project to view proposals." />
+              ) : proposals.isLoading ? (
+                <LoadingState label="Loading proposals..." />
+              ) : proposals.isError ? (
+                <ErrorState label="Could not load proposals." />
+              ) : !proposalItems.length ? (
+                <EmptyState label="No proposals for this project." />
+              ) : (
+                <ul className="space-y-2">
+                  {proposalItems.map((proposal) => (
+                    <li key={proposal.id} className="rounded border border-slate-200 p-3 text-sm">
+                      <p>Freelancer #{proposal.freelancer}</p>
+                      <p>Price: {proposal.price}</p>
+                      <p>Timeline: {proposal.timeline_days} days</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-lg font-medium">Project Proposals</h2>
-          {!activeProjectId ? (
-            <EmptyState label="Select a project to view proposals." />
-          ) : proposals.isLoading ? (
-            <LoadingState label="Loading proposals..." />
-          ) : proposals.isError ? (
-            <ErrorState label="Could not load proposals." />
-          ) : !proposalItems.length ? (
-            <EmptyState label="No proposals for this project." />
-          ) : (
-            <ul className="space-y-2">
-              {proposalItems.map((proposal) => (
-                <li key={proposal.id} className="rounded border border-slate-200 p-3 text-sm">
-                  <p>Freelancer #{proposal.freelancer}</p>
-                  <p>Price: {proposal.price}</p>
-                  <p>Timeline: {proposal.timeline_days} days</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <DashboardBottomBar />
       </section>
     </RoleGuard>
   );

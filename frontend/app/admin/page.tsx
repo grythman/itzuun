@@ -2,6 +2,7 @@
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
+import { ActionButton, ConfirmationDialog, StatusPill } from "@/components/ui-kit";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
@@ -13,6 +14,7 @@ export default function AdminPage() {
   const me = useMe();
   const { users, projects, escrow, disputes, commission } = useAdminSnapshot();
   const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "pending" | "failed">("all");
+  const [resolveTarget, setResolveTarget] = useState<{ disputeId: number; projectId: number } | null>(null);
 
   const payments = useQuery({
     queryKey: ["admin-payments", paymentFilter],
@@ -69,9 +71,7 @@ export default function AdminPage() {
             {commission.isLoading ? <LoadingState label="Loading commission..." /> : null}
             {commission.isError ? <ErrorState label="Unable to load commission." /> : null}
             {commission.data ? <p className="mt-2 text-sm">Current: {commission.data.platform_fee_pct}%</p> : null}
-            <button className="mt-3 bg-blue-600 text-white hover:bg-blue-700" onClick={() => commissionMutation.mutate(10)}>
-              Set 10%
-            </button>
+            <ActionButton className="mt-3" onClick={() => commissionMutation.mutate(10)} loading={commissionMutation.isPending}>Set 10%</ActionButton>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -100,7 +100,12 @@ export default function AdminPage() {
               {toArray(payments.data).map((item) => (
                 <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
                   <p>Invoice: {item.invoice_id}</p>
-                  <p>Status: {item.status}</p>
+                  <p className="mt-1">
+                    <StatusPill
+                      label={item.status}
+                      tone={item.status === "paid" ? "success" : item.status === "failed" ? "danger" : "warning"}
+                    />
+                  </p>
                   <p>Project: {item.project}</p>
                   <p>Paid at: {item.paid_at ?? "-"}</p>
                   <p>Escrow: {item.escrow_status ?? "-"}</p>
@@ -119,9 +124,7 @@ export default function AdminPage() {
               {toArray(users.data).map((user) => (
                 <li key={user.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
                   <span>{user.email} ({user.role})</span>
-                  <button className="bg-blue-600 text-white" onClick={() => verifyMutation.mutate(user.id)}>
-                    Verify
-                  </button>
+                  <ActionButton onClick={() => verifyMutation.mutate(user.id)} loading={verifyMutation.isPending}>Verify</ActionButton>
                 </li>
               ))}
             </ul>
@@ -144,15 +147,30 @@ export default function AdminPage() {
                 {toArray(disputes.data).map((item) => (
                   <li key={item.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
                     <span>Dispute #{item.id}</span>
-                    <button className="bg-green-600 text-white" onClick={() => resolveMutation.mutate({ disputeId: item.id, projectId: item.project })}>
-                      Resolve
-                    </button>
+                    <ActionButton tone="success" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Resolve</ActionButton>
                   </li>
                 ))}
               </ul>
             ) : null}
           </div>
         </div>
+
+        <ConfirmationDialog
+          open={!!resolveTarget}
+          title="Resolve Dispute"
+          message="This will resolve the dispute using admin refund action. Continue?"
+          confirmLabel="Confirm Resolve"
+          confirmTone="success"
+          loading={resolveMutation.isPending}
+          onCancel={() => setResolveTarget(null)}
+          onConfirm={() => {
+            if (!resolveTarget) return;
+            resolveMutation.mutate(resolveTarget, {
+              onSuccess: () => setResolveTarget(null),
+              onError: () => setResolveTarget(null),
+            });
+          }}
+        />
       </section>
     </RoleGuard>
   );
