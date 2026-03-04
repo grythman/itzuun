@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-50 text-slate-900;
+}
+
+input,
+select,
+textarea,
+button {
+  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500;
+}

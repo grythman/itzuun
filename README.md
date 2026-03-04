@@ -19,6 +19,12 @@
 - Admin dashboard access is enforced on backend by role check.
 - Public read access is available for project browsing endpoints.
 
+### Web UI Auth Responses
+
+- Browser request to `/dashboard/admin` without valid admin auth redirects to `/`.
+- JSON/AJAX request to `/dashboard/admin` returns `401` when unauthenticated.
+- JSON/AJAX request to `/dashboard/admin` returns `403` when authenticated but non-admin.
+
 ### UX State
 
 - Session expiry supports silent refresh retry on `401`.
