@@ -1,0 +1,10 @@
+# Frontend-specific gitignore
+# Note: The root .gitignore covers most patterns
+# This file handles additional frontend-only ignores if needed
+
+# Additional Next.js/Node patterns not in root
+.turbo/
+
+# Vitest coverage
+coverage/
+
