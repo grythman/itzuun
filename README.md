@@ -107,6 +107,12 @@ Base URL: `/api/v1`
 - Admin list endpoint-үүд (`/admin/users`, `/admin/projects`, `/admin/escrow`, `/admin/disputes`) versioned list cache ашиглана.
 - Cache invalidation нь write path дээр version bump-аар хийгддэг тул stale цонх TTL-ээс хамаарал багатай.
 
+### CI Pipeline
+- GitHub Actions workflow нь `quality-checks` болон `payments-and-cache-smoke` гэсэн 2 job-оор parallel ажиллана.
+- Dependency install нь `backend/requirements.txt` дээр суурилсан pip cache ашигладаг.
+- Давхардсан run-ууд `concurrency` тохиргоогоор автоматаар cancel хийгдэнэ.
+- `main` branch дээр нэмэлтээр `python manage.py check --deploy --fail-level WARNING` gate ажиллана.
+
 ## Quick Start (Backend)
 1. Install dependencies:
    - `cd backend`

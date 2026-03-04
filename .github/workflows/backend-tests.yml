@@ -55,11 +55,16 @@ jobs:
 
       - name: Run Django system checks
         working-directory: backend
-        run: python manage.py check
+        run: python manage.py check --fail-level WARNING
 
       - name: Check migration drift
         working-directory: backend
         run: python manage.py makemigrations --check --dry-run
+
+      - name: Run deploy checks (main only)
+        if: github.ref == 'refs/heads/main'
+        working-directory: backend
+        run: python manage.py check --deploy --fail-level WARNING
 
   payments-and-cache-smoke:
     runs-on: ubuntu-latest
@@ -105,4 +110,10 @@ jobs:
 
       - name: Run payments and cache smoke tests
         working-directory: backend
-        run: python manage.py test apps.payments.tests -v 2
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TEST_VERBOSITY=2
+          else
+            TEST_VERBOSITY=1
+          fi
+          python manage.py test apps.payments.tests -v "$TEST_VERBOSITY"
