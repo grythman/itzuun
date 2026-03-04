@@ -13,6 +13,7 @@ ALLOWED_PROJECT_TRANSITIONS = {
 }
 
 ALLOWED_ESCROW_TRANSITIONS = {
+    "created": {"held", "disputed"},
     "pending_admin": {"held", "disputed"},
     "held": {"released", "disputed"},
     "disputed": {"released", "refunded"},

@@ -1,4 +1,6 @@
 """Payments and escrow models."""
+import uuid
+
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db import models
@@ -8,14 +10,15 @@ from apps.projects.models import Project
 
 
 class Escrow(models.Model):
-    STATUS_PENDING_ADMIN = "pending_admin"
+    STATUS_CREATED = "created"
+    STATUS_PENDING_ADMIN = STATUS_CREATED
     STATUS_HELD = "held"
     STATUS_RELEASED = "released"
     STATUS_REFUNDED = "refunded"
     STATUS_DISPUTED = "disputed"
 
     STATUS_CHOICES = (
-        (STATUS_PENDING_ADMIN, "Pending admin"),
+        (STATUS_CREATED, "Created"),
         (STATUS_HELD, "Held"),
         (STATUS_RELEASED, "Released"),
         (STATUS_REFUNDED, "Refunded"),
@@ -24,7 +27,9 @@ class Escrow(models.Model):
 
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="escrow")
     amount = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING_ADMIN)
+    platform_fee_amount = models.PositiveIntegerField(default=0)
+    freelancer_amount = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_CREATED)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -57,6 +62,33 @@ class LedgerEntry(models.Model):
     amount = models.PositiveIntegerField()
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Payment(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_PAID = "paid"
+    STATUS_FAILED = "failed"
+
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Pending"),
+        (STATUS_PAID, "Paid"),
+        (STATUS_FAILED, "Failed"),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="payments")
+    invoice_id = models.CharField(max_length=128, unique=True)
+    amount = models.PositiveIntegerField()
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    raw_response = models.JSONField(default=dict)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["project", "status", "-created_at"], name="idx_pay_proj_status_cr"),
+            models.Index(fields=["status", "-created_at"], name="idx_payment_status_created"),
+        ]
 
 
 class Dispute(models.Model):

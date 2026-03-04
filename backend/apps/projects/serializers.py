@@ -35,3 +35,19 @@ class ProjectDeliverableSerializer(serializers.ModelSerializer):
         model = ProjectDeliverable
         fields = ("id", "project", "file", "file_id", "submitted_by", "description", "checksum", "submitted_at")
         read_only_fields = ("id", "project", "file", "submitted_by", "submitted_at")
+
+
+class ProjectDescriptionSuggestSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=255)
+    category = serializers.CharField(max_length=64)
+    budget = serializers.IntegerField(min_value=1)
+    timeline_days = serializers.IntegerField(min_value=1)
+    required_skills = serializers.ListField(
+        child=serializers.CharField(max_length=64),
+        required=False,
+        allow_empty=True,
+    )
+
+
+class ProjectDescriptionSuggestResponseSerializer(serializers.Serializer):
+    description = serializers.CharField()

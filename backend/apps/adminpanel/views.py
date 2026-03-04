@@ -8,9 +8,9 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUser
 from apps.accounts.serializers import UserSerializer
-from apps.payments.models import Dispute, Escrow
+from apps.payments.models import Dispute, Escrow, Payment
 from apps.payments.idempotency import execute_idempotent
-from apps.payments.serializers import DisputeSerializer, EscrowSerializer
+from apps.payments.serializers import DisputeSerializer, EscrowSerializer, PaymentSerializer
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
 from common.cache_utils import admin_detail_cache_key, admin_list_cache_key, bump_admin_resource_version, bump_user_public_version
@@ -88,6 +88,24 @@ class AdminEscrowListView(APIView):
         if status_param:
             queryset = queryset.filter(status=status_param)
         response = _paginated_response(request, queryset, EscrowSerializer, self)
+        cache.set(cache_key, response.data, timeout=60)
+        return response
+
+
+class AdminPaymentListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        cache_key = admin_list_cache_key("payments", request.query_params)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
+        status_param = request.query_params.get("status")
+        queryset = Payment.objects.select_related("project").all().order_by("-created_at")
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        response = _paginated_response(request, queryset, PaymentSerializer, self)
         cache.set(cache_key, response.data, timeout=60)
         return response
 

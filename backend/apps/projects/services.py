@@ -34,3 +34,13 @@ def close_project(project: Project) -> Project:
     bump_project_version(project.id)
     bump_admin_resource_version("projects")
     return project
+
+
+def suggest_project_description(*, title: str, category: str, budget: int, timeline_days: int, required_skills: list[str]) -> str:
+    skills = ", ".join(required_skills) if required_skills else "relevant technical skills"
+    return (
+        f"We are looking for a {category} specialist to deliver '{title}'. "
+        f"The expected budget is around {budget} MNT with a delivery timeline of {timeline_days} days. "
+        f"Key requirements include {skills}, clear communication, and production-ready deliverables. "
+        "Please include a concise implementation plan, milestone breakdown, and similar past work references in your proposal."
+    )

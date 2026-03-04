@@ -1,6 +1,7 @@
-"""Payment and escrow services."""
+"""Escrow and payment domain services."""
 import hashlib
 import json
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.db import transaction
@@ -13,11 +14,21 @@ from common.state_guards import guard_escrow_transition, guard_project_transitio
 from apps.projects.models import Project
 from apps.projects.models import ProjectDeliverable
 
-from .models import Dispute, Escrow, FinancialAuditLog, LedgerEntry
+from apps.payments.models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
+
+
+COMMISSION_RATE = Decimal("0.12")
+
+
+def calculate_commission(amount: int) -> tuple[int, int]:
+    platform_fee = int((Decimal(amount) * COMMISSION_RATE).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    freelancer_amount = amount - platform_fee
+    if freelancer_amount < 0:
+        raise DomainError("Commission calculation produced negative freelancer amount.")
+    return platform_fee, freelancer_amount
 
 
 def _lock_project(project: Project) -> Project:
-    """Reload and lock project with related escrow/proposal to avoid race conditions."""
     return Project.objects.select_for_update().get(id=project.id)
 
 
@@ -30,6 +41,8 @@ def _serialize_escrow(escrow: Escrow) -> dict:
         "id": escrow.id,
         "project_id": escrow.project_id,
         "amount": escrow.amount,
+        "platform_fee_amount": escrow.platform_fee_amount,
+        "freelancer_amount": escrow.freelancer_amount,
         "status": escrow.status,
     }
 
@@ -103,10 +116,12 @@ def deposit_to_escrow(project: Project, actor, amount: int | None = None) -> Esc
 
     before_escrow = _serialize_escrow(escrow)
     escrow.amount = deposit_amount
-    if escrow.status != Escrow.STATUS_PENDING_ADMIN:
-        guard_escrow_transition(escrow.status, Escrow.STATUS_PENDING_ADMIN)
-    escrow.status = Escrow.STATUS_PENDING_ADMIN
-    escrow.save(update_fields=["amount", "status", "updated_at"])
+    escrow.platform_fee_amount = 0
+    escrow.freelancer_amount = 0
+    if escrow.status != Escrow.STATUS_CREATED:
+        guard_escrow_transition(escrow.status, Escrow.STATUS_CREATED)
+    escrow.status = Escrow.STATUS_CREATED
+    escrow.save(update_fields=["amount", "platform_fee_amount", "freelancer_amount", "status", "updated_at"])
     LedgerEntry.objects.create(
         escrow=escrow,
         entry_type=LedgerEntry.TYPE_DEPOSIT,
@@ -131,7 +146,7 @@ def deposit_to_escrow(project: Project, actor, amount: int | None = None) -> Esc
 @transaction.atomic
 def approve_escrow(escrow: Escrow, actor) -> Escrow:
     escrow = _lock_escrow(escrow)
-    if escrow.status != Escrow.STATUS_PENDING_ADMIN:
+    if escrow.status != Escrow.STATUS_CREATED:
         raise DomainError("Escrow is not awaiting approval.")
     before_escrow = _serialize_escrow(escrow)
     guard_escrow_transition(escrow.status, Escrow.STATUS_HELD)
@@ -150,6 +165,117 @@ def approve_escrow(escrow: Escrow, actor) -> Escrow:
     bump_admin_resource_version("escrow")
     bump_admin_resource_version("projects")
     return escrow
+
+
+@transaction.atomic
+def mark_payment_paid_and_hold_escrow(*, invoice_id: str, paid_amount: int, verification_payload: dict | None = None) -> Payment:
+    payment = Payment.objects.select_for_update().select_related("project").get(invoice_id=invoice_id)
+    if payment.status == Payment.STATUS_PAID:
+        return payment
+
+    if payment.status == Payment.STATUS_FAILED:
+        return payment
+
+    if paid_amount != payment.amount:
+        payment.status = Payment.STATUS_FAILED
+        payment.raw_response = {
+            **(payment.raw_response or {}),
+            "failure_reason": "amount_mismatch",
+            "expected_amount": payment.amount,
+            "paid_amount": paid_amount,
+            "verification": verification_payload or {},
+        }
+        payment.save(update_fields=["status", "raw_response"])
+        return payment
+
+    payment.status = Payment.STATUS_PAID
+    payment.paid_at = timezone.now()
+    payment.raw_response = {
+        **(payment.raw_response or {}),
+        "verification": verification_payload or {},
+    }
+    payment.save(update_fields=["status", "paid_at", "raw_response"])
+
+    project = _lock_project(payment.project)
+    escrow, _ = Escrow.objects.select_for_update().get_or_create(
+        project=project,
+        defaults={
+            "amount": payment.amount,
+            "status": Escrow.STATUS_CREATED,
+            "platform_fee_amount": 0,
+            "freelancer_amount": 0,
+        },
+    )
+
+    before_escrow = _serialize_escrow(escrow)
+    before_project = _serialize_project(project)
+    escrow.amount = payment.amount
+    platform_fee, freelancer_amount = calculate_commission(payment.amount)
+    escrow.platform_fee_amount = platform_fee
+    escrow.freelancer_amount = freelancer_amount
+
+    if escrow.status == Escrow.STATUS_CREATED:
+        guard_escrow_transition(escrow.status, Escrow.STATUS_HELD)
+        escrow.status = Escrow.STATUS_HELD
+    elif escrow.status != Escrow.STATUS_HELD:
+        raise DomainError(f"Escrow cannot be moved to held from {escrow.status}")
+
+    escrow.save(update_fields=["amount", "platform_fee_amount", "freelancer_amount", "status", "updated_at"])
+
+    if not escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).exists():
+        LedgerEntry.objects.create(
+            escrow=escrow,
+            entry_type=LedgerEntry.TYPE_DEPOSIT,
+            amount=payment.amount,
+            note=f"QPay invoice {invoice_id}",
+        )
+
+    if project.status == Project.STATUS_OPEN:
+        guard_project_transition(project.status, Project.STATUS_IN_PROGRESS)
+        project.status = Project.STATUS_IN_PROGRESS
+        project.save(update_fields=["status", "updated_at"])
+
+    _log_financial_event(
+        actor=None,
+        action_type=FinancialAuditLog.ACTION_APPROVE,
+        entity_type=FinancialAuditLog.ENTITY_ESCROW,
+        entity_id=escrow.id,
+        before_state={"escrow": before_escrow, "project": before_project},
+        after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(project)},
+        reason="QPay webhook verified payment and moved escrow to held",
+    )
+    bump_project_version(project.id)
+    bump_admin_resource_version("payments")
+    bump_admin_resource_version("escrow")
+    bump_admin_resource_version("projects")
+    return payment
+
+
+@transaction.atomic
+def mark_payment_failed(payment: Payment, reason: str, raw_payload: dict | None = None) -> Payment:
+    payment = Payment.objects.select_for_update().get(id=payment.id)
+    if payment.status == Payment.STATUS_PAID:
+        raise DomainError("Cannot fail a paid payment.")
+    payment.status = Payment.STATUS_FAILED
+    payment.raw_response = {
+        **(payment.raw_response or {}),
+        "failure_reason": reason,
+        "failure_payload": raw_payload or {},
+    }
+    payment.save(update_fields=["status", "raw_response"])
+    bump_admin_resource_version("payments")
+    return payment
+
+
+@transaction.atomic
+def expire_stale_pending_payments(*, ttl_minutes: int = 30) -> int:
+    threshold = timezone.now() - timezone.timedelta(minutes=ttl_minutes)
+    stale = Payment.objects.select_for_update().filter(status=Payment.STATUS_PENDING, created_at__lt=threshold)
+    count = stale.count()
+    stale.update(status=Payment.STATUS_FAILED)
+    if count:
+        bump_admin_resource_version("payments")
+    return count
 
 
 @transaction.atomic
@@ -196,12 +322,20 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     if pct < 0 or pct > settings.PLATFORM_FEE_MAX_PCT:
         raise DomainError("Platform fee policy is out of allowed bounds.")
 
-    before_escrow = _serialize_escrow(escrow)
-    before_project = _serialize_project(project)
-    platform_fee = int(escrow.amount * pct / 100)
-    release_amount = escrow.amount - platform_fee
+    if escrow.platform_fee_amount + escrow.freelancer_amount == escrow.amount and escrow.amount > 0:
+        platform_fee = escrow.platform_fee_amount
+        release_amount = escrow.freelancer_amount
+    else:
+        platform_fee = int(escrow.amount * pct / 100)
+        release_amount = escrow.amount - platform_fee
+        escrow.platform_fee_amount = platform_fee
+        escrow.freelancer_amount = release_amount
+
     if release_amount < 0:
         raise DomainError("Release amount cannot be negative.")
+
+    before_escrow = _serialize_escrow(escrow)
+    before_project = _serialize_project(project)
 
     LedgerEntry.objects.create(
         escrow=escrow,
@@ -218,7 +352,7 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
 
     guard_escrow_transition(escrow.status, Escrow.STATUS_RELEASED)
     escrow.status = Escrow.STATUS_RELEASED
-    escrow.save(update_fields=["status", "updated_at"])
+    escrow.save(update_fields=["status", "platform_fee_amount", "freelancer_amount", "updated_at"])
     guard_project_transition(project.status, Project.STATUS_COMPLETED)
     project.status = Project.STATUS_COMPLETED
     project.save(update_fields=["status", "updated_at"])

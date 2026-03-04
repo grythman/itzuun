@@ -4,6 +4,7 @@ from django.urls import path
 from .views import (
     ProjectCloseView,
     ProjectDetailView,
+    ProjectDescriptionSuggestView,
     ProjectDeliverableCreateView,
     ProjectListCreateView,
     ProjectProposalListCreateView,
@@ -14,6 +15,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("projects/ai-description-suggest", ProjectDescriptionSuggestView.as_view(), name="project-ai-description"),
     path("projects", ProjectListCreateView.as_view(), name="project-list"),
     path("projects/<int:pk>", ProjectDetailView.as_view(), name="project-detail"),
     path("projects/<int:project_id>/close", ProjectCloseView.as_view(), name="project-close"),

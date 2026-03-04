@@ -12,8 +12,14 @@ from common.cache_utils import bump_admin_resource_version, bump_project_version
 
 from .models import Project, ProjectDeliverable, Proposal
 from .permissions import IsClient, IsFreelancer
-from .serializers import ProjectDeliverableSerializer, ProjectSerializer, ProposalSerializer
-from .services import close_project, select_freelancer
+from .serializers import (
+    ProjectDeliverableSerializer,
+    ProjectDescriptionSuggestResponseSerializer,
+    ProjectDescriptionSuggestSerializer,
+    ProjectSerializer,
+    ProposalSerializer,
+)
+from .services import close_project, select_freelancer, suggest_project_description
 
 
 class ProjectListCreateView(generics.ListCreateAPIView):
@@ -198,3 +204,21 @@ class ProjectDeliverableCreateView(APIView):
         bump_project_version(project.id)
         bump_admin_resource_version("projects")
         return Response(ProjectDeliverableSerializer(deliverable).data, status=status.HTTP_201_CREATED)
+
+
+class ProjectDescriptionSuggestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = ProjectDescriptionSuggestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        description = suggest_project_description(
+            title=data["title"],
+            category=data["category"],
+            budget=data["budget"],
+            timeline_days=data["timeline_days"],
+            required_skills=data.get("required_skills", []),
+        )
+        response = ProjectDescriptionSuggestResponseSerializer({"description": description})
+        return Response(response.data, status=status.HTTP_200_OK)

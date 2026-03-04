@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 
 from .models import User
-from .serializers import MeSerializer, RequestOtpSerializer, VerifyOtpSerializer
+from .serializers import LoginSerializer, MeSerializer, RegisterSerializer, RequestOtpSerializer, VerifyOtpSerializer
 
 
 def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
@@ -50,6 +50,46 @@ class RequestOtpView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.save()
         return Response(data, status=status.HTTP_200_OK)
+
+
+class RegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {
+                "authenticated": True,
+                "user": MeSerializer(user).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+        _set_auth_cookies(response, str(refresh.access_token), str(refresh))
+        return response
+
+
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {
+                "authenticated": True,
+                "user": MeSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+        _set_auth_cookies(response, str(refresh.access_token), str(refresh))
+        return response
 
 
 class VerifyOtpView(APIView):

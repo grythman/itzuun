@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -18,6 +18,7 @@ type ReviewForm = z.infer<typeof reviewSchema>;
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const id = params.id;
   const toast = useToastStore((s) => s.push);
   const me = useMe();
@@ -66,12 +67,6 @@ export default function ProjectDetailPage() {
       proposals.refetch();
       toast("success", "Freelancer selected");
     },
-    onError: (error: Error) => toast("error", error.message),
-  });
-
-  const escrowMutation = useMutation({
-    mutationFn: () => projectsApi.depositEscrow(id),
-    onSuccess: () => toast("success", "Escrow deposited"),
     onError: (error: Error) => toast("error", error.message),
   });
 
@@ -147,8 +142,8 @@ export default function ProjectDetailPage() {
 
       {isClientOwner ? (
         <div className="grid gap-3 md:grid-cols-3">
-          <button className="bg-slate-900 text-white" onClick={() => escrowMutation.mutate()}>
-            Deposit Escrow
+          <button className="bg-slate-900 text-white" onClick={() => router.push(`/projects/${id}/payment`)}>
+            Open Payment Page
           </button>
           <button className="bg-slate-900 text-white" onClick={() => completionMutation.mutate()}>
             Release Escrow

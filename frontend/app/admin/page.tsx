@@ -5,11 +5,19 @@ import { RoleGuard } from "@/components/role-guard";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AdminPage() {
   const toast = useToastStore((s) => s.push);
   const me = useMe();
   const { users, projects, escrow, disputes, commission } = useAdminSnapshot();
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "pending" | "failed">("all");
+
+  const payments = useQuery({
+    queryKey: ["admin-payments", paymentFilter],
+    queryFn: () => (paymentFilter === "all" ? adminApi.payments() : adminApi.payments(paymentFilter)),
+  });
 
   const verifyMutation = useMutation({
     mutationFn: adminApi.verifyUser,
@@ -72,6 +80,34 @@ export default function AdminPage() {
             {escrow.data && toArray(escrow.data).length === 0 ? <EmptyState label="No escrow rows." /> : null}
             {escrow.data && toArray(escrow.data).length > 0 ? <p className="text-sm">Rows: {toArray(escrow.data).length}</p> : null}
           </div>
+        </div>
+
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-medium">Payments</h2>
+            <div className="flex gap-2">
+              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("all")}>All</button>
+              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("paid")}>Paid</button>
+              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("pending")}>Pending</button>
+              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("failed")}>Failed</button>
+            </div>
+          </div>
+          <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Filter: {paymentFilter}</p>
+          {payments.isLoading ? <LoadingState label="Loading payments..." /> : null}
+          {payments.data && toArray(payments.data).length === 0 ? <EmptyState label="No payments." /> : null}
+          {payments.data && toArray(payments.data).length > 0 ? (
+            <ul className="space-y-2">
+              {toArray(payments.data).map((item) => (
+                <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
+                  <p>Invoice: {item.invoice_id}</p>
+                  <p>Status: {item.status}</p>
+                  <p>Project: {item.project}</p>
+                  <p>Paid at: {item.paid_at ?? "-"}</p>
+                  <p>Escrow: {item.escrow_status ?? "-"}</p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <div className="rounded-md border border-slate-200 bg-white p-4">

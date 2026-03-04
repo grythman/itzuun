@@ -1,6 +1,7 @@
 """Serializers for authentication and user profile."""
 from datetime import timedelta
 
+from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
 from rest_framework import serializers
@@ -84,3 +85,40 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "email", "role", "is_verified", "created_at"]
+
+
+class RegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+    role = serializers.ChoiceField(choices=[User.ROLE_CLIENT, User.ROLE_FREELANCER], required=False)
+
+    def validate_email(self, value):
+        normalized = User.objects.normalize_email(value)
+        if User.objects.filter(email=normalized).exists():
+            raise serializers.ValidationError("User with this email already exists")
+        return normalized
+
+    def create(self, validated_data):
+        role = validated_data.get("role", User.ROLE_CLIENT)
+        user = User.objects.create_user(
+            email=validated_data["email"],
+            password=validated_data["password"],
+            role=role,
+        )
+        bump_user_public_version(user.id)
+        bump_admin_resource_version("users")
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, min_length=8, max_length=128)
+
+    def validate(self, attrs):
+        user = authenticate(username=attrs["email"], password=attrs["password"])
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
+        if not user.is_active:
+            raise serializers.ValidationError("User account is inactive")
+        attrs["user"] = user
+        return attrs

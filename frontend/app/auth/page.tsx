@@ -7,12 +7,14 @@ import { useForm } from "react-hook-form";
 import { ErrorState, LoadingState } from "@/components/states";
 import { authApi } from "@/lib/api/endpoints";
 import { useToastStore } from "@/lib/toast-store";
-import { otpRequestSchema, otpVerifySchema } from "@/lib/validators";
+import { loginSchema, otpRequestSchema, otpVerifySchema, registerSchema } from "@/lib/validators";
 
 import type { z } from "zod";
 
 type OtpRequestForm = z.infer<typeof otpRequestSchema>;
 type OtpVerifyForm = z.infer<typeof otpVerifySchema>;
+type RegisterForm = z.infer<typeof registerSchema>;
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function AuthPage() {
   const toast = useToastStore((s) => s.push);
@@ -31,6 +33,34 @@ export default function AuthPage() {
   const verifyForm = useForm<OtpVerifyForm>({
     resolver: zodResolver(otpVerifySchema),
     defaultValues: { email: "", otp: "", otp_token: "" },
+  });
+
+  const registerForm = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { email: "", password: "", role: "client" },
+  });
+
+  const loginForm = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: (values: RegisterForm) => authApi.register(values),
+    onSuccess: async () => {
+      await meQuery.refetch();
+      toast("success", "Account created and logged in");
+    },
+    onError: (error: Error) => toast("error", error.message),
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: (values: LoginForm) => authApi.login(values),
+    onSuccess: async () => {
+      await meQuery.refetch();
+      toast("success", "Logged in");
+    },
+    onError: (error: Error) => toast("error", error.message),
   });
 
   const requestMutation = useMutation({
@@ -75,8 +105,59 @@ export default function AuthPage() {
       <div className="rounded-md border border-slate-200 bg-white p-5">
         <h1 className="text-2xl font-semibold">Auth & Session</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Login flow: request OTP with your email, then verify the OTP token and code to start a secure session.
+          Use email/password register-login or OTP flow. Both start secure JWT cookie sessions.
         </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <form
+          className="space-y-4 rounded-md border border-slate-200 bg-white p-5"
+          onSubmit={registerForm.handleSubmit((values) => registerMutation.mutate(values))}
+        >
+          <div>
+            <h2 className="text-lg font-medium">Register</h2>
+            <p className="mt-1 text-sm text-slate-600">Create a client or freelancer account.</p>
+          </div>
+          <label className="block text-sm font-medium">
+            Email
+            <input type="email" {...registerForm.register("email")} />
+          </label>
+          <label className="block text-sm font-medium">
+            Password
+            <input type="password" {...registerForm.register("password")} />
+          </label>
+          <label className="block text-sm font-medium">
+            Role
+            <select {...registerForm.register("role")}>
+              <option value="client">Client</option>
+              <option value="freelancer">Freelancer</option>
+            </select>
+          </label>
+          <button className="w-full bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={registerMutation.isPending}>
+            {registerMutation.isPending ? "Registering..." : "Register"}
+          </button>
+        </form>
+
+        <form
+          className="space-y-4 rounded-md border border-slate-200 bg-white p-5"
+          onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}
+        >
+          <div>
+            <h2 className="text-lg font-medium">Password Login</h2>
+            <p className="mt-1 text-sm text-slate-600">Sign in directly using email and password.</p>
+          </div>
+          <label className="block text-sm font-medium">
+            Email
+            <input type="email" {...loginForm.register("email")} />
+          </label>
+          <label className="block text-sm font-medium">
+            Password
+            <input type="password" {...loginForm.register("password")} />
+          </label>
+          <button className="w-full bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? "Logging in..." : "Login"}
+          </button>
+        </form>
       </div>
 
       {meQuery.isLoading ? <LoadingState label="Checking current session..." /> : null}

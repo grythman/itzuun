@@ -5,12 +5,18 @@ from .views import (
     EscrowAdminApproveView,
     EscrowDepositView,
     EscrowReleaseView,
+    PaymentCreateView,
+    PaymentStatusView,
+    PaymentWebhookView,
     ProjectConfirmCompletionView,
     ProjectDisputeView,
     ProjectSubmitResultView,
 )
 
 urlpatterns = [
+    path("payments/create/", PaymentCreateView.as_view(), name="payment-create"),
+    path("payments/webhook/", PaymentWebhookView.as_view(), name="payment-webhook"),
+    path("payments/status/<int:project_id>", PaymentStatusView.as_view(), name="payment-status"),
     path("projects/<int:project_id>/escrow/deposit", EscrowDepositView.as_view(), name="escrow-deposit"),
     path("escrow/<int:escrow_id>/admin/approve", EscrowAdminApproveView.as_view(), name="escrow-approve"),
     path("escrow/<int:escrow_id>/release", EscrowReleaseView.as_view(), name="escrow-release"),
