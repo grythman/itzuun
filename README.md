@@ -5,6 +5,7 @@
 ## Current Status
 
 ### MVP Scope Implemented
+
 - OTP auth flow (request/verify) with JWT-based sessions.
 - Role-aware platform flow for `client`, `freelancer`, `admin`.
 - Project/proposal core lifecycle.
@@ -12,12 +13,14 @@
 - Main web UI + Admin dashboard UI (Django templates/static JS).
 
 ### Security & Auth
+
 - Auth is HttpOnly cookie-based JWT.
 - Cookie refresh and logout endpoints are in place.
 - Admin dashboard access is enforced on backend by role check.
 - Public read access is available for project browsing endpoints.
 
 ### UX State
+
 - Session expiry supports silent refresh retry on `401`.
 - Refresh failure fallback is handled for both main/admin flows.
 - Shared top banner system supports `info`, `success`, `warn` states.
@@ -25,6 +28,7 @@
 - Accessibility baseline includes `role="status"`, `aria-live="polite"`, focus-visible close button, and reduced-motion fallback.
 
 ### Documentation
+
 - Product and delivery docs: [backend/docs/PRD_MVP_ITZUUN.md](backend/docs/PRD_MVP_ITZUUN.md)
 - API contract: [backend/docs/API_CONTRACT_MVP.md](backend/docs/API_CONTRACT_MVP.md)
 - DB schema: [backend/docs/DB_SCHEMA_MVP.md](backend/docs/DB_SCHEMA_MVP.md)
@@ -41,8 +45,9 @@
 Base URL: `/api/v1`
 
 ### Auth
+
 | Method | Endpoint | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | POST | `/auth/request-otp` | OTP token үүсгэх |
 | POST | `/auth/verify-otp` | OTP баталгаажуулах, auth cookie set |
 | POST | `/auth/refresh` | Access cookie refresh |
@@ -51,8 +56,9 @@ Base URL: `/api/v1`
 | PATCH | `/auth/me` | Role шинэчлэх (`client`/`freelancer`) |
 
 ### Projects & Proposals
+
 | Method | Endpoint | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/projects` | Project жагсаалт (public read) |
 | POST | `/projects` | Client project үүсгэх |
 | GET | `/projects/{id}` | Project дэлгэрэнгүй |
@@ -63,8 +69,9 @@ Base URL: `/api/v1`
 | POST | `/projects/{id}/proposals` | Freelancer proposal илгээх |
 
 ### Escrow, Messaging, Reviews
+
 | Method | Endpoint | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | POST | `/projects/{id}/escrow/deposit` | Escrow санхүүжүүлэх (proposal price-тэй автоматаар таарна) |
 | POST | `/escrow/{id}/admin/approve` | Admin escrow approve |
 | POST | `/projects/{id}/deliverables` | Freelancer deliverable бүртгэх (`file_id`, `checksum`) |
@@ -76,8 +83,9 @@ Base URL: `/api/v1`
 | POST | `/projects/{id}/reviews` | Review үлдээх |
 
 ### Admin
+
 | Method | Endpoint | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/admin/users` | User жагсаалт |
 | POST | `/admin/users/{id}/verify` | User verify хийх |
 | GET | `/admin/projects` | Project хяналт |
@@ -88,16 +96,18 @@ Base URL: `/api/v1`
 | GET | `/admin/settings/commission/detail` | Commission утга харах |
 
 ### Financial Safety Rules
+
 - Money mutation endpoint-үүд `Idempotency-Key` header шаардана:
-   - `/projects/{id}/escrow/deposit`
-   - `/escrow/{id}/admin/approve`
-   - `/projects/{id}/confirm-completion`
-   - `/admin/disputes/{id}/resolve`
-   - `/admin/settings/commission`
+      - `/projects/{id}/escrow/deposit`
+      - `/escrow/{id}/admin/approve`
+      - `/projects/{id}/confirm-completion`
+      - `/admin/disputes/{id}/resolve`
+      - `/admin/settings/commission`
 - `submit-result` хийхээс өмнө хамгийн багадаа 1 deliverable заавал бүртгэгдсэн байна.
 - Client commission override устсан; payout fee нь server policy-аас тооцогдоно.
 
 ### Read Scalability Baseline
+
 - Global pagination policy идэвхтэй (`PageNumberPagination`, `PAGE_SIZE=20`).
 - List endpoint-үүд deterministic `order_by("-created_at")` ашиглана.
 - Hot-query index-ууд `projects`, `proposals`, `escrow`, `dispute` дээр нэмэгдсэн.
@@ -108,11 +118,13 @@ Base URL: `/api/v1`
 - Cache invalidation нь write path дээр version bump-аар хийгддэг тул stale цонх TTL-ээс хамаарал багатай.
 
 ### CI Pipeline
+
 - Canonical CI/CD gate checklist: [backend/docs/DEPLOYMENT_CHECKLIST_PROD.md](backend/docs/DEPLOYMENT_CHECKLIST_PROD.md)
 - Workflow definition: [.github/workflows/backend-tests.yml](.github/workflows/backend-tests.yml)
 - Team-based CODEOWNERS migration template: [backend/docs/CODEOWNERS_TEAM_TEMPLATE.md](backend/docs/CODEOWNERS_TEAM_TEMPLATE.md)
 
 ## Quick Start (Backend)
+
 1. Install dependencies:
    - `cd backend`
    - `pip install -r requirements.txt`
