@@ -122,7 +122,7 @@ export default function FreelancerDashboardPage() {
           </div>
         </div>
 
-        <DashboardBottomBar />
+        <DashboardBottomBar role="freelancer" />
       </section>
     </RoleGuard>
   );

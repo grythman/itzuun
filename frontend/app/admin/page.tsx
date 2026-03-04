@@ -2,7 +2,7 @@
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, ConfirmationDialog, StatusPill } from "@/components/ui-kit";
+import { ActionButton, ConfirmationDialog, DashboardBottomBar, RoleSidebar, StatusPill } from "@/components/ui-kit";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
@@ -62,10 +62,13 @@ export default function AdminPage() {
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath="/auth">
-      <section className="space-y-6">
+      <section className="space-y-6 pb-20">
         <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex gap-4">
+          <RoleSidebar role="admin" />
+          <div className="flex-1 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-medium">Commission</h2>
             {commission.isLoading ? <LoadingState label="Loading commission..." /> : null}
@@ -80,9 +83,9 @@ export default function AdminPage() {
             {escrow.data && toArray(escrow.data).length === 0 ? <EmptyState label="No escrow rows." /> : null}
             {escrow.data && toArray(escrow.data).length > 0 ? <p className="text-sm">Rows: {toArray(escrow.data).length}</p> : null}
           </div>
-        </div>
+            </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-medium">Payments</h2>
             <div className="flex gap-2">
@@ -113,9 +116,9 @@ export default function AdminPage() {
               ))}
             </ul>
           ) : null}
-        </div>
+            </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-lg font-medium">Users</h2>
           {users.isLoading ? <LoadingState label="Loading users..." /> : null}
           {users.isError ? <ErrorState label="Unable to load users." /> : null}
@@ -129,9 +132,9 @@ export default function AdminPage() {
               ))}
             </ul>
           ) : null}
-        </div>
+            </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-lg font-medium">Projects</h2>
             {projects.isLoading ? <LoadingState label="Loading projects..." /> : null}
@@ -153,6 +156,8 @@ export default function AdminPage() {
               </ul>
             ) : null}
           </div>
+            </div>
+          </div>
         </div>
 
         <ConfirmationDialog
@@ -171,6 +176,8 @@ export default function AdminPage() {
             });
           }}
         />
+
+        <DashboardBottomBar role="admin" />
       </section>
     </RoleGuard>
   );

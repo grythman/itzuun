@@ -139,19 +139,39 @@ export function RoleSidebar({ role }: { role: "client" | "freelancer" | "admin" 
   );
 }
 
-export function DashboardBottomBar() {
+export function DashboardBottomBar({ role = "client" }: { role?: "client" | "freelancer" | "admin" }) {
+  const mobileLinksByRole: Record<"client" | "freelancer" | "admin", Array<{ href: string; label: string; primary?: boolean }>> = {
+    client: [
+      { href: "/projects", label: "Projects" },
+      { href: "/projects/new", label: "Post Project", primary: true },
+      { href: "/client", label: "Dashboard" },
+    ],
+    freelancer: [
+      { href: "/projects", label: "Projects" },
+      { href: "/freelancer", label: "Dashboard", primary: true },
+      { href: "/auth", label: "Account" },
+    ],
+    admin: [
+      { href: "/admin", label: "Admin", primary: true },
+      { href: "/projects", label: "Projects" },
+      { href: "/auth", label: "Account" },
+    ],
+  };
+
+  const links = mobileLinksByRole[role];
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-2 backdrop-blur lg:hidden">
       <div className="mx-auto flex max-w-md items-center justify-between text-xs">
-        <Link href="/projects" className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">
-          Projects
-        </Link>
-        <Link href="/projects/new" className="rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white">
-          Post Project
-        </Link>
-        <Link href="/auth" className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100">
-          Account
-        </Link>
+        {links.map((link) => (
+          <Link
+            key={`${role}-${link.href}`}
+            href={link.href}
+            className={link.primary ? "rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white" : "rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100"}
+          >
+            {link.label}
+          </Link>
+        ))}
       </div>
     </div>
   );

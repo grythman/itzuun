@@ -108,7 +108,7 @@ export default function ClientDashboardPage() {
           </div>
         </div>
 
-        <DashboardBottomBar />
+        <DashboardBottomBar role="client" />
       </section>
     </RoleGuard>
   );
