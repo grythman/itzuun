@@ -155,3 +155,114 @@ class EscrowAbuseMatrixTests(TestCase):
         escrow = Escrow.objects.get(project=project)
         self.assertEqual(escrow.amount, proposal.price)
         self.assertEqual(escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).count(), 1)
+
+
+class CacheInvalidationSmokeTests(TestCase):
+    def setUp(self):
+        self.client_api = APIClient()
+        self.owner = User.objects.create_user(email="owner-cache@test.com", role="client", password="pass1234")
+        self.freelancer = User.objects.create_user(
+            email="freelancer-cache@test.com", role="freelancer", password="pass1234"
+        )
+        self.admin = User.objects.create_user(email="admin-cache@test.com", role="admin", password="pass1234")
+
+    def test_admin_users_list_invalidation_after_verify(self):
+        target = User.objects.create_user(email="pending-cache@test.com", role="client", password="pass1234")
+
+        self.client_api.force_authenticate(self.admin)
+        first = self.client_api.get("/api/v1/admin/users", {"verified": "false"})
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        first_ids = [item["id"] for item in first.json()["results"]]
+        self.assertIn(target.id, first_ids)
+
+        verify = self.client_api.post(f"/api/v1/admin/users/{target.id}/verify", format="json")
+        self.assertEqual(verify.status_code, status.HTTP_200_OK)
+
+        second = self.client_api.get("/api/v1/admin/users", {"verified": "false"})
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        second_ids = [item["id"] for item in second.json()["results"]]
+        self.assertNotIn(target.id, second_ids)
+
+    def test_admin_projects_list_invalidation_after_project_create(self):
+        self.client_api.force_authenticate(self.admin)
+        first = self.client_api.get("/api/v1/admin/projects", {"status": "open"})
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        before_count = first.json()["count"]
+
+        self.client_api.force_authenticate(self.owner)
+        create = self.client_api.post(
+            "/api/v1/projects",
+            {
+                "title": "Cache Project",
+                "description": "cache test",
+                "budget": 120000,
+                "timeline_days": 7,
+                "category": "web",
+            },
+            format="json",
+        )
+        self.assertEqual(create.status_code, status.HTTP_201_CREATED)
+
+        self.client_api.force_authenticate(self.admin)
+        second = self.client_api.get("/api/v1/admin/projects", {"status": "open"})
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.json()["count"], before_count + 1)
+
+    def test_profile_me_cache_invalidation_after_patch(self):
+        self.client_api.force_authenticate(self.owner)
+
+        first = self.client_api.get("/api/v1/profiles/me")
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        self.assertEqual(first.json()["full_name"], "")
+
+        patch = self.client_api.patch("/api/v1/profiles/me", {"full_name": "Cache Updated"}, format="json")
+        self.assertEqual(patch.status_code, status.HTTP_200_OK)
+
+        second = self.client_api.get("/api/v1/profiles/me")
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(second.json()["full_name"], "Cache Updated")
+
+    def test_reviews_summary_and_list_invalidation_after_review_create(self):
+        project = Project.objects.create(
+            owner=self.owner,
+            title="Completed Project",
+            description="desc",
+            budget=500000,
+            timeline_days=10,
+            category="web",
+            status=Project.STATUS_COMPLETED,
+        )
+        proposal = Proposal.objects.create(
+            project=project,
+            freelancer=self.freelancer,
+            price=500000,
+            timeline_days=8,
+            message="proposal",
+            status=Proposal.STATUS_ACCEPTED,
+        )
+        project.selected_proposal = proposal
+        project.save(update_fields=["selected_proposal"])
+
+        self.client_api.force_authenticate(self.owner)
+        summary_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
+        reviews_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews")
+        self.assertEqual(summary_before.status_code, status.HTTP_200_OK)
+        self.assertEqual(reviews_before.status_code, status.HTTP_200_OK)
+        self.assertEqual(summary_before.json()["total"], 0)
+        self.assertEqual(reviews_before.json()["count"], 0)
+
+        self.client_api.force_authenticate(self.owner)
+        create = self.client_api.post(
+            f"/api/v1/projects/{project.id}/reviews",
+            {"rating": 5, "comment": "great"},
+            format="json",
+        )
+        self.assertEqual(create.status_code, status.HTTP_201_CREATED)
+
+        summary_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
+        reviews_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews")
+        self.assertEqual(summary_after.status_code, status.HTTP_200_OK)
+        self.assertEqual(reviews_after.status_code, status.HTTP_200_OK)
+        self.assertEqual(summary_after.json()["total"], 1)
+        self.assertEqual(summary_after.json()["average"], 5)
+        self.assertEqual(reviews_after.json()["count"], 1)

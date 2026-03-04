@@ -1,0 +1,60 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  payments-and-cache-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: itzuun
+          POSTGRES_USER: itzuun
+          POSTGRES_PASSWORD: itzuun
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U itzuun -d itzuun"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_NAME: itzuun
+      DB_USER: itzuun
+      DB_PASSWORD: itzuun
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DJANGO_DEBUG: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django system checks
+        working-directory: backend
+        run: python manage.py check
+
+      - name: Check migration drift
+        working-directory: backend
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run payments and cache smoke tests
+        working-directory: backend
+        run: python manage.py test apps.payments.tests -v 2
