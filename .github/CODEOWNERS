@@ -1,3 +1,4 @@
+# Team migration guide: backend/docs/CODEOWNERS_TEAM_TEMPLATE.md
 * @grythman
 
 .github/workflows/* @grythman
