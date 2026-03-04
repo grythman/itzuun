@@ -52,10 +52,10 @@ export function Nav() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href="/auth" className="rounded-xl px-3 py-2 text-sm text-slate-800 hover:bg-slate-100">
+          <Link href="/auth/login" className="rounded-xl px-3 py-2 text-sm text-slate-800 hover:bg-slate-100">
             Login
           </Link>
-          <Link href="/auth" className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+          <Link href="/auth/register" className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
             Join ITZuun
           </Link>
           <Link href="/projects/new" className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-cyan-300">
