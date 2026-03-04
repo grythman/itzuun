@@ -1,92 +1,134 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+
+import { ErrorState, LoadingState } from "@/components/states";
 import { authApi } from "@/lib/api/endpoints";
-import { Card, SectionTitle } from "@/components/ui";
 import { useToastStore } from "@/lib/toast-store";
-import { useRouter } from "next/navigation";
+import { otpRequestSchema, otpVerifySchema } from "@/lib/validators";
 
-const requestSchema = z.object({ email: z.string().email() });
-const verifySchema = z.object({
-  email: z.string().email(),
-  otp: z.string().min(4),
-  otp_token: z.string().optional(),
-});
+import type { z } from "zod";
 
-type RequestInput = z.infer<typeof requestSchema>;
-type VerifyInput = z.infer<typeof verifySchema>;
+type OtpRequestForm = z.infer<typeof otpRequestSchema>;
+type OtpVerifyForm = z.infer<typeof otpVerifySchema>;
 
 export default function AuthPage() {
-  const pushToast = useToastStore((state) => state.push);
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const toast = useToastStore((s) => s.push);
 
-  const requestForm = useForm<RequestInput>({ resolver: zodResolver(requestSchema), defaultValues: { email: "" } });
-  const verifyForm = useForm<VerifyInput>({
-    resolver: zodResolver(verifySchema),
+  const meQuery = useQuery({
+    queryKey: ["me"],
+    queryFn: authApi.me,
+    retry: false,
+  });
+
+  const requestForm = useForm<OtpRequestForm>({
+    resolver: zodResolver(otpRequestSchema),
+    defaultValues: { email: "" },
+  });
+
+  const verifyForm = useForm<OtpVerifyForm>({
+    resolver: zodResolver(otpVerifySchema),
     defaultValues: { email: "", otp: "", otp_token: "" },
   });
 
   const requestMutation = useMutation({
-    mutationFn: (input: RequestInput) => authApi.requestOtp(input.email),
-    onSuccess: (data, variables) => {
-      verifyForm.setValue("email", variables.email);
+    mutationFn: ({ email }: OtpRequestForm) => authApi.requestOtp(email),
+    onSuccess: (data, vars) => {
       if (data.otp_token) {
         verifyForm.setValue("otp_token", data.otp_token);
       }
-      pushToast("success", data.message ?? "OTP sent");
+      verifyForm.setValue("email", vars.email);
+      toast("success", "OTP token requested.");
     },
-    onError: () => pushToast("error", "OTP request failed"),
+    onError: (error: Error) => toast("error", error.message),
   });
 
   const verifyMutation = useMutation({
-    mutationFn: (input: VerifyInput) => authApi.verifyOtp(input.email, input.otp, input.otp_token),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["me"] });
-      pushToast("success", "Login successful");
-      router.push("/");
+    mutationFn: ({ email, otp, otp_token }: OtpVerifyForm) => authApi.verifyOtp(email, otp, otp_token),
+    onSuccess: async () => {
+      await meQuery.refetch();
+      toast("success", "OTP verified. Session started.");
     },
-    onError: () => pushToast("error", "OTP verification failed"),
+    onError: (error: Error) => toast("error", error.message),
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: authApi.logout,
+    onSuccess: async () => {
+      await meQuery.refetch();
+      toast("info", "Logged out");
+    },
+  });
+
+  const roleMutation = useMutation({
+    mutationFn: authApi.updateRole,
+    onSuccess: async () => {
+      await meQuery.refetch();
+      toast("success", "Role updated");
+    },
   });
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <SectionTitle title="Request OTP" subtitle="Step 1" />
-        <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
+    <section className="space-y-6">
+      <h1 className="text-2xl font-semibold">Auth & Session</h1>
+
+      {meQuery.isLoading ? <LoadingState label="Checking current session..." /> : null}
+      {meQuery.isError ? <ErrorState label="Unable to load current user." /> : null}
+
+      {meQuery.data ? (
+        <div className="rounded-md border border-slate-200 bg-white p-4 text-sm">
+          <p className="font-medium">Signed in as: {meQuery.data.email}</p>
+          <p className="text-slate-600">Role: {meQuery.data.role}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button className="bg-slate-900 text-white" onClick={() => roleMutation.mutate("client")}>Set Client</button>
+            <button className="bg-slate-900 text-white" onClick={() => roleMutation.mutate("freelancer")}>Set Freelancer</button>
+            <button className="bg-red-600 text-white" onClick={() => logoutMutation.mutate()}>Logout</button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <form
+          className="space-y-3 rounded-md border border-slate-200 bg-white p-4"
+          onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}
+        >
+          <h2 className="text-lg font-medium">Request OTP</h2>
           <label className="block text-sm">
             Email
-            <input className="mt-1 w-full rounded border px-3 py-2" {...requestForm.register("email")} />
+            <input type="email" {...requestForm.register("email")} aria-label="Request OTP email" />
           </label>
-          <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" disabled={requestMutation.isPending}>
-            {requestMutation.isPending ? "Sending..." : "Request OTP"}
+          {requestForm.formState.errors.email ? (
+            <p className="text-xs text-red-700">{requestForm.formState.errors.email.message}</p>
+          ) : null}
+          <button className="bg-slate-900 text-white" type="submit" disabled={requestMutation.isPending}>
+            {requestMutation.isPending ? "Requesting..." : "Request OTP"}
           </button>
         </form>
-      </Card>
 
-      <Card>
-        <SectionTitle title="Verify OTP" subtitle="Step 2" />
-        <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
+        <form
+          className="space-y-3 rounded-md border border-slate-200 bg-white p-4"
+          onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}
+        >
+          <h2 className="text-lg font-medium">Verify OTP</h2>
           <label className="block text-sm">
             Email
-            <input className="mt-1 w-full rounded border px-3 py-2" {...verifyForm.register("email")} />
+            <input type="email" {...verifyForm.register("email")} aria-label="Verify OTP email" />
+          </label>
+          <label className="block text-sm">
+            OTP Token
+            <input {...verifyForm.register("otp_token")} aria-label="OTP token" />
           </label>
           <label className="block text-sm">
             OTP
-            <input className="mt-1 w-full rounded border px-3 py-2" {...verifyForm.register("otp")} />
+            <input {...verifyForm.register("otp")} aria-label="OTP code" />
           </label>
-          <label className="block text-sm">
-            OTP Token (optional)
-            <input className="mt-1 w-full rounded border px-3 py-2" {...verifyForm.register("otp_token")} />
-          </label>
-          <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" disabled={verifyMutation.isPending}>
+          <button className="bg-slate-900 text-white" type="submit" disabled={verifyMutation.isPending}>
             {verifyMutation.isPending ? "Verifying..." : "Verify OTP"}
           </button>
         </form>
-      </Card>
-    </div>
+      </div>
+    </section>
   );
 }

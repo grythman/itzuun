@@ -1,60 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { projectApi } from "@/lib/api/endpoints";
-import { Card, EmptyState, ErrorState, SectionTitle } from "@/components/ui";
+
+import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { useProjects } from "@/lib/hooks";
 
 export default function HomePage() {
-  const [page, setPage] = useState(1);
-  const projectsQuery = useQuery({
-    queryKey: ["projects", page],
-    queryFn: () => projectApi.list(page),
-  });
+  const projects = useProjects(1);
+
+  if (projects.isLoading) return <LoadingState label="Loading projects..." />;
+  if (projects.isError) return <ErrorState label="Could not load projects." />;
+
+  const items = projects.data?.results || [];
 
   return (
-    <div className="space-y-4">
-      <SectionTitle title="Project Feed" subtitle="Public projects for clients and freelancers" />
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Projects</h1>
+        <Link href="/projects/new" className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white">
+          Create Project
+        </Link>
+      </div>
 
-      {projectsQuery.isLoading ? <p className="text-sm text-slate-600">Loading projects...</p> : null}
-      {projectsQuery.isError ? <ErrorState message="Could not load projects" /> : null}
-
-      {projectsQuery.data && projectsQuery.data.results.length === 0 ? <EmptyState message="No projects yet." /> : null}
-
-      <div className="grid gap-3">
-        {projectsQuery.data?.results.map((project) => (
-          <Card key={project.id}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-medium">{project.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{project.description}</p>
+      {!items.length ? (
+        <EmptyState label="No projects found." />
+      ) : (
+        <ul className="grid gap-3">
+          {items.map((project) => (
+            <li key={project.id} className="rounded-md border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-medium">{project.title}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{project.description}</p>
+                  <p className="mt-2 text-xs uppercase tracking-wide text-slate-500">Status: {project.status}</p>
+                </div>
+                <Link href={`/projects/${project.id}`} className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white">
+                  View
+                </Link>
               </div>
-              <Link className="rounded border px-2 py-1 text-sm" href={`/projects/${project.id}`}>
-                Open
-              </Link>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          className="rounded border px-2 py-1 text-sm disabled:opacity-50"
-          disabled={page <= 1 || projectsQuery.isFetching}
-          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-        >
-          Prev
-        </button>
-        <span className="text-sm">Page {page}</span>
-        <button
-          className="rounded border px-2 py-1 text-sm disabled:opacity-50"
-          disabled={!projectsQuery.data?.next || projectsQuery.isFetching}
-          onClick={() => setPage((prev) => prev + 1)}
-        >
-          Next
-        </button>
-      </div>
-    </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

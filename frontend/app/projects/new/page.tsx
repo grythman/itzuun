@@ -1,59 +1,55 @@
 "use client";
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { projectApi } from "@/lib/api/endpoints";
-import { Card, SectionTitle } from "@/components/ui";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+
+import { projectsApi } from "@/lib/api/endpoints";
+import { useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
+import { createProjectSchema } from "@/lib/validators";
 
-const schema = z.object({
-  title: z.string().min(3),
-  description: z.string().min(10),
-  budget: z.string().optional(),
-});
+import type { z } from "zod";
 
-type FormInput = z.infer<typeof schema>;
+type FormValues = z.infer<typeof createProjectSchema>;
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const pushToast = useToastStore((state) => state.push);
-  const form = useForm<FormInput>({
-    resolver: zodResolver(schema),
+  const toast = useToastStore((s) => s.push);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(createProjectSchema),
     defaultValues: { title: "", description: "", budget: "" },
   });
 
-  const createMutation = useMutation({
-    mutationFn: (input: FormInput) => projectApi.create(input),
-    onSuccess: (project) => {
-      pushToast("success", "Project created");
-      router.push(`/projects/${project.id}`);
+  const mutation = useMutation({
+    mutationFn: projectsApi.create,
+    onSuccess: (data) => {
+      toast("success", "Project created");
+      router.push(`/projects/${data.id}`);
     },
-    onError: () => pushToast("error", "Project creation failed"),
+    onError: (error: Error) => toast("error", error.message),
   });
 
   return (
-    <Card>
-      <SectionTitle title="Create Project" subtitle="Client flow" />
-      <form className="space-y-3" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))}>
+    <section className="max-w-xl space-y-4">
+      <h1 className="text-2xl font-semibold">Create Project</h1>
+      <form className="space-y-3 rounded-md border border-slate-200 bg-white p-4" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
         <label className="block text-sm">
           Title
-          <input className="mt-1 w-full rounded border px-3 py-2" {...form.register("title")} />
+          <input {...form.register("title")} aria-label="Project title" />
         </label>
         <label className="block text-sm">
           Description
-          <textarea className="mt-1 w-full rounded border px-3 py-2" rows={4} {...form.register("description")} />
+          <textarea {...form.register("description")} aria-label="Project description" rows={4} />
         </label>
         <label className="block text-sm">
           Budget (optional)
-          <input className="mt-1 w-full rounded border px-3 py-2" {...form.register("budget")} />
+          <input {...form.register("budget")} aria-label="Project budget" />
         </label>
-        <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "Creating..." : "Create"}
+        <button type="submit" className="bg-slate-900 text-white" disabled={mutation.isPending}>
+          {mutation.isPending ? "Saving..." : "Create"}
         </button>
       </form>
-    </Card>
+    </section>
   );
 }

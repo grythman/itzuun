@@ -1,42 +1,59 @@
-# ITZuun Frontend MVP
+# ITZuun Frontend (Next.js MVP)
 
-Next.js (App Router) frontend for ITZuun Django API.
-
-## Stack
-
-- Next.js + TypeScript + Tailwind CSS
-- React Query + local state (Zustand for toast)
-- React Hook Form + Zod
-- Vitest + Testing Library
+Next.js + TypeScript + Tailwind frontend for the ITZuun marketplace backend.
 
 ## Install
 
-1. `cd frontend`
-2. `cp .env.example .env.local`
-3. `npm install`
+```bash
+cd frontend
+npm install
+```
 
 ## Run
 
-- Dev: `npm run dev`
-- Build: `npm run build`
-- Start: `npm run start`
-- Test: `npm run test`
+```bash
+npm run dev
+```
+
+Default URL: `http://localhost:3000`
 
 ## Environment
 
-- `NEXT_PUBLIC_API_BASE_URL`: Django API base URL, default `.env.example` points to `http://127.0.0.1:8000/api/v1`
+Copy `.env.example` to `.env.local`:
 
-## Implemented MVP Flows
+```bash
+cp .env.example .env.local
+```
 
-- OTP auth request/verify
-- `401` silent refresh + original request retry once
-- Global toast notifications (`info/success/warn/error`)
-- Projects list/detail/create
-- Proposal submit/select, submit-result + deliverable action, completion confirm
-- Admin guard and admin panel actions (users/projects/escrow/disputes/commission)
+Required variable:
+
+- `NEXT_PUBLIC_API_BASE_URL` (example: `http://127.0.0.1:8000/api/v1`)
+
+## Scripts
+
+- `npm run dev` - development server
+- `npm run build` - production build
+- `npm run start` - run production build
+- `npm run test` - run Vitest tests
+
+## Covered MVP Flows
+
+- Auth: request OTP, verify OTP, logout, role switch
+- Silent refresh on `401` with one retry
+- Projects: list, detail, create
+- Freelancer: submit proposal, submit result + deliverable awareness
+- Client: select freelancer, escrow deposit, confirm completion, dispute, review
+- Admin: users/projects/escrow/disputes list, verify user, resolve dispute, update commission
+- Global toast/banner and loading/empty/error states
+
+## Minimal Test Coverage
+
+- `tests/api-client.test.ts` - refresh + retry behavior
+- `tests/role-guard.test.tsx` - protected route guard behavior
+- `tests/home-page.test.tsx` - happy path project list rendering
 
 ## Known Limitations
 
-- Some payload fields may differ per backend serializer, so minor field mapping adjustments may be needed.
-- Styling is intentionally minimal for MVP.
-- Messaging/reviews/payment screens are action-level integration inside project detail, not separate pages.
+- UI is intentionally MVP/minimal and action-driven.
+- Some backend payloads are treated with relaxed typing where schema may vary.
+- Admin and project pages assume backend auth/session cookies are valid in browser.

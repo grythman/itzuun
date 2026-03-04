@@ -1,111 +1,111 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-import AdminGuard from "@/components/admin-guard";
-import { adminApi } from "@/lib/api/endpoints";
-import { Card, EmptyState, ErrorState, SectionTitle } from "@/components/ui";
+import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { RoleGuard } from "@/components/role-guard";
+import { adminApi, toArray } from "@/lib/api/endpoints";
+import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 
 export default function AdminPage() {
-  const pushToast = useToastStore((state) => state.push);
-  const usersQuery = useQuery({ queryKey: ["admin-users"], queryFn: adminApi.users });
-  const projectsQuery = useQuery({ queryKey: ["admin-projects"], queryFn: adminApi.projects });
-  const escrowQuery = useQuery({ queryKey: ["admin-escrow"], queryFn: adminApi.escrow });
-  const disputesQuery = useQuery({ queryKey: ["admin-disputes"], queryFn: adminApi.disputes });
-  const commissionQuery = useQuery({ queryKey: ["admin-commission"], queryFn: adminApi.commissionDetail });
+  const toast = useToastStore((s) => s.push);
+  const me = useMe();
+  const { users, projects, escrow, disputes, commission } = useAdminSnapshot();
 
-  const verifyUserMutation = useMutation({
-    mutationFn: (id: number) => adminApi.verifyUser(id),
+  const verifyMutation = useMutation({
+    mutationFn: adminApi.verifyUser,
     onSuccess: () => {
-      pushToast("success", "User verified");
-      usersQuery.refetch();
+      users.refetch();
+      toast("success", "User verified");
     },
-    onError: () => pushToast("error", "Verify failed"),
   });
 
   const resolveMutation = useMutation({
-    mutationFn: (id: number) => adminApi.resolveDispute(id, "resolved_by_admin"),
+    mutationFn: (id: number) => adminApi.resolveDispute(id, { resolution: "Resolved by admin" }),
     onSuccess: () => {
-      pushToast("success", "Dispute resolved");
-      disputesQuery.refetch();
+      disputes.refetch();
+      toast("success", "Dispute resolved");
     },
-    onError: () => pushToast("error", "Resolve failed"),
   });
 
   const commissionMutation = useMutation({
-    mutationFn: (value: string) => adminApi.updateCommission(value),
+    mutationFn: (pct: number) => adminApi.setCommission(pct),
     onSuccess: () => {
-      pushToast("success", "Commission updated");
-      commissionQuery.refetch();
+      commission.refetch();
+      toast("success", "Commission updated");
     },
-    onError: () => pushToast("error", "Commission update failed"),
   });
 
-  return (
-    <AdminGuard>
-      <div className="space-y-4">
-        <SectionTitle title="Admin Dashboard" subtitle="Users, projects, escrow, disputes, commission" />
+  if (me.isLoading) return <LoadingState label="Checking admin session..." />;
+  if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
 
-        <Card>
-          <h3 className="mb-2 font-medium">Users</h3>
-          {usersQuery.isLoading ? <p className="text-sm">Loading...</p> : null}
-          {usersQuery.isError ? <ErrorState message="Failed to load users" /> : null}
-          {usersQuery.data && usersQuery.data.results.length === 0 ? <EmptyState message="No users" /> : null}
-          <div className="space-y-2">
-            {usersQuery.data?.results.map((user) => (
-              <div key={user.id} className="flex items-center justify-between rounded border p-2 text-sm">
-                <span>
-                  {user.email} ({user.role}) {user.is_verified ? "✓" : ""}
-                </span>
-                {!user.is_verified ? (
-                  <button
-                    className="rounded border px-2 py-1"
-                    onClick={() => verifyUserMutation.mutate(user.id)}
-                    disabled={verifyUserMutation.isPending}
-                  >
+  return (
+    <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath="/auth">
+      <section className="space-y-6">
+        <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-md border border-slate-200 bg-white p-4">
+            <h2 className="text-lg font-medium">Commission</h2>
+            {commission.isLoading ? <LoadingState label="Loading commission..." /> : null}
+            {commission.isError ? <ErrorState label="Unable to load commission." /> : null}
+            {commission.data ? <p className="mt-2 text-sm">Current: {commission.data.commission_pct}%</p> : null}
+            <button className="mt-3 bg-slate-900 text-white" onClick={() => commissionMutation.mutate(10)}>
+              Set 10%
+            </button>
+          </div>
+
+          <div className="rounded-md border border-slate-200 bg-white p-4">
+            <h2 className="text-lg font-medium">Escrow</h2>
+            {escrow.isLoading ? <LoadingState label="Loading escrow..." /> : null}
+            {escrow.data && escrow.data.length === 0 ? <EmptyState label="No escrow rows." /> : null}
+            {escrow.data && escrow.data.length > 0 ? <p className="text-sm">Rows: {escrow.data.length}</p> : null}
+          </div>
+        </div>
+
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <h2 className="mb-3 text-lg font-medium">Users</h2>
+          {users.isLoading ? <LoadingState label="Loading users..." /> : null}
+          {users.isError ? <ErrorState label="Unable to load users." /> : null}
+          {users.data ? (
+            <ul className="space-y-2">
+              {toArray(users.data).map((user) => (
+                <li key={user.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
+                  <span>{user.email} ({user.role})</span>
+                  <button className="bg-blue-600 text-white" onClick={() => verifyMutation.mutate(user.id)}>
                     Verify
                   </button>
-                ) : null}
-              </div>
-            ))}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-md border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-lg font-medium">Projects</h2>
+            {projects.isLoading ? <LoadingState label="Loading projects..." /> : null}
+            {projects.data ? <p className="text-sm">Total: {toArray(projects.data).length}</p> : null}
           </div>
-        </Card>
 
-        <Card>
-          <h3 className="mb-2 font-medium">Projects</h3>
-          <p className="mb-2 text-sm text-slate-600">Count: {projectsQuery.data?.count ?? 0}</p>
-          {projectsQuery.data?.results.slice(0, 5).map((project) => (
-            <div key={project.id} className="rounded border p-2 text-sm">
-              {project.title}
-            </div>
-          ))}
-        </Card>
-
-        <Card>
-          <h3 className="mb-2 font-medium">Escrow</h3>
-          <p className="text-sm text-slate-600">Count: {escrowQuery.data?.count ?? 0}</p>
-        </Card>
-
-        <Card>
-          <h3 className="mb-2 font-medium">Disputes</h3>
-          {disputesQuery.data?.results.map((dispute) => (
-            <div key={dispute.id} className="mb-2 flex items-center justify-between rounded border p-2 text-sm">
-              <span>
-                #{dispute.id} - {dispute.status}
-              </span>
-              <button className="rounded border px-2 py-1" onClick={() => resolveMutation.mutate(dispute.id)}>
-                Resolve
-              </button>
-            </div>
-          ))}
-        </Card>
-
-        <Card>
-          <h3 className="mb-2 font-medium">Commission</h3>
-          <p className="mb-2 text-sm text-slate-600">Current: {commissionQuery.data?.value ?? "-"}</p>
-          <button className="rounded border px-3 py-2 text-sm" onClick={() => commissionMutation.mutate("10")}>Set 10%</button>
-        </Card>
-      </div>
-    </AdminGuard>
+          <div className="rounded-md border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-lg font-medium">Disputes</h2>
+            {disputes.isLoading ? <LoadingState label="Loading disputes..." /> : null}
+            {disputes.data && disputes.data.length === 0 ? <EmptyState label="No disputes." /> : null}
+            {disputes.data && disputes.data.length > 0 ? (
+              <ul className="space-y-2">
+                {disputes.data.map((item: any, idx: number) => (
+                  <li key={item.id || idx} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
+                    <span>Dispute #{item.id || idx + 1}</span>
+                    <button className="bg-green-600 text-white" onClick={() => resolveMutation.mutate(item.id || idx + 1)}>
+                      Resolve
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </div>
+      </section>
+    </RoleGuard>
   );
 }
