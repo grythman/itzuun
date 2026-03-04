@@ -29,6 +29,15 @@ Required variable:
 
 - `NEXT_PUBLIC_API_BASE_URL` (example: `http://127.0.0.1:8000/api/v1`)
 
+Optional variable (only needed when `NEXT_PUBLIC_API_BASE_URL` is left as default `/api/v1`):
+
+- `BACKEND_ORIGIN` (default: `http://127.0.0.1:8000`)
+
+Notes:
+
+- If `NEXT_PUBLIC_API_BASE_URL` is not set, the frontend uses `/api/v1`.
+- In development, Next.js rewrites `/api/v1/*` to `${BACKEND_ORIGIN}/api/v1/*`.
+
 ## Scripts
 
 - `npm run dev` - development server
