@@ -108,10 +108,8 @@ Base URL: `/api/v1`
 - Cache invalidation нь write path дээр version bump-аар хийгддэг тул stale цонх TTL-ээс хамаарал багатай.
 
 ### CI Pipeline
-- GitHub Actions workflow нь `quality-checks` болон `payments-and-cache-smoke` гэсэн 2 job-оор parallel ажиллана.
-- Dependency install нь `backend/requirements.txt` дээр суурилсан pip cache ашигладаг.
-- Давхардсан run-ууд `concurrency` тохиргоогоор автоматаар cancel хийгдэнэ.
-- `main` branch дээр нэмэлтээр `python manage.py check --deploy --fail-level WARNING` gate ажиллана.
+- Canonical CI/CD gate checklist: [backend/docs/DEPLOYMENT_CHECKLIST_PROD.md](backend/docs/DEPLOYMENT_CHECKLIST_PROD.md)
+- Workflow definition: [.github/workflows/backend-tests.yml](.github/workflows/backend-tests.yml)
 
 ## Quick Start (Backend)
 1. Install dependencies:

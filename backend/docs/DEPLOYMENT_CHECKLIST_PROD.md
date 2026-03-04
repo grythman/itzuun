@@ -118,6 +118,13 @@ server {
 - [ ] Verify health checks and key business flows.
 - [ ] Monitor error rate + latency for first 30-60 minutes.
 
+## 8.5 CI/CD Gate Alignment
+
+- [ ] GitHub Actions workflow (`.github/workflows/backend-tests.yml`) green болсон байна.
+- [ ] `quality-checks` job: `check --fail-level WARNING` + `makemigrations --check --dry-run` pass.
+- [ ] `payments-and-cache-smoke` job: `apps.payments.tests` pass.
+- [ ] `main` branch дээр `check --deploy --fail-level WARNING` pass.
+
 ## 9. Rollback Criteria
 
 Rollback if any of these happen:
