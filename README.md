@@ -110,6 +110,7 @@ Base URL: `/api/v1`
 ### CI Pipeline
 - Canonical CI/CD gate checklist: [backend/docs/DEPLOYMENT_CHECKLIST_PROD.md](backend/docs/DEPLOYMENT_CHECKLIST_PROD.md)
 - Workflow definition: [.github/workflows/backend-tests.yml](.github/workflows/backend-tests.yml)
+- Team-based CODEOWNERS migration template: [backend/docs/CODEOWNERS_TEAM_TEMPLATE.md](backend/docs/CODEOWNERS_TEAM_TEMPLATE.md)
 
 ## Quick Start (Backend)
 1. Install dependencies:
