@@ -102,8 +102,8 @@ export default function AuthPage() {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-md border border-slate-200 bg-white p-5">
-        <h1 className="text-2xl font-semibold">Auth & Session</h1>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h1 className="text-2xl font-semibold">Welcome back</h1>
         <p className="mt-2 text-sm text-slate-600">
           Use email/password register-login or OTP flow. Both start secure JWT cookie sessions.
         </p>
@@ -111,7 +111,7 @@ export default function AuthPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <form
-          className="space-y-4 rounded-md border border-slate-200 bg-white p-5"
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           onSubmit={registerForm.handleSubmit((values) => registerMutation.mutate(values))}
         >
           <div>
@@ -133,13 +133,13 @@ export default function AuthPage() {
               <option value="freelancer">Freelancer</option>
             </select>
           </label>
-          <button className="w-full bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={registerMutation.isPending}>
+          <button className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={registerMutation.isPending}>
             {registerMutation.isPending ? "Registering..." : "Register"}
           </button>
         </form>
 
         <form
-          className="space-y-4 rounded-md border border-slate-200 bg-white p-5"
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}
         >
           <div>
@@ -154,7 +154,7 @@ export default function AuthPage() {
             Password
             <input type="password" {...loginForm.register("password")} />
           </label>
-          <button className="w-full bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loginMutation.isPending}>
+          <button className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60" type="submit" disabled={loginMutation.isPending}>
             {loginMutation.isPending ? "Logging in..." : "Login"}
           </button>
         </form>
@@ -175,14 +175,14 @@ export default function AuthPage() {
 
           <div className="mt-4 flex flex-wrap gap-2">
             <button
-              className="bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => roleMutation.mutate("client")}
               disabled={roleMutation.isPending || meQuery.data.role === "client"}
             >
               Set Client
             </button>
             <button
-              className="bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => roleMutation.mutate("freelancer")}
               disabled={roleMutation.isPending || meQuery.data.role === "freelancer"}
             >
@@ -201,7 +201,7 @@ export default function AuthPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <form
-          className="space-y-4 rounded-md border border-slate-200 bg-white p-5"
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}
         >
           <div>
@@ -218,7 +218,7 @@ export default function AuthPage() {
           ) : null}
 
           <button
-            className="w-full bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
             disabled={requestMutation.isPending}
           >
@@ -227,7 +227,7 @@ export default function AuthPage() {
         </form>
 
         <form
-          className="space-y-4 rounded-md border border-slate-200 bg-white p-5"
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}
         >
           <div>
@@ -260,7 +260,7 @@ export default function AuthPage() {
           ) : null}
 
           <button
-            className="w-full bg-slate-900 text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
             disabled={verifyMutation.isPending}
           >

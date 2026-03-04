@@ -51,7 +51,7 @@ export default function ClientDashboardPage() {
       <section className="space-y-6">
         <h1 className="text-2xl font-semibold">Client Dashboard</h1>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-lg font-medium">My Projects</h2>
           {!myProjects.length ? (
             <EmptyState label="No projects created yet." />
@@ -62,7 +62,7 @@ export default function ClientDashboardPage() {
                   <p className="font-medium">{project.title}</p>
                   <p>Status: {project.status}</p>
                   <div className="flex flex-wrap gap-2">
-                    <button className="bg-slate-900 text-white" onClick={() => setActiveProjectId(project.id)}>
+                    <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setActiveProjectId(project.id)}>
                       View Proposals
                     </button>
                     <button className="bg-blue-600 text-white" onClick={() => depositMutation.mutate(project.id)}>
@@ -81,7 +81,7 @@ export default function ClientDashboardPage() {
           )}
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-lg font-medium">Project Proposals</h2>
           {!activeProjectId ? (
             <EmptyState label="Select a project to view proposals." />

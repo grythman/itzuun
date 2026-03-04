@@ -60,7 +60,7 @@ export default function NewProjectPage() {
   return (
     <section className="max-w-xl space-y-4">
       <h1 className="text-2xl font-semibold">Create Project</h1>
-      <form className="space-y-3 rounded-md border border-slate-200 bg-white p-4" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
+      <form className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
         <label className="block text-sm">
           Title
           <input {...form.register("title")} aria-label="Project title" />
@@ -98,7 +98,7 @@ export default function NewProjectPage() {
         >
           {aiMutation.isPending ? "Generating..." : "Suggest Description (AI)"}
         </button>
-        <button type="submit" className="bg-slate-900 text-white" disabled={mutation.isPending}>
+        <button type="submit" className="bg-blue-600 text-white hover:bg-blue-700" disabled={mutation.isPending}>
           {mutation.isPending ? "Saving..." : "Create"}
         </button>
       </form>

@@ -64,17 +64,17 @@ export default function AdminPage() {
         <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-medium">Commission</h2>
             {commission.isLoading ? <LoadingState label="Loading commission..." /> : null}
             {commission.isError ? <ErrorState label="Unable to load commission." /> : null}
             {commission.data ? <p className="mt-2 text-sm">Current: {commission.data.platform_fee_pct}%</p> : null}
-            <button className="mt-3 bg-slate-900 text-white" onClick={() => commissionMutation.mutate(10)}>
+            <button className="mt-3 bg-blue-600 text-white hover:bg-blue-700" onClick={() => commissionMutation.mutate(10)}>
               Set 10%
             </button>
           </div>
 
-          <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-medium">Escrow</h2>
             {escrow.isLoading ? <LoadingState label="Loading escrow..." /> : null}
             {escrow.data && toArray(escrow.data).length === 0 ? <EmptyState label="No escrow rows." /> : null}
@@ -82,14 +82,14 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-medium">Payments</h2>
             <div className="flex gap-2">
-              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("all")}>All</button>
-              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("paid")}>Paid</button>
-              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("pending")}>Pending</button>
-              <button className="bg-slate-900 text-white" onClick={() => setPaymentFilter("failed")}>Failed</button>
+              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("all")}>All</button>
+              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("paid")}>Paid</button>
+              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("pending")}>Pending</button>
+              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("failed")}>Failed</button>
             </div>
           </div>
           <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Filter: {paymentFilter}</p>
@@ -110,7 +110,7 @@ export default function AdminPage() {
           ) : null}
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-lg font-medium">Users</h2>
           {users.isLoading ? <LoadingState label="Loading users..." /> : null}
           {users.isError ? <ErrorState label="Unable to load users." /> : null}
@@ -129,13 +129,13 @@ export default function AdminPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-lg font-medium">Projects</h2>
             {projects.isLoading ? <LoadingState label="Loading projects..." /> : null}
             {projects.data ? <p className="text-sm">Total: {toArray(projects.data).length}</p> : null}
           </div>
 
-          <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-lg font-medium">Disputes</h2>
             {disputes.isLoading ? <LoadingState label="Loading disputes..." /> : null}
             {disputes.data && toArray(disputes.data).length === 0 ? <EmptyState label="No disputes." /> : null}

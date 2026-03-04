@@ -42,7 +42,7 @@ export default function FreelancerDashboardPage() {
       <section className="space-y-6">
         <h1 className="text-2xl font-semibold">Freelancer Dashboard</h1>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-lg font-medium">My Proposals</h2>
           {!myProposals.length ? (
             <EmptyState label="No proposals submitted yet." />
@@ -59,7 +59,7 @@ export default function FreelancerDashboardPage() {
           )}
         </div>
 
-        <div className="rounded-md border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-3 text-lg font-medium">Active Projects</h2>
           {!activeProjects.length ? (
             <EmptyState label="No active selected projects." />
@@ -70,7 +70,7 @@ export default function FreelancerDashboardPage() {
                   <p className="font-medium">{project.title}</p>
                   <p>Status: {project.status}</p>
                   <div className="flex flex-wrap gap-2">
-                    <Link href={`/projects/${project.id}`} className="rounded-md bg-slate-900 px-3 py-2 text-sm text-white">
+                    <Link href={`/projects/${project.id}`} className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                       Open Project
                     </Link>
                     <button className="bg-green-600 text-white" onClick={() => submitMutation.mutate(project.id)}>
