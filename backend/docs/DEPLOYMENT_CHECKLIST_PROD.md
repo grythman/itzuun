@@ -137,6 +137,7 @@ server {
 
 Recommended process:
 
+- [ ] PR нь `.github/pull_request_template.md` загвараар нээгдсэн байна.
 - [ ] PR description дээр дээрх 5 мөрийн `Owner/Reviewer/Evidence`-ийг бөглөсөн байна.
 - [ ] Production deploy approval-оос өмнө Reviewer нь evidence-үүдийг шалгаж sign-off хийсэн байна.
 
