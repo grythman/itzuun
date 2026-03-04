@@ -125,6 +125,21 @@ server {
 - [ ] `payments-and-cache-smoke` job: `apps.payments.tests` pass.
 - [ ] `main` branch дээр `check --deploy --fail-level WARNING` pass.
 
+## 8.6 Release Ownership Matrix
+
+| Gate / Task | Owner | Reviewer | Evidence |
+| --- | --- | --- | --- |
+| CI workflow green | Backend Engineer | Tech Lead | GitHub Actions run URL |
+| Migration drift check | Backend Engineer | DBA / Tech Lead | `makemigrations --check --dry-run` output |
+| Staging smoke tests | QA / Backend Engineer | Product / Tech Lead | Test report or checklist |
+| Production deploy execution | DevOps / Backend Engineer | Tech Lead | Deploy log + release tag |
+| Post-deploy health verification | On-call Engineer | Tech Lead | Dashboard screenshot + API smoke results |
+
+Recommended process:
+
+- [ ] PR description дээр дээрх 5 мөрийн `Owner/Reviewer/Evidence`-ийг бөглөсөн байна.
+- [ ] Production deploy approval-оос өмнө Reviewer нь evidence-үүдийг шалгаж sign-off хийсэн байна.
+
 ## 9. Rollback Criteria
 
 Rollback if any of these happen:
