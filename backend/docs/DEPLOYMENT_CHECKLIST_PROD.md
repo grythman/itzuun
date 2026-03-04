@@ -138,6 +138,8 @@ server {
 Recommended process:
 
 - [ ] PR нь `.github/pull_request_template.md` загвараар нээгдсэн байна.
+- [ ] CODEOWNERS (`.github/CODEOWNERS`) дүрэм reviewer-үүдийг автоматаар request хийж байна.
+- [ ] Team-based шилжилт хийх бол [backend/docs/CODEOWNERS_TEAM_TEMPLATE.md](backend/docs/CODEOWNERS_TEAM_TEMPLATE.md)-ийг дагаж шинэчилсэн байна.
 - [ ] PR description дээр дээрх 5 мөрийн `Owner/Reviewer/Evidence`-ийг бөглөсөн байна.
 - [ ] Production deploy approval-оос өмнө Reviewer нь evidence-үүдийг шалгаж sign-off хийсэн байна.
 

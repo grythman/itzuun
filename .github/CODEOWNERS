@@ -1,0 +1,12 @@
+* @grythman
+
+.github/workflows/* @grythman
+.github/pull_request_template.md @grythman
+
+backend/apps/payments/* @grythman
+backend/apps/projects/* @grythman
+backend/apps/adminpanel/* @grythman
+backend/common/* @grythman
+backend/config/* @grythman
+backend/docs/* @grythman
+README.md @grythman
