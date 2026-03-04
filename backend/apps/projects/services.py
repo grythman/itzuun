@@ -1,6 +1,7 @@
 """Project domain services."""
 from django.db import transaction
 
+from common.cache_utils import bump_admin_resource_version, bump_project_version
 from common.exceptions import DomainError
 from common.state_guards import guard_project_transition
 
@@ -19,6 +20,8 @@ def select_freelancer(project: Project, proposal: Proposal) -> Project:
     proposal.status = Proposal.STATUS_ACCEPTED
     proposal.save(update_fields=["status"])
     project.save(update_fields=["status", "selected_proposal"])
+    bump_project_version(project.id)
+    bump_admin_resource_version("projects")
     return project
 
 
@@ -28,4 +31,6 @@ def close_project(project: Project) -> Project:
     guard_project_transition(project.status, Project.STATUS_CLOSED_REFUNDED)
     project.status = Project.STATUS_CLOSED_REFUNDED
     project.save(update_fields=["status"])
+    bump_project_version(project.id)
+    bump_admin_resource_version("projects")
     return project

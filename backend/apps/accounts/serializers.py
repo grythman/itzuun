@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import check_password
 from django.utils import timezone
 from rest_framework import serializers
 
+from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 from .models import EmailOTP, User
 from .services import create_email_otp
 
@@ -60,12 +61,16 @@ class VerifyOtpSerializer(serializers.Serializer):
         obj.locked_until = None
         obj.save(update_fields=["is_used", "failed_attempts", "locked_until"])
 
-        user, _ = User.objects.get_or_create(
+        user, created = User.objects.get_or_create(
             email=validated_data["email"],
             defaults={"role": User.ROLE_CLIENT},
         )
+        was_active = user.is_active
         user.is_active = True
         user.save(update_fields=["is_active"])
+        bump_user_public_version(user.id)
+        if created or not was_active:
+            bump_admin_resource_version("users")
         return user
 
 

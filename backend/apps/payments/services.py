@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
+from common.cache_utils import bump_admin_resource_version, bump_project_version
 from common.exceptions import DomainError
 from common.models import PlatformSetting
 from common.state_guards import guard_escrow_transition, guard_project_transition
@@ -121,6 +122,9 @@ def deposit_to_escrow(project: Project, actor, amount: int | None = None) -> Esc
         after_state=_serialize_escrow(escrow),
         reason="Client funded escrow",
     )
+    bump_project_version(project.id)
+    bump_admin_resource_version("escrow")
+    bump_admin_resource_version("projects")
     return escrow
 
 
@@ -142,6 +146,9 @@ def approve_escrow(escrow: Escrow, actor) -> Escrow:
         after_state=_serialize_escrow(escrow),
         reason="Admin approved escrow hold",
     )
+    bump_project_version(escrow.project_id)
+    bump_admin_resource_version("escrow")
+    bump_admin_resource_version("projects")
     return escrow
 
 
@@ -160,6 +167,8 @@ def submit_result(project: Project, submitter) -> Project:
     guard_project_transition(project.status, Project.STATUS_AWAITING_REVIEW)
     project.status = Project.STATUS_AWAITING_REVIEW
     project.save(update_fields=["status"])
+    bump_project_version(project.id)
+    bump_admin_resource_version("projects")
     return project
 
 
@@ -222,6 +231,9 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
         after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(project)},
         reason="Client confirmed completion and released escrow",
     )
+    bump_project_version(project.id)
+    bump_admin_resource_version("escrow")
+    bump_admin_resource_version("projects")
     return escrow
 
 
@@ -260,6 +272,10 @@ def create_dispute(project: Project, raised_by, reason: str, evidence_files: lis
         after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(project)},
         reason=reason,
     )
+    bump_project_version(project.id)
+    bump_admin_resource_version("escrow")
+    bump_admin_resource_version("projects")
+    bump_admin_resource_version("disputes")
     return dispute
 
 
@@ -318,4 +334,8 @@ def resolve_dispute(dispute: Dispute, action: str, release_amount: int, refund_a
         after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(dispute.project)},
         reason=note,
     )
+    bump_project_version(dispute.project_id)
+    bump_admin_resource_version("escrow")
+    bump_admin_resource_version("projects")
+    bump_admin_resource_version("disputes")
     return dispute

@@ -102,6 +102,10 @@ Base URL: `/api/v1`
 - List endpoint-үүд deterministic `order_by("-created_at")` ашиглана.
 - Hot-query index-ууд `projects`, `proposals`, `escrow`, `dispute` дээр нэмэгдсэн.
 - `REDIS_URL` тохируулсан үед cache backend автоматаар Redis рүү шилжинэ (`django-redis`).
+- `GET /projects` болон `GET /projects/{id}` endpoint-үүд cache-тай (list TTL 60s, detail versioned key).
+- `GET /users/{id}/rating-summary`, `GET /users/{id}/reviews`, `GET /profiles/{user_id}`, `GET /profiles/me` endpoint-үүд user-versioned cache ашиглана.
+- Admin list endpoint-үүд (`/admin/users`, `/admin/projects`, `/admin/escrow`, `/admin/disputes`) versioned list cache ашиглана.
+- Cache invalidation нь write path дээр version bump-аар хийгддэг тул stale цонх TTL-ээс хамаарал багатай.
 
 ## Quick Start (Backend)
 1. Install dependencies:

@@ -1,11 +1,13 @@
 """Review views."""
 from django.db.models import Avg, Count
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.cache_utils import bump_user_public_version, rating_summary_cache_key, user_reviews_cache_key
 from apps.projects.models import Project
 
 from .models import Review
@@ -34,6 +36,7 @@ class ProjectReviewCreateView(generics.CreateAPIView):
 
         reviewee_id = freelancer_id if is_owner else project.owner_id
         serializer.save(project=project, reviewer=self.request.user, reviewee_id=reviewee_id)
+        bump_user_public_version(reviewee_id)
 
 
 class UserReviewsListView(generics.ListAPIView):
@@ -42,11 +45,29 @@ class UserReviewsListView(generics.ListAPIView):
     def get_queryset(self):
         return Review.objects.filter(reviewee_id=self.kwargs["user_id"]).order_by("-created_at")
 
+    def list(self, request, *args, **kwargs):
+        user_id = kwargs["user_id"]
+        cache_key = user_reviews_cache_key(user_id, request.query_params)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, timeout=180)
+        return response
+
 
 class UserRatingSummaryView(APIView):
     def get(self, request, user_id):
+        cache_key = rating_summary_cache_key(user_id)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
         summary = Review.objects.filter(reviewee_id=user_id).aggregate(
             avg_rating=Avg("rating"),
             total=Count("id"),
         )
-        return Response({"average": summary["avg_rating"] or 0, "total": summary["total"]})
+        payload = {"average": summary["avg_rating"] or 0, "total": summary["total"]}
+        cache.set(cache_key, payload, timeout=300)
+        return Response(payload)

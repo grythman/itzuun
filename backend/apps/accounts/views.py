@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
+from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 
 from .models import User
 from .serializers import MeSerializer, RequestOtpSerializer, VerifyOtpSerializer
@@ -108,4 +109,6 @@ class MeView(APIView):
             return Response({"detail": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
         request.user.role = role
         request.user.save(update_fields=["role"])
+        bump_user_public_version(request.user.id)
+        bump_admin_resource_version("users")
         return Response(MeSerializer(request.user).data)

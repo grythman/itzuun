@@ -1,5 +1,6 @@
 """Project and proposal views."""
 from django.db.models import Q
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.messaging.models import ProjectFile
+from common.cache_utils import bump_admin_resource_version, bump_project_version, project_detail_cache_key, project_list_cache_key
 
 from .models import Project, ProjectDeliverable, Proposal
 from .permissions import IsClient, IsFreelancer
@@ -41,7 +43,19 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        project = serializer.save(owner=self.request.user)
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
+
+    def list(self, request, *args, **kwargs):
+        cache_key = project_list_cache_key(request.query_params)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, timeout=60)
+        return response
 
 
 class ProjectDetailView(generics.RetrieveUpdateAPIView):
@@ -59,7 +73,21 @@ class ProjectDetailView(generics.RetrieveUpdateAPIView):
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
         if project.status != Project.STATUS_OPEN:
             return Response({"detail": "Project is not open"}, status=status.HTTP_400_BAD_REQUEST)
-        return super().patch(request, *args, **kwargs)
+        response = super().patch(request, *args, **kwargs)
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
+        return response
+
+    def retrieve(self, request, *args, **kwargs):
+        project_id = kwargs["pk"]
+        cache_key = project_detail_cache_key(project_id)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
+        response = super().retrieve(request, *args, **kwargs)
+        cache.set(cache_key, response.data, timeout=60)
+        return response
 
 
 class ProjectCloseView(APIView):
@@ -103,6 +131,8 @@ class ProjectProposalListCreateView(generics.ListCreateAPIView):
         if project.status != Project.STATUS_OPEN:
             raise ValidationError({"detail": "Project is not open"})
         serializer.save(project=project, freelancer=self.request.user)
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
 
 
 class ProposalMeListView(generics.ListAPIView):
@@ -124,7 +154,10 @@ class ProposalDetailView(generics.UpdateAPIView):
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
         if proposal.status != Proposal.STATUS_PENDING:
             return Response({"detail": "Proposal is not pending"}, status=status.HTTP_400_BAD_REQUEST)
-        return super().patch(request, *args, **kwargs)
+        response = super().patch(request, *args, **kwargs)
+        bump_project_version(proposal.project_id)
+        bump_admin_resource_version("projects")
+        return response
 
 
 class ProposalWithdrawView(APIView):
@@ -134,6 +167,8 @@ class ProposalWithdrawView(APIView):
         proposal = get_object_or_404(Proposal, id=proposal_id, freelancer=request.user)
         proposal.status = Proposal.STATUS_WITHDRAWN
         proposal.save(update_fields=["status"])
+        bump_project_version(proposal.project_id)
+        bump_admin_resource_version("projects")
         return Response({"status": proposal.status})
 
 
@@ -160,4 +195,6 @@ class ProjectDeliverableCreateView(APIView):
             description=serializer.validated_data.get("description", ""),
             checksum=serializer.validated_data["checksum"],
         )
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
         return Response(ProjectDeliverableSerializer(deliverable).data, status=status.HTTP_201_CREATED)
