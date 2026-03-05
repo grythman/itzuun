@@ -6,7 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { AppCard, DashboardBottomBar, RatingStars, RoleSidebar, VerifiedBadge } from "@/components/ui-kit";
 import { toArray } from "@/lib/api/endpoints";
-import { useMe, useMutation, useMyProposals, useProjects } from "@/lib/hooks";
+import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -14,6 +14,7 @@ export default function FreelancerDashboardPage() {
   const me = useMe();
   const proposals = useMyProposals();
   const projects = useProjects(1);
+  const profile = useMyProfile();
   const toast = useToastStore((s) => s.push);
 
   const submitMutation = useMutation({
@@ -39,7 +40,17 @@ export default function FreelancerDashboardPage() {
   );
   const pendingProposals = myProposals.filter((item) => (item.status || "pending") === "pending").length;
   const earnings = activeProjects.reduce((acc, item) => acc + item.budget, 0);
-  const profileCompleteness = me.data.is_verified ? 90 : 65;
+
+  const profileData = profile.data;
+  let profileCompleteness = 0;
+  if (profileData) {
+    let filled = 0;
+    if (profileData.full_name) filled++;
+    if (profileData.bio) filled++;
+    if (profileData.skills?.length > 0) filled++;
+    if (profileData.hourly_rate > 0) filled++;
+    profileCompleteness = Math.round((filled / 4) * 100);
+  }
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath="/auth">
@@ -76,7 +87,15 @@ export default function FreelancerDashboardPage() {
               <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
                 <div className="h-2 rounded-full bg-emerald-600" style={{ width: `${profileCompleteness}%` }} />
               </div>
-              <p className="mt-2 text-xs text-slate-600">Complete your profile to get 2x more selection chances.</p>
+              <p className="mt-2 text-xs text-slate-600">
+                {profileCompleteness < 100 ? (
+                  <Link href="/freelancer/profile" className="text-blue-600 hover:underline">
+                    Complete your profile to get 2x more selection chances →
+                  </Link>
+                ) : (
+                  "Your profile is complete!"
+                )}
+              </p>
             </AppCard>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

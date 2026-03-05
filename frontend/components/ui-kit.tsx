@@ -113,8 +113,8 @@ export function RoleSidebar({ role }: { role: "client" | "freelancer" | "admin" 
     ],
     freelancer: [
       { href: "/freelancer", label: "Freelancer Dashboard" },
+      { href: "/freelancer/profile", label: "My Profile" },
       { href: "/projects", label: "Find Projects" },
-      { href: "/auth", label: "Profile & Verification" },
     ],
     admin: [
       { href: "/admin", label: "Admin Control" },
@@ -149,7 +149,7 @@ export function DashboardBottomBar({ role = "client" }: { role?: "client" | "fre
     freelancer: [
       { href: "/projects", label: "Projects" },
       { href: "/freelancer", label: "Dashboard", primary: true },
-      { href: "/auth", label: "Account" },
+      { href: "/freelancer/profile", label: "Profile" },
     ],
     admin: [
       { href: "/admin", label: "Admin", primary: true },
