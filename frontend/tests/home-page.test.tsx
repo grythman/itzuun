@@ -19,7 +19,7 @@ describe("HomePage", () => {
   it("renders landing and latest projects", () => {
     render(<HomePage />);
 
-    expect(screen.getByText("ITZuun MVP")).toBeInTheDocument();
+    expect(screen.getByText("IT Freelance Platform")).toBeInTheDocument();
     expect(screen.getByText("Latest Projects")).toBeInTheDocument();
     expect(screen.getByText("Landing page build")).toBeInTheDocument();
     expect(screen.getByText("Need freelancer")).toBeInTheDocument();
