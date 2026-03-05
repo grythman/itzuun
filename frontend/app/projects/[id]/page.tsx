@@ -5,10 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { ActionButton, ChatBubble, CompareTable, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, TrustPanel, VerifiedBadge } from "@/components/ui-kit";
+import { ActionButton, CompareTable, ConfirmationDialog, EscrowStatusBadge, RatingStars, TrustPanel, VerifiedBadge } from "@/components/ui-kit";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import ProjectChat from "@/components/project-chat";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
-import { useMe, useMutation, useProjectDetail, useProjectMessages, useProjectProposals } from "@/lib/hooks";
+import { useMe, useMutation, useProjectDetail, useProjectProposals } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { proposalSchema, reviewSchema } from "@/lib/validators";
 
@@ -26,9 +27,7 @@ export default function ProjectDetailPage() {
 
   const detail = useProjectDetail(id);
   const proposals = useProjectProposals(id);
-  const messages = useProjectMessages(id);
 
-  const [messageText, setMessageText] = useState("");
   const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
   const [checksum, setChecksum] = useState("");
   const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
@@ -62,16 +61,6 @@ export default function ProjectDetailPage() {
     onSuccess: () => {
       proposals.refetch();
       toast("success", "Proposal submitted");
-    },
-    onError: (error: Error) => toast("error", error.message),
-  });
-
-  const messageMutation = useMutation({
-    mutationFn: (text: string) => projectsApi.sendMessage(id, text),
-    onSuccess: () => {
-      setMessageText("");
-      messages.refetch();
-      toast("success", "Message sent");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -149,7 +138,6 @@ export default function ProjectDetailPage() {
 
   const project = detail.data;
   const proposalItems = proposals.data ? toArray(proposals.data) : [];
-  const messageItems = messages.data ? toArray(messages.data) : [];
 
   const compareRows = useMemo(
     () =>
@@ -405,40 +393,7 @@ export default function ProjectDetailPage() {
         )}
       </div>
 
-      <div className="rounded-md border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-lg font-medium">Project Chat</h2>
-        <div className="mb-3 flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-          <span>Project in escrow communication channel</span>
-          <StatusPill label="Live" tone="success" />
-        </div>
-        {!messageItems.length ? (
-          <EmptyState label="No messages." />
-        ) : (
-          <ul className="space-y-2">
-            {messageItems.map((item) => (
-              <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
-                <ChatBubble
-                  mine={item.sender === me.data?.id}
-                  text={item.text}
-                  time={item.created_at ? new Date(item.created_at).toLocaleString() : undefined}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="mt-3 space-y-2">
-          <textarea
-            aria-label="Message text"
-            rows={3}
-            value={messageText}
-            onChange={(event) => setMessageText(event.target.value)}
-            placeholder="Type your message"
-          />
-          <ActionButton onClick={() => messageMutation.mutate(messageText)} loading={messageMutation.isPending}>
-            Send Message
-          </ActionButton>
-        </div>
-      </div>
+      <ProjectChat projectId={id} currentUserId={me.data.id} />
 
       {me.data.role === "freelancer" && isSelectedFreelancer ? (
         <div className="rounded-md border border-slate-200 bg-white p-4 space-y-3">
