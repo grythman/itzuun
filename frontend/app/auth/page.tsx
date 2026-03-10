@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 
 import { ActionButton } from "@/components/ui-kit";
 import { authApi } from "@/lib/api/endpoints";
+import { useMe } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { loginSchema, otpRequestSchema, otpVerifySchema, registerSchema } from "@/lib/validators";
 
@@ -19,8 +20,16 @@ type OtpVerifyForm = z.infer<typeof otpVerifySchema>;
 type RegisterForm = z.infer<typeof registerSchema>;
 type LoginForm = z.infer<typeof loginSchema>;
 
+function roleDashboard(role?: string) {
+  if (role === "admin") return "/admin";
+  if (role === "freelancer") return "/freelancer";
+  return "/client";
+}
+
 function AuthCard() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const me = useMe();
   const initialTab = useMemo<AuthTab>(() => (searchParams.get("tab") === "register" ? "register" : "signin"), [searchParams]);
 
   const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
@@ -28,6 +37,11 @@ function AuthCard() {
 
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (me.data) router.replace(roleDashboard(me.data.role));
+  }, [me.data, router]);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -55,18 +69,20 @@ function AuthCard() {
 
   const registerMutation = useMutation({
     mutationFn: (values: RegisterForm) => authApi.register(values),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "Account created and logged in");
+      router.push(roleDashboard(data.user?.role));
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
   const loginMutation = useMutation({
     mutationFn: (values: LoginForm) => authApi.login(values),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "Logged in");
+      router.push(roleDashboard(data.user?.role));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -88,6 +104,7 @@ function AuthCard() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "OTP verified. Session started");
+      router.push("/client");
     },
     onError: (error: Error) => toast("error", error.message),
   });

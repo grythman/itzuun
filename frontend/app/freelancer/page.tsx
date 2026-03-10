@@ -9,12 +9,18 @@ import { toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useToastStore } from "@/lib/toast-store";
+import { useQuery } from "@tanstack/react-query";
 
 export default function FreelancerDashboardPage() {
   const me = useMe();
   const proposals = useMyProposals();
   const projects = useProjects(1);
   const profile = useMyProfile();
+  const rating = useQuery({
+    queryKey: ["my-rating", me.data?.id],
+    queryFn: () => projectsApi.ratingSummary(me.data!.id),
+    enabled: !!me.data?.id,
+  });
   const toast = useToastStore((s) => s.push);
 
   const submitMutation = useMutation({
@@ -78,7 +84,8 @@ export default function FreelancerDashboardPage() {
               </AppCard>
               <AppCard>
                 <p className="text-xs uppercase tracking-wide text-slate-500">Rating</p>
-                <div className="mt-1"><RatingStars value={4.8} /></div>
+                <div className="mt-1"><RatingStars value={rating.data?.average ?? 0} /></div>
+                <p className="mt-0.5 text-xs text-slate-500">{rating.data?.total ?? 0} reviews</p>
               </AppCard>
             </div>
 

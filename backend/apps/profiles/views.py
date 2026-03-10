@@ -1,11 +1,28 @@
 """Profile views."""
 from django.core.cache import cache
-from rest_framework import generics
+from django.db.models import Q
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from common.cache_utils import bump_user_public_version, profile_cache_key
 
 from .models import Profile
 from .serializers import ProfileSerializer
+
+
+class ProfileListView(generics.ListAPIView):
+    """Public list of freelancer profiles with search."""
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        qs = Profile.objects.select_related("user").filter(user__role="freelancer")
+        search = self.request.query_params.get("search")
+        skill = self.request.query_params.get("skill")
+        if search:
+            qs = qs.filter(Q(full_name__icontains=search) | Q(bio__icontains=search))
+        if skill:
+            qs = qs.filter(skills__contains=[skill])
+        return qs.order_by("-id")
 
 
 class ProfileDetailView(generics.RetrieveAPIView):
