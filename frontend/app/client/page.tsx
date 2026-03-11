@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { AppCard, DashboardBottomBar, RoleSidebar, TrustPanel } from "@/components/ui-kit";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
-import { useMe, useMutation, useProjectProposals, useProjects } from "@/lib/hooks";
+import { useMe, useMutation, useProjectProposals, useProjects, useMyProfile } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 
 export default function ClientDashboardPage() {
@@ -15,6 +16,7 @@ export default function ClientDashboardPage() {
   const me = useMe();
   const projects = useProjects(1);
   const toast = useToastStore((s) => s.push);
+    const profile = useMyProfile();
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const proposals = useProjectProposals(activeProjectId || "");
 
@@ -36,12 +38,23 @@ export default function ClientDashboardPage() {
     onError: (error: Error) => toast("error", error.message),
   });
 
-  if (me.isLoading || projects.isLoading) return <LoadingState label="Loading client dashboard..." />;
+    if (me.isLoading || projects.isLoading || profile.isLoading) return <LoadingState label="Loading client dashboard..." />;
   if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
   if (projects.isError || !projects.data) return <ErrorState label="Could not load projects." />;
 
   const myProjects = projects.data.results.filter((project) => project.owner === me.data?.id);
   const proposalItems = proposals.data ? toArray(proposals.data) : [];
+
+    const profileData = profile.data;
+    let profileCompleteness = 0;
+    if (profileData) {
+      let filled = 0;
+      if (profileData.full_name) filled++;
+      if (profileData.bio) filled++;
+      if (profileData.skills?.length > 0) filled++;
+      if (profileData.hourly_rate > 0) filled++;
+      profileCompleteness = Math.round((filled / 4) * 100);
+    }
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath="/auth">
@@ -52,6 +65,22 @@ export default function ClientDashboardPage() {
           <RoleSidebar role="client" />
           <div className="flex-1 space-y-4">
             <TrustPanel />
+
+            <AppCard>
+              <p className="text-sm font-semibold">Company Profile Completeness: {profileCompleteness}%</p>
+              <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
+                <div className="h-2 rounded-full bg-blue-600" style={{ width: `${profileCompleteness}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                {profileCompleteness < 100 ? (
+                  <Link href="/client/profile" className="text-blue-600 hover:underline">
+                    Complete your profile to build trust with freelancers →
+                  </Link>
+                ) : (
+                  "Your profile is complete!"
+                )}
+              </p>
+            </AppCard>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="mb-3 text-lg font-medium">My Projects</h2>

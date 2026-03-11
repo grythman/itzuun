@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
@@ -9,13 +12,26 @@ import { toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useToastStore } from "@/lib/toast-store";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { proposalSchema } from "@/lib/validators";
+import type { z } from "zod";
+import type { Proposal } from "@/lib/types";
+
+type ProposalForm = z.infer<typeof proposalSchema>;
 
 export default function FreelancerDashboardPage() {
   const me = useMe();
   const proposals = useMyProposals();
   const projects = useProjects(1);
   const profile = useMyProfile();
+  const queryClient = useQueryClient();
+  const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
+
+  const editForm = useForm<ProposalForm>({
+    resolver: zodResolver(proposalSchema),
+    defaultValues: { price: 0, timeline_days: 0, message: "" },
+  });
+
   const rating = useQuery({
     queryKey: ["my-rating", me.data?.id],
     queryFn: () => projectsApi.ratingSummary(me.data!.id),
@@ -31,6 +47,30 @@ export default function FreelancerDashboardPage() {
     },
     onError: (error: Error) => toast("error", error.message),
   });
+
+  const updateProposalMutation = useMutation({
+    mutationFn: (values: ProposalForm) => {
+      if (!editingProposalId) throw new Error("No proposal selected");
+      return projectsApi.updateProposal(editingProposalId, values);
+    },
+    onSuccess: () => {
+      proposals.refetch();
+      queryClient.invalidateQueries({ queryKey: ["project-proposals"] });
+      setEditingProposalId(null);
+      editForm.reset();
+      toast("success", "Proposal updated");
+    },
+    onError: (error: Error) => toast("error", error.message),
+  });
+
+  function openEditModal(proposal: Proposal) {
+    setEditingProposalId(proposal.id);
+    editForm.reset({
+      price: proposal.price,
+      timeline_days: proposal.timeline_days,
+      message: proposal.message || "",
+    });
+  }
 
   if (me.isLoading || proposals.isLoading || projects.isLoading) return <LoadingState label="Loading freelancer dashboard..." />;
   if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
@@ -113,14 +153,62 @@ export default function FreelancerDashboardPage() {
                 <ul className="space-y-2">
                   {myProposals.map((proposal) => (
                     <li key={proposal.id} className="rounded border border-slate-200 p-3 text-sm">
-                      <p>Project #{proposal.project}</p>
-                      <p>Price: {proposal.price}</p>
-                      <p>Status: {proposal.status || "pending"}</p>
+                      <p className="font-medium">Project #{proposal.project}</p>
+                      <p>Price: {Number(proposal.price).toLocaleString()} MNT</p>
+                      <p>Timeline: {proposal.timeline_days} days</p>
+                      <p>Status: <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 capitalize text-xs">{proposal.status || "pending"}</span></p>
+                      {(proposal.status || "pending") === "pending" && (
+                        <button
+                          type="button"
+                          className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
+                          onClick={() => openEditModal(proposal)}
+                        >
+                          Edit
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
+
+            {editingProposalId !== null && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+                <div className="w-full max-w-[480px] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+                  <h3 className="text-lg font-semibold">Edit Proposal</h3>
+                  <form className="mt-4 space-y-3" onSubmit={editForm.handleSubmit((v) => updateProposalMutation.mutate(v))}>
+                    <label className="block text-sm">
+                      Price (MNT)
+                      <input type="number" {...editForm.register("price", { valueAsNumber: true })} className="mt-1" />
+                    </label>
+                    <label className="block text-sm">
+                      Timeline (days)
+                      <input type="number" {...editForm.register("timeline_days", { valueAsNumber: true })} className="mt-1" />
+                    </label>
+                    <label className="block text-sm">
+                      Message
+                      <textarea {...editForm.register("message")} rows={3} className="mt-1" />
+                    </label>
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        className="flex-1 rounded-lg bg-slate-200 py-2 text-sm text-slate-800 hover:bg-slate-300"
+                        onClick={() => setEditingProposalId(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={updateProposalMutation.isPending}
+                        className="flex-1 rounded-lg bg-blue-600 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+                      >
+                        {updateProposalMutation.isPending ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="mb-3 text-lg font-medium">Active Projects</h2>

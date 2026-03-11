@@ -193,6 +193,11 @@ export default function ProjectDetailPage() {
 
       {isClientOwner ? (
         <div className="grid gap-3 md:grid-cols-3">
+          {project.status === "open" && (
+            <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => router.push(`/projects/${id}/edit`)}>
+              Edit Project
+            </button>
+          )}
           <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => router.push(`/projects/${id}/payment`)}>
             Open Payment Page
           </button>

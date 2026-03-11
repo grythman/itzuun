@@ -108,6 +108,7 @@ export function RoleSidebar({ role }: { role: "client" | "freelancer" | "admin" 
   const linksByRole: Record<string, Array<{ href: string; label: string }>> = {
     client: [
       { href: "/client", label: "Client Dashboard" },
+      { href: "/client/profile", label: "Company Profile" },
       { href: "/projects", label: "Browse Projects" },
       { href: "/projects/new", label: "Post Project" },
     ],
@@ -144,7 +145,7 @@ export function DashboardBottomBar({ role = "client" }: { role?: "client" | "fre
     client: [
       { href: "/projects", label: "Projects" },
       { href: "/projects/new", label: "Post Project", primary: true },
-      { href: "/client", label: "Dashboard" },
+      { href: "/client/profile", label: "Profile" },
     ],
     freelancer: [
       { href: "/projects", label: "Projects" },
