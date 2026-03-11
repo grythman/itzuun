@@ -63,6 +63,16 @@ export default function FreelancerDashboardPage() {
     onError: (error: Error) => toast("error", error.message),
   });
 
+  const withdrawMutation = useMutation({
+    mutationFn: (proposalId: number) => projectsApi.withdrawProposal(proposalId),
+    onSuccess: () => {
+      proposals.refetch();
+      queryClient.invalidateQueries({ queryKey: ["project-proposals"] });
+      toast("success", "Proposal withdrawn");
+    },
+    onError: (error: Error) => toast("error", error.message),
+  });
+
   function openEditModal(proposal: Proposal) {
     setEditingProposalId(proposal.id);
     editForm.reset({
@@ -158,13 +168,23 @@ export default function FreelancerDashboardPage() {
                       <p>Timeline: {proposal.timeline_days} days</p>
                       <p>Status: <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 capitalize text-xs">{proposal.status || "pending"}</span></p>
                       {(proposal.status || "pending") === "pending" && (
-                        <button
-                          type="button"
-                          className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
-                          onClick={() => openEditModal(proposal)}
-                        >
-                          Edit
-                        </button>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
+                            onClick={() => openEditModal(proposal)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700 hover:bg-red-100"
+                            disabled={withdrawMutation.isPending}
+                            onClick={() => withdrawMutation.mutate(proposal.id)}
+                          >
+                            {withdrawMutation.isPending ? "Withdrawing..." : "Withdraw"}
+                          </button>
+                        </div>
                       )}
                     </li>
                   ))}

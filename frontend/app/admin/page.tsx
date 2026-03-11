@@ -57,6 +57,15 @@ export default function AdminPage() {
     },
   });
 
+  const approveMutation = useMutation({
+    mutationFn: (escrowId: number) => adminApi.approveEscrow(escrowId),
+    onSuccess: () => {
+      escrow.refetch();
+      toast("success", "Escrow approved");
+    },
+    onError: (error: Error) => toast("error", error.message),
+  });
+
   if (me.isLoading) return <LoadingState label="Checking admin session..." />;
   if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
 
@@ -81,7 +90,21 @@ export default function AdminPage() {
             <h2 className="text-lg font-medium">Escrow</h2>
             {escrow.isLoading ? <LoadingState label="Loading escrow..." /> : null}
             {escrow.data && toArray(escrow.data).length === 0 ? <EmptyState label="No escrow rows." /> : null}
-            {escrow.data && toArray(escrow.data).length > 0 ? <p className="text-sm">Rows: {toArray(escrow.data).length}</p> : null}
+            {escrow.data && toArray(escrow.data).length > 0 ? (
+              <ul className="space-y-2 mt-2">
+                {toArray(escrow.data).map((item) => (
+                  <li key={item.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
+                    <div>
+                      <p>Escrow #{item.id} — Project #{item.project}</p>
+                      <p className="text-xs text-slate-500">{item.amount?.toLocaleString()} MNT · <StatusPill label={item.status} tone={item.status === "held" ? "success" : item.status === "created" ? "warning" : "neutral"} /></p>
+                    </div>
+                    {item.status === "created" && (
+                      <ActionButton tone="success" loading={approveMutation.isPending} onClick={() => approveMutation.mutate(item.id)}>Approve</ActionButton>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
             </div>
 

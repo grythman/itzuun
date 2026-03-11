@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { ErrorState, LoadingState } from "@/components/states";
 import { AppCard, RatingStars } from "@/components/ui-kit";
-import { projectsApi } from "@/lib/api/endpoints";
+import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useProfile } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
 
@@ -15,6 +15,12 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
   const rating = useQuery({
     queryKey: ["rating-summary", id],
     queryFn: () => projectsApi.ratingSummary(id),
+    enabled: !!id,
+  });
+
+  const reviews = useQuery({
+    queryKey: ["user-reviews", id],
+    queryFn: () => projectsApi.userReviews(id),
     enabled: !!id,
   });
 
@@ -87,6 +93,28 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
             This freelancer hasn&apos;t completed their profile yet.
           </p>
         </AppCard>
+      )}
+
+      {/* Reviews */}
+      {reviews.data && toArray(reviews.data).length > 0 && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Reviews</h2>
+          <ul className="space-y-4">
+            {toArray(reviews.data).map((review) => (
+              <li key={review.id} className="border-b border-slate-100 pb-4 last:border-none last:pb-0">
+                <div className="flex items-center gap-2">
+                  <RatingStars value={review.rating} />
+                  {review.created_at && (
+                    <span className="text-xs text-slate-400">{new Date(review.created_at).toLocaleDateString()}</span>
+                  )}
+                </div>
+                {review.comment && (
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{review.comment}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </section>
   );
