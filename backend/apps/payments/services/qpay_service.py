@@ -57,11 +57,17 @@ def authenticate() -> str:
         "username": settings.QPAY_USERNAME,
         "password": settings.QPAY_PASSWORD,
     }
-    response = requests.post(_auth_url(), json=payload, timeout=10)
+    try:
+        response = requests.post(_auth_url(), json=payload, timeout=10)
+    except requests.RequestException as exc:
+        raise DomainError("Unable to reach QPay authentication endpoint") from exc
     if response.status_code >= 400:
         raise DomainError("QPay authentication failed")
 
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError as exc:
+        raise DomainError("QPay auth response was not valid JSON") from exc
     token = data.get("access_token") or data.get("token")
     if not token:
         raise DomainError("QPay auth response missing access token")
@@ -83,11 +89,17 @@ def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
         "amount": amount,
         "callback_url": callback_url,
     }
-    response = requests.post(_invoice_url(), headers=_headers(token), json=payload, timeout=12)
+    try:
+        response = requests.post(_invoice_url(), headers=_headers(token), json=payload, timeout=12)
+    except requests.RequestException as exc:
+        raise DomainError("Unable to reach QPay invoice endpoint") from exc
     if response.status_code >= 400:
         raise DomainError("QPay invoice creation failed")
 
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError as exc:
+        raise DomainError("QPay invoice response was not valid JSON") from exc
     invoice_id = data.get("invoice_id") or data.get("invoiceId")
     if not invoice_id:
         raise DomainError("QPay invoice response missing invoice_id")
@@ -103,15 +115,21 @@ def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
 
 def get_invoice_status(invoice_id: str) -> dict:
     token = authenticate()
-    response = requests.post(
-        _payment_check_url(),
-        headers=_headers(token),
-        json={"invoice_id": invoice_id},
-        timeout=12,
-    )
+    try:
+        response = requests.post(
+            _payment_check_url(),
+            headers=_headers(token),
+            json={"invoice_id": invoice_id},
+            timeout=12,
+        )
+    except requests.RequestException as exc:
+        raise DomainError("Unable to reach QPay payment check endpoint") from exc
     if response.status_code >= 400:
         raise DomainError("QPay payment verification failed")
-    return response.json()
+    try:
+        return response.json()
+    except ValueError as exc:
+        raise DomainError("QPay payment verification response was not valid JSON") from exc
 
 
 def verify_webhook(request) -> dict:
