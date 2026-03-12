@@ -49,8 +49,14 @@ class AdminUserVerifyView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request, user_id):
+        action = request.data.get("action")
+        rejection_reason = request.data.get("rejection_reason", "")
+        
+        if action not in {"approve", "reject", "suspend"}:
+            return Response({"detail": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            
         user = get_object_or_404(User, id=user_id)
-        verify_user(user)
+        verify_user(user, action=action, rejection_reason=rejection_reason)
         bump_user_public_version(user.id)
         bump_admin_resource_version("users")
         return Response(UserSerializer(user).data)

@@ -29,18 +29,22 @@ export default function ClientProfilePage() {
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { full_name: "", bio: "", skills: "", hourly_rate: 0 },
+    defaultValues: { full_name: "", title: "", bio: "", skills: "", hourly_rate: 0, is_available: true, response_time_hours: 24, portfolio: [] },
   });
 
   const updateMutation = useMutation({
     mutationFn: (values: ProfileForm) =>
       profilesApi.updateMe({
         full_name: values.full_name,
+        title: values.title,
         bio: values.bio,
         skills: values.skills
           ? values.skills.split(",").map((s) => s.trim()).filter(Boolean)
           : [],
         hourly_rate: values.hourly_rate,
+        is_available: values.is_available,
+        response_time_hours: values.response_time_hours,
+        portfolio: values.portfolio,
       }),
     onSuccess: () => {
       profile.refetch();
@@ -60,9 +64,13 @@ export default function ClientProfilePage() {
   function handleEdit() {
     form.reset({
       full_name: profileData.full_name || "",
+      title: profileData.title || "",
       bio: profileData.bio || "",
       skills: (profileData.skills || []).join(", "),
-      hourly_rate: profileData.hourly_rate || 0,
+      hourly_rate: Number(profileData.hourly_rate) || 0,
+      is_available: profileData.is_available ?? true,
+      response_time_hours: profileData.response_time_hours ?? 24,
+      portfolio: profileData.portfolio || [],
     });
     setSkillsInput((profileData.skills || []).join(", "));
     setIsEditing(true);
@@ -76,16 +84,7 @@ export default function ClientProfilePage() {
     updateMutation.mutate(values);
   }
 
-  function calculateCompleteness() {
-    let filled = 0;
-    if (profileData.full_name) filled++;
-    if (profileData.bio) filled++;
-    if (profileData.skills?.length > 0) filled++;
-    if (profileData.hourly_rate > 0) filled++;
-    return Math.round((filled / 4) * 100);
-  }
-
-  const completeness = calculateCompleteness();
+  const completeness = profileData.profile_completeness || 0;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath="/auth">

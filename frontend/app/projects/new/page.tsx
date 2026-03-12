@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 
 import { AppCard, StepProgress, TrustPanel } from "@/components/ui-kit";
 import { projectsApi } from "@/lib/api/endpoints";
-import { useMutation } from "@/lib/hooks";
+import { useCategories, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { createProjectSchema } from "@/lib/validators";
 
@@ -21,13 +21,17 @@ export default function NewProjectPage() {
   const [skillsInput, setSkillsInput] = useState("");
   const [step, setStep] = useState(0);
   const steps = ["Basic Info", "Budget & Timeline", "Review & Confirm"];
+  const categories = useCategories();
   const form = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
-    defaultValues: { title: "", description: "", budget: 1000000, timeline_days: 14, category: "web" },
+    defaultValues: { title: "", description: "", budget: 1000000, timeline_days: 14, category: "other" },
   });
 
   const mutation = useMutation({
-    mutationFn: projectsApi.create,
+    mutationFn: (values: FormValues) => {
+      const required_skills = skillsInput.split(",").map(item => item.trim()).filter(Boolean);
+      return projectsApi.create({ ...values, required_skills });
+    },
     onSuccess: (data) => {
       toast("success", "Project created");
       router.push(`/projects/${data.id}`);
@@ -80,7 +84,12 @@ export default function NewProjectPage() {
             </label>
             <label className="block text-sm">
               Category
-              <input {...form.register("category")} aria-label="Project category" placeholder="web, mobile, backend..." />
+              <select {...form.register("category_id")} aria-label="Project category" className="w-full rounded-md border-surface-300 py-1.5 px-3">
+                <option value="">Сонгох...</option>
+                {categories.data?.map(c => (
+                  <option key={c.id} value={c.id}>{c.name_mn}</option>
+                ))}
+              </select>
             </label>
             <label className="block text-sm">
               Scope checklist / Required skills

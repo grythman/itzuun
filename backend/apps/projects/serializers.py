@@ -1,10 +1,29 @@
 """Project and proposal serializers."""
 from rest_framework import serializers
 
-from .models import Project, ProjectDeliverable, Proposal
+from .models import Category, Project, ProjectDeliverable, Proposal
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ("id", "name_en", "name_mn", "slug", "icon")
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    category_obj = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source="category_obj",
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    required_skills = serializers.ListField(
+        child=serializers.CharField(max_length=64),
+        default=list,
+    )
+
     class Meta:
         model = Project
         fields = (
@@ -15,6 +34,9 @@ class ProjectSerializer(serializers.ModelSerializer):
             "budget",
             "timeline_days",
             "category",
+            "category_id",
+            "category_obj",
+            "required_skills",
             "status",
             "selected_proposal",
         )

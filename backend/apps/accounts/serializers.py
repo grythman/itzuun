@@ -117,13 +117,37 @@ class GoogleAuthSerializer(serializers.Serializer):
 class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "role", "is_verified", "created_at"]
+        fields = [
+            "id", "email", "role", "is_verified", "created_at",
+            "verification_status", "verification_type", "phone", "rejection_reason"
+        ]
+        read_only_fields = [
+            "verification_status", "verification_type", "phone", "rejection_reason"
+        ]
+
+
+class VerificationSubmitSerializer(serializers.Serializer):
+    verification_type = serializers.ChoiceField(choices=User.VERIFICATION_TYPE_CHOICES)
+    phone = serializers.CharField(max_length=20)
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        user.verification_type = validated_data["verification_type"]
+        user.phone = validated_data["phone"]
+        user.verification_status = User.VERIFICATION_PENDING
+        user.save(update_fields=["verification_type", "phone", "verification_status", "is_verified"])
+        bump_admin_resource_version("users")
+        bump_user_public_version(user.id)
+        return user
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "role", "is_verified", "created_at"]
+        fields = [
+            "id", "email", "role", "is_verified", "created_at",
+            "verification_status", "verification_type", "phone", "rejection_reason"
+        ]
 
 
 class RegisterSerializer(serializers.Serializer):

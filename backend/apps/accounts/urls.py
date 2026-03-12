@@ -1,7 +1,7 @@
 """Auth and user URL routes."""
 from django.urls import path
 
-from .views import CookieTokenRefreshView, GoogleAuthView, LoginView, LogoutView, MeView, RegisterView, RequestOtpView, VerifyOtpView
+from .views import CookieTokenRefreshView, GoogleAuthView, LoginView, LogoutView, MeView, RegisterView, RequestOtpView, VerificationSubmitView, VerifyOtpView
 
 urlpatterns = [
     path("register", RegisterView.as_view(), name="register"),
@@ -12,4 +12,5 @@ urlpatterns = [
     path("refresh", CookieTokenRefreshView.as_view(), name="token-refresh"),
     path("logout", LogoutView.as_view(), name="logout"),
     path("me", MeView.as_view(), name="me"),
+    path("me/verification", VerificationSubmitView.as_view(), name="submit-verification"),
 ]

@@ -22,10 +22,11 @@ export default function AdminPage() {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: adminApi.verifyUser,
+    mutationFn: ({ userId, action, reason }: { userId: number; action: "approve" | "reject" | "suspend"; reason?: string }) =>
+      adminApi.verifyUser(userId, { action: action, rejection_reason: reason }),
     onSuccess: () => {
       users.refetch();
-      toast("success", "User verified");
+      toast("success", "User verification updated");
     },
   });
 
@@ -149,8 +150,23 @@ export default function AdminPage() {
             <ul className="space-y-2">
               {toArray(users.data).map((user) => (
                 <li key={user.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                  <span className="text-surface-700">{user.email} ({user.role})</span>
-                  <ActionButton onClick={() => verifyMutation.mutate(user.id)} loading={verifyMutation.isPending}>Verify</ActionButton>
+                  <div className="flex items-center gap-2">
+                    <span className="text-surface-700">{user.email} ({user.role})</span>
+                    <StatusPill 
+                      label={user.verification_status || "unverified"} 
+                      tone={user.verification_status === "verified" ? "success" : user.verification_status === "pending" ? "warning" : user.verification_status === "suspended" ? "danger" : "neutral"} 
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ActionButton onClick={() => verifyMutation.mutate({ userId: user.id, action: "approve" })} loading={verifyMutation.isPending && verifyMutation.variables?.action === "approve"}>Approve</ActionButton>
+                    <ActionButton tone="danger" onClick={() => {
+                      const reason = window.prompt("Татгалзах шалтгаан:");
+                      if (reason !== null) {
+                        verifyMutation.mutate({ userId: user.id, action: "reject", reason });
+                      }
+                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "reject"}>Reject</ActionButton>
+                    <ActionButton tone="danger" onClick={() => verifyMutation.mutate({ userId: user.id, action: "suspend" })} loading={verifyMutation.isPending && verifyMutation.variables?.action === "suspend"}>Suspend</ActionButton>
+                  </div>
                 </li>
               ))}
             </ul>

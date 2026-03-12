@@ -7,6 +7,7 @@ import { useState } from "react";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { AppCard, DashboardBottomBar, RoleSidebar, TrustPanel } from "@/components/ui-kit";
+import { VerificationBanner } from "@/components/verification-banner";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useProjectProposals, useProjects, useMyProfile } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
@@ -64,6 +65,10 @@ export default function ClientDashboardPage() {
         <div className="flex gap-4">
           <RoleSidebar role="client" />
           <div className="flex-1 space-y-4">
+            {me.data?.verification_status !== "verified" && (
+              <VerificationBanner user={me.data} />
+            )}
+            
             <TrustPanel />
 
             <AppCard>

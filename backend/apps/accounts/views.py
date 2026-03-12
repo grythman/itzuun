@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 
 from .models import User
-from .serializers import GoogleAuthSerializer, LoginSerializer, MeSerializer, RegisterSerializer, RequestOtpSerializer, VerifyOtpSerializer
+from .serializers import GoogleAuthSerializer, LoginSerializer, MeSerializer, RegisterSerializer, RequestOtpSerializer, VerificationSubmitSerializer, VerifyOtpSerializer
 
 
 def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
@@ -171,3 +171,13 @@ class MeView(APIView):
         bump_user_public_version(request.user.id)
         bump_admin_resource_version("users")
         return Response(MeSerializer(request.user).data)
+
+
+class VerificationSubmitView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = VerificationSubmitSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(MeSerializer(user).data, status=status.HTTP_200_OK)

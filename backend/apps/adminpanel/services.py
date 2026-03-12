@@ -10,9 +10,21 @@ from common.models import PlatformSetting
 
 
 @transaction.atomic
-def verify_user(user: User) -> User:
-    user.is_verified = True
-    user.save(update_fields=["is_verified"])
+def verify_user(user: User, *, action: str, rejection_reason: str = "") -> User:
+    if action not in {"approve", "reject", "suspend"}:
+        raise DomainError("Invalid verification action")
+
+    if action == "approve":
+        user.verification_status = User.VERIFICATION_VERIFIED
+        user.rejection_reason = ""
+    elif action == "reject":
+        user.verification_status = User.VERIFICATION_UNVERIFIED
+        user.rejection_reason = rejection_reason
+    elif action == "suspend":
+        user.verification_status = User.VERIFICATION_SUSPENDED
+        user.is_active = False
+
+    user.save(update_fields=["verification_status", "rejection_reason", "is_verified", "is_active"])
     return user
 
 

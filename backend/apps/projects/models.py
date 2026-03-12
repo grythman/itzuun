@@ -4,6 +4,18 @@ from django.db import models
 from django.db.models import Q
 
 
+class Category(models.Model):
+    name_en = models.CharField(max_length=100)
+    name_mn = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+    icon = models.CharField(max_length=50, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name_mn
+
+
 class Project(models.Model):
     STATUS_OPEN = "open"
     STATUS_IN_PROGRESS = "in_progress"
@@ -27,6 +39,8 @@ class Project(models.Model):
     budget = models.PositiveIntegerField()
     timeline_days = models.PositiveIntegerField()
     category = models.CharField(max_length=64)
+    category_obj = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
+    required_skills = models.JSONField(default=list, blank=True)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_OPEN)
     selected_proposal = models.ForeignKey(
         "Proposal", null=True, blank=True, on_delete=models.SET_NULL, related_name="selected_for"

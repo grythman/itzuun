@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { AppCard, DashboardBottomBar, RatingStars, RoleSidebar, VerifiedBadge } from "@/components/ui-kit";
+import { VerificationBanner } from "@/components/verification-banner";
 import { toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
 import { projectsApi } from "@/lib/api/endpoints";
@@ -119,6 +120,11 @@ export default function FreelancerDashboardPage() {
         <div className="flex gap-4">
           <RoleSidebar role="freelancer" />
           <div className="flex-1 space-y-4">
+            
+            {me.data?.verification_status !== "verified" && (
+              <VerificationBanner user={me.data} />
+            )}
+
             <div className="grid gap-3 md:grid-cols-4">
               <AppCard>
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Earnings summary</p>

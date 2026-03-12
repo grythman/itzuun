@@ -10,9 +10,10 @@ from rest_framework.views import APIView
 from apps.messaging.models import ProjectFile
 from common.cache_utils import bump_admin_resource_version, bump_project_version, project_detail_cache_key, project_list_cache_key
 
-from .models import Project, ProjectDeliverable, Proposal
+from .models import Category, Project, ProjectDeliverable, Proposal
 from .permissions import IsClient, IsFreelancer
 from .serializers import (
+    CategorySerializer,
     ProjectDeliverableSerializer,
     ProjectDescriptionSuggestResponseSerializer,
     ProjectDescriptionSuggestSerializer,
@@ -20,6 +21,21 @@ from .serializers import (
     ProposalSerializer,
 )
 from .services import close_project, select_freelancer, suggest_project_description
+
+
+class CategoryListView(generics.ListAPIView):
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.AllowAny]
+    queryset = Category.objects.filter(is_active=True).order_by("name_mn")
+
+    def list(self, request, *args, **kwargs):
+        cache_key = "categories_list"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, 300)
+        return response
 
 
 class ProjectListCreateView(generics.ListCreateAPIView):

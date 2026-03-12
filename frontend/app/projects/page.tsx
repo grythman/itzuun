@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { useProjects } from "@/lib/hooks";
+import { useCategories, useProjects } from "@/lib/hooks";
 
 const statusOptions = [
   { value: "", label: "All Status" },
@@ -15,22 +15,14 @@ const statusOptions = [
   { value: "disputed", label: "Disputed" },
 ];
 
-const categoryOptions = [
-  { value: "", label: "All Categories" },
-  { value: "web", label: "Web" },
-  { value: "mobile", label: "Mobile" },
-  { value: "backend", label: "Backend" },
-  { value: "design", label: "Design" },
-  { value: "data", label: "Data" },
-  { value: "devops", label: "DevOps" },
-];
-
 export default function ProjectsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+
+  const categories = useCategories();
 
   const filters = {
     ...(statusFilter && { status: statusFilter }),
@@ -86,13 +78,36 @@ export default function ProjectsPage() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-
-        <select value={categoryFilter} onChange={handleFilterChange(setCategoryFilter)} className="rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]">
-          {categoryOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
       </div>
+
+      {categories.data && categories.data.length > 0 && (
+        <div className="flex flex-wrap gap-2 pt-1 pb-2">
+          <button
+            onClick={() => { setCategoryFilter(""); setPage(1); }}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              categoryFilter === "" 
+                ? "bg-brand-600 text-white" 
+                : "bg-surface-100 text-surface-700 hover:bg-surface-200"
+            }`}
+          >
+            Бүгд
+          </button>
+          {categories.data.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => { setCategoryFilter(cat.slug); setPage(1); }}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition flex items-center gap-1 ${
+                categoryFilter === cat.slug 
+                  ? "bg-brand-600 text-white" 
+                  : "bg-surface-100 text-surface-700 hover:bg-surface-200"
+              }`}
+            >
+              {cat.icon && <span>{cat.icon}</span>}
+              {cat.name_mn}
+            </button>
+          ))}
+        </div>
+      )}
 
       {projects.isLoading ? (
         <LoadingState label="Loading projects..." />
@@ -109,8 +124,8 @@ export default function ProjectsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <h2 className="text-lg font-medium text-surface-900">{project.title}</h2>
-                      <span className="rounded-full bg-surface-100 px-2 py-0.5 text-[11px] capitalize text-surface-600">
-                        {project.category}
+                      <span className="rounded-full bg-surface-100 px-2 py-0.5 text-[11px] text-surface-600">
+                        {project.category_obj ? project.category_obj.name_mn : project.category}
                       </span>
                     </div>
                     <p className="mt-1 line-clamp-2 text-[13px] text-surface-600">{project.description}</p>

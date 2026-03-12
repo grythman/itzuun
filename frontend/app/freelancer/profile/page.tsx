@@ -30,16 +30,20 @@ export default function FreelancerProfilePage() {
     formState: { errors, isDirty },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { full_name: "", bio: "", skills: "", hourly_rate: 0 },
+    defaultValues: { full_name: "", title: "", bio: "", skills: "", hourly_rate: 0, is_available: true, response_time_hours: 24, portfolio: [] },
   });
 
   useEffect(() => {
     if (profile.data) {
       reset({
         full_name: profile.data.full_name || "",
+        title: profile.data.title || "",
         bio: profile.data.bio || "",
         skills: (profile.data.skills || []).join(", "),
-        hourly_rate: profile.data.hourly_rate || 0,
+        hourly_rate: Number(profile.data.hourly_rate) || 0,
+        is_available: profile.data.is_available ?? true,
+        response_time_hours: profile.data.response_time_hours ?? 24,
+        portfolio: profile.data.portfolio || [],
       });
     }
   }, [profile.data, reset]);
@@ -48,11 +52,15 @@ export default function FreelancerProfilePage() {
     mutationFn: (values: ProfileForm) =>
       profilesApi.updateMe({
         full_name: values.full_name,
+        title: values.title,
         bio: values.bio || "",
         skills: values.skills
           ? values.skills.split(",").map((s) => s.trim()).filter(Boolean)
           : [],
         hourly_rate: values.hourly_rate,
+        is_available: values.is_available,
+        response_time_hours: values.response_time_hours,
+        portfolio: values.portfolio,
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["profile-me"] });
@@ -64,7 +72,7 @@ export default function FreelancerProfilePage() {
   if (me.isLoading || profile.isLoading) return <LoadingState label="Loading profile..." />;
   if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
 
-  const completeness = calculateCompleteness(profile.data);
+  const completeness = profile.data?.profile_completeness || 0;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath="/auth">
@@ -101,19 +109,36 @@ export default function FreelancerProfilePage() {
             >
               <h2 className="text-lg font-medium text-surface-900">Edit Profile</h2>
 
-              <div>
-                <label htmlFor="full_name" className="mb-1 block text-[13px] font-medium text-surface-700">
-                  Full Name
-                </label>
-                <input
-                  id="full_name"
-                  {...register("full_name")}
-                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  placeholder="Your full name"
-                />
-                {errors.full_name && (
-                  <p className="mt-1 text-[11px] text-red-600">{errors.full_name.message}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="full_name" className="mb-1 block text-[13px] font-medium text-surface-700">
+                    Full Name
+                  </label>
+                  <input
+                    id="full_name"
+                    {...register("full_name")}
+                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    placeholder="Your full name"
+                  />
+                  {errors.full_name && (
+                    <p className="mt-1 text-[11px] text-red-600">{errors.full_name.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="title" className="mb-1 block text-[13px] font-medium text-surface-700">
+                    Professional Title
+                  </label>
+                  <input
+                    id="title"
+                    {...register("title")}
+                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    placeholder="e.g. Senior Frontend Developer"
+                  />
+                  {errors.title && (
+                    <p className="mt-1 text-[11px] text-red-600">{errors.title.message}</p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -148,21 +173,52 @@ export default function FreelancerProfilePage() {
                 )}
               </div>
 
-              <div>
-                <label htmlFor="hourly_rate" className="mb-1 block text-[13px] font-medium text-surface-700">
-                  Hourly Rate (MNT)
-                </label>
-                <input
-                  id="hourly_rate"
-                  type="number"
-                  {...register("hourly_rate")}
-                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  placeholder="50000"
-                  min={0}
-                />
-                {errors.hourly_rate && (
-                  <p className="mt-1 text-[11px] text-red-600">{errors.hourly_rate.message}</p>
-                )}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div>
+                  <label htmlFor="hourly_rate" className="mb-1 block text-[13px] font-medium text-surface-700">
+                    Hourly Rate (MNT)
+                  </label>
+                  <input
+                    id="hourly_rate"
+                    type="number"
+                    {...register("hourly_rate")}
+                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    placeholder="50000"
+                    min={0}
+                  />
+                  {errors.hourly_rate && (
+                    <p className="mt-1 text-[11px] text-red-600">{errors.hourly_rate.message}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="response_time_hours" className="mb-1 block text-[13px] font-medium text-surface-700">
+                    Response Time (Hours)
+                  </label>
+                  <input
+                    id="response_time_hours"
+                    type="number"
+                    {...register("response_time_hours")}
+                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    placeholder="24"
+                    min={1}
+                  />
+                  {errors.response_time_hours && (
+                    <p className="mt-1 text-[11px] text-red-600">{errors.response_time_hours.message}</p>
+                  )}
+                </div>
+
+                <div className="flex items-center mt-6">
+                  <input
+                    id="is_available"
+                    type="checkbox"
+                    {...register("is_available")}
+                    className="h-4 w-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
+                  />
+                  <label htmlFor="is_available" className="ml-2 block text-[13px] font-medium text-surface-700">
+                    Available for Work
+                  </label>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
