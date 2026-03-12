@@ -23,7 +23,8 @@ export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const me = useMe();
+  const needsSessionCheck = ["/client", "/freelancer", "/admin"].some((prefix) => pathname.startsWith(prefix));
+  const me = useMe({ enabled: needsSessionCheck, retryOnAuth: needsSessionCheck });
   const user = me.data;
   const [mobileOpen, setMobileOpen] = useState(false);
 

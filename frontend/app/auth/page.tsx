@@ -1,10 +1,12 @@
 "use client";
 
+import Script from "next/script";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import { useRef } from "react";
 
 import { ActionButton } from "@/components/ui-kit";
 import { authApi } from "@/lib/api/endpoints";
@@ -20,6 +22,31 @@ type OtpVerifyForm = z.infer<typeof otpVerifySchema>;
 type RegisterForm = z.infer<typeof registerSchema>;
 type LoginForm = z.infer<typeof loginSchema>;
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (options: {
+            client_id: string;
+            callback: (response: { credential?: string }) => void;
+          }) => void;
+          renderButton: (
+            element: HTMLElement,
+            options: {
+              theme?: "outline" | "filled_blue" | "filled_black";
+              size?: "large" | "medium" | "small";
+              shape?: "rectangular" | "pill" | "circle" | "square";
+              text?: string;
+              width?: number;
+            },
+          ) => void;
+        };
+      };
+    };
+  }
+}
+
 function roleDashboard(role?: string) {
   if (role === "admin") return "/admin";
   if (role === "freelancer") return "/freelancer";
@@ -29,11 +56,14 @@ function roleDashboard(role?: string) {
 function AuthCard() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const me = useMe();
+  const me = useMe({ enabled: false, retryOnAuth: false });
   const initialTab = useMemo<AuthTab>(() => (searchParams.get("tab") === "register" ? "register" : "signin"), [searchParams]);
 
   const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
   const [showPasswordless, setShowPasswordless] = useState(false);
+  const [googleScriptReady, setGoogleScriptReady] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
@@ -46,6 +76,23 @@ function AuthCard() {
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (!googleClientId) return;
+    if (window.google) {
+      setGoogleScriptReady(true);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (window.google) {
+        setGoogleScriptReady(true);
+        window.clearInterval(intervalId);
+      }
+    }, 250);
+
+    return () => window.clearInterval(intervalId);
+  }, [googleClientId]);
 
   const requestForm = useForm<OtpRequestForm>({
     resolver: zodResolver(otpRequestSchema),
@@ -87,14 +134,27 @@ function AuthCard() {
     onError: (error: Error) => toast("error", error.message),
   });
 
+  const googleMutation = useMutation({
+    mutationFn: (payload: { credential: string; role?: "client" | "freelancer" }) => authApi.google(payload),
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      toast("success", "Google login амжилттай");
+      router.push(roleDashboard(data.user?.role));
+    },
+    onError: (error: Error) => toast("error", error.message),
+  });
+
   const requestMutation = useMutation({
     mutationFn: ({ email }: OtpRequestForm) => authApi.requestOtp(email),
     onSuccess: (data, vars) => {
       if (data.otp_token) {
         verifyForm.setValue("otp_token", data.otp_token);
       }
+      if (data.dev_otp) {
+        verifyForm.setValue("otp", data.dev_otp);
+      }
       verifyForm.setValue("email", vars.email);
-      toast("success", "OTP token requested");
+      toast("success", data.dev_otp ? `OTP ready for dev: ${data.dev_otp}` : "OTP token requested");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -104,10 +164,42 @@ function AuthCard() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "OTP verified. Session started");
-      router.push("/client");
+      const user = await queryClient.fetchQuery({ queryKey: ["me", true], queryFn: () => authApi.me(true) });
+      router.push(roleDashboard(user.role));
     },
     onError: (error: Error) => toast("error", error.message),
   });
+
+  useEffect(() => {
+    if (!googleClientId || !googleScriptReady || !googleButtonRef.current || !window.google) {
+      return;
+    }
+
+    const buttonContainer = googleButtonRef.current;
+    buttonContainer.innerHTML = "";
+
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: ({ credential }) => {
+        if (!credential) {
+          toast("error", "Google credential олдсонгүй");
+          return;
+        }
+        googleMutation.mutate({
+          credential,
+          role: activeTab === "register" ? registerForm.getValues("role") : undefined,
+        });
+      },
+    });
+
+    window.google.accounts.id.renderButton(buttonContainer, {
+      theme: "outline",
+      size: "large",
+      shape: "pill",
+      text: activeTab === "register" ? "signup_with" : "signin_with",
+      width: 380,
+    });
+  }, [activeTab, googleClientId, googleMutation, googleScriptReady, registerForm, toast]);
 
   return (
     <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
@@ -132,6 +224,15 @@ function AuthCard() {
             Register
           </button>
         </div>
+
+        {googleClientId ? (
+          <div className="mt-5 space-y-3">
+            <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-surface-400">Passwordless with Google</p>
+            <div className="flex justify-center">
+              <div ref={googleButtonRef} className="min-h-[44px]" />
+            </div>
+          </div>
+        ) : null}
 
         {activeTab === "signin" ? (
           <form className="mt-6 space-y-4" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
@@ -184,7 +285,7 @@ function AuthCard() {
           onClick={() => setShowPasswordless((prev) => !prev)}
           className="mt-5 w-full text-center text-[13px] font-medium text-brand-600 hover:text-brand-700"
         >
-          Passwordless login
+          Use email OTP instead
         </button>
 
         {showPasswordless ? (
@@ -229,16 +330,19 @@ function AuthCard() {
 
 export default function AuthPage() {
   return (
-    <Suspense
-      fallback={
-        <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-          <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-8 shadow-hero">
-            <p className="text-center text-[13px] text-surface-500">Loading authentication...</p>
-          </div>
-        </section>
-      }
-    >
-      <AuthCard />
-    </Suspense>
+    <>
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+      <Suspense
+        fallback={
+          <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
+            <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-8 shadow-hero">
+              <p className="text-center text-[13px] text-surface-500">Loading authentication...</p>
+            </div>
+          </section>
+        }
+      >
+        <AuthCard />
+      </Suspense>
+    </>
   );
 }

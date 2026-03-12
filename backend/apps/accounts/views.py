@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 
 from .models import User
-from .serializers import LoginSerializer, MeSerializer, RegisterSerializer, RequestOtpSerializer, VerifyOtpSerializer
+from .serializers import GoogleAuthSerializer, LoginSerializer, MeSerializer, RegisterSerializer, RequestOtpSerializer, VerifyOtpSerializer
 
 
 def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
@@ -37,9 +37,8 @@ def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
 
 
 def _clear_auth_cookies(response: Response) -> None:
-    secure = not settings.DEBUG
-    response.delete_cookie("access_token", path="/", secure=secure, samesite="Lax")
-    response.delete_cookie("refresh_token", path="/", secure=secure, samesite="Lax")
+    response.delete_cookie("access_token", path="/", samesite="Lax")
+    response.delete_cookie("refresh_token", path="/", samesite="Lax")
 
 
 class RequestOtpView(APIView):
@@ -97,6 +96,26 @@ class VerifyOtpView(APIView):
 
     def post(self, request):
         serializer = VerifyOtpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {
+                "authenticated": True,
+                "user": MeSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+        _set_auth_cookies(response, str(refresh.access_token), str(refresh))
+        return response
+
+
+class GoogleAuthView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = GoogleAuthSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 

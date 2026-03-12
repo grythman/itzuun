@@ -1,6 +1,7 @@
 """Serializers for authentication and user profile."""
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
@@ -8,7 +9,7 @@ from rest_framework import serializers
 
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 from .models import EmailOTP, User
-from .services import create_email_otp
+from .services import create_email_otp, verify_google_credential
 
 
 OTP_MAX_ATTEMPTS = 5
@@ -19,8 +20,11 @@ class RequestOtpSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def create(self, validated_data):
-        otp = create_email_otp(validated_data["email"])
-        return {"otp_token": otp.otp_token}
+        otp_record, otp_code = create_email_otp(validated_data["email"])
+        payload = {"otp_token": otp_record.otp_token}
+        if settings.DEBUG:
+            payload["dev_otp"] = otp_code
+        return payload
 
 
 class VerifyOtpSerializer(serializers.Serializer):
@@ -71,6 +75,41 @@ class VerifyOtpSerializer(serializers.Serializer):
         user.save(update_fields=["is_active"])
         bump_user_public_version(user.id)
         if created or not was_active:
+            bump_admin_resource_version("users")
+        return user
+
+
+class GoogleAuthSerializer(serializers.Serializer):
+    credential = serializers.CharField()
+    role = serializers.ChoiceField(choices=[User.ROLE_CLIENT, User.ROLE_FREELANCER], required=False)
+
+    def validate(self, attrs):
+        payload = verify_google_credential(attrs["credential"])
+        attrs["google_email"] = User.objects.normalize_email(payload["email"])
+        attrs["role"] = attrs.get("role", User.ROLE_CLIENT)
+        return attrs
+
+    def create(self, validated_data):
+        user, created = User.objects.get_or_create(
+            email=validated_data["google_email"],
+            defaults={
+                "role": validated_data["role"],
+                "is_verified": True,
+            },
+        )
+
+        update_fields: list[str] = []
+        if not user.is_active:
+            user.is_active = True
+            update_fields.append("is_active")
+        if not user.is_verified:
+            user.is_verified = True
+            update_fields.append("is_verified")
+        if update_fields:
+            user.save(update_fields=update_fields)
+
+        bump_user_public_version(user.id)
+        if created or update_fields:
             bump_admin_resource_version("users")
         return user
 

@@ -4,10 +4,13 @@ import random
 import secrets
 from datetime import timedelta
 
+import requests
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.utils import timezone
+
+from common.exceptions import DomainError
 
 from .models import EmailOTP
 
@@ -32,7 +35,7 @@ def _send_otp_email(email: str, otp: str) -> None:
         logger.exception("Failed to send OTP email to %s", email)
 
 
-def create_email_otp(email: str) -> EmailOTP:
+def create_email_otp(email: str) -> tuple[EmailOTP, str]:
     otp = generate_otp()
     token = secrets.token_hex(32)
 
@@ -45,4 +48,39 @@ def create_email_otp(email: str) -> EmailOTP:
         expires_at=timezone.now() + timedelta(minutes=10),
     )
     _send_otp_email(email, otp)
-    return obj
+    return obj, otp
+
+
+def verify_google_credential(credential: str) -> dict:
+    if not settings.GOOGLE_CLIENT_ID:
+        raise DomainError("Google auth is not configured")
+
+    try:
+        response = requests.get(
+            "https://oauth2.googleapis.com/tokeninfo",
+            params={"id_token": credential},
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise DomainError("Unable to reach Google auth service") from exc
+
+    if response.status_code >= 400:
+        raise DomainError("Google credential is invalid")
+
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise DomainError("Google auth response was not valid JSON") from exc
+
+    audience = payload.get("aud")
+    if audience != settings.GOOGLE_CLIENT_ID:
+        raise DomainError("Google credential audience mismatch")
+
+    if payload.get("email_verified") not in {"true", True}:
+        raise DomainError("Google email is not verified")
+
+    email = payload.get("email")
+    if not email:
+        raise DomainError("Google account email is missing")
+
+    return payload
