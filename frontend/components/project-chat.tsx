@@ -116,16 +116,16 @@ export default function ProjectChat({
   const isSending = sendMutation.isPending || fileMutation.isPending;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col">
+    <div className="rounded-2xl border border-surface-200/60 bg-white shadow-card flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-        <h2 className="text-lg font-medium">Project Chat</h2>
+      <div className="flex items-center justify-between border-b border-surface-100 px-5 py-3">
+        <h2 className="text-lg font-medium text-surface-900">Project Chat</h2>
         <div className="flex items-center gap-2">
           <StatusPill label="Live" tone="success" />
           <button
             type="button"
             onClick={() => messages.refetch()}
-            className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+            className="rounded-lg px-2 py-1 text-[11px] text-surface-500 hover:bg-surface-100"
             title="Refresh messages"
           >
             ↻
@@ -145,7 +145,7 @@ export default function ProjectChat({
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ maxHeight: "400px", minHeight: "200px" }}>
         {messages.isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-slate-400">Loading messages...</p>
+            <p className="text-[13px] text-surface-400">Loading messages...</p>
           </div>
         ) : !sortedMessages.length ? (
           <EmptyState label="No messages yet. Start the conversation!" />
@@ -170,22 +170,22 @@ export default function ProjectChat({
       </div>
 
       {/* Input area */}
-      <div className="border-t border-slate-100 px-4 py-3 space-y-2">
+      <div className="border-t border-surface-100 px-4 py-3 space-y-2">
         {/* Selected file preview */}
         {selectedFile && (
-          <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm">
-            <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-2 rounded-lg bg-surface-50 px-3 py-2 text-[13px]">
+            <svg className="h-4 w-4 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
             </svg>
-            <span className="flex-1 truncate text-slate-700">{selectedFile.name}</span>
-            <span className="text-xs text-slate-400">{formatFileSize(selectedFile.size)}</span>
+            <span className="flex-1 truncate text-surface-700">{selectedFile.name}</span>
+            <span className="text-[11px] text-surface-400">{formatFileSize(selectedFile.size)}</span>
             <button
               type="button"
               onClick={() => {
                 setSelectedFile(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
-              className="text-slate-400 hover:text-red-500"
+              className="text-surface-400 hover:text-red-500"
             >
               ✕
             </button>
@@ -197,7 +197,7 @@ export default function ProjectChat({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="shrink-0 rounded-xl p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="shrink-0 rounded-xl p-2.5 text-surface-400 hover:bg-surface-100 hover:text-surface-600"
             title="Attach file (PDF, PNG, JPG, TXT, ZIP, DOCX — max 10MB)"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@ export default function ProjectChat({
 
           {/* Text input */}
           <textarea
-            className="flex-1 resize-none rounded-xl border border-slate-300 px-4 py-2.5 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 resize-none rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             rows={1}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -228,7 +228,7 @@ export default function ProjectChat({
             type="button"
             onClick={handleSend}
             disabled={isSending || (!text.trim() && !selectedFile)}
-            className="shrink-0 rounded-xl bg-blue-600 p-2.5 text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="shrink-0 rounded-xl bg-brand-600 p-2.5 text-white transition-colors hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Send message"
           >
             {isSending ? (

@@ -111,23 +111,23 @@ function AuthCard() {
 
   return (
     <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[480px] rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_20px_48px_-24px_rgba(15,23,42,0.45)] sm:p-8">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Secure Access</p>
-        <h1 className="mt-3 text-center text-3xl font-semibold tracking-tight text-slate-900">Welcome to ITZuun</h1>
-        <p className="mt-2 text-center text-sm text-slate-600">Manage projects, proposals, and escrow in one secure account.</p>
+      <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-6 shadow-hero sm:p-8">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-brand-600">Secure Access</p>
+        <h1 className="mt-3 text-center text-2xl font-semibold tracking-tight text-surface-900">Welcome to ITZuun</h1>
+        <p className="mt-1.5 text-center text-[13px] text-surface-500">Manage projects, proposals, and escrow in one secure account.</p>
 
-        <div className="mt-6 grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+        <div className="mt-6 grid grid-cols-2 rounded-xl bg-surface-100 p-1">
           <button
             type="button"
             onClick={() => setActiveTab("signin")}
-            className={activeTab === "signin" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-800"}
+            className={activeTab === "signin" ? "bg-white text-surface-900 shadow-sm font-medium" : "text-surface-500 hover:text-surface-700"}
           >
             Sign In
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("register")}
-            className={activeTab === "register" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-800"}
+            className={activeTab === "register" ? "bg-white text-surface-900 shadow-sm font-medium" : "text-surface-500 hover:text-surface-700"}
           >
             Register
           </button>
@@ -135,45 +135,45 @@ function AuthCard() {
 
         {activeTab === "signin" ? (
           <form className="mt-6 space-y-4" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
-            <label className="block text-sm font-semibold text-slate-800">
+            <label className="block text-[13px] font-medium text-surface-700">
               Email
-              <input className="mt-2" type="email" placeholder="name@example.com" {...loginForm.register("email")} />
+              <input className="mt-1.5" type="email" placeholder="name@example.com" {...loginForm.register("email")} />
             </label>
-            {loginForm.formState.errors.email ? <p className="-mt-2 text-xs text-red-700">{loginForm.formState.errors.email.message}</p> : null}
+            {loginForm.formState.errors.email ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.email.message}</p> : null}
 
-            <label className="block text-sm font-semibold text-slate-800">
+            <label className="block text-[13px] font-medium text-surface-700">
               Password
-              <input className="mt-2" type="password" placeholder="••••••••" {...loginForm.register("password")} />
+              <input className="mt-1.5" type="password" placeholder="••••••••" {...loginForm.register("password")} />
             </label>
-            {loginForm.formState.errors.password ? <p className="-mt-2 text-xs text-red-700">{loginForm.formState.errors.password.message}</p> : null}
+            {loginForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.password.message}</p> : null}
 
-            <ActionButton className="w-full py-3 text-base font-semibold" type="submit" loading={loginMutation.isPending}>
+            <ActionButton className="w-full py-2.5 text-sm font-semibold" type="submit" loading={loginMutation.isPending}>
               Sign In
             </ActionButton>
           </form>
         ) : (
           <form className="mt-6 space-y-4" onSubmit={registerForm.handleSubmit((values) => registerMutation.mutate(values))}>
-            <label className="block text-sm font-semibold text-slate-800">
+            <label className="block text-[13px] font-medium text-surface-700">
               Email
-              <input className="mt-2" type="email" placeholder="name@example.com" {...registerForm.register("email")} />
+              <input className="mt-1.5" type="email" placeholder="name@example.com" {...registerForm.register("email")} />
             </label>
-            {registerForm.formState.errors.email ? <p className="-mt-2 text-xs text-red-700">{registerForm.formState.errors.email.message}</p> : null}
+            {registerForm.formState.errors.email ? <p className="-mt-2 text-[11px] text-red-600">{registerForm.formState.errors.email.message}</p> : null}
 
-            <label className="block text-sm font-semibold text-slate-800">
+            <label className="block text-[13px] font-medium text-surface-700">
               Password
-              <input className="mt-2" type="password" placeholder="At least 8 characters" {...registerForm.register("password")} />
+              <input className="mt-1.5" type="password" placeholder="At least 8 characters" {...registerForm.register("password")} />
             </label>
-            {registerForm.formState.errors.password ? <p className="-mt-2 text-xs text-red-700">{registerForm.formState.errors.password.message}</p> : null}
+            {registerForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{registerForm.formState.errors.password.message}</p> : null}
 
-            <label className="block text-sm font-semibold text-slate-800">
+            <label className="block text-[13px] font-medium text-surface-700">
               Role
-              <select className="mt-2" {...registerForm.register("role")}>
+              <select className="mt-1.5" {...registerForm.register("role")}>
                 <option value="client">Client</option>
                 <option value="freelancer">Freelancer</option>
               </select>
             </label>
 
-            <ActionButton className="w-full py-3 text-base font-semibold" type="submit" loading={registerMutation.isPending}>
+            <ActionButton className="w-full py-2.5 text-sm font-semibold" type="submit" loading={registerMutation.isPending}>
               Create Account
             </ActionButton>
           </form>
@@ -182,39 +182,39 @@ function AuthCard() {
         <button
           type="button"
           onClick={() => setShowPasswordless((prev) => !prev)}
-          className="mt-5 w-full text-center text-sm font-medium text-blue-700 hover:text-blue-800"
+          className="mt-5 w-full text-center text-[13px] font-medium text-brand-600 hover:text-brand-700"
         >
           Passwordless login
         </button>
 
         {showPasswordless ? (
-          <div className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="mt-4 space-y-4 rounded-xl border border-surface-200/60 bg-surface-50 p-4">
             <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
-              <p className="text-sm font-semibold text-slate-900">1) Request OTP</p>
-              <label className="block text-sm font-medium text-slate-700">
+              <p className="text-[13px] font-semibold text-surface-800">1) Request OTP</p>
+              <label className="block text-[13px] font-medium text-surface-600">
                 Email
                 <input className="mt-1" type="email" {...requestForm.register("email")} />
               </label>
-              {requestForm.formState.errors.email ? <p className="text-xs text-red-700">{requestForm.formState.errors.email.message}</p> : null}
+              {requestForm.formState.errors.email ? <p className="text-[11px] text-red-600">{requestForm.formState.errors.email.message}</p> : null}
               <ActionButton className="w-full" type="submit" loading={requestMutation.isPending}>Request OTP</ActionButton>
             </form>
 
             <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
-              <p className="text-sm font-semibold text-slate-900">2) Verify OTP</p>
-              <label className="block text-sm font-medium text-slate-700">
+              <p className="text-[13px] font-semibold text-surface-800">2) Verify OTP</p>
+              <label className="block text-[13px] font-medium text-surface-600">
                 Email
                 <input className="mt-1" type="email" {...verifyForm.register("email")} />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-[13px] font-medium text-surface-600">
                 OTP Token
                 <input className="mt-1" {...verifyForm.register("otp_token")} />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-[13px] font-medium text-surface-600">
                 OTP
                 <input className="mt-1" {...verifyForm.register("otp")} />
               </label>
               {(verifyForm.formState.errors.email || verifyForm.formState.errors.otp_token || verifyForm.formState.errors.otp) ? (
-                <p className="text-xs text-red-700">
+                <p className="text-[11px] text-red-600">
                   {verifyForm.formState.errors.email?.message || verifyForm.formState.errors.otp_token?.message || verifyForm.formState.errors.otp?.message}
                 </p>
               ) : null}
@@ -232,8 +232,8 @@ export default function AuthPage() {
     <Suspense
       fallback={
         <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-          <div className="w-full max-w-[480px] rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_20px_48px_-24px_rgba(15,23,42,0.45)]">
-            <p className="text-center text-sm text-slate-600">Loading authentication...</p>
+          <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-8 shadow-hero">
+            <p className="text-center text-[13px] text-surface-500">Loading authentication...</p>
           </div>
         </section>
       }

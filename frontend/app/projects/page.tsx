@@ -61,7 +61,7 @@ export default function ProjectsPage() {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Projects</h1>
-        <Link href="/projects/new" className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+        <Link href="/projects/new" className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white shadow-sm hover:bg-brand-700">
           Create Project
         </Link>
       </div>
@@ -74,20 +74,20 @@ export default function ProjectsPage() {
             placeholder="Search projects..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            className="flex-1 rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
           />
-          <button type="submit" className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+          <button type="submit" className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
             Search
           </button>
         </form>
 
-        <select value={statusFilter} onChange={handleFilterChange(setStatusFilter)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+        <select value={statusFilter} onChange={handleFilterChange(setStatusFilter)} className="rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]">
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
 
-        <select value={categoryFilter} onChange={handleFilterChange(setCategoryFilter)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+        <select value={categoryFilter} onChange={handleFilterChange(setCategoryFilter)} className="rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]">
           {categoryOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
@@ -104,25 +104,25 @@ export default function ProjectsPage() {
         <>
           <ul className="grid gap-3">
             {items.map((project) => (
-              <li key={project.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <li key={project.id} className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card transition hover:shadow-card-hover">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-medium">{project.title}</h2>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs capitalize text-slate-600">
+                      <h2 className="text-lg font-medium text-surface-900">{project.title}</h2>
+                      <span className="rounded-full bg-surface-100 px-2 py-0.5 text-[11px] capitalize text-surface-600">
                         {project.category}
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-600">{project.description}</p>
-                    <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+                    <p className="mt-1 line-clamp-2 text-[13px] text-surface-600">{project.description}</p>
+                    <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-surface-500">
                       <span>Budget: {Number(project.budget).toLocaleString()}₮</span>
                       <span>Timeline: {project.timeline_days} days</span>
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 font-medium capitalize text-blue-700">
+                      <span className="rounded-full bg-brand-50 px-2 py-0.5 font-medium capitalize text-brand-700">
                         {project.status?.replace(/_/g, " ")}
                       </span>
                     </div>
                   </div>
-                  <Link href={`/projects/${project.id}`} className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                  <Link href={`/projects/${project.id}`} className="shrink-0 rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
                     View
                   </Link>
                 </div>
@@ -136,16 +136,16 @@ export default function ProjectsPage() {
               type="button"
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-xl border border-surface-200/60 px-4 py-2 text-[13px] disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="text-sm text-slate-600">Page {page}</span>
+            <span className="text-[13px] text-surface-600">Page {page}</span>
             <button
               type="button"
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-xl border border-surface-200/60 px-4 py-2 text-[13px] disabled:opacity-40"
             >
               Next
             </button>

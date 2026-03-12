@@ -92,7 +92,7 @@ export default function ClientProfilePage() {
       <section className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Client Profile</h1>
-          <Link href="/client" className="text-sm text-blue-600 hover:underline">
+          <Link href="/client" className="text-[13px] text-brand-600 hover:underline">
             Back to Dashboard
           </Link>
         </div>
@@ -103,35 +103,35 @@ export default function ClientProfilePage() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold">{profileData.full_name || "Your Company"}</h2>
-                  {profileData.bio && <p className="mt-2 text-slate-600">{profileData.bio}</p>}
+                  {profileData.bio && <p className="mt-2 text-surface-600">{profileData.bio}</p>}
 
                   {profileData.skills?.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {profileData.skills.map((skill) => (
-                        <span key={skill} className="rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700">
+                        <span key={skill} className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[13px] font-medium text-brand-700">
                           {skill}
                         </span>
                       ))}
                     </div>
                   )}
 
-                  <div className="mt-3 space-y-1 text-sm text-slate-500">
+                  <div className="mt-3 space-y-1 text-[13px] text-surface-500">
                     <p>Email: {me.data.email}</p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4">
-                <p className="text-sm font-medium">Profile Completeness</p>
-                <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
-                  <div className="h-2 rounded-full bg-blue-600" style={{ width: `${completeness}%` }} />
+                <p className="text-[13px] font-medium text-surface-800">Profile Completeness</p>
+                <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
+                  <div className="h-1.5 rounded-full bg-brand-600" style={{ width: `${completeness}%` }} />
                 </div>
-                <p className="mt-1 text-xs text-slate-600">{completeness}% complete</p>
+                <p className="mt-1 text-[11px] text-surface-500">{completeness}% complete</p>
               </div>
 
               <button
                 type="button"
-                className="mt-4 w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="mt-4 w-full rounded-xl bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-700"
                 onClick={handleEdit}
               >
                 Edit Profile
@@ -140,7 +140,7 @@ export default function ClientProfilePage() {
 
             <AppCard>
               <h3 className="font-semibold">About Client Profile</h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-[13px] text-surface-600">
                 Your profile helps freelancers understand your business and builds trust for project collaboration. A complete profile increases the
                 quality of proposals you receive.
               </p>
@@ -185,7 +185,7 @@ export default function ClientProfilePage() {
               <div className="flex gap-2 pt-4">
                 <button
                   type="button"
-                  className="flex-1 rounded-xl border border-slate-300 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="flex-1 rounded-xl border border-surface-200/60 py-2 text-[13px] font-medium text-surface-700 hover:bg-surface-50"
                   onClick={() => setIsEditing(false)}
                 >
                   Cancel

@@ -19,34 +19,34 @@ function FreelancerCard({ profile }: { profile: Profile }) {
   const total = rating.data?.total ?? 0;
 
   return (
-    <li className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+    <li className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card transition hover:shadow-card-hover">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-surface-900">
             {profile.full_name || "Unnamed Freelancer"}
           </h2>
 
           {profile.bio && (
-            <p className="mt-1 line-clamp-2 text-sm text-slate-600">{profile.bio}</p>
+            <p className="mt-1 line-clamp-2 text-[13px] text-surface-600">{profile.bio}</p>
           )}
 
           {profile.skills?.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {profile.skills.map((skill) => (
-                <span key={skill} className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                <span key={skill} className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-medium text-brand-700">
                   {skill}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
+          <div className="mt-3 flex items-center gap-4 text-[11px] text-surface-500">
             {profile.hourly_rate > 0 && (
               <span>{Number(profile.hourly_rate).toLocaleString()}₮/hr</span>
             )}
             {total > 0 && (
               <span className="flex items-center gap-1">
-                <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-amber-500">
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-accent-500">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 {avg.toFixed(1)} ({total})
@@ -57,7 +57,7 @@ function FreelancerCard({ profile }: { profile: Profile }) {
 
         <Link
           href={`/freelancer/${profile.user}`}
-          className="shrink-0 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="shrink-0 rounded-xl bg-brand-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-brand-700"
         >
           View Profile
         </Link>
@@ -98,9 +98,9 @@ export default function FreelancersPage() {
           placeholder="Search by name, bio, or skills..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
         />
-        <button type="submit" className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+        <button type="submit" className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
           Search
         </button>
       </form>
@@ -124,16 +124,16 @@ export default function FreelancersPage() {
               type="button"
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-xl border border-surface-200/60 px-4 py-2 text-[13px] disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="text-sm text-slate-600">Page {page}</span>
+            <span className="text-[13px] text-surface-600">Page {page}</span>
             <button
               type="button"
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm disabled:opacity-40"
+              className="rounded-xl border border-surface-200/60 px-4 py-2 text-[13px] disabled:opacity-40"
             >
               Next
             </button>

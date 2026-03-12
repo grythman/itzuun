@@ -32,11 +32,11 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
 
   return (
     <section className="mx-auto max-w-2xl space-y-6 pb-20">
-      <Link href="/projects" className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+      <Link href="/projects" className="inline-flex items-center gap-1 text-[13px] text-brand-600 hover:underline">
         ← Back to projects
       </Link>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-surface-200/60 bg-white p-6 shadow-card">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -44,7 +44,7 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
             {ratingData && ratingData.total > 0 && (
               <div className="mt-1 flex items-center gap-2">
                 <RatingStars value={ratingData.average} />
-                <span className="text-sm text-slate-500">
+                <span className="text-[13px] text-surface-500">
                   ({ratingData.total} review{ratingData.total !== 1 ? "s" : ""})
                 </span>
               </div>
@@ -52,7 +52,7 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
           </div>
           {p.hourly_rate > 0 && (
             <div className="text-right">
-              <p className="text-xs uppercase tracking-wide text-slate-500">Hourly Rate</p>
+              <p className="text-[11px] uppercase tracking-widest text-surface-500">Hourly Rate</p>
               <p className="text-xl font-semibold text-emerald-600">
                 {p.hourly_rate.toLocaleString()} MNT
               </p>
@@ -63,20 +63,20 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
         {/* Bio */}
         {p.bio && (
           <div className="mt-5">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">About</h2>
-            <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">{p.bio}</p>
+            <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-surface-500">About</h2>
+            <p className="text-[13px] leading-relaxed text-surface-700 whitespace-pre-wrap">{p.bio}</p>
           </div>
         )}
 
         {/* Skills */}
         {p.skills?.length > 0 && (
           <div className="mt-5">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Skills</h2>
+            <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-surface-500">Skills</h2>
             <div className="flex flex-wrap gap-2">
               {p.skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700"
+                  className="rounded-full bg-brand-50 px-3 py-1.5 text-[13px] font-medium text-brand-700"
                 >
                   {skill}
                 </span>
@@ -89,7 +89,7 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
       {/* Empty state for incomplete profile */}
       {!p.bio && (!p.skills || p.skills.length === 0) && (
         <AppCard>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-[13px] text-surface-500">
             This freelancer hasn&apos;t completed their profile yet.
           </p>
         </AppCard>
@@ -97,19 +97,19 @@ export default function FreelancerPublicProfilePage({ params }: { params: Promis
 
       {/* Reviews */}
       {reviews.data && toArray(reviews.data).length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Reviews</h2>
+        <div className="rounded-2xl border border-surface-200/60 bg-white p-6 shadow-card">
+          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-surface-500">Reviews</h2>
           <ul className="space-y-4">
             {toArray(reviews.data).map((review) => (
-              <li key={review.id} className="border-b border-slate-100 pb-4 last:border-none last:pb-0">
+              <li key={review.id} className="border-b border-surface-100 pb-4 last:border-none last:pb-0">
                 <div className="flex items-center gap-2">
                   <RatingStars value={review.rating} />
                   {review.created_at && (
-                    <span className="text-xs text-slate-400">{new Date(review.created_at).toLocaleDateString()}</span>
+                    <span className="text-[11px] text-surface-400">{new Date(review.created_at).toLocaleDateString()}</span>
                   )}
                 </div>
                 {review.comment && (
-                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{review.comment}</p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-surface-700">{review.comment}</p>
                 )}
               </li>
             ))}

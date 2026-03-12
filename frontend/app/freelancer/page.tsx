@@ -121,32 +121,32 @@ export default function FreelancerDashboardPage() {
           <div className="flex-1 space-y-4">
             <div className="grid gap-3 md:grid-cols-4">
               <AppCard>
-                <p className="text-xs uppercase tracking-wide text-slate-500">Earnings summary</p>
-                <p className="mt-1 text-xl font-semibold">{earnings.toLocaleString()} MNT</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Earnings summary</p>
+                <p className="mt-1 text-xl font-semibold text-surface-900">{earnings.toLocaleString()} MNT</p>
               </AppCard>
               <AppCard>
-                <p className="text-xs uppercase tracking-wide text-slate-500">Active projects</p>
-                <p className="mt-1 text-xl font-semibold">{activeProjects.length}</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Active projects</p>
+                <p className="mt-1 text-xl font-semibold text-surface-900">{activeProjects.length}</p>
               </AppCard>
               <AppCard>
-                <p className="text-xs uppercase tracking-wide text-slate-500">Pending proposals</p>
-                <p className="mt-1 text-xl font-semibold">{pendingProposals}</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Pending proposals</p>
+                <p className="mt-1 text-xl font-semibold text-surface-900">{pendingProposals}</p>
               </AppCard>
               <AppCard>
-                <p className="text-xs uppercase tracking-wide text-slate-500">Rating</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Rating</p>
                 <div className="mt-1"><RatingStars value={rating.data?.average ?? 0} /></div>
-                <p className="mt-0.5 text-xs text-slate-500">{rating.data?.total ?? 0} reviews</p>
+                <p className="mt-0.5 text-[11px] text-surface-500">{rating.data?.total ?? 0} reviews</p>
               </AppCard>
             </div>
 
             <AppCard>
-              <p className="text-sm font-semibold">Profile completeness: {profileCompleteness}%</p>
-              <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
-                <div className="h-2 rounded-full bg-emerald-600" style={{ width: `${profileCompleteness}%` }} />
+              <p className="text-[13px] font-semibold text-surface-800">Profile completeness: {profileCompleteness}%</p>
+              <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
+                <div className="h-1.5 rounded-full bg-emerald-600" style={{ width: `${profileCompleteness}%` }} />
               </div>
-              <p className="mt-2 text-xs text-slate-600">
+              <p className="mt-2 text-[11px] text-surface-500">
                 {profileCompleteness < 100 ? (
-                  <Link href="/freelancer/profile" className="text-blue-600 hover:underline">
+                  <Link href="/freelancer/profile" className="text-brand-600 hover:underline">
                     Complete your profile to get 2x more selection chances →
                   </Link>
                 ) : (
@@ -155,23 +155,23 @@ export default function FreelancerDashboardPage() {
               </p>
             </AppCard>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-3 text-lg font-medium">My Proposals</h2>
+            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+              <h2 className="mb-3 text-lg font-medium text-surface-900">My Proposals</h2>
               {!myProposals.length ? (
                 <EmptyState label="No proposals submitted yet." />
               ) : (
                 <ul className="space-y-2">
                   {myProposals.map((proposal) => (
-                    <li key={proposal.id} className="rounded border border-slate-200 p-3 text-sm">
-                      <p className="font-medium">Project #{proposal.project}</p>
-                      <p>Price: {Number(proposal.price).toLocaleString()} MNT</p>
-                      <p>Timeline: {proposal.timeline_days} days</p>
-                      <p>Status: <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 capitalize text-xs">{proposal.status || "pending"}</span></p>
+                    <li key={proposal.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                      <p className="font-medium text-surface-900">Project #{proposal.project}</p>
+                      <p className="text-surface-600">Price: {Number(proposal.price).toLocaleString()} MNT</p>
+                      <p className="text-surface-600">Timeline: {proposal.timeline_days} days</p>
+                      <p className="text-surface-600">Status: <span className="inline-block rounded-full bg-surface-100 px-2 py-0.5 capitalize text-[11px]">{proposal.status || "pending"}</span></p>
                       {(proposal.status || "pending") === "pending" && (
                         <div className="mt-2 flex gap-2">
                           <button
                             type="button"
-                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
+                            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs text-white hover:bg-brand-700"
                             onClick={() => openEditModal(proposal)}
                           >
                             Edit
@@ -193,26 +193,26 @@ export default function FreelancerDashboardPage() {
             </div>
 
             {editingProposalId !== null && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-                <div className="w-full max-w-[480px] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                  <h3 className="text-lg font-semibold">Edit Proposal</h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4">
+                <div className="w-full max-w-[480px] rounded-2xl border border-surface-200/60 bg-white p-6 shadow-modal">
+                  <h3 className="text-lg font-semibold text-surface-900">Edit Proposal</h3>
                   <form className="mt-4 space-y-3" onSubmit={editForm.handleSubmit((v) => updateProposalMutation.mutate(v))}>
-                    <label className="block text-sm">
+                    <label className="block text-[13px] font-medium text-surface-700">
                       Price (MNT)
                       <input type="number" {...editForm.register("price", { valueAsNumber: true })} className="mt-1" />
                     </label>
-                    <label className="block text-sm">
+                    <label className="block text-[13px] font-medium text-surface-700">
                       Timeline (days)
                       <input type="number" {...editForm.register("timeline_days", { valueAsNumber: true })} className="mt-1" />
                     </label>
-                    <label className="block text-sm">
+                    <label className="block text-[13px] font-medium text-surface-700">
                       Message
                       <textarea {...editForm.register("message")} rows={3} className="mt-1" />
                     </label>
                     <div className="flex gap-2 pt-2">
                       <button
                         type="button"
-                        className="flex-1 rounded-lg bg-slate-200 py-2 text-sm text-slate-800 hover:bg-slate-300"
+                        className="flex-1 rounded-lg bg-surface-100 py-2 text-[13px] text-surface-700 hover:bg-surface-200"
                         onClick={() => setEditingProposalId(null)}
                       >
                         Cancel
@@ -220,7 +220,7 @@ export default function FreelancerDashboardPage() {
                       <button
                         type="submit"
                         disabled={updateProposalMutation.isPending}
-                        className="flex-1 rounded-lg bg-blue-600 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="flex-1 rounded-lg bg-brand-600 py-2 text-[13px] text-white hover:bg-brand-700 disabled:opacity-60"
                       >
                         {updateProposalMutation.isPending ? "Saving..." : "Save"}
                       </button>
@@ -230,21 +230,21 @@ export default function FreelancerDashboardPage() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-3 text-lg font-medium">Active Projects</h2>
+            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+              <h2 className="mb-3 text-lg font-medium text-surface-900">Active Projects</h2>
               {!activeProjects.length ? (
                 <EmptyState label="No active selected projects." />
               ) : (
                 <ul className="space-y-2">
                   {activeProjects.map((project) => (
-                    <li key={project.id} className="rounded border border-slate-200 p-3 text-sm space-y-2">
-                      <p className="font-medium">{project.title}</p>
-                      <p>Status: {project.status}</p>
+                    <li key={project.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px] space-y-2">
+                      <p className="font-medium text-surface-900">{project.title}</p>
+                      <p className="text-surface-600">Status: {project.status}</p>
                       <div className="flex flex-wrap gap-2">
-                        <Link href={`/projects/${project.id}`} className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                        <Link href={`/projects/${project.id}`} className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
                           Open Project
                         </Link>
-                        <button className="bg-green-600 text-white" onClick={() => submitMutation.mutate(project.id)}>
+                        <button className="bg-emerald-600 text-white" onClick={() => submitMutation.mutate(project.id)}>
                           Submit Result
                         </button>
                       </div>

@@ -64,7 +64,7 @@ export default function NewProjectPage() {
     <section className="mx-auto max-w-3xl space-y-4">
       <AppCard>
         <h1 className="text-2xl font-semibold">Post a Project</h1>
-        <p className="mt-1 text-sm text-slate-600">Guided 3-step posting flow for better scope clarity and faster proposals.</p>
+        <p className="mt-1 text-[13px] text-surface-500">Guided 3-step posting flow for better scope clarity and faster proposals.</p>
         <div className="mt-3">
           <StepProgress steps={steps} currentStep={step} />
         </div>
@@ -101,7 +101,7 @@ export default function NewProjectPage() {
               Budget (MNT)
               <input type="number" {...form.register("budget", { valueAsNumber: true })} aria-label="Project budget" />
             </label>
-            <p className="text-xs text-slate-500">Budget guidance: clear budget increases proposal quality and reduces negotiation delay.</p>
+            <p className="text-[11px] text-surface-500">Budget guidance: clear budget increases proposal quality and reduces negotiation delay.</p>
             <label className="block text-sm">
               Timeline (days)
               <input type="number" {...form.register("timeline_days", { valueAsNumber: true })} aria-label="Project timeline" />
@@ -118,7 +118,7 @@ export default function NewProjectPage() {
             </label>
             <button
               type="button"
-              className="w-full bg-blue-600 text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full bg-brand-600 text-white disabled:cursor-not-allowed disabled:opacity-60"
               onClick={() => aiMutation.mutate()}
               disabled={aiMutation.isPending}
             >
@@ -131,18 +131,18 @@ export default function NewProjectPage() {
         <div className="flex flex-wrap justify-between gap-2">
           <button
             type="button"
-            className="bg-slate-200 text-slate-800"
+            className="bg-surface-100 text-surface-700"
             onClick={() => setStep((prev) => Math.max(0, prev - 1))}
             disabled={step === 0}
           >
             Back
           </button>
           {step < steps.length - 1 ? (
-            <button type="button" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}>
+            <button type="button" className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}>
               Continue
             </button>
           ) : (
-            <button type="submit" className="bg-blue-600 text-white hover:bg-blue-700" disabled={mutation.isPending}>
+            <button type="submit" className="bg-brand-600 text-white hover:bg-brand-700" disabled={mutation.isPending}>
               {mutation.isPending ? "Saving..." : "Publish Project"}
             </button>
           )}

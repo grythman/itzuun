@@ -28,7 +28,7 @@ export function RoleGuard({
   }, [fallbackPath, isAllowed, router]);
 
   if (!isAllowed) {
-    return <p className="rounded-md border border-slate-200 bg-white p-4 text-sm">Redirecting...</p>;
+    return <p className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-600">Redirecting...</p>;
   }
 
   return <>{children}</>;

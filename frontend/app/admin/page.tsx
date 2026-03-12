@@ -78,25 +78,25 @@ export default function AdminPage() {
           <RoleSidebar role="admin" />
           <div className="flex-1 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-medium">Commission</h2>
+          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <h2 className="text-lg font-medium text-surface-900">Commission</h2>
             {commission.isLoading ? <LoadingState label="Loading commission..." /> : null}
             {commission.isError ? <ErrorState label="Unable to load commission." /> : null}
-            {commission.data ? <p className="mt-2 text-sm">Current: {commission.data.platform_fee_pct}%</p> : null}
+            {commission.data ? <p className="mt-2 text-[13px] text-surface-600">Current: {commission.data.platform_fee_pct}%</p> : null}
             <ActionButton className="mt-3" onClick={() => commissionMutation.mutate(10)} loading={commissionMutation.isPending}>Set 10%</ActionButton>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-medium">Escrow</h2>
+          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <h2 className="text-lg font-medium text-surface-900">Escrow</h2>
             {escrow.isLoading ? <LoadingState label="Loading escrow..." /> : null}
             {escrow.data && toArray(escrow.data).length === 0 ? <EmptyState label="No escrow rows." /> : null}
             {escrow.data && toArray(escrow.data).length > 0 ? (
               <ul className="space-y-2 mt-2">
                 {toArray(escrow.data).map((item) => (
-                  <li key={item.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
+                  <li key={item.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
                     <div>
-                      <p>Escrow #{item.id} — Project #{item.project}</p>
-                      <p className="text-xs text-slate-500">{item.amount?.toLocaleString()} MNT · <StatusPill label={item.status} tone={item.status === "held" ? "success" : item.status === "created" ? "warning" : "neutral"} /></p>
+                      <p className="text-surface-800">Escrow #{item.id} — Project #{item.project}</p>
+                      <p className="text-[11px] text-surface-500">{item.amount?.toLocaleString()} MNT · <StatusPill label={item.status} tone={item.status === "held" ? "success" : item.status === "created" ? "warning" : "neutral"} /></p>
                     </div>
                     {item.status === "created" && (
                       <ActionButton tone="success" loading={approveMutation.isPending} onClick={() => approveMutation.mutate(item.id)}>Approve</ActionButton>
@@ -108,48 +108,48 @@ export default function AdminPage() {
           </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-medium">Payments</h2>
+            <h2 className="text-lg font-medium text-surface-900">Payments</h2>
             <div className="flex gap-2">
-              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("all")}>All</button>
-              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("paid")}>Paid</button>
-              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("pending")}>Pending</button>
-              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => setPaymentFilter("failed")}>Failed</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("all")}>All</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("paid")}>Paid</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("pending")}>Pending</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("failed")}>Failed</button>
             </div>
           </div>
-          <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Filter: {paymentFilter}</p>
+          <p className="mb-2 text-[11px] uppercase tracking-widest text-surface-500">Filter: {paymentFilter}</p>
           {payments.isLoading ? <LoadingState label="Loading payments..." /> : null}
           {payments.data && toArray(payments.data).length === 0 ? <EmptyState label="No payments." /> : null}
           {payments.data && toArray(payments.data).length > 0 ? (
             <ul className="space-y-2">
               {toArray(payments.data).map((item) => (
-                <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
-                  <p>Invoice: {item.invoice_id}</p>
+                <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                  <p className="text-surface-800">Invoice: {item.invoice_id}</p>
                   <p className="mt-1">
                     <StatusPill
                       label={item.status}
                       tone={item.status === "paid" ? "success" : item.status === "failed" ? "danger" : "warning"}
                     />
                   </p>
-                  <p>Project: {item.project}</p>
-                  <p>Paid at: {item.paid_at ?? "-"}</p>
-                  <p>Escrow: {item.escrow_status ?? "-"}</p>
+                  <p className="text-surface-600">Project: {item.project}</p>
+                  <p className="text-surface-600">Paid at: {item.paid_at ?? "-"}</p>
+                  <p className="text-surface-600">Escrow: {item.escrow_status ?? "-"}</p>
                 </li>
               ))}
             </ul>
           ) : null}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-lg font-medium">Users</h2>
+            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+          <h2 className="mb-3 text-lg font-medium text-surface-900">Users</h2>
           {users.isLoading ? <LoadingState label="Loading users..." /> : null}
           {users.isError ? <ErrorState label="Unable to load users." /> : null}
           {users.data ? (
             <ul className="space-y-2">
               {toArray(users.data).map((user) => (
-                <li key={user.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
-                  <span>{user.email} ({user.role})</span>
+                <li key={user.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                  <span className="text-surface-700">{user.email} ({user.role})</span>
                   <ActionButton onClick={() => verifyMutation.mutate(user.id)} loading={verifyMutation.isPending}>Verify</ActionButton>
                 </li>
               ))}
@@ -158,21 +158,21 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-3 text-lg font-medium">Projects</h2>
+          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <h2 className="mb-3 text-lg font-medium text-surface-900">Projects</h2>
             {projects.isLoading ? <LoadingState label="Loading projects..." /> : null}
-            {projects.data ? <p className="text-sm">Total: {toArray(projects.data).length}</p> : null}
+            {projects.data ? <p className="text-[13px] text-surface-600">Total: {toArray(projects.data).length}</p> : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="mb-3 text-lg font-medium">Disputes</h2>
+          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <h2 className="mb-3 text-lg font-medium text-surface-900">Disputes</h2>
             {disputes.isLoading ? <LoadingState label="Loading disputes..." /> : null}
             {disputes.data && toArray(disputes.data).length === 0 ? <EmptyState label="No disputes." /> : null}
             {disputes.data && toArray(disputes.data).length > 0 ? (
               <ul className="space-y-2">
                 {toArray(disputes.data).map((item) => (
-                  <li key={item.id} className="flex items-center justify-between rounded border border-slate-200 p-3 text-sm">
-                    <span>Dispute #{item.id}</span>
+                  <li key={item.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                    <span className="text-surface-700">Dispute #{item.id}</span>
                     <ActionButton tone="success" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Resolve</ActionButton>
                   </li>
                 ))}

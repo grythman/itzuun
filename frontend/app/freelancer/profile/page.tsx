@@ -80,15 +80,15 @@ export default function FreelancerProfilePage() {
           <div className="flex-1 space-y-4">
             {/* Profile completeness */}
             <AppCard>
-              <p className="text-sm font-semibold">Profile completeness: {completeness}%</p>
-              <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
+              <p className="text-[13px] font-semibold text-surface-800">Profile completeness: {completeness}%</p>
+              <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
                 <div
-                  className="h-2 rounded-full bg-emerald-600 transition-all"
+                  className="h-1.5 rounded-full bg-emerald-600 transition-all"
                   style={{ width: `${completeness}%` }}
                 />
               </div>
               {completeness < 100 && (
-                <p className="mt-2 text-xs text-slate-600">
+                <p className="mt-2 text-[11px] text-surface-500">
                   Fill in all fields to reach 100% and get more visibility.
                 </p>
               )}
@@ -97,71 +97,71 @@ export default function FreelancerProfilePage() {
             {/* Profile edit form */}
             <form
               onSubmit={handleSubmit((v) => updateMutation.mutate(v))}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5"
+              className="rounded-2xl border border-surface-200/60 bg-white p-6 shadow-card space-y-5"
             >
-              <h2 className="text-lg font-medium">Edit Profile</h2>
+              <h2 className="text-lg font-medium text-surface-900">Edit Profile</h2>
 
               <div>
-                <label htmlFor="full_name" className="mb-1 block text-sm font-medium text-slate-700">
+                <label htmlFor="full_name" className="mb-1 block text-[13px] font-medium text-surface-700">
                   Full Name
                 </label>
                 <input
                   id="full_name"
                   {...register("full_name")}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   placeholder="Your full name"
                 />
                 {errors.full_name && (
-                  <p className="mt-1 text-xs text-red-600">{errors.full_name.message}</p>
+                  <p className="mt-1 text-[11px] text-red-600">{errors.full_name.message}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="bio" className="mb-1 block text-sm font-medium text-slate-700">
+                <label htmlFor="bio" className="mb-1 block text-[13px] font-medium text-surface-700">
                   Bio
                 </label>
                 <textarea
                   id="bio"
                   {...register("bio")}
                   rows={4}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   placeholder="Tell clients about yourself, your experience, and what you can offer..."
                 />
                 {errors.bio && (
-                  <p className="mt-1 text-xs text-red-600">{errors.bio.message}</p>
+                  <p className="mt-1 text-[11px] text-red-600">{errors.bio.message}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="skills" className="mb-1 block text-sm font-medium text-slate-700">
+                <label htmlFor="skills" className="mb-1 block text-[13px] font-medium text-surface-700">
                   Skills
                 </label>
                 <input
                   id="skills"
                   {...register("skills")}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   placeholder="React, TypeScript, Node.js, Python (comma separated)"
                 />
-                <p className="mt-1 text-xs text-slate-500">Separate skills with commas</p>
+                <p className="mt-1 text-[11px] text-surface-500">Separate skills with commas</p>
                 {errors.skills && (
-                  <p className="mt-1 text-xs text-red-600">{errors.skills.message}</p>
+                  <p className="mt-1 text-[11px] text-red-600">{errors.skills.message}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="hourly_rate" className="mb-1 block text-sm font-medium text-slate-700">
+                <label htmlFor="hourly_rate" className="mb-1 block text-[13px] font-medium text-surface-700">
                   Hourly Rate (MNT)
                 </label>
                 <input
                   id="hourly_rate"
                   type="number"
                   {...register("hourly_rate")}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   placeholder="50000"
                   min={0}
                 />
                 {errors.hourly_rate && (
-                  <p className="mt-1 text-xs text-red-600">{errors.hourly_rate.message}</p>
+                  <p className="mt-1 text-[11px] text-red-600">{errors.hourly_rate.message}</p>
                 )}
               </div>
 
@@ -172,7 +172,7 @@ export default function FreelancerProfilePage() {
                 {isDirty && (
                   <button
                     type="button"
-                    className="rounded-xl px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100"
+                    className="rounded-xl px-4 py-2.5 text-[13px] text-surface-600 hover:bg-surface-100"
                     onClick={() => reset()}
                   >
                     Discard Changes
@@ -184,38 +184,38 @@ export default function FreelancerProfilePage() {
             {/* Preview card */}
             {profile.data && (
               <AppCard>
-                <h2 className="mb-3 text-lg font-medium">Profile Preview</h2>
+                <h2 className="mb-3 text-lg font-medium text-surface-900">Profile Preview</h2>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Name</p>
-                    <p className="text-sm font-medium">{profile.data.full_name || "—"}</p>
+                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Name</p>
+                    <p className="text-[13px] font-medium text-surface-800">{profile.data.full_name || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Bio</p>
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Bio</p>
+                    <p className="text-[13px] text-surface-700 whitespace-pre-wrap">
                       {profile.data.bio || "—"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Skills</p>
+                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Skills</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {(profile.data.skills || []).length > 0 ? (
                         profile.data.skills.map((skill) => (
                           <span
                             key={skill}
-                            className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                            className="rounded-full bg-brand-50 px-3 py-1 text-[11px] font-medium text-brand-700"
                           >
                             {skill}
                           </span>
                         ))
                       ) : (
-                        <span className="text-sm text-slate-400">—</span>
+                        <span className="text-[13px] text-surface-400">—</span>
                       )}
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">Hourly Rate</p>
-                    <p className="text-sm font-medium">
+                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Hourly Rate</p>
+                    <p className="text-[13px] font-medium">
                       {profile.data.hourly_rate
                         ? `${profile.data.hourly_rate.toLocaleString()} MNT`
                         : "—"}

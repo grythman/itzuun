@@ -84,7 +84,7 @@ export default function ProjectPaymentPage() {
     <section className="mx-auto max-w-3xl space-y-4">
       <AppCard>
         <h1 className="text-2xl font-semibold">Escrow Payment</h1>
-        <p className="mt-1 text-sm text-slate-600">Complete secure invoice payment to hold funds safely in escrow.</p>
+        <p className="mt-1 text-[13px] text-surface-500">Complete secure invoice payment to hold funds safely in escrow.</p>
         <div className="mt-3">
           <StepProgress steps={paymentSteps} currentStep={currentStep} />
         </div>
@@ -92,17 +92,17 @@ export default function ProjectPaymentPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <AppCard className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Project Summary</p>
-          <p className="font-semibold text-slate-900">{projectQuery.data?.title || `Project #${projectId}`}</p>
-          <p className="text-sm text-slate-600">{projectQuery.data?.category}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Project Summary</p>
+          <p className="font-semibold text-surface-900">{projectQuery.data?.title || `Project #${projectId}`}</p>
+          <p className="text-[13px] text-surface-600">{projectQuery.data?.category}</p>
           <EscrowStatusBadge status={invoice.payment.escrow_status || "created"} />
-          <p className="text-sm">Invoice ID: {invoice.invoice_id}</p>
-          <p className="text-sm">Current status: {statusValue}</p>
-          <p className="text-sm">Expires in: {secondsLeft}s</p>
+          <p className="text-[13px]">Invoice ID: {invoice.invoice_id}</p>
+          <p className="text-[13px]">Current status: {statusValue}</p>
+          <p className="text-[13px]">Expires in: {secondsLeft}s</p>
         </AppCard>
 
         <AppCard className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pricing Transparency</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Pricing Transparency</p>
           <CompareTable
             rows={[
               { label: "Project amount", value: `${feeBreakdown.total} MNT` },
@@ -115,27 +115,27 @@ export default function ProjectPaymentPage() {
       </div>
 
       <AppCard className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pay via QPay</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Pay via QPay</p>
 
         {invoice.qr_image ? (
-          <Image src={invoice.qr_image} alt="QPay QR" width={224} height={224} className="rounded-xl border border-slate-200" unoptimized />
+          <Image src={invoice.qr_image} alt="QPay QR" width={224} height={224} className="rounded-xl border border-surface-200/60" unoptimized />
         ) : (
-          <p className="text-xs text-slate-500">QR image unavailable</p>
+          <p className="text-[11px] text-surface-500">QR image unavailable</p>
         )}
 
         {invoice.invoice_url ? (
-          <a className="inline-block rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" href={invoice.invoice_url} target="_blank" rel="noreferrer">
+          <a className="inline-block rounded-xl bg-brand-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-800" href={invoice.invoice_url} target="_blank" rel="noreferrer">
             Open Payment Link
           </a>
         ) : null}
       </AppCard>
 
       <AppCard>
-        <button className="w-full text-left text-sm font-semibold text-slate-800" onClick={() => setFaqOpen((prev) => !prev)}>
+        <button className="w-full text-left text-[13px] font-semibold text-surface-800" onClick={() => setFaqOpen((prev) => !prev)}>
           {faqOpen ? "Hide" : "Show"} payment FAQ
         </button>
         {faqOpen ? (
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-[13px] text-surface-600">
             <li>Funds are held in escrow until delivery confirmation.</li>
             <li>If issue occurs, admin mediation and dispute tools are available.</li>
             <li>Never share payment credentials outside your bank app.</li>

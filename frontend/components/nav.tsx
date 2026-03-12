@@ -35,7 +35,7 @@ export function Nav() {
     },
   });
 
-  const iconClass = "h-4 w-4 text-slate-500";
+  const iconClass = "h-4 w-4 text-surface-400";
 
   const navLinks = user
     ? [
@@ -45,23 +45,23 @@ export function Nav() {
     : publicLinks;
 
   return (
-    <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4" aria-label="Main">
-        <div className="flex items-center gap-5">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-blue-800 text-sm font-semibold text-white">IZ</span>
-            <span className="text-base font-semibold text-slate-900">ITZuun</span>
+    <header className="sticky top-0 z-30 border-b border-surface-200/80 bg-white/80 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3" aria-label="Main">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-600 to-brand-800 text-xs font-bold text-white shadow-sm">IZ</span>
+            <span className="text-[15px] font-semibold tracking-tight text-surface-900">ITZuun</span>
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center gap-0.5 md:flex">
             {navLinks.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${
-                    active ? "bg-blue-50 text-blue-800" : "text-slate-700 hover:bg-slate-100"
+                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-all ${
+                    active ? "bg-brand-50 text-brand-700" : "text-surface-500 hover:bg-surface-100 hover:text-surface-800"
                   }`}
                 >
                   {link.icon === "projects" ? (
@@ -93,7 +93,7 @@ export function Nav() {
           {/* Mobile hamburger */}
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-surface-500 hover:bg-surface-100 md:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -110,25 +110,25 @@ export function Nav() {
 
           {user ? (
             <>
-              <span className="hidden text-sm text-slate-600 sm:inline">{user.email}</span>
-              <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-medium capitalize text-blue-700">
+              <span className="hidden text-[13px] text-surface-500 sm:inline">{user.email}</span>
+              <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold capitalize text-brand-700">
                 {user.role}
               </span>
               <button
                 type="button"
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
-                className="rounded-xl px-3 py-2 text-sm text-slate-800 hover:bg-slate-100"
+                className="rounded-lg px-3 py-1.5 text-[13px] text-surface-500 hover:bg-surface-100 hover:text-surface-800"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/auth?tab=signin" className="rounded-xl px-3 py-2 text-sm text-slate-800 hover:bg-slate-100">
+              <Link href="/auth?tab=signin" className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-surface-600 hover:bg-surface-100">
                 Login
               </Link>
-              <Link href="/auth?tab=register" className="rounded-xl bg-blue-800 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900">
+              <Link href="/auth?tab=register" className="rounded-lg bg-brand-600 px-4 py-1.5 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors">
                 Get Started
               </Link>
             </>
@@ -138,8 +138,8 @@ export function Nav() {
 
       {/* Mobile menu panel */}
       {mobileOpen && (
-        <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
-          <div className="space-y-1">
+        <div className="border-t border-surface-100 bg-white px-4 py-3 md:hidden">
+          <div className="space-y-0.5">
             {navLinks.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
@@ -147,8 +147,8 @@ export function Nav() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`block rounded-xl px-3 py-2 text-sm ${
-                    active ? "bg-blue-50 text-blue-800 font-medium" : "text-slate-700 hover:bg-slate-100"
+                  className={`block rounded-lg px-3 py-2 text-[13px] ${
+                    active ? "bg-brand-50 text-brand-700 font-medium" : "text-surface-600 hover:bg-surface-100"
                   }`}
                 >
                   {link.label}

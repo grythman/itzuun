@@ -4,30 +4,30 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 export function AppCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>{children}</div>;
+  return <div className={`rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${className}`}>{children}</div>;
 }
 
 export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="space-y-1">
-      <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
-      {subtitle ? <p className="text-sm text-slate-600">{subtitle}</p> : null}
+      <h2 className="text-lg font-semibold tracking-tight text-surface-900">{title}</h2>
+      {subtitle ? <p className="text-[13px] text-surface-500">{subtitle}</p> : null}
     </div>
   );
 }
 
 export function EscrowStatusBadge({ status }: { status: string }) {
   const classes: Record<string, string> = {
-    created: "bg-amber-100 text-amber-800",
-    pending_admin: "bg-amber-100 text-amber-800",
-    held: "bg-emerald-100 text-emerald-800",
-    released: "bg-blue-100 text-blue-800",
-    disputed: "bg-red-100 text-red-800",
-    refunded: "bg-slate-200 text-slate-700",
+    created: "bg-accent-100 text-accent-700",
+    pending_admin: "bg-accent-100 text-accent-700",
+    held: "bg-emerald-50 text-emerald-700",
+    released: "bg-brand-50 text-brand-700",
+    disputed: "bg-red-50 text-red-700",
+    refunded: "bg-surface-100 text-surface-600",
   };
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${classes[status] || "bg-slate-100 text-slate-700"}`}>
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${classes[status] || "bg-surface-100 text-surface-600"}`}>
       Escrow: {status}
     </span>
   );
@@ -36,11 +36,11 @@ export function EscrowStatusBadge({ status }: { status: string }) {
 export function VerifiedBadge({ verified }: { verified?: boolean }) {
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-        verified ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+        verified ? "bg-emerald-50 text-emerald-700" : "bg-surface-100 text-surface-500"
       }`}
     >
-      {verified ? "Verified" : "Unverified"}
+      {verified ? "✓ Verified" : "Unverified"}
     </span>
   );
 }
@@ -48,13 +48,13 @@ export function VerifiedBadge({ verified }: { verified?: boolean }) {
 export function RatingStars({ value, total = 5 }: { value: number; total?: number }) {
   const rounded = Math.max(0, Math.min(total, Math.round(value)));
   return (
-    <div className="flex items-center gap-1 text-sm">
+    <div className="flex items-center gap-0.5 text-sm">
       {Array.from({ length: total }).map((_, idx) => (
-        <span key={idx} className={idx < rounded ? "text-amber-500" : "text-slate-300"}>
+        <span key={idx} className={idx < rounded ? "text-accent-500" : "text-surface-200"}>
           ★
         </span>
       ))}
-      <span className="ml-1 text-slate-600">{value.toFixed(1)}</span>
+      <span className="ml-1.5 text-[13px] font-medium text-surface-600">{value.toFixed(1)}</span>
     </div>
   );
 }
@@ -62,15 +62,15 @@ export function RatingStars({ value, total = 5 }: { value: number; total?: numbe
 export function StepProgress({ steps, currentStep }: { steps: string[]; currentStep: number }) {
   return (
     <div className="space-y-2">
-      <div className="h-2 w-full rounded-full bg-slate-100">
+      <div className="h-1.5 w-full rounded-full bg-surface-100">
         <div
-          className="h-2 rounded-full bg-blue-700 transition-all"
+          className="h-1.5 rounded-full bg-brand-600 transition-all"
           style={{ width: `${Math.max(0, Math.min(100, ((currentStep + 1) / steps.length) * 100))}%` }}
         />
       </div>
-      <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+      <div className="flex flex-wrap gap-2 text-[11px] text-surface-500">
         {steps.map((step, idx) => (
-          <span key={step} className={idx <= currentStep ? "font-semibold text-blue-800" : ""}>
+          <span key={step} className={idx <= currentStep ? "font-semibold text-brand-700" : ""}>
             {idx + 1}. {step}
           </span>
         ))}
@@ -83,13 +83,13 @@ export function ChatBubble({ mine, text, time, fileName }: { mine: boolean; text
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
-          mine ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-800"
+        className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[13px] ${
+          mine ? "bg-brand-600 text-white" : "bg-surface-100 text-surface-800"
         }`}
       >
         <p>{text}</p>
-        {fileName ? <p className={`mt-1 text-xs ${mine ? "text-blue-100" : "text-slate-500"}`}>Attachment: {fileName}</p> : null}
-        {time ? <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-500"}`}>{time}</p> : null}
+        {fileName ? <p className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-surface-400"}`}>Attachment: {fileName}</p> : null}
+        {time ? <p className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-surface-400"}`}>{time}</p> : null}
       </div>
     </div>
   );
@@ -97,7 +97,7 @@ export function ChatBubble({ mine, text, time, fileName }: { mine: boolean; text
 
 export function TrustPanel() {
   return (
-    <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
+    <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 text-[13px] text-brand-800">
       <p className="font-semibold">Secure Escrow Protection</p>
       <p className="mt-1">Your money is held securely until work is completed and confirmed.</p>
     </div>
@@ -125,12 +125,12 @@ export function RoleSidebar({ role }: { role: "client" | "freelancer" | "admin" 
   };
 
   return (
-    <aside className="hidden w-64 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">{role} panel</p>
-      <ul className="space-y-2">
+    <aside className="hidden w-56 shrink-0 rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card lg:block">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-surface-400">{role} panel</p>
+      <ul className="space-y-0.5">
         {linksByRole[role].map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className="block rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">
+            <Link href={link.href} className="block rounded-lg px-3 py-2 text-[13px] font-medium text-surface-600 hover:bg-surface-50 hover:text-surface-900 transition-colors">
               {link.label}
             </Link>
           </li>
@@ -162,13 +162,13 @@ export function DashboardBottomBar({ role = "client" }: { role?: "client" | "fre
   const links = mobileLinksByRole[role];
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-2 backdrop-blur lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-surface-200/60 bg-white/90 px-4 py-2 backdrop-blur-xl lg:hidden">
       <div className="mx-auto flex max-w-md items-center justify-between text-xs">
         {links.map((link) => (
           <Link
             key={`${role}-${link.href}`}
             href={link.href}
-            className={link.primary ? "rounded-lg bg-blue-600 px-3 py-2 font-semibold text-white" : "rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100"}
+            className={link.primary ? "rounded-lg bg-brand-600 px-3 py-2 font-semibold text-white shadow-sm" : "rounded-lg px-3 py-2 text-surface-600 hover:bg-surface-100"}
           >
             {link.label}
           </Link>
@@ -180,13 +180,13 @@ export function DashboardBottomBar({ role = "client" }: { role?: "client" | "fre
 
 export function CompareTable({ rows }: { rows: Array<{ label: string; value: string | number }> }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200">
-      <table className="min-w-full text-sm">
+    <div className="overflow-x-auto rounded-xl border border-surface-200/60">
+      <table className="min-w-full text-[13px]">
         <tbody>
           {rows.map((row) => (
-            <tr key={row.label} className="border-b border-slate-100 last:border-none">
-              <td className="bg-slate-50 px-3 py-2 font-medium text-slate-700">{row.label}</td>
-              <td className="px-3 py-2 text-slate-900">{row.value}</td>
+            <tr key={row.label} className="border-b border-surface-100 last:border-none">
+              <td className="bg-surface-50 px-3 py-2 font-medium text-surface-600">{row.label}</td>
+              <td className="px-3 py-2 text-surface-900">{row.value}</td>
             </tr>
           ))}
         </tbody>
@@ -203,13 +203,13 @@ export function StatusPill({
   tone?: "neutral" | "success" | "warning" | "danger" | "info";
 }) {
   const toneClass: Record<string, string> = {
-    neutral: "bg-slate-100 text-slate-700",
-    success: "bg-emerald-100 text-emerald-800",
-    warning: "bg-amber-100 text-amber-800",
-    danger: "bg-red-100 text-red-800",
-    info: "bg-blue-100 text-blue-800",
+    neutral: "bg-surface-100 text-surface-600",
+    success: "bg-emerald-50 text-emerald-700",
+    warning: "bg-accent-50 text-accent-700",
+    danger: "bg-red-50 text-red-700",
+    info: "bg-brand-50 text-brand-700",
   };
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${toneClass[tone]}`}>{label}</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${toneClass[tone]}`}>{label}</span>;
 }
 
 export function ActionButton({
@@ -224,10 +224,10 @@ export function ActionButton({
   tone?: "primary" | "success" | "warning" | "danger";
 }) {
   const toneClass: Record<string, string> = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700",
-    success: "bg-emerald-600 text-white hover:bg-emerald-700",
-    warning: "bg-amber-600 text-white hover:bg-amber-700",
-    danger: "bg-red-600 text-white hover:bg-red-700",
+    primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm",
+    success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm",
+    warning: "bg-accent-600 text-white hover:bg-accent-700 shadow-sm",
+    danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
   };
   return (
     <button
@@ -253,11 +253,11 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-surface-200/60 bg-white p-5 shadow-modal">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-          <button className="rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-700 hover:bg-slate-200" onClick={onClose}>
+          <h3 className="text-lg font-semibold tracking-tight text-surface-900">{title}</h3>
+          <button className="rounded-lg bg-surface-100 px-2 py-1 text-[11px] font-medium text-surface-500 hover:bg-surface-200" onClick={onClose}>
             Close
           </button>
         </div>
@@ -288,9 +288,9 @@ export function ConfirmationDialog({
 }) {
   return (
     <Modal open={open} title={title} onClose={onCancel}>
-      <p className="text-sm text-slate-600">{message}</p>
+      <p className="text-[13px] text-surface-500">{message}</p>
       <div className="mt-4 flex justify-end gap-2">
-        <button className="bg-slate-200 text-slate-800 hover:bg-slate-300" onClick={onCancel}>
+        <button className="bg-surface-100 text-surface-700 hover:bg-surface-200" onClick={onCancel}>
           Cancel
         </button>
         <ActionButton tone={confirmTone} onClick={onConfirm} loading={loading}>
