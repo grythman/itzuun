@@ -1,0 +1,14 @@
+{
+  "Nav": {
+    "login": "Login",
+    "dashboard": "Dashboard",
+    "postProject": "Post a Project",
+    "findWork": "Find Work"
+  },
+  "Hero": {
+    "title": "Welcome to ITZuun",
+    "subtitle": "The premier IT freelance marketplace in Mongolia.",
+    "ctaClient": "Post a Project",
+    "ctaFreelancer": "Find IT Work"
+  }
+}
