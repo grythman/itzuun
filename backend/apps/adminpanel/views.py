@@ -8,9 +8,9 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUser
 from apps.accounts.serializers import UserSerializer
-from apps.payments.models import Dispute, Escrow, Payment
+from apps.payments.models import Dispute, Escrow, LedgerEntry, Payment
 from apps.payments.idempotency import execute_idempotent
-from apps.payments.serializers import DisputeSerializer, EscrowSerializer, PaymentSerializer
+from apps.payments.serializers import DisputeSerializer, EscrowSerializer, LedgerEntrySerializer, PaymentSerializer
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
 from common.cache_utils import admin_detail_cache_key, admin_list_cache_key, bump_admin_resource_version, bump_user_public_version
@@ -161,6 +161,31 @@ class AdminDisputeResolveView(APIView):
             executor=_executor,
         )
         return Response(payload, status=status_code)
+
+
+class AdminLedgerListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        cache_key = admin_list_cache_key("ledger", request.query_params)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
+        queryset = LedgerEntry.objects.select_related("escrow__project").all().order_by("-created_at")
+        
+        # Optional filters
+        entry_type = request.query_params.get("entry_type")
+        if entry_type:
+            queryset = queryset.filter(entry_type=entry_type)
+            
+        project_id = request.query_params.get("project_id")
+        if project_id:
+            queryset = queryset.filter(escrow__project_id=project_id)
+
+        response = _paginated_response(request, queryset, LedgerEntrySerializer, self)
+        cache.set(cache_key, response.data, timeout=60)
+        return response
 
 
 class AdminCommissionUpdateView(APIView):

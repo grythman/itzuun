@@ -12,7 +12,8 @@ import { useQuery } from "@tanstack/react-query";
 export default function AdminPage() {
   const toast = useToastStore((s) => s.push);
   const me = useMe();
-  const { users, projects, escrow, disputes, commission } = useAdminSnapshot();
+  const { users, projects, escrow, disputes, commission, ledger } = useAdminSnapshot();
+  
   const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "pending" | "failed">("all");
   const [resolveTarget, setResolveTarget] = useState<{ disputeId: number; projectId: number } | null>(null);
   const [resolveAction, setResolveAction] = useState<"refund" | "release" | "split">("refund");
@@ -159,6 +160,34 @@ export default function AdminPage() {
               ))}
             </ul>
           ) : null}
+            </div>
+
+            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-medium text-surface-900">Financial Audit Logs (Ledger)</h2>
+              </div>
+              {ledger.isLoading ? <LoadingState label="Loading ledger..." /> : null}
+              {ledger.data && toArray(ledger.data).length === 0 ? <EmptyState label="No ledger entries." /> : null}
+              {ledger.data && toArray(ledger.data).length > 0 ? (
+                <ul className="space-y-2">
+                  {toArray(ledger.data).map((entry) => (
+                    <li key={entry.id} className="rounded-xl border border-surface-200/60 p-3 flex flex-col gap-1 text-[13px]">
+                      <div className="flex items-center gap-2">
+                        <StatusPill
+                          label={entry.entry_type}
+                          tone={
+                            entry.entry_type === "deposit" || entry.entry_type === "release" ? "success" : 
+                            entry.entry_type === "refund" ? "warning" : "neutral"
+                          }
+                        />
+                        <span className="font-medium text-surface-800">{entry.amount.toLocaleString()} MNT</span>
+                      </div>
+                      <p className="text-surface-600">Escrow #{entry.escrow} • {new Date(entry.created_at).toLocaleString()}</p>
+                      {entry.note ? <p className="text-surface-500 italic">{entry.note}</p> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
