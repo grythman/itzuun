@@ -75,10 +75,11 @@ export default function ProjectPaymentPage() {
 
   const feeBreakdown = useMemo(() => {
     const total = invoice.payment.amount;
-    const fee = Math.round(total * 0.12);
+    const pct = invoice.fee_pct || 12;
+    const fee = Math.round(total * (pct / 100));
     const freelancerAmount = total - fee;
-    return { total, fee, freelancerAmount };
-  }, [invoice.payment.amount]);
+    return { total, fee, freelancerAmount, pct };
+  }, [invoice]);
 
   return (
     <section className="mx-auto max-w-3xl space-y-4">
@@ -106,7 +107,7 @@ export default function ProjectPaymentPage() {
           <CompareTable
             rows={[
               { label: "Project amount", value: `${feeBreakdown.total} MNT` },
-              { label: "Platform fee (12%)", value: `${feeBreakdown.fee} MNT` },
+              { label: `Platform fee (${feeBreakdown.pct}%)`, value: `${feeBreakdown.fee} MNT` },
               { label: "Freelancer receives", value: `${feeBreakdown.freelancerAmount} MNT` },
             ]}
           />

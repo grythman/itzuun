@@ -17,11 +17,10 @@ from apps.projects.models import ProjectDeliverable
 from apps.payments.models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
 
 
-COMMISSION_RATE = Decimal("0.12")
-
-
 def calculate_commission(amount: int) -> tuple[int, int]:
-    platform_fee = int((Decimal(amount) * COMMISSION_RATE).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    setting = PlatformSetting.get_solo()
+    rate = Decimal(str(setting.platform_fee_pct)) / Decimal("100")
+    platform_fee = int((Decimal(amount) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     freelancer_amount = amount - platform_fee
     if freelancer_amount < 0:
         raise DomainError("Commission calculation produced negative freelancer amount.")

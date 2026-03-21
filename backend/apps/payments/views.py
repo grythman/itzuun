@@ -153,6 +153,9 @@ class PaymentCreateView(APIView):
             return Response({"detail": "QPAY_CALLBACK_URL must use HTTPS in non-debug mode."}, status=status.HTTP_400_BAD_REQUEST)
 
         def _executor():
+            from common.models import PlatformSetting
+            fee_pct = PlatformSetting.get_solo().platform_fee_pct
+
             existing_payment = (
                 Payment.objects.select_related("project")
                 .filter(project=project, status=Payment.STATUS_PENDING)
@@ -168,6 +171,7 @@ class PaymentCreateView(APIView):
                         "qr_image": existing_payment.raw_response.get("qr_image", ""),
                         "invoice_url": existing_payment.raw_response.get("invoice_url", ""),
                         "expires_in_seconds": 1800,
+                        "fee_pct": fee_pct,
                     },
                     status.HTTP_200_OK,
                 )
@@ -188,6 +192,7 @@ class PaymentCreateView(APIView):
                     "qr_image": invoice.qr_image,
                     "invoice_url": invoice.invoice_url,
                     "expires_in_seconds": 1800,
+                    "fee_pct": fee_pct,
                 },
                 status.HTTP_201_CREATED,
             )
