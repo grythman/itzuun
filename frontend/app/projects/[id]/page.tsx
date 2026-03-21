@@ -234,7 +234,7 @@ export default function ProjectDetailPage() {
 
         {project.status === "completed" ? (
           <form
-            className="space-y-3 rounded-xl border border-surface-200/60 bg-white p-4"
+            className="space-y-3 rounded-md border border-slate-200 bg-white p-4"
             onSubmit={reviewForm.handleSubmit((v) => {
               const guidedAverage = Math.round((communicationRating + qualityRating) / 2);
               const finalRating = Math.max(1, Math.min(5, guidedAverage));
@@ -298,7 +298,7 @@ export default function ProjectDetailPage() {
                   Next
                 </button>
               ) : (
-                <button className="bg-brand-600 text-white" type="submit">Submit Review</button>
+                <button className="bg-blue-600 text-white" type="submit">Submit Review</button>
               )}
             </div>
 
@@ -313,27 +313,27 @@ export default function ProjectDetailPage() {
             ) : null}
           </form>
         ) : (
-          <div className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-500">
+          <div className="rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-600">
             Review is available after escrow is released and project is completed.
           </div>
         )}
       </div>
 
-      <div className="rounded-xl border border-surface-200/60 bg-white p-4">
+      <div className="rounded-md border border-slate-200 bg-white p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-surface-900">Proposals</h2>
+          <h2 className="text-lg font-medium">Proposals</h2>
           <div className="flex gap-2">
-            <button className="bg-surface-100 text-surface-700" onClick={() => setProposalCompareMode((prev) => !prev)}>
+            <button className="bg-slate-200 text-slate-800" onClick={() => setProposalCompareMode((prev) => !prev)}>
               {proposalCompareMode ? "Hide Compare" : "Compare Proposals"}
             </button>
-            <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => proposals.refetch()}>Refresh</button>
+            <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => proposals.refetch()}>Refresh</button>
           </div>
         </div>
 
         {proposalCompareMode && compareRows.length >= 2 ? (
-          <div className="mb-3 overflow-x-auto rounded-2xl border border-surface-200/60">
-            <table className="min-w-full text-[13px]">
-              <thead className="bg-surface-50">
+          <div className="mb-3 overflow-x-auto rounded-2xl border border-slate-200">
+            <table className="min-w-full text-sm">
+              <thead className="bg-slate-50">
                 <tr>
                   <th className="px-3 py-2 text-left">Metric</th>
                   <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[0].id ? "bg-emerald-50" : ""}`}>
@@ -345,17 +345,17 @@ export default function ProjectDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t border-surface-100">
+                <tr className="border-t border-slate-100">
                   <td className="px-3 py-2">Price</td>
                   <td className="px-3 py-2">{compareRows[0].price} MNT</td>
                   <td className="px-3 py-2">{compareRows[1].price} MNT</td>
                 </tr>
-                <tr className="border-t border-surface-100">
+                <tr className="border-t border-slate-100">
                   <td className="px-3 py-2">Timeline</td>
                   <td className="px-3 py-2">{compareRows[0].timeline} days</td>
                   <td className="px-3 py-2">{compareRows[1].timeline} days</td>
                 </tr>
-                <tr className="border-t border-surface-100">
+                <tr className="border-t border-slate-100">
                   <td className="px-3 py-2">Message</td>
                   <td className="px-3 py-2">{compareRows[0].message}</td>
                   <td className="px-3 py-2">{compareRows[1].message}</td>
@@ -370,7 +370,7 @@ export default function ProjectDetailPage() {
         ) : (
           <ul className="space-y-2">
             {proposalItems.map((item) => (
-              <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
+              <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="font-semibold">Freelancer #{item.freelancer}</p>
                   <VerifiedBadge verified={true} />
@@ -378,7 +378,7 @@ export default function ProjectDetailPage() {
                 <div className="mb-2"><RatingStars value={4.7} /></div>
                 <CompareTable rows={[{ label: "Price", value: `${item.price} MNT` }, { label: "Timeline", value: `${item.timeline_days} days` }, { label: "Completed projects", value: 12 }]} />
                 {proposalCompareMode ? (
-                  <label className="mt-2 flex items-center gap-2 text-[11px] text-surface-600">
+                  <label className="mt-2 flex items-center gap-2 text-xs text-slate-600">
                     <input
                       type="checkbox"
                       checked={selectedProposalIds.includes(item.id)}
@@ -401,8 +401,8 @@ export default function ProjectDetailPage() {
       <ProjectChat projectId={id} currentUserId={me.data.id} />
 
       {me.data.role === "freelancer" && isSelectedFreelancer ? (
-        <div className="rounded-xl border border-surface-200/60 bg-white p-4 space-y-3">
-          <h2 className="text-lg font-medium text-surface-900">Delivery Actions</h2>
+        <div className="rounded-md border border-slate-200 bg-white p-4 space-y-3">
+          <h2 className="text-lg font-medium">Delivery Actions</h2>
           <input type="file" onChange={(event) => setDeliverableFile(event.target.files?.[0] || null)} />
           <input
             value={checksum}
@@ -411,7 +411,7 @@ export default function ProjectDetailPage() {
             aria-label="Deliverable checksum"
           />
           <div className="flex gap-2">
-            <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => uploadDeliverableMutation.mutate()}>
+            <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => uploadDeliverableMutation.mutate()}>
               Upload Deliverable
             </button>
             <button className="bg-green-600 text-white" onClick={() => resultMutation.mutate()}>
