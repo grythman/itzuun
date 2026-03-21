@@ -98,6 +98,35 @@ export default function AdminPage() {
         <div className="flex gap-4">
           <RoleSidebar role="admin" />
           <div className="flex-1 space-y-4">
+            
+            {/* KPI Metrics */}
+            <div className="grid gap-3 md:grid-cols-4">
+              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Total Users</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">{users.data ? toArray(users.data).length : "..."}</p>
+                <p className="text-[11px] text-surface-500 mt-1">
+                  {users.data ? toArray(users.data).filter(u => u.is_verified).length : 0} Verified
+                </p>
+              </div>
+              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Total Projects</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">{projects.data ? toArray(projects.data).length : "..."}</p>
+                <p className="text-[11px] text-surface-500 mt-1">Platform volume</p>
+              </div>
+              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Escrow Value</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">
+                  {escrow.data ? toArray(escrow.data).reduce((acc, item) => acc + item.amount, 0).toLocaleString() : "..."}
+                </p>
+                <p className="text-[11px] text-surface-500 mt-1">MNT Held</p>
+              </div>
+              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Disputes</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">{disputes.data ? toArray(disputes.data).filter(d => !d.resolved_at).length : "..."}</p>
+                <p className="text-[11px] text-surface-500 mt-1">Active</p>
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
             <h2 className="text-lg font-medium text-surface-900">Commission</h2>

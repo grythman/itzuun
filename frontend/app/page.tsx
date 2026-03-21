@@ -37,19 +37,46 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-6 text-white">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-brand-200">Tech Delivery Snapshot</p>
-          <div className="mt-4 rounded-xl bg-white/[0.08] p-4 backdrop-blur">
-            <p className="text-[11px] uppercase tracking-widest text-brand-300">Stack</p>
-            <p className="mt-1 text-[13px] font-medium">Next.js · Django · PostgreSQL · Redis</p>
+        <div className="rounded-2xl bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-8 text-white shadow-lg overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           </div>
-          <div className="mt-2.5 rounded-xl bg-white/[0.08] p-4 backdrop-blur">
-            <p className="text-[11px] uppercase tracking-widest text-brand-300">Workflow</p>
-            <p className="mt-1 text-[13px] font-medium">Scope → Milestones → Escrow → Delivery → Review</p>
-          </div>
-          <div className="mt-2.5 rounded-xl bg-white/[0.08] p-4 backdrop-blur">
-            <p className="text-[11px] uppercase tracking-widest text-brand-300">Outcomes</p>
-            <p className="mt-1 text-[13px] font-medium">Fast matching, secure payments, and quality assurance.</p>
+          <div className="relative z-10">
+            <p className="text-[11px] font-semibold text-brand-200 tracking-[0.2em] mb-6">PROJECT WORKFLOW</p>
+            
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold">1</div>
+                  <div className="w-0.5 h-full bg-brand-500/30 my-1"></div>
+                </div>
+                <div className="pb-4">
+                  <p className="font-medium text-white">Post & Match</p>
+                  <p className="text-[13px] text-brand-200 mt-1">Clients post projects, verified freelancers submit competitive proposals.</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold">2</div>
+                  <div className="w-0.5 h-full bg-brand-500/30 my-1"></div>
+                </div>
+                <div className="pb-4">
+                  <p className="font-medium text-white">Secure Escrow Lock</p>
+                  <p className="text-[13px] text-brand-200 mt-1">Funds are deposited safely into an escrow lock before work begins.</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold">3</div>
+                </div>
+                <div>
+                  <p className="font-medium text-white">Deliver & Release</p>
+                  <p className="text-[13px] text-brand-200 mt-1">Freelancer delivers the assets. Client approves and platform releases funds automatically.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
