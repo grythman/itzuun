@@ -62,7 +62,8 @@ export default function ProjectChat({
     mutationFn: async (file: File) => {
       const result = await projectsApi.uploadMessageFile(projectId, file);
       // After uploading the file, send a message referencing it
-      await projectsApi.sendMessage(projectId, `📎 File: ${file.name}`);
+      const fileData = JSON.stringify({ name: result.name || file.name, url: result.url });
+      await projectsApi.sendMessage(projectId, fileData, "file");
       return result;
     },
     onSuccess: () => {
@@ -153,13 +154,24 @@ export default function ProjectChat({
           <>
             {sortedMessages.map((item) => {
               const isFile = item.type === "file";
-              const fileName = isFile ? item.text : undefined;
+              let fileName = undefined;
+              let fileUrl = undefined;
+              if (isFile) {
+                try {
+                  const parsed = JSON.parse(item.text);
+                  fileName = parsed.name;
+                  fileUrl = parsed.url;
+                } catch {
+                  fileName = item.text;
+                }
+              }
               return (
                 <ChatBubble
                   key={item.id}
                   mine={item.sender === currentUserId}
                   text={isFile ? "" : item.text}
                   fileName={fileName}
+                  fileUrl={fileUrl}
                   time={item.created_at ? formatTime(item.created_at) : undefined}
                 />
               );

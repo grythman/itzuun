@@ -103,6 +103,10 @@ export default function ProjectDetailPage() {
       }
       const upload = await projectsApi.uploadMessageFile(id, deliverableFile);
       await projectsApi.uploadDeliverable(id, { file_id: String(upload.file_id), checksum: checksum.trim() });
+      
+      const fileData = JSON.stringify({ name: upload.name || deliverableFile.name, url: upload.url });
+      await projectsApi.sendMessage(id, fileData, "file");
+      await projectsApi.sendMessage(id, "I have submitted a deliverable for your review.");
     },
     onSuccess: () => toast("success", "Deliverable uploaded"),
     onError: (error: Error) => toast("error", error.message),
@@ -201,10 +205,19 @@ export default function ProjectDetailPage() {
           <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => router.push(`/projects/${id}/payment`)}>
             Open Payment Page
           </button>
-          <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setReleaseConfirmOpen(true)}>
+          <button 
+            className="bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50" 
+            onClick={() => setReleaseConfirmOpen(true)}
+            disabled={project.status !== "awaiting_review"}
+            title={project.status !== "awaiting_review" ? "Project must be awaiting review to release escrow" : ""}
+          >
             Release Escrow
           </button>
-          <button className="bg-accent-600 text-white" onClick={() => setDisputeConfirmOpen(true)}>
+          <button 
+            className="bg-accent-600 text-white disabled:opacity-50" 
+            onClick={() => setDisputeConfirmOpen(true)}
+            disabled={!["in_progress", "awaiting_review"].includes(project.status)}
+          >
             Open Dispute
           </button>
         </div>
@@ -400,24 +413,32 @@ export default function ProjectDetailPage() {
 
       <ProjectChat projectId={id} currentUserId={me.data.id} />
 
-      {me.data.role === "freelancer" && isSelectedFreelancer ? (
+      {me.data.role === "freelancer" && isSelectedFreelancer && ["in_progress", "awaiting_review"].includes(project.status) ? (
         <div className="rounded-md border border-slate-200 bg-white p-4 space-y-3">
           <h2 className="text-lg font-medium">Delivery Actions</h2>
-          <input type="file" onChange={(event) => setDeliverableFile(event.target.files?.[0] || null)} />
+          <input type="file" onChange={(event) => setDeliverableFile(event.target.files?.[0] || null)} disabled={project.status !== "in_progress"} />
           <input
             value={checksum}
             onChange={(event) => setChecksum(event.target.value)}
             placeholder="Checksum"
             aria-label="Deliverable checksum"
+            disabled={project.status !== "in_progress"}
           />
           <div className="flex gap-2">
-            <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => uploadDeliverableMutation.mutate()}>
+            <button 
+              className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50" 
+              onClick={() => uploadDeliverableMutation.mutate()}
+              disabled={project.status !== "in_progress"}
+            >
               Upload Deliverable
             </button>
-            <button className="bg-green-600 text-white" onClick={() => resultMutation.mutate()}>
+            <button 
+              className="bg-green-600 text-white disabled:opacity-50" 
+              onClick={() => resultMutation.mutate()}
+              disabled={project.status !== "in_progress"}
+            >
               Submit Result
             </button>
-            <button className="bg-emerald-600 text-white" onClick={() => toast("success", "Milestone marked as delivered")}>Mark Milestone Delivered</button>
           </div>
         </div>
       ) : null}

@@ -79,7 +79,7 @@ export function StepProgress({ steps, currentStep }: { steps: string[]; currentS
   );
 }
 
-export function ChatBubble({ mine, text, time, fileName }: { mine: boolean; text: string; time?: string; fileName?: string }) {
+export function ChatBubble({ mine, text, time, fileName, fileUrl }: { mine: boolean; text: string; time?: string; fileName?: string; fileUrl?: string }) {
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
@@ -88,7 +88,18 @@ export function ChatBubble({ mine, text, time, fileName }: { mine: boolean; text
         }`}
       >
         <p>{text}</p>
-        {fileName ? <p className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-surface-400"}`}>Attachment: {fileName}</p> : null}
+        {fileName ? (
+          <div className={`mt-1 flex items-center gap-1 ${mine ? "text-brand-200" : "text-surface-500"}`}>
+            <span>📎</span>
+            {fileUrl ? (
+              <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-opacity-80">
+                {fileName}
+              </a>
+            ) : (
+              <span>{fileName}</span>
+            )}
+          </div>
+        ) : null}
         {time ? <p className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-surface-400"}`}>{time}</p> : null}
       </div>
     </div>
