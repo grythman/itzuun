@@ -47,6 +47,8 @@ def _payment_check_url() -> str:
 
 def authenticate() -> str:
     if not settings.QPAY_BASE_URL or not settings.QPAY_USERNAME or not settings.QPAY_PASSWORD:
+        if getattr(settings, "DEBUG", False):
+            return "mock_token"
         raise DomainError("QPay environment configuration is incomplete")
 
     cached_token = cache.get(TOKEN_CACHE_KEY)
@@ -77,10 +79,22 @@ def authenticate() -> str:
 
 
 def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
+    token = authenticate()
+    
+    if token == "mock_token":
+        import uuid
+        invoice_id = f"mock-inv-{uuid.uuid4().hex[:8]}"
+        return QPayInvoice(
+            invoice_id=invoice_id,
+            qr_text="qpay://mock",
+            qr_image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+            invoice_url=f"http://localhost:3000/mock-qpay/{invoice_id}",
+            raw_response={"mock": True}
+        )
+
     if not settings.QPAY_MERCHANT_CODE:
         raise DomainError("QPAY_MERCHANT_CODE is missing")
 
-    token = authenticate()
     payload = {
         "invoice_code": settings.QPAY_MERCHANT_CODE,
         "sender_invoice_no": f"PROJECT-{project.id}",
@@ -115,6 +129,14 @@ def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
 
 def get_invoice_status(invoice_id: str) -> dict:
     token = authenticate()
+    if token == "mock_token":
+        # Simulating payment status check success via mock
+        return {
+            "invoice_id": invoice_id,
+            "payment_status": "PAID",
+            "amount": 1000000,
+        }
+
     try:
         response = requests.post(
             _payment_check_url(),
@@ -133,6 +155,31 @@ def get_invoice_status(invoice_id: str) -> dict:
 
 
 def verify_webhook(request) -> dict:
+    if getattr(settings, "DEBUG", False) and not settings.QPAY_WEBHOOK_SECRET:
+        try:
+            payload = json.loads(request.body.decode("utf-8")) if request.body else {}
+        except json.JSONDecodeError as exc:
+            raise DomainError("Invalid webhook payload") from exc
+        
+        invoice_id = payload.get("invoice_id") or payload.get("invoiceId")
+        if not invoice_id:
+            raise DomainError("Webhook payload missing invoice_id")
+            
+        from apps.payments.models import Payment
+        try:
+            payment = Payment.objects.get(invoice_id=invoice_id)
+            expected_amount = payment.amount
+        except Payment.DoesNotExist:
+            expected_amount = int(payload.get("amount") or 0)
+            
+        return {
+            "invoice_id": invoice_id,
+            "is_paid": True,
+            "amount": expected_amount,
+            "payload": payload,
+            "verification": {"mock": True, "payment_status": "PAID"}
+        }
+
     if not settings.QPAY_WEBHOOK_SECRET:
         raise DomainError("QPAY_WEBHOOK_SECRET is missing")
 
