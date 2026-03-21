@@ -7,3 +7,4 @@ python-dotenv
 django-redis
 requests
 google-generativeai
+gunicorn
