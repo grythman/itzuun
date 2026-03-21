@@ -166,7 +166,8 @@ export default function ProjectDetailPage() {
   }, [compareRows]);
 
   const isClientOwner = me.data.id === project.owner;
-  const canFreelancerPropose = me.data.role === "freelancer" && project.status === "open";
+  const canFreelancerPropose = me.data.role === "freelancer" && project.status === "open" && me.data.is_verified;
+  const needsVerification = me.data.role === "freelancer" && project.status === "open" && !me.data.is_verified;
   const isSelectedFreelancer = proposalItems.some(
     (item) => item.id === project.selected_proposal && item.freelancer === me.data?.id,
   );
@@ -239,6 +240,10 @@ export default function ProjectDetailPage() {
             <textarea placeholder="Message" {...proposalForm.register("message")} aria-label="Proposal message" rows={3} />
             <button className="bg-brand-600 text-white" type="submit">Send Proposal</button>
           </form>
+        ) : needsVerification ? (
+          <div className="rounded-xl border border-amber-200/60 bg-amber-50 p-4 text-[13px] text-amber-800">
+            <strong>Verification Required:</strong> You must be verified to submit proposals. Please go to your dashboard to complete your profile verification.
+          </div>
         ) : (
           <div className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-500">
             Proposal submission is available for freelancers on open projects.

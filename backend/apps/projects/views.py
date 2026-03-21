@@ -149,6 +149,9 @@ class ProjectProposalListCreateView(generics.ListCreateAPIView):
         return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
+        if not self.request.user.is_verified:
+            raise ValidationError({"detail": "Only verified freelancers can submit proposals"})
+            
         project = get_object_or_404(Project, id=self.kwargs["project_id"])
         if project.status != Project.STATUS_OPEN:
             raise ValidationError({"detail": "Project is not open"})
@@ -198,6 +201,9 @@ class ProjectDeliverableCreateView(APIView):
     permission_classes = [IsFreelancer]
 
     def post(self, request, project_id):
+        if not request.user.is_verified:
+            return Response({"detail": "Action denied. Account is not verified or is suspended."}, status=status.HTTP_403_FORBIDDEN)
+
         project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=project_id)
         selected_freelancer_id = getattr(getattr(project, "selected_proposal", None), "freelancer_id", None)
         if selected_freelancer_id != request.user.id:
