@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 import { authApi } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
@@ -20,6 +21,7 @@ function dashboardPath(role?: string) {
 }
 
 export function Nav() {
+  const t = useTranslations("Nav");
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -126,11 +128,14 @@ export function Nav() {
             </>
           ) : (
             <>
-              <Link href="/auth?tab=signin" className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-surface-600 hover:bg-surface-100">
-                Login
+              <Link href="/mn" className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">MN</Link>
+              <span className="text-slate-300">|</span>
+              <Link href="/en" className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">EN</Link>
+              <Link href="/auth?tab=signin" className="ml-2 rounded-lg px-3 py-1.5 text-[13px] font-medium text-surface-600 hover:bg-surface-100">
+                {t("login")}
               </Link>
               <Link href="/auth?tab=register" className="rounded-lg bg-brand-600 px-4 py-1.5 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors">
-                Get Started
+                {t("postProject")}
               </Link>
             </>
           )}

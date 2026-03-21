@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { AppCard } from "@/components/ui-kit";
 import { useProjects } from "@/lib/hooks";
 
 export default function HomePage() {
+  const t = useTranslations("Hero");
   const projects = useProjects(1);
 
   if (projects.isLoading) return <LoadingState label="Loading projects..." />;
@@ -21,18 +23,18 @@ export default function HomePage() {
         <div className="space-y-6">
           <p className="inline-flex rounded-full bg-brand-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-brand-700">IT Freelance Platform</p>
           <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-surface-900 sm:text-5xl">
-            Build digital products with verified IT freelancers.
+            {t("title")}
           </h1>
           <p className="max-w-xl text-[15px] leading-relaxed text-surface-500">
-            From web apps to AI tools, hire trusted specialists with escrow-backed payments and transparent milestones.
+            {t("subtitle")}
           </p>
 
           <div className="flex flex-wrap gap-3 pt-1">
             <Link href="/projects/new" className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors">
-              Post a Project
+              {t("ctaClient")}
             </Link>
             <Link href="/projects" className="rounded-xl border border-surface-200 bg-white px-6 py-3 text-sm font-semibold text-surface-700 hover:bg-surface-50 transition-colors">
-              Explore Talent
+              {t("ctaFreelancer")}
             </Link>
           </div>
         </div>
