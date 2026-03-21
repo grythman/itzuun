@@ -2,7 +2,7 @@
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, ConfirmationDialog, DashboardBottomBar, RoleSidebar, StatusPill } from "@/components/ui-kit";
+import { ActionButton, ConfirmationDialog, DashboardBottomBar, RoleSidebar, StatusPill, Modal } from "@/components/ui-kit";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
@@ -15,6 +15,9 @@ export default function AdminPage() {
   const { users, projects, escrow, disputes, commission } = useAdminSnapshot();
   const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "pending" | "failed">("all");
   const [resolveTarget, setResolveTarget] = useState<{ disputeId: number; projectId: number } | null>(null);
+  const [resolveAction, setResolveAction] = useState<"refund" | "release" | "split">("refund");
+  const [splitReleasePct, setSplitReleasePct] = useState(50);
+  const [resolveNote, setResolveNote] = useState("");
 
   const payments = useQuery({
     queryKey: ["admin-payments", paymentFilter],
@@ -37,17 +40,33 @@ export default function AdminPage() {
       if (!escrowItem) {
         throw new Error("Escrow not found for dispute project");
       }
+      
+      let release_amount = 0;
+      let refund_amount = 0;
+      
+      if (resolveAction === "refund") {
+        refund_amount = escrowItem.amount;
+      } else if (resolveAction === "release") {
+        release_amount = escrowItem.amount;
+      } else if (resolveAction === "split") {
+        release_amount = Math.floor(escrowItem.amount * (splitReleasePct / 100));
+        refund_amount = escrowItem.amount - release_amount;
+      }
+
       return adminApi.resolveDispute(disputeId, {
-        action: "refund",
-        release_amount: 0,
-        refund_amount: escrowItem.amount,
-        note: "Resolved by admin",
+        action: resolveAction,
+        release_amount,
+        refund_amount,
+        note: resolveNote || "Resolved by admin",
       });
     },
     onSuccess: () => {
       disputes.refetch();
+      setResolveTarget(null);
+      setResolveNote("");
       toast("success", "Dispute resolved");
     },
+    onError: (error: Error) => toast("error", error.message),
   });
 
   const commissionMutation = useMutation({
@@ -187,9 +206,17 @@ export default function AdminPage() {
             {disputes.data && toArray(disputes.data).length > 0 ? (
               <ul className="space-y-2">
                 {toArray(disputes.data).map((item) => (
-                  <li key={item.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                    <span className="text-surface-700">Dispute #{item.id}</span>
-                    <ActionButton tone="success" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Resolve</ActionButton>
+                  <li key={item.id} className="flex flex-col gap-2 rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-surface-800">Dispute #{item.id} — Project #{item.project}</span>
+                      {item.resolved_at ? (
+                        <StatusPill tone="success" label="Resolved" />
+                      ) : (
+                        <ActionButton tone="warning" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Resolve Now</ActionButton>
+                      )}
+                    </div>
+                    <div className="text-surface-600">Reason: {item.reason}</div>
+                    {item.note && <div className="mt-1 border-t border-surface-100 pt-2 text-[12px] text-surface-500">Admin Note: {item.note}</div>}
                   </li>
                 ))}
               </ul>
@@ -199,22 +226,77 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <ConfirmationDialog
+        <Modal
           open={!!resolveTarget}
           title="Resolve Dispute"
-          message="This will resolve the dispute using admin refund action. Continue?"
-          confirmLabel="Confirm Resolve"
-          confirmTone="success"
-          loading={resolveMutation.isPending}
-          onCancel={() => setResolveTarget(null)}
-          onConfirm={() => {
-            if (!resolveTarget) return;
-            resolveMutation.mutate(resolveTarget, {
-              onSuccess: () => setResolveTarget(null),
-              onError: () => setResolveTarget(null),
-            });
-          }}
-        />
+          onClose={() => setResolveTarget(null)}
+        >
+          {resolveTarget && (
+            <div className="space-y-4 pt-2">
+              <p className="text-[13px] text-surface-500">
+                Choose how to distribute the funds held in escrow for Project #{resolveTarget.projectId}. 
+                Current Escrow Amount: {
+                  (toArray(escrow.data || []).find((item) => item.project === resolveTarget.projectId)?.amount || 0).toLocaleString()
+                } MNT
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "refund" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
+                  onClick={() => setResolveAction("refund")}
+                >
+                  Refund 100% (Client)
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "release" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
+                  onClick={() => setResolveAction("release")}
+                >
+                  Release 100% (Freelancer)
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "split" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
+                  onClick={() => setResolveAction("split")}
+                >
+                  Split Funds
+                </button>
+              </div>
+
+              {resolveAction === "split" && (
+                <div className="space-y-2">
+                  <label className="text-[13px] font-medium text-surface-700">Release to Freelancer: {splitReleasePct}%</label>
+                  <input
+                    type="range"
+                    min={1}
+                    max={99}
+                    value={splitReleasePct}
+                    onChange={(e) => setSplitReleasePct(Number(e.target.value))}
+                    className="w-full"
+                  />
+                  <p className="text-[12px] text-surface-500">The remaining {100 - splitReleasePct}% will be refunded to the client.</p>
+                </div>
+              )}
+
+              <textarea
+                placeholder="Resolution note (visible in audit log)..."
+                value={resolveNote}
+                onChange={(e) => setResolveNote(e.target.value)}
+                className="w-full"
+                rows={3}
+              />
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button className="bg-surface-100 text-surface-700 hover:bg-surface-200 px-4 py-2 rounded" onClick={() => setResolveTarget(null)}>
+                  Cancel
+                </button>
+                <ActionButton tone="success" loading={resolveMutation.isPending} onClick={() => resolveTarget && resolveMutation.mutate(resolveTarget)}>
+                  Confirm Resolution
+                </ActionButton>
+              </div>
+            </div>
+          )}
+        </Modal>
 
         <DashboardBottomBar role="admin" />
       </section>
