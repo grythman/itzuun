@@ -36,8 +36,40 @@ def close_project(project: Project) -> Project:
     return project
 
 
+import os
+import google.generativeai as genai
+from django.conf import settings
+
 def suggest_project_description(*, title: str, category: str, budget: int, timeline_days: int, required_skills: list[str]) -> str:
     skills = ", ".join(required_skills) if required_skills else "relevant technical skills"
+    
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        # Fallback if no API key is provided
+        return (
+            f"We are looking for a {category} specialist to deliver '{title}'. "
+            f"The expected budget is around {budget} MNT with a delivery timeline of {timeline_days} days. "
+            f"Key requirements include {skills}, clear communication, and production-ready deliverables. "
+            "Please include a concise implementation plan, milestone breakdown, and similar past work references in your proposal."
+        )
+
+    try:
+        genai.configure(api_key=api_key)
+        # Using gemini-1.5-flash as the default models for simple text tasks
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = (
+            f"Act as a professional IT project manager. Write a concise, professional project description for a freelance IT marketplace. "
+            f"The title is '{title}', category is '{category}'. The budget is {budget} MNT, timeline is {timeline_days} days. "
+            f"Required skills: {skills}. Keep it under 150 words. Do not use markdown headers, just plain text with line breaks."
+        )
+        response = model.generate_content(prompt)
+        if response.text:
+            return response.text.strip()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Gemini AI generation failed: %s", e)
+        
+    # Fallback if generation fails
     return (
         f"We are looking for a {category} specialist to deliver '{title}'. "
         f"The expected budget is around {budget} MNT with a delivery timeline of {timeline_days} days. "

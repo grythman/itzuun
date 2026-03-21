@@ -17,6 +17,8 @@ DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = _split_env(os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"))
 CSRF_TRUSTED_ORIGINS = _split_env(os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1"))
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
