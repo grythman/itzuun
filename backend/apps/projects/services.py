@@ -48,42 +48,23 @@ def suggest_project_description(*, title: str, category: str, budget: int, timel
         # Fallback if no API key is provided
         return (
             f"We are looking for a {category} specialist to deliver '{title}'. "
-        )
-    
-    client = genai.Client(api_key=api_key)
-    prompt = (
-        f"Generate a professional project description for a freelance platform.\n"
-        f"Title: {title}\n"
-        f"Category: {category}\n"
-        f"Budget: ${budget}\n"
-        f"Timeline: {timeline_days} days\n"
-        f"Required Skills: {skills}\n"
-        f"Format the output entirely in clean Markdown."
-    )
-    
-    try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-        )
-        return response.text
-    except Exception as e:
-        return f"Failed to generate description: {str(e)}"
             f"The expected budget is around {budget} MNT with a delivery timeline of {timeline_days} days. "
             f"Key requirements include {skills}, clear communication, and production-ready deliverables. "
             "Please include a concise implementation plan, milestone breakdown, and similar past work references in your proposal."
         )
-
+    
     try:
-        genai.configure(api_key=api_key)
-        # Using gemini-1.5-flash as the default models for simple text tasks
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        from google import genai
+        client = genai.Client(api_key=api_key)
         prompt = (
             f"Act as a professional IT project manager. Write a concise, professional project description for a freelance IT marketplace. "
             f"The title is '{title}', category is '{category}'. The budget is {budget} MNT, timeline is {timeline_days} days. "
             f"Required skills: {skills}. Keep it under 150 words. Do not use markdown headers, just plain text with line breaks."
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
         if response.text:
             return response.text.strip()
     except Exception as e:
