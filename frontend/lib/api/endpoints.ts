@@ -31,22 +31,35 @@ export const authApi = {
     const res = await apiClient.post("/accounts/auth/register/", data);
     return res.data;
   },
+  google: async (payload: { credential: string; role?: "client" | "freelancer" }) => {
+    const res = await apiClient.post("/accounts/auth/google/", payload);
+    return res.data;
+  },
   logout: async () => {
     const res = await apiClient.post("/accounts/auth/logout/");
     return res.data;
   },
-  verifyOtp: async (data: any) => {
-    const res = await apiClient.post("/accounts/auth/verify-otp/", data);
+  requestOtp: async (email: string) => {
+    const res = await apiClient.post("/accounts/auth/request-otp/", { email });
+    return res.data;
+  },
+  verifyOtp: async (email: string, otp: string, otp_token?: string) => {
+    const res = await apiClient.post("/accounts/auth/verify-otp/", { email, otp, otp_token });
     return res.data;
   },
   resendOtp: async (data: any) => {
     const res = await apiClient.post("/accounts/auth/resend-otp/", data);
     return res.data;
   },
-  me: async () => {
-    const res = await apiClient.get("/accounts/users/me/");
+  me: async (skipCache: boolean = false) => {
+    const params = skipCache ? { refresh: Date.now() } : {};
+    const res = await apiClient.get("/accounts/users/me/", { params });
     return res.data;
   },
+  submitVerification: async (data: any) => {
+    const res = await apiClient.post("/accounts/users/me/verification/", data);
+    return res.data;
+  }
 };
 
 export const projectsApi = {
