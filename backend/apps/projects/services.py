@@ -37,7 +37,7 @@ def close_project(project: Project) -> Project:
 
 
 import os
-import google.generativeai as genai
+from google import genai
 from django.conf import settings
 
 def suggest_project_description(*, title: str, category: str, budget: int, timeline_days: int, required_skills: list[str]) -> str:
@@ -48,6 +48,27 @@ def suggest_project_description(*, title: str, category: str, budget: int, timel
         # Fallback if no API key is provided
         return (
             f"We are looking for a {category} specialist to deliver '{title}'. "
+        )
+    
+    client = genai.Client(api_key=api_key)
+    prompt = (
+        f"Generate a professional project description for a freelance platform.\n"
+        f"Title: {title}\n"
+        f"Category: {category}\n"
+        f"Budget: ${budget}\n"
+        f"Timeline: {timeline_days} days\n"
+        f"Required Skills: {skills}\n"
+        f"Format the output entirely in clean Markdown."
+    )
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"Failed to generate description: {str(e)}"
             f"The expected budget is around {budget} MNT with a delivery timeline of {timeline_days} days. "
             f"Key requirements include {skills}, clear communication, and production-ready deliverables. "
             "Please include a concise implementation plan, milestone breakdown, and similar past work references in your proposal."
