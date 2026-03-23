@@ -43,8 +43,8 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-change-this-in-production-immediately}
       - DATABASE_URL=postgres://${POSTGRES_USER:-itzuun_user}:${POSTGRES_PASSWORD:-itzuun_pass}@db:5432/${POSTGRES_DB:-itzuun}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-itzuun_redis_pass}@redis:6379/1
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,api,web}
-      - DJANGO_CSRF_TRUSTED_ORIGINS=${DJANGO_CSRF_TRUSTED_ORIGINS:-http://localhost,http://127.0.0.1}
+      - DJANGO_ALLOWED_HOSTS=itzuun.works,www.itzuun.works,localhost,127.0.0.1,api,web
+      - DJANGO_CSRF_TRUSTED_ORIGINS=https://itzuun.works,https://www.itzuun.works,http://localhost,http://127.0.0.1
       - STATIC_ROOT=/app/staticfiles
       - MEDIA_ROOT=/app/media
     expose:
