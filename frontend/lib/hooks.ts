@@ -51,20 +51,20 @@ export function useProposals(projectId: string | number) {
 
 export function useSubmitProposal(projectId: string | number) {
   const queryClient = useQueryClient();
-  const addToast = useToastStore((s) => s.addToast);
+  const pushToast = useToastStore((s) => s.push);
 
   return useMutation({
     mutationFn: (data: any) => proposalsApi.submit(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["proposals", "list", projectId] });
-      addToast({ type: "success", title: "Proposal submitted successfully!" });
+      pushToast("success", "Proposal submitted successfully!");
     },
     onError: (err: any) => {
-      addToast({ 
-        type: "error", 
-        title: "Submission failed", 
-        message: err.response?.data?.detail || "Could not submit proposal." 
-      });
+      pushToast(
+        "error", 
+        "Submission failed", 
+        err.response?.data?.detail || "Could not submit proposal." 
+      );
     }
   });
 }
@@ -99,16 +99,16 @@ export function useAdminLedger() {
 
 export function useSubmitVerification() {
   const queryClient = useQueryClient();
-  const addToast = useToastStore(s => s.addToast);
+  const pushToast = useToastStore(s => s.push);
 
   return useMutation({
     mutationFn: verificationApi.submit,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth", "me"]});
-      addToast({ type: "success", title: "Verification submitted", message: "Your profile is under review." });
+      pushToast("success", "Verification submitted", "Your profile is under review.");
     },
     onError: () => {
-      addToast({ type: "error", title: "Verification failed", message: "Failed to submit verification request."});
+      pushToast("error", "Verification failed", "Failed to submit verification request.");
     }
   });
 }
