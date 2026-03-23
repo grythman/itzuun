@@ -10,7 +10,7 @@ export interface ToastMessage {
 
 interface ToastStore {
   toasts: ToastMessage[];
-  addToast: (toast: Omit<ToastMessage, "id">) => void;
+  push: (type: "success" | "error" | "info" | "warning", title: string, message?: string) => void;
   removeToast: (id: string) => void;
   clearAll: () => void;
 }
@@ -21,11 +21,10 @@ function generateId() {
 
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
-  addToast: (toast) =>
+  push: (type, title, message) =>
     set((state) => {
       const id = generateId();
-      // Optional: automatically remove toast if duration is set (not fully handling timeout here purely in state to keep it simple, wait for React effect)
-      return { toasts: [{ ...toast, id }, ...state.toasts].slice(0, 5) };
+      return { toasts: [{ id, type, title, message }, ...state.toasts].slice(0, 5) };
     }),
   removeToast: (id) =>
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
