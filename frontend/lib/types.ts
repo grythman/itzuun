@@ -1,19 +1,34 @@
 import { z } from "zod";
 
+export type UserRole = "client" | "freelancer" | "admin";
+
 // Shared Types
 export interface User {
-  id: string;
+  id: string | number;
   email: string;
-  role: "client" | "freelancer" | "admin";
+  role: UserRole;
   first_name: string;
   last_name: string;
   is_verified?: boolean;
+  verification_status?: "unverified" | "pending" | "verified" | "suspended";
+  rejection_reason?: string;
 }
 
 export interface Project {
-  id: string;
+  id: string | number;
   title: string;
   description: string;
+  category?: string;
+  category_obj?: {
+    id: string | number;
+    slug?: string;
+    name_mn?: string;
+    icon?: string;
+  };
+  owner?: string | number;
+  budget?: number;
+  timeline_days?: number;
+  selected_proposal?: string | number;
   budget_min: number;
   budget_max: number;
   status: "open" | "in_progress" | "completed" | "cancelled";
@@ -25,17 +40,43 @@ export interface Project {
 }
 
 export interface Proposal {
-  id: string;
+  id: string | number;
+  project?: string | number;
   freelancer: {
-    id: string;
+    id: string | number;
     first_name: string;
     last_name: string;
-  };
+  } | string | number;
   cover_letter: string;
   proposed_budget: number;
   estimated_days: number;
+  price?: number;
+  timeline_days?: number;
+  message?: string;
   status: "pending" | "accepted" | "rejected";
   created_at: string;
+}
+
+export interface Profile {
+  id: string | number;
+  user: string | number;
+  full_name: string;
+  title?: string;
+  bio?: string;
+  skills?: string[];
+  hourly_rate?: number;
+  is_available?: boolean;
+  response_time_hours?: number;
+  portfolio?: Array<{ title?: string; url?: string }>;
+  profile_completeness?: number;
+}
+
+export interface MessageItem {
+  id: string | number;
+  sender: string | number;
+  text: string;
+  type?: "text" | "file";
+  created_at?: string;
 }
 
 export interface Escrow {

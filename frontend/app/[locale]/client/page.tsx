@@ -35,7 +35,7 @@ export default function ClientDashboardPage() {
     mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: "Client raised dispute" }),
     onSuccess: () => {
       projects.refetch();
-      toast("warn", "Dispute opened");
+      toast("warning", "Dispute opened");
     },
     onError: (error: Error) => toast("error", error.message),
   });

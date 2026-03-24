@@ -6,5 +6,5 @@ djangorestframework-simplejwt
 python-dotenv
 django-redis
 requests
-google-generativeai
+google-genai
 gunicorn

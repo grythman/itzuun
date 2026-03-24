@@ -89,7 +89,7 @@ export default function ProjectDetailPage() {
     mutationFn: () => projectsApi.createDispute(id, { reason: "Dispute raised from dashboard" }),
     onSuccess: () => {
       detail.refetch();
-      toast("warn", "Dispute submitted");
+      toast("warning", "Dispute submitted");
     },
     onError: (error: Error) => toast("error", error.message),
   });

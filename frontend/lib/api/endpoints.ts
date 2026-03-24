@@ -20,6 +20,14 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
+export const API_BASE = "/api/v1";
+
+export function toArray(obj: any): any[] {
+  if (!obj) return [];
+  if (Array.isArray(obj)) return obj;
+  return [obj];
+}
+
 // --- API Service Models ---
 
 export const authApi = {
@@ -75,6 +83,10 @@ export const projectsApi = {
     const res = await apiClient.post("/projects/", data);
     return res.data;
   },
+  update: async (id: string | number, data: any) => {
+    const res = await apiClient.patch(`/projects/${id}/`, data);
+    return res.data;
+  },
   myProjects: async (role: "client" | "freelancer") => {
     const params = role === "client" ? { client: "me" } : { freelancer: "me" };
     const res = await apiClient.get("/projects/", { params });
@@ -86,6 +98,74 @@ export const projectsApi = {
   },
   submitDeliverable: async (projectId: string | number, data: any) => {
     const res = await apiClient.post(`/projects/${projectId}/deliverables/`, data);
+    return res.data;
+  },
+  suggestDescription: async (payload: any) => {
+    const res = await apiClient.post("/projects/ai/suggest-description/", payload);
+    return res.data;
+  },
+  submitProposal: async (projectId: string | number, data: any) => {
+    const res = await apiClient.post(`/projects/${projectId}/proposals/`, data);
+    return res.data;
+  },
+  selectFreelancer: async (projectId: string | number, proposalId: string | number) => {
+    const res = await apiClient.post(`/projects/${projectId}/proposals/${proposalId}/select/`);
+    return res.data;
+  },
+  confirmCompletion: async (projectId: string | number) => {
+    const res = await apiClient.post(`/projects/${projectId}/confirm-completion/`);
+    return res.data;
+  },
+  createDispute: async (projectId: string | number, payload: any) => {
+    const res = await apiClient.post(`/projects/${projectId}/disputes/`, payload);
+    return res.data;
+  },
+  sendMessage: async (projectId: string | number, text: string, type: "text" | "file" = "text") => {
+    const res = await apiClient.post(`/projects/${projectId}/messages/`, { text, type });
+    return res.data;
+  },
+  uploadMessageFile: async (projectId: string | number, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await apiClient.post(`/projects/${projectId}/messages/upload/`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+  uploadDeliverable: async (projectId: string | number, data: any) => {
+    const res = await apiClient.post(`/projects/${projectId}/deliverables/`, data);
+    return res.data;
+  },
+  submitResult: async (projectId: string | number, payload: any) => {
+    const res = await apiClient.post(`/projects/${projectId}/result/`, payload);
+    return res.data;
+  },
+  review: async (projectId: string | number, payload: any) => {
+    const res = await apiClient.post(`/projects/${projectId}/review/`, payload);
+    return res.data;
+  },
+  createPayment: async (projectId: string | number) => {
+    const res = await apiClient.post(`/payments/project/${projectId}/create/`);
+    return res.data;
+  },
+  paymentStatus: async (projectId: string | number) => {
+    const res = await apiClient.get(`/payments/project/${projectId}/status/`);
+    return res.data;
+  },
+  ratingSummary: async (userId: string | number) => {
+    const res = await apiClient.get(`/reviews/users/${userId}/summary/`);
+    return res.data;
+  },
+  userReviews: async (userId: string | number) => {
+    const res = await apiClient.get(`/reviews/users/${userId}/`);
+    return res.data;
+  },
+  updateProposal: async (proposalId: string | number, payload: any) => {
+    const res = await apiClient.patch(`/proposals/${proposalId}/`, payload);
+    return res.data;
+  },
+  withdrawProposal: async (proposalId: string | number) => {
+    const res = await apiClient.post(`/proposals/${proposalId}/withdraw/`);
     return res.data;
   }
 };
@@ -101,6 +181,10 @@ export const proposalsApi = {
   },
   select: async (projectId: string | number, proposalId: string | number) => {
     const res = await apiClient.post(`/projects/${projectId}/proposals/${proposalId}/select/`);
+    return res.data;
+  },
+  myProposals: async () => {
+    const res = await apiClient.get("/proposals/me/");
     return res.data;
   },
 };
@@ -125,8 +209,28 @@ export const adminApi = {
     const res = await apiClient.get("/admin/metrics/snapshot/");
     return res.data;
   },
+  users: async () => {
+    const res = await apiClient.get("/admin/users/");
+    return res.data;
+  },
+  projects: async () => {
+    const res = await apiClient.get("/admin/projects/");
+    return res.data;
+  },
+  escrow: async () => {
+    const res = await apiClient.get("/admin/escrow/");
+    return res.data;
+  },
+  commission: async () => {
+    const res = await apiClient.get("/admin/commission/");
+    return res.data;
+  },
   ledger: async () => {
     const res = await apiClient.get("/admin/ledger/");
+    return res.data;
+  },
+  payments: async (status?: string) => {
+    const res = await apiClient.get("/admin/payments/", { params: status ? { status } : undefined });
     return res.data;
   },
   disputes: async () => {
@@ -136,8 +240,46 @@ export const adminApi = {
   resolveDispute: async (id: string | number, payload: any) => {
     const res = await apiClient.post(`/admin/disputes/${id}/resolve/`, payload);
     return res.data;
+  },
+  verifyUser: async (userId: string | number, payload: any) => {
+    const res = await apiClient.post(`/admin/users/${userId}/verify/`, payload);
+    return res.data;
+  },
+  setCommission: async (platform_fee_pct: number) => {
+    const res = await apiClient.post("/admin/commission/", { platform_fee_pct });
+    return res.data;
+  },
+  approveEscrow: async (escrowId: string | number) => {
+    const res = await apiClient.post(`/admin/escrow/${escrowId}/approve/`);
+    return res.data;
   }
 }
+
+export const categoriesApi = {
+  list: async () => {
+    const res = await apiClient.get("/projects/categories/");
+    return res.data;
+  },
+};
+
+export const profilesApi = {
+  me: async () => {
+    const res = await apiClient.get("/profiles/me/");
+    return res.data;
+  },
+  list: async (page = 1, params?: Record<string, any>) => {
+    const res = await apiClient.get("/profiles/", { params: { page, ...params } });
+    return res.data;
+  },
+  get: async (id: string | number) => {
+    const res = await apiClient.get(`/profiles/${id}/`);
+    return res.data;
+  },
+  updateMe: async (data: any) => {
+    const res = await apiClient.patch("/profiles/me/", data);
+    return res.data;
+  },
+};
 
 export const verificationApi = {
   submit: async (data: any) => {

@@ -102,7 +102,7 @@ function AuthCard() {
 
   const verifyForm = useForm<OtpVerifyForm>({
     resolver: zodResolver(otpVerifySchema),
-    defaultValues: { email: "", code: "" },
+    defaultValues: { email: "", otp: "" },
   });
 
   const registerForm = useForm<RegisterForm>({

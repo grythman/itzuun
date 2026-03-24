@@ -76,10 +76,10 @@ export default function FreelancerDashboardPage() {
   });
 
   function openEditModal(proposal: Proposal) {
-    setEditingProposalId(proposal.id);
+    setEditingProposalId(Number(proposal.id));
     editForm.reset({
-      price: proposal.price,
-      timeline_days: proposal.timeline_days,
+      price: Number(proposal.price ?? 0),
+      timeline_days: Number(proposal.timeline_days ?? 0),
       message: proposal.message || "",
     });
   }
