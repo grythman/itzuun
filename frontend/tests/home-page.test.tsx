@@ -1,7 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
-import HomePage from "@/app/page";
+import HomePage from "@/app/[locale]/page";
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
 
 vi.mock("@/lib/hooks", () => ({
   useProjects: () => ({
