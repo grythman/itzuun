@@ -201,7 +201,15 @@ QPAY_WEBHOOK_SECRET = os.getenv("QPAY_WEBHOOK_SECRET", "")
 QPAY_CALLBACK_URL = os.getenv("QPAY_CALLBACK_URL", "")
 
 REDIS_URL = os.getenv("REDIS_URL", "")
-if REDIS_URL:
+if TESTING:
+    # Use LocMemCache for tests to avoid cache pollution between test runs
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "itzuun-test-cache",
+        }
+    }
+elif REDIS_URL:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.cache import cache
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -8,6 +9,7 @@ from apps.profiles.models import Profile
 
 class ProfileMeApiTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client_api = APIClient()
         self.user = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
         self.client_api.force_authenticate(self.user)
@@ -75,6 +77,7 @@ class ProfileMeApiTests(TestCase):
 
 class ProfileDetailApiTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client_api = APIClient()
         self.user = User.objects.create_user(email="public@test.com", role="freelancer", password="pass1234")
         self.viewer = User.objects.create_user(email="viewer@test.com", role="client", password="pass1234")
