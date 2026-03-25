@@ -3,7 +3,9 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/proxy/3000' : '',
+  // assetPrefix болон basePath-ийг бүрмөсөн устгасан!
+  // Хэрэв /proxy/3000 дээр ажиллуулах шаардлагатай бол зөвхөн nginx/proxy дээр шийднэ.
+
   reactStrictMode: true,
   output: "standalone",
   typescript: { ignoreBuildErrors: true },
