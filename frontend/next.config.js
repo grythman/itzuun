@@ -3,6 +3,7 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/proxy/3000' : '',
   reactStrictMode: true,
   output: "standalone",
   typescript: { ignoreBuildErrors: true },

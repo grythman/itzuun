@@ -11,4 +11,4 @@ if [[ -f "$FRONTEND_DIR/.env.local" ]]; then
 fi
 
 cd "$FRONTEND_DIR"
-npm run dev -- --hostname 0.0.0.0 --port "${FRONTEND_PORT:-3000}"
+/usr/bin/npm run dev -- --hostname 0.0.0.0 --port "${FRONTEND_PORT:-3000}"
