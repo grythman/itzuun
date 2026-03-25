@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.cache import cache
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -9,6 +10,7 @@ from apps.reviews.models import Review
 
 class ReviewApiTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
@@ -118,6 +120,7 @@ class ReviewApiTests(TestCase):
 
 class RatingSummaryApiTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.cache import cache
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -159,6 +160,7 @@ class EscrowAbuseMatrixTests(TestCase):
 
 class CacheInvalidationSmokeTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner-cache@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(
@@ -175,7 +177,7 @@ class CacheInvalidationSmokeTests(TestCase):
         first_ids = [item["id"] for item in first.json()["results"]]
         self.assertIn(target.id, first_ids)
 
-        verify = self.client_api.post(f"/api/v1/admin/users/{target.id}/verify", format="json")
+        verify = self.client_api.post(f"/api/v1/admin/users/{target.id}/verify", {"action": "approve"}, format="json")
         self.assertEqual(verify.status_code, status.HTTP_200_OK)
 
         second = self.client_api.get("/api/v1/admin/users", {"verified": "false"})
@@ -270,6 +272,7 @@ class CacheInvalidationSmokeTests(TestCase):
 
 class MvPHappyPathApiTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client_api = APIClient()
         self.client_user = User.objects.create_user(email="client-e2e@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(email="freelancer-e2e@test.com", role="freelancer", password="pass1234")
@@ -277,8 +280,11 @@ class MvPHappyPathApiTests(TestCase):
 
     def test_e2e_happy_path_project_to_review(self):
         self.client_api.force_authenticate(self.admin)
-        verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify", format="json")
+        verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify", {"action": "approve"}, format="json")
         self.assertEqual(verify_resp.status_code, status.HTTP_200_OK)
+        
+        # Refresh freelancer user from DB to get updated verification status
+        self.freelancer.refresh_from_db()
 
         self.client_api.force_authenticate(self.client_user)
         create_project = self.client_api.post(
