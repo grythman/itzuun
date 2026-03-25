@@ -57,7 +57,7 @@ class QPayIntegrationTests(TestCase):
         with override_settings(DEBUG=True):
             self.client_api.force_authenticate(self.client_user)
             create_response = self.client_api.post(
-                "/api/v1/payments/create/",
+                "/api/v1/payments/create",
                 {"project_id": self.project.id},
                 format="json",
                 HTTP_IDEMPOTENCY_KEY="pay-create-1",
@@ -73,7 +73,7 @@ class QPayIntegrationTests(TestCase):
                     "payload": {"invoice_id": "inv-100"},
                     "verification": {"status": "paid", "amount": 1_000_000},
                 }
-                webhook_response = self.client_api.post("/api/v1/payments/webhook/", data={"invoice_id": "inv-100"}, format="json")
+                webhook_response = self.client_api.post("/api/v1/payments/webhook", data={"invoice_id": "inv-100"}, format="json")
 
         self.assertEqual(webhook_response.status_code, status.HTTP_200_OK)
         payment = Payment.objects.get(invoice_id="inv-100")
@@ -102,7 +102,7 @@ class QPayIntegrationTests(TestCase):
 
     @override_settings(DEBUG=True, QPAY_WEBHOOK_SECRET="secret")
     def test_fake_webhook_attempt_rejected(self):
-        response = self.client_api.post("/api/v1/payments/webhook/", data={"invoice_id": "inv-fake"}, format="json")
+        response = self.client_api.post("/api/v1/payments/webhook", data={"invoice_id": "inv-fake"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_partial_payment_attempt_marks_failed(self):
@@ -122,7 +122,7 @@ class QPayIntegrationTests(TestCase):
         Payment.objects.filter(id=payment.id).update(created_at=timezone.now() - timedelta(minutes=31))
 
         self.client_api.force_authenticate(self.client_user)
-        response = self.client_api.get(f"/api/v1/payments/status/{self.project.id}/")
+        response = self.client_api.get(f"/api/v1/payments/status/{self.project.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         payment.refresh_from_db()

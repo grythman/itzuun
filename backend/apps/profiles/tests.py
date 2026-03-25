@@ -15,7 +15,7 @@ class ProfileMeApiTests(TestCase):
     def test_get_profile_me_creates_profile_if_missing(self):
         self.assertFalse(Profile.objects.filter(user=self.user).exists())
 
-        response = self.client_api.get("/api/v1/profiles/me/")
+        response = self.client_api.get("/api/v1/profiles/me")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(Profile.objects.filter(user=self.user).exists())
 
@@ -28,7 +28,7 @@ class ProfileMeApiTests(TestCase):
             hourly_rate=50000,
         )
 
-        response = self.client_api.get("/api/v1/profiles/me/")
+        response = self.client_api.get("/api/v1/profiles/me")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["full_name"], "Bat-Erdene")
@@ -40,7 +40,7 @@ class ProfileMeApiTests(TestCase):
         Profile.objects.create(user=self.user, full_name="Old Name", bio="old bio")
 
         response = self.client_api.patch(
-            "/api/v1/profiles/me/",
+            "/api/v1/profiles/me",
             {"full_name": "New Name", "bio": "New bio", "skills": ["Django", "TypeScript"], "hourly_rate": 75000},
             format="json",
         )
@@ -56,7 +56,7 @@ class ProfileMeApiTests(TestCase):
         Profile.objects.create(user=self.user, full_name="Original", bio="Original bio", hourly_rate=10000)
 
         response = self.client_api.patch(
-            "/api/v1/profiles/me/",
+            "/api/v1/profiles/me",
             {"bio": "Updated bio only"},
             format="json",
         )
@@ -69,7 +69,7 @@ class ProfileMeApiTests(TestCase):
 
     def test_unauthenticated_returns_error(self):
         unauthenticated_client = APIClient()
-        response = unauthenticated_client.get("/api/v1/profiles/me/")
+        response = unauthenticated_client.get("/api/v1/profiles/me")
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
 
 
@@ -88,7 +88,7 @@ class ProfileDetailApiTests(TestCase):
 
     def test_get_profile_by_user_id(self):
         self.client_api.force_authenticate(self.viewer)
-        response = self.client_api.get(f"/api/v1/profiles/{self.user.id}/")
+        response = self.client_api.get(f"/api/v1/profiles/{self.user.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["full_name"], "Public Freelancer")
@@ -96,5 +96,5 @@ class ProfileDetailApiTests(TestCase):
 
     def test_get_nonexistent_profile_returns_404(self):
         self.client_api.force_authenticate(self.viewer)
-        response = self.client_api.get("/api/v1/profiles/99999/")
+        response = self.client_api.get("/api/v1/profiles/99999")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

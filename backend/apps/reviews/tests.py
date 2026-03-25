@@ -35,7 +35,7 @@ class ReviewApiTests(TestCase):
     def test_owner_can_review_freelancer(self):
         self.client_api.force_authenticate(self.owner)
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 5, "comment": "Excellent work!"},
             format="json",
         )
@@ -48,7 +48,7 @@ class ReviewApiTests(TestCase):
     def test_freelancer_can_review_owner(self):
         self.client_api.force_authenticate(self.freelancer)
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 4, "comment": "Good client"},
             format="json",
         )
@@ -60,7 +60,7 @@ class ReviewApiTests(TestCase):
     def test_outsider_cannot_review(self):
         self.client_api.force_authenticate(self.outsider)
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 3, "comment": "spam"},
             format="json",
         )
@@ -69,12 +69,12 @@ class ReviewApiTests(TestCase):
     def test_duplicate_review_blocked(self):
         self.client_api.force_authenticate(self.owner)
         self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 5, "comment": "First"},
             format="json",
         )
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 3, "comment": "Duplicate"},
             format="json",
         )
@@ -92,7 +92,7 @@ class ReviewApiTests(TestCase):
         )
         self.client_api.force_authenticate(self.owner)
         response = self.client_api.post(
-            f"/api/v1/projects/{open_project.id}/reviews/",
+            f"/api/v1/projects/{open_project.id}/reviews",
             {"rating": 5, "comment": "Too early"},
             format="json",
         )
@@ -102,14 +102,14 @@ class ReviewApiTests(TestCase):
         self.client_api.force_authenticate(self.owner)
 
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 0},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/reviews/",
+            f"/api/v1/projects/{self.project.id}/reviews",
             {"rating": 6},
             format="json",
         )
@@ -141,7 +141,7 @@ class RatingSummaryApiTests(TestCase):
         Review.objects.create(project=p2, reviewer=self.owner, reviewee=self.freelancer, rating=3)
 
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/")
+        response = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["total"], 2)
@@ -149,7 +149,7 @@ class RatingSummaryApiTests(TestCase):
 
     def test_rating_summary_no_reviews(self):
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/")
+        response = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["total"], 0)

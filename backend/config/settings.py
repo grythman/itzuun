@@ -1,5 +1,6 @@
 """Minimal Django settings scaffold for API-first development."""
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -12,8 +13,11 @@ load_dotenv(BASE_DIR / ".env")
 def _split_env(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
+# Detect if we're running tests
+TESTING = 'test' in sys.argv
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev")
-DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
+DEBUG = TESTING or os.getenv("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = _split_env(os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"))
 CSRF_TRUSTED_ORIGINS = _split_env(os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1"))
 
@@ -76,6 +80,9 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = _split_env(
     os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 )
+
+# Disable APPEND_SLASH to match URL patterns without trailing slashes
+APPEND_SLASH = False
 
 DB_NAME = os.getenv("DB_NAME")
 

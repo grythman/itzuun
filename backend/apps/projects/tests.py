@@ -12,7 +12,7 @@ class AiDescriptionSuggestTests(TestCase):
 
     def test_suggest_requires_authentication(self):
         response = self.client_api.post(
-            "/api/v1/projects/ai-description-suggest/",
+            "/api/v1/projects/ai-description-suggest",
             {
                 "title": "Build marketplace",
                 "category": "web",
@@ -27,7 +27,7 @@ class AiDescriptionSuggestTests(TestCase):
     def test_suggest_returns_description(self):
         self.client_api.force_authenticate(self.user)
         response = self.client_api.post(
-            "/api/v1/projects/ai-description-suggest/",
+            "/api/v1/projects/ai-description-suggest",
             {
                 "title": "Build marketplace",
                 "category": "web",
