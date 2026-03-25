@@ -72,7 +72,7 @@ class EscrowAbuseMatrixTests(TestCase):
         self._hold_escrow(project, proposal.price)
 
         self.client_api.force_authenticate(self.freelancer)
-        response = self.client_api.post(f"/api/v1/projects/{project.id}/submit-result/\", format="json")
+        response = self.client_api.post(f"/api/v1/projects/{project.id}/submit-result/", format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_double_confirm_completion_idempotent(self):
@@ -97,12 +97,12 @@ class EscrowAbuseMatrixTests(TestCase):
 
         self.client_api.force_authenticate(self.owner)
         first = self.client_api.post(
-            f"/api/v1/projects/{project.id}/confirm-completion/\",
+            f"/api/v1/projects/{project.id}/confirm-completion/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="complete-key-1",
         )
         second = self.client_api.post(
-            f"/api/v1/projects/{project.id}/confirm-completion/\",
+            f"/api/v1/projects/{project.id}/confirm-completion/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="complete-key-1",
         )
@@ -121,14 +121,14 @@ class EscrowAbuseMatrixTests(TestCase):
 
         self.client_api.force_authenticate(self.owner)
         dispute_resp = self.client_api.post(
-            f"/api/v1/projects/{project.id}/dispute/\",
+            f"/api/v1/projects/{project.id}/dispute/",
             {"reason": "race check", "evidence_files": []},
             format="json",
         )
         self.assertEqual(dispute_resp.status_code, status.HTTP_201_CREATED)
 
         complete_resp = self.client_api.post(
-            f"/api/v1/projects/{project.id}/confirm-completion/\",
+            f"/api/v1/projects/{project.id}/confirm-completion/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="race-confirm-1",
         )
@@ -139,12 +139,12 @@ class EscrowAbuseMatrixTests(TestCase):
 
         self.client_api.force_authenticate(self.owner)
         first = self.client_api.post(
-            f"/api/v1/projects/{project.id}/escrow/deposit/\",
+            f"/api/v1/projects/{project.id}/escrow/deposit/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="deposit-key-1",
         )
         second = self.client_api.post(
-            f"/api/v1/projects/{project.id}/escrow/deposit/\",
+            f"/api/v1/projects/{project.id}/escrow/deposit/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="deposit-key-1",
         )
@@ -175,7 +175,7 @@ class CacheInvalidationSmokeTests(TestCase):
         first_ids = [item["id"] for item in first.json()["results"]]
         self.assertIn(target.id, first_ids)
 
-        verify = self.client_api.post(f"/api/v1/admin/users/{target.id}/verify/\", format="json")
+        verify = self.client_api.post(f"/api/v1/admin/users/{target.id}/verify/", format="json")
         self.assertEqual(verify.status_code, status.HTTP_200_OK)
 
         second = self.client_api.get("/api/v1/admin/users/", {"verified": "false"})
@@ -244,8 +244,8 @@ class CacheInvalidationSmokeTests(TestCase):
         project.save(update_fields=["selected_proposal"])
 
         self.client_api.force_authenticate(self.owner)
-        summary_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/\")
-        reviews_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews/\")
+        summary_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/")
+        reviews_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews/")
         self.assertEqual(summary_before.status_code, status.HTTP_200_OK)
         self.assertEqual(reviews_before.status_code, status.HTTP_200_OK)
         self.assertEqual(summary_before.json()["total"], 0)
@@ -253,14 +253,14 @@ class CacheInvalidationSmokeTests(TestCase):
 
         self.client_api.force_authenticate(self.owner)
         create = self.client_api.post(
-            f"/api/v1/projects/{project.id}/reviews/\",
+            f"/api/v1/projects/{project.id}/reviews/",
             {"rating": 5, "comment": "great"},
             format="json",
         )
         self.assertEqual(create.status_code, status.HTTP_201_CREATED)
 
-        summary_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/\")
-        reviews_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews/\")
+        summary_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/")
+        reviews_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews/")
         self.assertEqual(summary_after.status_code, status.HTTP_200_OK)
         self.assertEqual(reviews_after.status_code, status.HTTP_200_OK)
         self.assertEqual(summary_after.json()["total"], 1)
@@ -277,7 +277,7 @@ class MvPHappyPathApiTests(TestCase):
 
     def test_e2e_happy_path_project_to_review(self):
         self.client_api.force_authenticate(self.admin)
-        verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify/\", format="json")
+        verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify/", format="json")
         self.assertEqual(verify_resp.status_code, status.HTTP_200_OK)
 
         self.client_api.force_authenticate(self.client_user)
@@ -297,7 +297,7 @@ class MvPHappyPathApiTests(TestCase):
 
         self.client_api.force_authenticate(self.freelancer)
         submit_proposal = self.client_api.post(
-            f"/api/v1/projects/{project_id}/proposals/\",
+            f"/api/v1/projects/{project_id}/proposals/",
             {
                 "price": 850000,
                 "timeline_days": 9,
@@ -310,14 +310,14 @@ class MvPHappyPathApiTests(TestCase):
 
         self.client_api.force_authenticate(self.client_user)
         select_resp = self.client_api.post(
-            f"/api/v1/projects/{project_id}/select-freelancer/\",
+            f"/api/v1/projects/{project_id}/select-freelancer/",
             {"proposal_id": proposal_id},
             format="json",
         )
         self.assertEqual(select_resp.status_code, status.HTTP_200_OK)
 
         deposit_resp = self.client_api.post(
-            f"/api/v1/projects/{project_id}/escrow/deposit/\",
+            f"/api/v1/projects/{project_id}/escrow/deposit/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="e2e-deposit-key",
         )
@@ -344,7 +344,7 @@ class MvPHappyPathApiTests(TestCase):
         file_id = file_obj.id
 
         deliverable = self.client_api.post(
-            f"/api/v1/projects/{project_id}/deliverables/\",
+            f"/api/v1/projects/{project_id}/deliverables/",
             {
                 "file_id": file_id,
                 "checksum": "e2e-checksum",
@@ -354,24 +354,24 @@ class MvPHappyPathApiTests(TestCase):
         )
         self.assertEqual(deliverable.status_code, status.HTTP_201_CREATED)
 
-        submit_result_resp = self.client_api.post(f"/api/v1/projects/{project_id}/submit-result/\", format="json")
+        submit_result_resp = self.client_api.post(f"/api/v1/projects/{project_id}/submit-result/", format="json")
         self.assertEqual(submit_result_resp.status_code, status.HTTP_200_OK)
 
         self.client_api.force_authenticate(self.client_user)
         release_resp = self.client_api.post(
-            f"/api/v1/projects/{project_id}/confirm-completion/\",
+            f"/api/v1/projects/{project_id}/confirm-completion/",
             format="json",
             HTTP_IDEMPOTENCY_KEY="e2e-release-key",
         )
         self.assertEqual(release_resp.status_code, status.HTTP_200_OK)
 
         review_resp = self.client_api.post(
-            f"/api/v1/projects/{project_id}/reviews/\",
+            f"/api/v1/projects/{project_id}/reviews/",
             {"rating": 5, "comment": "Great freelancer"},
             format="json",
         )
         self.assertEqual(review_resp.status_code, status.HTTP_201_CREATED)
 
-        summary_resp = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/\")
+        summary_resp = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary/")
         self.assertEqual(summary_resp.status_code, status.HTTP_200_OK)
         self.assertEqual(summary_resp.json()["total"], 1)

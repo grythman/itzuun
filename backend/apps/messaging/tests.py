@@ -35,7 +35,7 @@ class ProjectMessageApiTests(TestCase):
     def test_owner_can_send_message(self):
         self.client_api.force_authenticate(self.owner)
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/messages/\",
+            f"/api/v1/projects/{self.project.id}/messages/",
             {"text": "Hello freelancer!"},
             format="json",
         )
@@ -46,7 +46,7 @@ class ProjectMessageApiTests(TestCase):
     def test_freelancer_can_send_message(self):
         self.client_api.force_authenticate(self.freelancer)
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/messages/\",
+            f"/api/v1/projects/{self.project.id}/messages/",
             {"text": "Hello owner!"},
             format="json",
         )
@@ -56,7 +56,7 @@ class ProjectMessageApiTests(TestCase):
     def test_outsider_cannot_send_message(self):
         self.client_api.force_authenticate(self.outsider)
         response = self.client_api.post(
-            f"/api/v1/projects/{self.project.id}/messages/\",
+            f"/api/v1/projects/{self.project.id}/messages/",
             {"text": "I should not be able to send this"},
             format="json",
         )
@@ -67,7 +67,7 @@ class ProjectMessageApiTests(TestCase):
         ProjectMessage.objects.create(project=self.project, sender=self.freelancer, text="msg 2")
 
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages/\")
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
@@ -78,12 +78,12 @@ class ProjectMessageApiTests(TestCase):
         ProjectMessage.objects.create(project=self.project, sender=self.owner, text="secret")
 
         self.client_api.force_authenticate(self.outsider)
-        response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages/\")
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_messages_for_nonexistent_project_returns_404(self):
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get("/api/v1/projects/99999/messages/\")
+        response = self.client_api.get("/api/v1/projects/99999/messages/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_message_ordering_by_created(self):
@@ -91,7 +91,7 @@ class ProjectMessageApiTests(TestCase):
         msg2 = ProjectMessage.objects.create(project=self.project, sender=self.freelancer, text="second")
 
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages/\")
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages/")
         data = response.json()
         results = data["results"] if isinstance(data, dict) and "results" in data else data
 

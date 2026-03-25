@@ -122,7 +122,7 @@ class QPayIntegrationTests(TestCase):
         Payment.objects.filter(id=payment.id).update(created_at=timezone.now() - timedelta(minutes=31))
 
         self.client_api.force_authenticate(self.client_user)
-        response = self.client_api.get(f"/api/v1/payments/status/{self.project.id}/\")
+        response = self.client_api.get(f"/api/v1/payments/status/{self.project.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         payment.refresh_from_db()
