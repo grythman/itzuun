@@ -11,7 +11,7 @@ class PasswordAuthApiTests(TestCase):
 
     def test_register_creates_user_and_authenticates(self):
         response = self.client_api.post(
-            "/api/v1/auth/register",
+            "/api/v1/auth/register/",
             {
                 "email": "new-user@test.com",
                 "password": "Pass12345",
@@ -28,7 +28,7 @@ class PasswordAuthApiTests(TestCase):
         user = User.objects.create_user(email="login-user@test.com", password="Pass12345", role="client")
 
         response = self.client_api.post(
-            "/api/v1/auth/login",
+            "/api/v1/auth/login/",
             {
                 "email": user.email,
                 "password": "Pass12345",
