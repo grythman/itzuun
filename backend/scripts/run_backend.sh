@@ -17,4 +17,4 @@ export DB_HOST="${DB_HOST:-127.0.0.1}"
 export DB_PORT="${DB_PORT:-5432}"
 
 cd "$BACKEND_DIR"
-python manage.py runserver 0.0.0.0:"${PORT:-8000}"
+/root/itzuun/.venv/bin/python manage.py runserver 0.0.0.0:"${PORT:-8000}"
