@@ -1,6 +1,7 @@
 """Minimal Django settings scaffold for API-first development."""
 import os
 import sys
+import dj_database_url
 from datetime import timedelta
 from pathlib import Path
 
@@ -84,7 +85,7 @@ CORS_ALLOWED_ORIGINS = _split_env(
 # Disable APPEND_SLASH to match URL patterns without trailing slashes
 APPEND_SLASH = False
 
-DB_NAME = os.getenv("DB_NAME")
+'''DB_NAME = os.getenv("DB_NAME")
 
 if DB_NAME:
     DATABASES = {
@@ -111,6 +112,55 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+'''
+9
+# --- DATABASES тохиргооны хэсэг ---
+DATABASE_URL = os.getenv("DATABASE_URL")
+DB_NAME = os.getenv("DB_NAME")
+
+if DATABASE_URL:
+    # 1. Docker / Production орчин (DATABASE_URL ашиглах үед)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=int(os.getenv("DB_CONN_MAX_AGE", "60")),
+            conn_health_checks=True,
+        )
+    }
+    # Таны өмнө байсан OPTIONS тохиргоог нэмж өгөх
+    DATABASES["default"]["OPTIONS"] = {
+        "sslmode": os.getenv("DB_SSLMODE", "prefer"),
+        "application_name": "itzuun-api",
+    }
+
+elif DB_NAME:
+    # 2. Local хөгжүүлэлт (.env дотор DB_NAME ашиглах үед)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": DB_NAME,
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+            "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
+            "CONN_HEALTH_CHECKS": True,
+            "OPTIONS": {
+                "sslmode": os.getenv("DB_SSLMODE", "prefer"),
+                "application_name": "itzuun-api",
+            },
+        }
+    }
+
+else:
+    # 3. CI/local fallback: allow tests and development to run without Postgres env vars
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
