@@ -4,12 +4,10 @@ import sys
 import dj_database_url
 from datetime import timedelta
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
-
 
 def _split_env(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
@@ -19,9 +17,9 @@ TESTING = 'test' in sys.argv
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev")
 DEBUG = TESTING or os.getenv("DJANGO_DEBUG", "0") == "1"
+
 ALLOWED_HOSTS = _split_env(os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"))
 CSRF_TRUSTED_ORIGINS = _split_env(os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1"))
-
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 INSTALLED_APPS = [
@@ -85,17 +83,26 @@ CORS_ALLOWED_ORIGINS = _split_env(
 # Disable APPEND_SLASH to match URL patterns without trailing slashes
 APPEND_SLASH = False
 
-'''DB_NAME = os.getenv("DB_NAME")
+# ==============================================================================
+# DATABASES CONFIGURATION (Robust setup to prevent port parsing errors)
+# ==============================================================================
+DB_NAME = os.getenv("DB_NAME") or os.getenv("POSTGRES_DB")
+DB_USER = os.getenv("DB_USER") or os.getenv("POSTGRES_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD") or os.getenv("POSTGRES_PASSWORD")
+DB_HOST = os.getenv("DB_HOST", "db")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DB_NAME:
+if DB_NAME and DB_USER and DB_PASSWORD:
+    # 1. Тусдаа хувьсагчуудаар холбогдох (Нууц үгэнд тусгай тэмдэгт орсон үед хамгийн аюулгүй)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": DB_NAME,
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-            "PORT": os.getenv("DB_PORT", "5432"),
+            "USER": DB_USER,
+            "PASSWORD": DB_PASSWORD,
+            "HOST": DB_HOST,
+            "PORT": DB_PORT,
             "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
             "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {
@@ -104,22 +111,8 @@ if DB_NAME:
             },
         }
     }
-else:
-    # CI/local fallback: allow tests and development to run without Postgres env vars.
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-'''
-9
-# --- DATABASES тохиргооны хэсэг ---
-DATABASE_URL = os.getenv("DATABASE_URL")
-DB_NAME = os.getenv("DB_NAME")
-
-if DATABASE_URL:
-    # 1. Docker / Production орчин (DATABASE_URL ашиглах үед)
+elif DATABASE_URL:
+    # 2. DATABASE_URL байгаа бол түүгээр холбогдох
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -127,33 +120,12 @@ if DATABASE_URL:
             conn_health_checks=True,
         )
     }
-    # Таны өмнө байсан OPTIONS тохиргоог нэмж өгөх
     DATABASES["default"]["OPTIONS"] = {
         "sslmode": os.getenv("DB_SSLMODE", "prefer"),
         "application_name": "itzuun-api",
     }
-
-elif DB_NAME:
-    # 2. Local хөгжүүлэлт (.env дотор DB_NAME ашиглах үед)
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": DB_NAME,
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-            "PORT": os.getenv("DB_PORT", "5432"),
-            "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
-            "CONN_HEALTH_CHECKS": True,
-            "OPTIONS": {
-                "sslmode": os.getenv("DB_SSLMODE", "prefer"),
-                "application_name": "itzuun-api",
-            },
-        }
-    }
-
 else:
-    # 3. CI/local fallback: allow tests and development to run without Postgres env vars
+    # 3. CI/local fallback: allow tests and dev to run without Postgres env vars
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -161,6 +133,7 @@ else:
         }
     }
 
+# ==============================================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -174,13 +147,13 @@ LANGUAGES = [
     ('en', 'English'),
     ('mn', 'Mongolian'),
 ]
+
 TIME_ZONE = "Asia/Ulaanbaatar"
 USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -192,6 +165,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@itzuun.mn")
+
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
 USE_X_FORWARDED_HOST = True
@@ -215,7 +189,6 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
@@ -251,8 +224,8 @@ QPAY_WEBHOOK_SECRET = os.getenv("QPAY_WEBHOOK_SECRET", "")
 QPAY_CALLBACK_URL = os.getenv("QPAY_CALLBACK_URL", "")
 
 REDIS_URL = os.getenv("REDIS_URL", "")
+
 if TESTING:
-    # Use LocMemCache for tests to avoid cache pollution between test runs
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -285,7 +258,6 @@ else:
             "LOCATION": "itzuun-local-cache",
         }
     }
-
 
 LOGGING = {
     "version": 1,
