@@ -1,42 +1,19 @@
-"""Project routes."""
 from django.urls import path
-
 from .views import (
-    CategoryListView,
-    ProjectCloseView,
-    ProjectDetailView,
-    ProjectDescriptionSuggestView,
-    ProjectDeliverableCreateView,
-    ProjectListCreateView,
-    ProjectProposalListCreateView,
-    ProjectSelectFreelancerView,
-    ProposalDetailView,
-    ProposalMeListView,
-    ProposalWithdrawView,
+    CategoryListView, ProjectCloseView, ProjectDetailView,
+    ProjectDescriptionSuggestView, ProjectDeliverableCreateView,
+    ProjectListCreateView, ProjectProposalListCreateView,
+    ProjectSelectFreelancerView, ProposalDetailView,
+    ProposalMeListView, ProposalWithdrawView,
 )
 
 urlpatterns = [
-    path("projects/categories", CategoryListView.as_view(), name="category-list"),
-    path("projects/ai-description-suggest", ProjectDescriptionSuggestView.as_view(), name="project-ai-description"),
-    path("projects", ProjectListCreateView.as_view(), name="project-list"),
-    path("projects/<int:pk>", ProjectDetailView.as_view(), name="project-detail"),
-    path("projects/<int:project_id>/close", ProjectCloseView.as_view(), name="project-close"),
-    path(
-        "projects/<int:project_id>/deliverables",
-        ProjectDeliverableCreateView.as_view(),
-        name="project-deliverables",
-    ),
-    path(
-        "projects/<int:project_id>/select-freelancer",
-        ProjectSelectFreelancerView.as_view(),
-        name="project-select-freelancer",
-    ),
-    path(
-        "projects/<int:project_id>/proposals",
-        ProjectProposalListCreateView.as_view(),
-        name="project-proposals",
-    ),
-    path("me/proposals", ProposalMeListView.as_view(), name="proposal-me"),
-    path("proposals/<int:pk>", ProposalDetailView.as_view(), name="proposal-detail"),
-    path("proposals/<int:proposal_id>/withdraw", ProposalWithdrawView.as_view(), name="proposal-withdraw"),
+    path("projects/", ProjectListCreateView.as_view(), name="project-list"),
+    path("projects", ProjectListCreateView.as_view()),
+    path("projects/categories/", CategoryListView.as_view(), name="category-list"),
+    path("projects/categories", CategoryListView.as_view()),
+    path("projects/<int:pk>/", ProjectDetailView.as_view(), name="project-detail"),
+    path("projects/<int:pk>", ProjectDetailView.as_view()),
+    path("me/proposals/", ProposalMeListView.as_view(), name="proposal-me"),
+    path("me/proposals", ProposalMeListView.as_view()),
 ]

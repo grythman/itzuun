@@ -1,10 +1,14 @@
-"""Profile routes."""
 from django.urls import path
-
-from .views import ProfileDetailView, ProfileListView, ProfileMeView
+from .views import ProfileMeView, ProfileDetailView, ProfileListView
 
 urlpatterns = [
-    path("profiles", ProfileListView.as_view(), name="profile-list"),
-    path("profiles/<int:user_id>", ProfileDetailView.as_view(), name="profile-detail"),
-    path("profiles/me", ProfileMeView.as_view(), name="profile-me"),
+    # Зураастай болон зураасгүй аль алинаар нь хандах боломжтой болгов
+    path("profiles/me/", ProfileMeView.as_view(), name="profile-me"),
+    path("profiles/me", ProfileMeView.as_view()),
+    
+    path("profiles/", ProfileListView.as_view(), name="profile-list"),
+    path("profiles", ProfileListView.as_view()),
+    
+    path("profiles/<str:username>/", ProfileDetailView.as_view(), name="profile-detail"),
+    path("profiles/<str:username>", ProfileDetailView.as_view()),
 ]

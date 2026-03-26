@@ -5,22 +5,25 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
+    # Django Admin
     path("admin/", admin.site.urls),
     
-    # 1. Accounts апп-ийн замууд (Frontend болон Test аль алинд нь ажиллах уян хатан тохиргоо)
+    # Accounts / Auth
     path("api/v1/accounts/auth/", include("apps.accounts.urls")),
     path("api/v1/accounts/users/", include("apps.accounts.urls")),
     path("api/v1/auth/", include("apps.accounts.urls")),
+    path("api/v1/users/", include("apps.accounts.urls")),
 
-    # 2. Бусад апп-уудын анхны "ЗӨВ" бүтэц (Энд би prefix давхардуулсан байсныг засав)
+    # Зөв хаягууд
     path("api/v1/", include("apps.profiles.urls")),
     path("api/v1/", include("apps.projects.urls")),
     path("api/v1/", include("apps.messaging.urls")),
     path("api/v1/", include("apps.payments.urls")),
     path("api/v1/", include("apps.reviews.urls")),
-    path("api/v1/admin/", include("apps.adminpanel.urls")),
     
-    # 3. Үндсэн хуудас
+    path("api/v1/admin/", include("apps.adminpanel.urls")),
+
+    # Web (Frontend fallback)
     path("", include("apps.web.urls")),
 ]
 
