@@ -1,3 +1,4 @@
+import uuid
 from django.test import TestCase
 from django.core.cache import cache
 from rest_framework import status
@@ -97,16 +98,19 @@ class EscrowAbuseMatrixTests(TestCase):
         project.status = Project.STATUS_AWAITING_REVIEW
         project.save(update_fields=["status"])
 
+        # Уникаль түлхүүр үүсгэх
+        idempotency_key = str(uuid.uuid4())
+
         self.client_api.force_authenticate(self.owner)
         first = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            HTTP_IDEMPOTENCY_KEY="complete-key-1",
+            HTTP_IDEMPOTENCY_KEY=idempotency_key,  # Өөрчилсөн
         )
         second = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            HTTP_IDEMPOTENCY_KEY="complete-key-1",
+            HTTP_IDEMPOTENCY_KEY=idempotency_key,  # Өөрчилсөн
         )
 
         self.assertEqual(first.status_code, status.HTTP_200_OK)
@@ -132,7 +136,7 @@ class EscrowAbuseMatrixTests(TestCase):
         complete_resp = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            HTTP_IDEMPOTENCY_KEY="race-confirm-1",
+            HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()),  # Өөрчилсөн
         )
         self.assertEqual(complete_resp.status_code, status.HTTP_400_BAD_REQUEST)
 
