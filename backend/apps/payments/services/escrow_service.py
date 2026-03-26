@@ -34,7 +34,7 @@ def _lock_project(project: Project) -> Project:
         .get(id=project.id)
     )
 
-def _lock_escrow(escrow: Escrotew) -> Escrow:
+def _lock_escrow(escrow: Escrow) -> Escrow:
     return Escrow.objects.select_for_upda().get(id=escrow.id)
 
 
