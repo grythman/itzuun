@@ -1,6 +1,6 @@
 import uuid
 from django.test import TestCase
-from django.core.cache import cache
+from django.core.cache import caches
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -14,7 +14,9 @@ from common.exceptions import DomainError
 
 class EscrowAbuseMatrixTests(TestCase):
     def setUp(self):
-        cache.clear()  # ЭНЭ МӨРИЙГ НЭМСНЭЭР АЛДАА ЗАСАГДАНА
+        for cache_alias in caches:
+            caches[cache_alias].clear()  # ЭНЭ МӨРИЙГ НЭМСНЭЭР АЛДАА ЗАСАГДАНА
+
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
@@ -165,7 +167,9 @@ class EscrowAbuseMatrixTests(TestCase):
 
 class CacheInvalidationSmokeTests(TestCase):
     def setUp(self):
-        cache.clear()
+        for cache_alias in caches:
+            caches[cache_alias].clear()
+
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner-cache@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(
@@ -277,7 +281,9 @@ class CacheInvalidationSmokeTests(TestCase):
 
 class MvPHappyPathApiTests(TestCase):
     def setUp(self):
-        cache.clear()
+        for cache_alias in caches:
+            caches[cache_alias].clear()
+            
         self.client_api = APIClient()
         self.client_user = User.objects.create_user(email="client-e2e@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(email="freelancer-e2e@test.com", role="freelancer", password="pass1234")
