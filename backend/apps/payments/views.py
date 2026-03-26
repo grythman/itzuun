@@ -103,14 +103,16 @@ class ProjectConfirmCompletionView(APIView):
             escrow = confirm_completion(project, approved_by=request.user)
             return EscrowSerializer(escrow).data, status.HTTP_200_OK
 
-        payload, status_code = execute_idempotent(
-            request,
-            endpoint=f"POST:/api/v1/projects/{project_id}/confirm-completion",
-            actor=request.user,
-            executor=_executor,
-        )
+        try:
+            payload, status_code = execute_idempotent(
+                request,
+                endpoint=f"POST:/api/v1/projects/{project_id}/confirm-completion",
+                actor=request.user,
+                executor=_executor,
+            )
+        except DomainError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(payload, status=status_code)
-
 
 class EscrowReleaseView(APIView):
     permission_classes = [IsClient]
@@ -125,15 +127,17 @@ class EscrowReleaseView(APIView):
             released = confirm_completion(project, approved_by=request.user)
             return EscrowSerializer(released).data, status.HTTP_200_OK
 
-        payload, status_code = execute_idempotent(
-            request,
-            endpoint=f"POST:/api/v1/escrow/{escrow_id}/release",
-            actor=request.user,
-            executor=_executor,
-        )
+        try:
+            payload, status_code = execute_idempotent(
+                request,
+                endpoint=f"POST:/api/v1/escrow/{escrow_id}/release",
+                actor=request.user,
+                executor=_executor,
+            )
+        except DomainError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(payload, status=status_code)
-
-
+        
 class ProjectDisputeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
