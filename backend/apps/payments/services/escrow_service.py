@@ -29,13 +29,13 @@ def calculate_commission(amount: int) -> tuple[int, int]:
 
 def _lock_project(project: Project) -> Project:
     return (
-        Project.objects.select_for_update()
+        Project.objects.select_for_update(of=("self",))
         .select_related("escrow", "selected_proposal")
         .get(id=project.id)
     )
 
 def _lock_escrow(escrow: Escrow) -> Escrow:
-    return Escrow.objects.select_for_upda().get(id=escrow.id)
+    return Escrow.objects.select_for_update(of=("self",)).get(id=escrow.id)
 
 
 def _serialize_escrow(escrow: Escrow) -> dict:
@@ -171,7 +171,7 @@ def approve_escrow(escrow: Escrow, actor) -> Escrow:
 
 @transaction.atomic
 def mark_payment_paid_and_hold_escrow(*, invoice_id: str, paid_amount: int, verification_payload: dict | None = None) -> Payment:
-    payment = Payment.objects.select_for_update().select_related("project").get(invoice_id=invoice_id)
+    payment = Payment.objects.select_for_update(of=("self",)).select_related("project").get(invoice_id=invoice_id)
     if payment.status == Payment.STATUS_PAID:
         return payment
 
@@ -417,7 +417,7 @@ def create_dispute(project: Project, raised_by, reason: str, evidence_files: lis
 
 @transaction.atomic
 def resolve_dispute(dispute: Dispute, action: str, release_amount: int, refund_amount: int, note: str, resolver):
-    dispute = Dispute.objects.select_for_update().select_related("project__escrow").get(id=dispute.id)
+    dispute = Dispute.objects.select_for_update(of=("self",)).select_related("project__escrow").get(id=dispute.id)
     escrow = dispute.project.escrow
 
     if escrow.status != Escrow.STATUS_DISPUTED:
