@@ -7,21 +7,34 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     
-    # Frontend-ийн /api/v1/accounts/auth/register/ замаар орж ирэхэд
+    # --- Accounts / Auth ---
+    # Шинэ (Prod): /api/v1/accounts/auth/
     path("api/v1/accounts/auth/", include("apps.accounts.urls")),
-    
-    # Frontend-ийн /api/v1/accounts/users/me/ замаар орж ирэхэд
     path("api/v1/accounts/users/", include("apps.accounts.urls")),
-    
-    # Бусад API замууд
+    # Хуучин (Tests): /api/v1/auth/
+    path("api/v1/auth/", include("apps.accounts.urls")),
+    path("api/v1/users/", include("apps.accounts.urls")),
+
+    # --- Profiles ---
     path("api/v1/profiles/", include("apps.profiles.urls")),
+
+    # --- Projects ---
     path("api/v1/projects/", include("apps.projects.urls")),
+
+    # --- Messaging ---
     path("api/v1/messaging/", include("apps.messaging.urls")),
+
+    # --- Payments ---
     path("api/v1/payments/", include("apps.payments.urls")),
+
+    # --- Reviews ---
     path("api/v1/reviews/", include("apps.reviews.urls")),
+
+    # --- Admin Panel ---
     path("api/v1/admin-panel/", include("apps.adminpanel.urls")),
-    
-    # Үндсэн вэб (Catch-all)
+    path("api/v1/admin/", include("apps.adminpanel.urls")), # Тестүүдэд зориулав
+
+    # --- Web / Frontend ---
     path("", include("apps.web.urls")),
 ]
 
