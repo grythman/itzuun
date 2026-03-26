@@ -28,14 +28,14 @@ def calculate_commission(amount: int) -> tuple[int, int]:
 
 
 def _lock_project(project: Project) -> Project:
+    Project.objects.select_for_update().get(id=project.id)
     return (
-        Project.objects.select_for_update(of=("self",))
-        .select_related("escrow", "selected_proposal")
+        Project.objects.select_related("escrow", "selected_proposal")
         .get(id=project.id)
     )
 
 def _lock_escrow(escrow: Escrow) -> Escrow:
-    return Escrow.objects.select_for_update(of=("self",)).get(id=escrow.id)
+    return Escrow.objects.select_for_update().get(id=escrow.id)
 
 
 def _serialize_escrow(escrow: Escrow) -> dict:

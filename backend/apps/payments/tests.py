@@ -134,7 +134,12 @@ class EscrowAbuseMatrixTests(TestCase):
             format="json",
         )
         self.assertEqual(dispute_resp.status_code, status.HTTP_201_CREATED)
+        
+        # МАНАЙ ЛОГИК АЖИЛЛАЖ БАЙГАА ЭСЭХИЙГ БААЗААС ШАЛГАХ
+        project.refresh_from_db()
+        self.assertEqual(project.status, Project.STATUS_DISPUTED)
 
+        # Хэрэв дээрх Assert амжилттай бол, доорх нь заавал 400 өгөх ёст
         complete_resp = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
