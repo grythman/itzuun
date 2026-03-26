@@ -1,6 +1,8 @@
 { pkgs, ... }: {
   channel = "stable-24.05";
   packages = [
+    pkgs.sudo
+    pkgs.apt
     pkgs.python311
     pkgs.postgresql
     pkgs.python311Packages.django
@@ -14,10 +16,15 @@
     pkgs.python311Packages.google-generativeai
     pkgs.python311Packages.gunicorn
     pkgs.python311Packages.dj-database-url
+    pkgs.docker
+    pkgs.docker-compose
   ];
+
+  # Enable the docker service
+  services.docker.enable = true;
+
   idx = {
     previews = {
       enable = true;
-    };
-  };
-}
+      };
+  };}
