@@ -13,6 +13,7 @@ from common.exceptions import DomainError
 
 class EscrowAbuseMatrixTests(TestCase):
     def setUp(self):
+        cache.clear()  # ЭНЭ МӨРИЙГ НЭМСНЭЭР АЛДАА ЗАСАГДАНА
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
         self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
@@ -119,7 +120,7 @@ class EscrowAbuseMatrixTests(TestCase):
     def test_dispute_then_confirm_completion_is_blocked(self):
         project, proposal = self._build_project_in_progress(price=450000)
         self._hold_escrow(project, proposal.price)
-
+        
         self.client_api.force_authenticate(self.owner)
         dispute_resp = self.client_api.post(
             f"/api/v1/projects/{project.id}/dispute",
