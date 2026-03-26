@@ -1,5 +1,5 @@
 """Escrow routes."""
-from django.urls import path
+from django.urls import re_path
 
 from .views import (
     EscrowAdminApproveView,
@@ -14,17 +14,13 @@ from .views import (
 )
 
 urlpatterns = [
-    path("payments/create", PaymentCreateView.as_view(), name="payment-create"),
-    path("payments/webhook", PaymentWebhookView.as_view(), name="payment-webhook"),
-    path("payments/status/<int:project_id>", PaymentStatusView.as_view(), name="payment-status"),
-    path("projects/<int:project_id>/escrow/deposit", EscrowDepositView.as_view(), name="escrow-deposit"),
-    path("escrow/<int:escrow_id>/admin/approve", EscrowAdminApproveView.as_view(), name="escrow-approve"),
-    path("escrow/<int:escrow_id>/release", EscrowReleaseView.as_view(), name="escrow-release"),
-    path("projects/<int:project_id>/submit-result", ProjectSubmitResultView.as_view(), name="submit-result"),
-    path(
-        "projects/<int:project_id>/confirm-completion",
-        ProjectConfirmCompletionView.as_view(),
-        name="confirm-completion",
-    ),
-    path("projects/<int:project_id>/dispute", ProjectDisputeView.as_view(), name="project-dispute"),
+    re_path(r"^payments/create/?$", PaymentCreateView.as_view(), name="payment-create"),
+    re_path(r"^payments/webhook/?$", PaymentWebhookView.as_view(), name="payment-webhook"),
+    re_path(r"^payments/status/(?P<project_id>\d+)/?$", PaymentStatusView.as_view(), name="payment-status"),
+    re_path(r"^projects/(?P<project_id>\d+)/escrow/deposit/?$", EscrowDepositView.as_view(), name="escrow-deposit"),
+    re_path(r"^escrow/(?P<escrow_id>\d+)/admin/approve/?$", EscrowAdminApproveView.as_view(), name="escrow-approve"),
+    re_path(r"^escrow/(?P<escrow_id>\d+)/release/?$", EscrowReleaseView.as_view(), name="escrow-release"),
+    re_path(r"^projects/(?P<project_id>\d+)/submit-result/?$", ProjectSubmitResultView.as_view(), name="submit-result"),
+    re_path(r"^projects/(?P<project_id>\d+)/confirm-completion/?$", ProjectConfirmCompletionView.as_view(), name="confirm-completion"),
+    re_path(r"^projects/(?P<project_id>\d+)/dispute/?$", ProjectDisputeView.as_view(), name="project-dispute"),
 ]

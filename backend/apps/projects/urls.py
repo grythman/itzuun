@@ -1,21 +1,21 @@
-from django.urls import path
+from django.urls import re_path
 from .views import (
     CategoryListView, ProjectCloseView, ProjectDetailView,
     ProjectDescriptionSuggestView, ProjectDeliverableCreateView,
     ProjectListCreateView, ProjectProposalListCreateView,
     ProjectSelectFreelancerView, ProposalDetailView,
-    ProposalMeListView, ProposalWithdrawView,
+    ProposalMeListView, ProposalWithdrawView, ProjectSubmitResultView, ProjectConfirmCompletionView
 )
 
 urlpatterns = [
-    path("projects/", ProjectListCreateView.as_view(), name="project-list"),
-    path("projects", ProjectListCreateView.as_view()),
-    path("projects/categories/", CategoryListView.as_view(), name="category-list"),
-    path("projects/categories", CategoryListView.as_view()),
-    path("projects/ai-description-suggest", ProjectDescriptionSuggestView.as_view(), name="project-ai-description-suggest"),
-    path("projects/<int:pk>/", ProjectDetailView.as_view(), name="project-detail"),
-    path("projects/<int:pk>", ProjectDetailView.as_view()),
-    path("projects/<int:pk>/proposals", ProjectProposalListCreateView.as_view(), name="project-proposal-list"),
-    path("me/proposals/", ProposalMeListView.as_view(), name="proposal-me"),
-    path("me/proposals", ProposalMeListView.as_view()),
+    re_path(r"^projects/?$", ProjectListCreateView.as_view(), name="project-list"),
+    re_path(r"^projects/categories/?$", CategoryListView.as_view(), name="category-list"),
+    re_path(r"^projects/ai-description-suggest/?$", ProjectDescriptionSuggestView.as_view(), name="project-ai-description-suggest"),
+    re_path(r"^projects/(?P<pk>\d+)/?$", ProjectDetailView.as_view(), name="project-detail"),
+    re_path(r"^projects/(?P<project_id>\d+)/proposals/?$", ProjectProposalListCreateView.as_view(), name="project-proposal-list"),
+    re_path(r"^projects/(?P<project_id>\d+)/select-freelancer/?$", ProjectSelectFreelancerView.as_view(), name="project-select-freelancer"),
+    re_path(r"^projects/(?P<project_id>\d+)/deliverables/?$", ProjectDeliverableCreateView.as_view(), name="project-deliverable-create"),
+    re_path(r"^projects/(?P<project_id>\d+)/submit-result/?$", ProjectSubmitResultView.as_view(), name="project-submit-result"),
+    re_path(r"^projects/(?P<project_id>\d+)/confirm-completion/?$", ProjectConfirmCompletionView.as_view(), name="project-confirm-completion"),
+    re_path(r"^me/proposals/?$", ProposalMeListView.as_view(), name="proposal-me"),
 ]

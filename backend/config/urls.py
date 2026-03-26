@@ -14,12 +14,8 @@ urlpatterns = [
     path("api/v1/auth/", include("apps.accounts.urls")),
     path("api/v1/users/", include("apps.accounts.urls")),
 
-    # Зөв хаягууд
-    path("api/v1/", include("apps.profiles.urls")),
-    path("api/v1/", include("apps.projects.urls")),
-    path("api/v1/", include("apps.messaging.urls")),
-    path("api/v1/", include("apps.payments.urls")),
-    path("api/v1/", include("apps.reviews.urls")),
+    # Main API
+    path("api/v1/", include("apps.main_urls")),
     
     path("api/v1/admin/", include("apps.adminpanel.urls")),
 

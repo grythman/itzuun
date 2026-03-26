@@ -1,14 +1,8 @@
-from django.urls import path
+from django.urls import re_path
 from .views import ProfileMeView, ProfileDetailView, ProfileListView
 
 urlpatterns = [
-    # Зураастай болон зураасгүй аль алинаар нь хандах боломжтой болгов
-    path("profiles/me/", ProfileMeView.as_view(), name="profile-me"),
-    path("profiles/me", ProfileMeView.as_view()),
-    
-    path("profiles/", ProfileListView.as_view(), name="profile-list"),
-    path("profiles", ProfileListView.as_view()),
-    
-    path("profiles/<int:user_id>/", ProfileDetailView.as_view(), name="profile-detail"),
-    path("profiles/<int:user_id>", ProfileDetailView.as_view()),
+    re_path(r"^profiles/me/?$", ProfileMeView.as_view(), name="profile-me"),
+    re_path(r"^profiles/?$", ProfileListView.as_view(), name="profile-list"),
+    re_path(r"^profiles/(?P<user_id>\d+)/?$", ProfileDetailView.as_view(), name="profile-detail"),
 ]

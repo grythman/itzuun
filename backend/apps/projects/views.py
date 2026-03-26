@@ -244,3 +244,33 @@ class ProjectDescriptionSuggestView(APIView):
         )
         response = ProjectDescriptionSuggestResponseSerializer({"description": description})
         return Response(response.data, status=status.HTTP_200_OK)
+
+
+class ProjectSubmitResultView(APIView):
+    permission_classes = [IsFreelancer]
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id)
+        if project.selected_proposal.freelancer != request.user:
+            return Response({"detail": "Only the selected freelancer can submit result."}, status=status.HTTP_403_FORBIDDEN)
+        if not ProjectDeliverable.objects.filter(project=project).exists():
+            return Response({"detail": "Submit at least one deliverable first."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        project.status = Project.STATUS_AWAITING_REVIEW
+        project.save(update_fields=["status"])
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
+        return Response({"status": project.status})
+
+
+class ProjectConfirmCompletionView(APIView):
+    permission_classes = [IsClient]
+
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, id=project_id, owner=request.user)
+        # In a real app, this would also trigger escrow release logic
+        project.status = Project.STATUS_COMPLETED
+        project.save(update_fields=["status"])
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
+        return Response({"status": project.status})
