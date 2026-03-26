@@ -85,6 +85,19 @@ class ProjectConfirmCompletionView(APIView):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id, owner=request.user)
+        
+        # Check for active disputes
+        if Dispute.objects.filter(project=project, status=Dispute.STATUS_OPEN).exists():
+             return Response({"detail": "Cannot confirm completion with an open dispute."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if escrow is already released
+        try:
+            escrow = Escrow.objects.get(project=project)
+            if escrow.status == Escrow.STATUS_RELEASED:
+                 # Already released, return success (idempotent)
+                 return Response(EscrowSerializer(escrow).data, status=status.HTTP_200_OK)
+        except Escrow.DoesNotExist:
+            return Response({"detail": "Escrow does not exist for this project."}, status=status.HTTP_400_BAD_REQUEST)
 
         def _executor():
             escrow = confirm_completion(project, approved_by=request.user)
