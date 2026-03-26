@@ -7,34 +7,20 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     
-    # --- Accounts / Auth ---
-    # Шинэ (Prod): /api/v1/accounts/auth/
+    # 1. Accounts апп-ийн замууд (Frontend болон Test аль алинд нь ажиллах уян хатан тохиргоо)
     path("api/v1/accounts/auth/", include("apps.accounts.urls")),
     path("api/v1/accounts/users/", include("apps.accounts.urls")),
-    # Хуучин (Tests): /api/v1/auth/
     path("api/v1/auth/", include("apps.accounts.urls")),
-    path("api/v1/users/", include("apps.accounts.urls")),
 
-    # --- Profiles ---
-    path("api/v1/profiles/", include("apps.profiles.urls")),
-
-    # --- Projects ---
-    path("api/v1/projects/", include("apps.projects.urls")),
-
-    # --- Messaging ---
-    path("api/v1/messaging/", include("apps.messaging.urls")),
-
-    # --- Payments ---
-    path("api/v1/payments/", include("apps.payments.urls")),
-
-    # --- Reviews ---
-    path("api/v1/reviews/", include("apps.reviews.urls")),
-
-    # --- Admin Panel ---
-    path("api/v1/admin-panel/", include("apps.adminpanel.urls")),
-    path("api/v1/admin/", include("apps.adminpanel.urls")), # Тестүүдэд зориулав
-
-    # --- Web / Frontend ---
+    # 2. Бусад апп-уудын анхны "ЗӨВ" бүтэц (Энд би prefix давхардуулсан байсныг засав)
+    path("api/v1/", include("apps.profiles.urls")),
+    path("api/v1/", include("apps.projects.urls")),
+    path("api/v1/", include("apps.messaging.urls")),
+    path("api/v1/", include("apps.payments.urls")),
+    path("api/v1/", include("apps.reviews.urls")),
+    path("api/v1/admin/", include("apps.adminpanel.urls")),
+    
+    # 3. Үндсэн хуудас
     path("", include("apps.web.urls")),
 ]
 
