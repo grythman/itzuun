@@ -16,8 +16,11 @@ FROM python:3.11-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV HOME=/home/appuser
 
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Гэр хавтастай хэрэглэгч үүсгэх
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup --home /home/appuser appuser
 
 WORKDIR /app
 
@@ -31,12 +34,12 @@ RUN pip install --no-cache-dir /wheels/*
 
 COPY --chown=appuser:appgroup . .
 
-# staticfiles болон media folder-г appuser эзэмшилтэй үүсгэх
 RUN mkdir -p /app/staticfiles /app/media && \
-    chown -R appuser:appgroup /app/staticfiles /app/media
+    chown -R appuser:appgroup /app/staticfiles /app/media /home/appuser
 
 USER appuser
 
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--worker-class", "gthread", "--threads", "3", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-"]
+# Илүү ойлгомжтой CMD (Docker Compose-оор override хийгдэнэ)
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
