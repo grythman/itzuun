@@ -140,6 +140,19 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Sync release files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          source: "backend/**,frontend/**,nginx/**,docker-compose.prod.yml"
+          target: /root/itzuun
+          overwrite: true
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -150,8 +163,7 @@ jobs:
             set -e
             cd /root/itzuun
 
-            echo "=== Pulling latest code ==="
-            git pull origin main
+            echo "=== Release files synced from CI runner ==="
 
             echo "=== Building and restarting api + web ==="
             docker compose -f docker-compose.prod.yml up -d --build --no-deps api web
