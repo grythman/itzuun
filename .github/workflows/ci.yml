@@ -9,24 +9,6 @@ on:
 jobs:
   backend-quality-checks:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: itzuun_user
-          POSTGRES_PASSWORD: itzuun_pass
-          POSTGRES_DB: itzuun
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
 
     steps:
       - name: Checkout code
@@ -37,6 +19,25 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+
+      - name: Start local PostgreSQL and Redis
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-contrib redis-server
+
+          sudo systemctl start postgresql
+          sudo systemctl start redis-server
+
+          sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='itzuun_user'" | grep -q 1 || \
+            sudo -u postgres psql -c "CREATE USER itzuun_user WITH PASSWORD 'itzuun_pass';"
+
+          sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='itzuun'" | grep -q 1 || \
+            sudo -u postgres psql -c "CREATE DATABASE itzuun OWNER itzuun_user;"
+
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE itzuun TO itzuun_user;"
+
+          pg_isready -h localhost -p 5432
+          redis-cli ping
 
       - name: Install dependencies
         run: |
