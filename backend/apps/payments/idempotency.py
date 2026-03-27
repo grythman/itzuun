@@ -1,28 +1,18 @@
-from django.core.cache import cache
-from rest_framework.response import Response
-from rest_framework import status
-
-
 def execute_idempotent(request, executor):
-    # 'Idempotency-Key' эсвэл 'HTTP_IDEMPOTENCY_KEY'-ээс авах
     key = request.headers.get("Idempotency-Key") or request.META.get("HTTP_IDEMPOTENCY_KEY")
-    
     if not key:
-        return executor()  # Түлхүүргүй бол шууд ажиллуулна
+        return executor() # Энэ нь (data, status) tuple буцаах ёстой
 
-    # Check if the result is already in the cache
-    cached_response = cache.get(key)
-    if cached_response:
-        # Reconstruct the Response object from cached data
-        data, status_code = cached_response
-        return Response(data, status=status_code)
+    cache_key = f"idempotency_{request.user.id}_{key}"
+    cached_res = cache.get(cache_key)
+    if cached_res:
+        return cached_res["data"], cached_res["status"]
 
-    # Execute the actual function
-    response_data, status_code = executor()
-
-    # Cache the result
-    # Note: Using Django's default cache timeout. 
-    # For production, consider a more specific timeout (e.g., 24 hours).
-    cache.set(key, (response_data, status_code))
-
-    return Response(response_data, status=status_code)
+    # Шинээр ажиллуулах
+    data, status_code = executor()
+    
+    # Зөвхөн амжилттай хариуг cache-лэх
+    if 200 <= status_code < 300:
+        cache.set(cache_key, {"data": data, "status": status_code}, timeout=3600)
+        
+    return data, status_code

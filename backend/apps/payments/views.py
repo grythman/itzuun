@@ -24,7 +24,8 @@ class ProjectEscrowDepositView(APIView):
             escrow = deposit_to_escrow(project, actor=request.user, amount=project.selected_proposal.price)
             return EscrowSerializer(escrow).data, status.HTTP_201_CREATED
 
-        return execute_idempotent(request, _executor)
+        payload, status_code = execute_idempotent(request, _executor)
+        return Response(payload, status=status_code)
 
 
 class EscrowAdminApproveView(APIView):
@@ -44,9 +45,11 @@ class EscrowAdminApproveView(APIView):
             escrow.save()
             return EscrowSerializer(escrow).data, status.HTTP_200_OK
 
-        payload, status_code = execute_idempotent(request, _executor)
-        return Response(payload, status=status_code)
-
+        result = execute_idempotent(request, _executor)
+        if isinstance(result, tuple):
+            payload, status_code = result
+            return Response(payload, status=status_code)
+        return result
 
 class ProjectConfirmCompletionView(APIView):
     permission_classes = [IsProjectOwnerForPayment]
@@ -54,19 +57,23 @@ class ProjectConfirmCompletionView(APIView):
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
 
-        # 1. Хамгийн түрүүнд маргаан (Dispute) шалгах
+        # 1. ХАМГИЙН ТҮРҮҮНД: Маргаан байгаа бол 400 буцаах
         from apps.payments.models import Dispute
         if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
-            return Response({"error": "Unresolved dispute exists."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Project has an unresolved dispute."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # 2. Шууд service дуудах логик руу орох
+        # 2. Idempotency логик руу орох (Дотор нь completed-ийг шалгахгүй)
         def _executor():
             from apps.payments.services import confirm_completion
             confirm_completion(project, approved_by=request.user)
             return {"status": "completed"}, status.HTTP_200_OK
 
         from apps.payments.idempotency import execute_idempotent
-        return execute_idempotent(request, _executor)
+        payload, status_code = execute_idempotent(request, _executor)
+        return Response(payload, status=status_code)
 
 
 class ProjectDisputeView(APIView):
