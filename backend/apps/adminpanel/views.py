@@ -154,8 +154,13 @@ class AdminDisputeResolveView(APIView):
             bump_admin_resource_version("projects")
             return DisputeSerializer(resolved).data, status.HTTP_200_OK
 
-        payload, status_code = execute_idempotent(request, _executor)
-        return Response(payload, status=status_code)
+        result = execute_idempotent(request, _executor)
+        
+        if isinstance(result, tuple):
+            payload, status_code = result
+            return Response(payload, status=status_code)
+            
+        return result
 
 
 class AdminLedgerListView(APIView):
@@ -193,8 +198,13 @@ class AdminCommissionUpdateView(APIView):
             bump_admin_resource_version("settings")
             return {"platform_fee_pct": setting.platform_fee_pct}, status.HTTP_200_OK
 
-        payload, status_code = execute_idempotent(request, _executor)
-        return Response(payload, status=status_code)
+        result = execute_idempotent(request, _executor)
+        
+        if isinstance(result, tuple):
+            payload, status_code = result
+            return Response(payload, status=status_code)
+            
+        return result
 
 
 class AdminCommissionDetailView(APIView):
