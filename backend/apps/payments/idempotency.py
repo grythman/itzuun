@@ -1,41 +1,28 @@
-"""Idempotency helpers for financial endpoints."""
-import hashlib
-import json
-
-from django.db import IntegrityError
-
-from common.exceptions import DomainError
-
-from .models import IdempotencyKey
+from django.core.cache import cache
+from rest_framework.response import Response
+from rest_framework import status
 
 
-def _hash_response(payload) -> str:
-    raw = json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
-    return hashlib.sha256(raw).hexdigest()
-
-
-def execute_idempotent(request, endpoint: str, actor, executor):
+def execute_idempotent(request, executor):
+    # 'Idempotency-Key' эсвэл 'HTTP_IDEMPOTENCY_KEY'-ээс авах
     key = request.headers.get("Idempotency-Key") or request.META.get("HTTP_IDEMPOTENCY_KEY")
+    
     if not key:
-        raise DomainError("Idempotency-Key header is required.")
+        return executor()  # Түлхүүргүй бол шууд ажиллуулна
 
-    existing = IdempotencyKey.objects.filter(actor=actor, endpoint=endpoint, key=key).first()
-    if existing:
-        return existing.response_body, existing.status_code
+    # Check if the result is already in the cache
+    cached_response = cache.get(key)
+    if cached_response:
+        # Reconstruct the Response object from cached data
+        data, status_code = cached_response
+        return Response(data, status=status_code)
 
-    response_body, status_code = executor()
-    response_hash = _hash_response(response_body)
-    try:
-        IdempotencyKey.objects.create(
-            actor=actor,
-            endpoint=endpoint,
-            key=key,
-            response_hash=response_hash,
-            response_body=response_body,
-            status_code=status_code,
-        )
-    except IntegrityError:
-        replay = IdempotencyKey.objects.get(actor=actor, endpoint=endpoint, key=key)
-        return replay.response_body, replay.status_code
+    # Execute the actual function
+    response_data, status_code = executor()
 
-    return response_body, status_code
+    # Cache the result
+    # Note: Using Django's default cache timeout. 
+    # For production, consider a more specific timeout (e.g., 24 hours).
+    cache.set(key, (response_data, status_code))
+
+    return Response(response_data, status=status_code)
