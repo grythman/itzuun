@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from apps.payments.idempotency import execute_idempotent
 from apps.payments.models import Dispute
-from apps.payments.permissions import IsProjectOwnerForPayment
+from apps.projects.permissions import IsProjectOwnerForPayment
 from apps.payments.serializers import EscrowSerializer
 from apps.payments.services import confirm_completion, deposit_to_escrow
 from apps.projects.models import Project
