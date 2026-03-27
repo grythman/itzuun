@@ -87,7 +87,7 @@ class ProjectConfirmCompletionView(APIView):
         project = get_object_or_404(Project, id=project_id, owner=request.user)
         
         # Check for active disputes
-        if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists()
+        if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
              return Response({"detail": "Cannot confirm completion with an open dispute."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if escrow is already released

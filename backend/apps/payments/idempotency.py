@@ -15,7 +15,7 @@ def _hash_response(payload) -> str:
 
 
 def execute_idempotent(request, endpoint: str, actor, executor):
-    key = request.headers.get("Idempotency-Key") or request.META.get("HTTP_IDEMPOTENCY_KEY") 
+    key = request.headers.get("Idempotency-Key") or request.META.get("HTTP_IDEMPOTENCY_KEY")
     if not key:
         raise DomainError("Idempotency-Key header is required.")
 
