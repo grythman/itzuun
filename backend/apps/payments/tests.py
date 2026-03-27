@@ -21,13 +21,13 @@ class TestAuthentication(TestCase):
         # Test login
         response = self.client.post("/api/v1/auth/login", {"email": "test@example.com", "password": "password123"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("access", response.data)
-        self.assertIn("refresh", response.data)
+        self.assertTrue(response.data.get("authenticated"))
+        self.assertIn("user", response.data)
 
         # Test logout
         self.client.force_authenticate(user=self.user)
         response = self.client.post("/api/v1/auth/logout", {}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class TestProjectCreation(TestCase):
@@ -37,7 +37,17 @@ class TestProjectCreation(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_create_project(self):
-        response = self.client.post("/api/v1/projects", {"title": "New Project", "description": "A description", "budget": 1000, "category": "web"}, format="json")
+        response = self.client.post(
+            "/api/v1/projects",
+            {
+                "title": "New Project",
+                "description": "A description",
+                "budget": 1000,
+                "timeline_days": 7,
+                "category": "web",
+            },
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Project.objects.count(), 1)
         self.assertEqual(Project.objects.get().title, "New Project")
@@ -130,12 +140,12 @@ class EscrowAbuseMatrixTests(TestCase):
         first = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            headers={"Idempotency-Key": ikey}, 
+            HTTP_IDEMPOTENCY_KEY=ikey,
         )
         second = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            headers={"Idempotency-Key": ikey},
+            HTTP_IDEMPOTENCY_KEY=ikey,
         )
 
         self.assertEqual(first.status_code, status.HTTP_200_OK)
@@ -162,7 +172,7 @@ class EscrowAbuseMatrixTests(TestCase):
         complete_resp = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            headers={"Idempotency-Key": str(uuid.uuid4())},
+            HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()),
         )
         
         self.assertEqual(complete_resp.status_code, status.HTTP_400_BAD_REQUEST)
