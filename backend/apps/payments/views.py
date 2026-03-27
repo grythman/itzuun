@@ -4,8 +4,9 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.permissions import IsAdminUser
 from apps.payments.idempotency import execute_idempotent
-from apps.payments.models import Dispute
+from apps.payments.models import Dispute, Escrow
 from apps.projects.permissions import IsProjectOwnerForPayment
 from apps.payments.serializers import EscrowSerializer
 from apps.payments.services import confirm_completion, deposit_to_escrow
@@ -25,26 +26,44 @@ class ProjectEscrowDepositView(APIView):
         return execute_idempotent(request, _executor)
 
 
+class EscrowAdminApproveView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, escrow_id):
+        def _executor():
+            escrow = get_object_or_404(Escrow, id=escrow_id)
+            if escrow.status == Escrow.STATUS_HELD:
+                return EscrowSerializer(escrow).data, status.HTTP_200_OK
+            if escrow.status != Escrow.STATUS_PENDING:
+                return (
+                    {"error": f"Escrow is not in pending state. Current state: {escrow.status}"},
+                    status.HTTP_400_BAD_REQUEST,
+                )
+            escrow.status = Escrow.STATUS_HELD
+            escrow.save()
+            return EscrowSerializer(escrow).data, status.HTTP_200_OK
+
+        payload, status_code = execute_idempotent(request, _executor)
+        return Response(payload, status=status_code)
+
+
 class ProjectConfirmCompletionView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsProjectOwnerForPayment]
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
 
-        # 1. ХАМГИЙН ТҮРҮҮНД: Dispute байгаа эсэхийг шалгах (resolved_at ашиглан)
         if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
             return Response(
                 {"error": "Project has an unresolved dispute."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # 2. ДАРАА НЬ: Хэрэв аль хэдийн дууссан бол idempotency хариу буцаах
         if project.status == Project.STATUS_COMPLETED:
             return Response({"status": "completed"}, status=status.HTTP_200_OK)
 
-        # 3. ЭЦЭСТ НЬ: Service-ийг дуудах
         def _executor():
-            escrow = confirm_completion(project, approved_by=request.user)
+            confirm_completion(project, approved_by=request.user)
             return {"status": "completed"}, status.HTTP_200_OK
 
         return execute_idempotent(request, _executor)
