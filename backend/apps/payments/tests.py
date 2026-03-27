@@ -12,10 +12,41 @@ from apps.projects.models import Project, ProjectDeliverable, Proposal
 from common.exceptions import DomainError
 
 
+class TestAuthentication(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email="test@example.com", password="password123", role="client")
+
+    def test_login_and_logout(self):
+        # Test login
+        response = self.client.post("/api/v1/auth/login", {"email": "test@example.com", "password": "password123"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+
+        # Test logout
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post("/api/v1/auth/logout", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class TestProjectCreation(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email="client@example.com", password="password123", role="client")
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_project(self):
+        response = self.client.post("/api/v1/projects", {"title": "New Project", "description": "A description", "budget": 1000, "category": "web"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Project.objects.count(), 1)
+        self.assertEqual(Project.objects.get().title, "New Project")
+
+
 class EscrowAbuseMatrixTests(TestCase):
     def setUp(self):
         for cache_alias in caches:
-            caches[cache_alias].clear()  # ЭНЭ МӨРИЙГ НЭМСНЭЭР АЛДАА ЗАСАГДАНА
+            caches[cache_alias].clear()
 
         self.client_api = APIClient()
         self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
@@ -92,12 +123,10 @@ class EscrowAbuseMatrixTests(TestCase):
         project.status = Project.STATUS_AWAITING_REVIEW
         project.save(update_fields=["status"])
 
-        import uuid
         ikey = str(uuid.uuid4())
 
         self.client_api.force_authenticate(self.owner)
         
-        # HTTP_IDEMPOTENCY_KEY биш, headers ашиглана!
         first = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
@@ -108,10 +137,6 @@ class EscrowAbuseMatrixTests(TestCase):
             format="json",
             headers={"Idempotency-Key": ikey},
         )
-
-        # ХЭРЭВ АЛДАА ГАРВАЛ ЮУ БУЦАЖ БАЙГААГ ХАРАХ DEBUG
-        print("\n--- FIRST RESP ---", first.json())
-        print("--- SECOND RESP ---", second.json())
 
         self.assertEqual(first.status_code, status.HTTP_200_OK)
         self.assertEqual(second.status_code, status.HTTP_200_OK)
@@ -131,21 +156,15 @@ class EscrowAbuseMatrixTests(TestCase):
         )
         self.assertEqual(dispute_resp.status_code, status.HTTP_201_CREATED)
         
-        # Dispute үүссэн эсэхийг баазаас дахин 1 шалгах
         project.refresh_from_db()
         self.assertEqual(project.status, Project.STATUS_DISPUTED)
 
-        import uuid
         complete_resp = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
-            headers={"Idempotency-Key": str(uuid.uuid4())}, # Мөн адил headers ашиглана
+            headers={"Idempotency-Key": str(uuid.uuid4())},
         )
         
-        # 400 буцахгүй 200 буцаад байвал яг юу буцаагаад байгааг хэвлэж харах
-        if complete_resp.status_code != status.HTTP_400_BAD_REQUEST:
-            print("\n--- COMPLETE RESP ON DISPUTE ---", complete_resp.json())
-
         self.assertEqual(complete_resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_replay_deposit_request_is_idempotent(self):
@@ -300,7 +319,6 @@ class MvPHappyPathApiTests(TestCase):
         verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify", {"action": "approve"}, format="json")
         self.assertEqual(verify_resp.status_code, status.HTTP_200_OK)
         
-        # Refresh freelancer user from DB to get updated verification status
         self.freelancer.refresh_from_db()
 
         self.client_api.force_authenticate(self.client_user)
@@ -377,19 +395,19 @@ class MvPHappyPathApiTests(TestCase):
         )
         self.assertEqual(deliverable.status_code, status.HTTP_201_CREATED)
 
-        submit_result_resp = self.client_api.post(f"/api/v1/projects/{project_id}/submit-result", format="json")
+        submit_result_resp = self.client_api.post(f"/api/v1/projects/{project.id}/submit-result", format="json")
         self.assertEqual(submit_result_resp.status_code, status.HTTP_200_OK)
 
         self.client_api.force_authenticate(self.client_user)
         release_resp = self.client_api.post(
-            f"/api/v1/projects/{project_id}/confirm-completion",
+            f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
             HTTP_IDEMPOTENCY_KEY="e2e-release-key",
         )
         self.assertEqual(release_resp.status_code, status.HTTP_200_OK)
 
         review_resp = self.client_api.post(
-            f"/api/v1/projects/{project_id}/reviews",
+            f"/api/v1/projects/{project.id}/reviews",
             {"rating": 5, "comment": "Great freelancer"},
             format="json",
         )
