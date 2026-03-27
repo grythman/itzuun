@@ -32,6 +32,7 @@ export default function ProjectsPage() {
   };
 
   const projects = useProjects(page, Object.keys(filters).length ? filters : undefined);
+  const categoryList = Array.isArray(categories.data) ? categories.data : [];
 
   const items = projects.data?.results || [];
   const hasNext = !!projects.data?.next;
@@ -81,7 +82,7 @@ export default function ProjectsPage() {
         </select>
       </div>
 
-      {categories.data && categories.data.length > 0 && (
+      {categoryList.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1 pb-2">
           <button
             onClick={() => { setCategoryFilter(""); setPage(1); }}
@@ -93,7 +94,7 @@ export default function ProjectsPage() {
           >
             Бүгд
           </button>
-          {categories.data.map(cat => (
+          {categoryList.map(cat => (
             <button
               key={cat.id}
               onClick={() => { setCategoryFilter(cat.slug); setPage(1); }}

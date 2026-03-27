@@ -23,6 +23,7 @@ export default function NewProjectPage() {
   const [step, setStep] = useState(0);
   const steps = ["Basic Info", "Budget & Timeline", "Review & Confirm"];
   const categories = useCategories();
+  const categoryOptions = Array.isArray(categories.data) ? categories.data : [];
   const form = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: { title: "", description: "", budget: 1000000, timeline_days: 14, category: "other" },
@@ -87,7 +88,7 @@ export default function NewProjectPage() {
               Category
               <select {...form.register("category_id")} aria-label="Project category" className="w-full rounded-md border-surface-300 py-1.5 px-3">
                 <option value="">Сонгох...</option>
-                {categories.data?.map(c => (
+                {categoryOptions.map(c => (
                   <option key={c.id} value={c.id}>{c.name_mn}</option>
                 ))}
               </select>

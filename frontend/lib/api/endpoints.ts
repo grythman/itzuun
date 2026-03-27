@@ -258,7 +258,14 @@ export const adminApi = {
 export const categoriesApi = {
   list: async () => {
     const res = await apiClient.get("/projects/categories/");
-    return res.data;
+    const payload = res.data;
+    if (Array.isArray(payload)) {
+      return payload;
+    }
+    if (payload && Array.isArray(payload.results)) {
+      return payload.results;
+    }
+    return [];
   },
 };
 
