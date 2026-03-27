@@ -5,11 +5,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdminUser
+from common.exceptions import DomainError
 from apps.payments.idempotency import execute_idempotent
 from apps.payments.models import Dispute, Escrow
 from apps.projects.permissions import IsProjectOwnerForPayment
-from apps.payments.serializers import EscrowSerializer
-from apps.payments.services import confirm_completion, deposit_to_escrow
+from apps.payments.serializers import EscrowSerializer, DisputeSerializer
+from apps.payments.services import confirm_completion, deposit_to_escrow, create_dispute
 from apps.projects.models import Project
 
 
@@ -34,9 +35,9 @@ class EscrowAdminApproveView(APIView):
             escrow = get_object_or_404(Escrow, id=escrow_id)
             if escrow.status == Escrow.STATUS_HELD:
                 return EscrowSerializer(escrow).data, status.HTTP_200_OK
-            if escrow.status != Escrow.STATUS_PENDING:
+            if escrow.status != Escrow.STATUS_CREATED:
                 return (
-                    {"error": f"Escrow is not in pending state. Current state: {escrow.status}"},
+                    {"error": f"Escrow is not in created state. Current state: {escrow.status}"},
                     status.HTTP_400_BAD_REQUEST,
                 )
             escrow.status = Escrow.STATUS_HELD
@@ -60,7 +61,7 @@ class ProjectConfirmCompletionView(APIView):
             )
 
         if project.status == Project.STATUS_COMPLETED:
-            return Response({"status": "completed"}, status=status.HTTP_200_OK)
+            return Response({"status": "completed"}, status.HTTP_200_OK)
 
         def _executor():
             confirm_completion(project, approved_by=request.user)
@@ -74,5 +75,15 @@ class ProjectDisputeView(APIView):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
-        # ... (implementation not shown)
-        return Response(status=status.HTTP_201_CREATED)
+        serializer = DisputeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            dispute = create_dispute(
+                project=project,
+                raised_by=request.user,
+                reason=serializer.validated_data.get("reason", ""),
+                evidence_files=serializer.validated_data.get("evidence_files", []),
+            )
+            return Response(DisputeSerializer(dispute).data, status=status.HTTP_201_CREATED)
+        except DomainError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
