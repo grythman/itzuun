@@ -28,7 +28,10 @@ def calculate_commission(amount: int) -> tuple[int, int]:
 
 
 def _lock_project(project: Project) -> Project:
-    return (Project.objects.select_for_update().select_related("escrow", "selected_proposal").get(id=project.id))
+    # FOR UPDATE-д select_related ашиглахгүй
+    Project.objects.select_for_update().get(id=project.id)
+    # Дараа нь хэрэгтэй датагаа энгийнээр татах
+    return Project.objects.select_related("escrow", "selected_proposal").get(id=project.id)
 
 def _lock_escrow(escrow: Escrow) -> Escrow:
     return Escrow.objects.select_for_update().get(id=escrow.id)
@@ -43,6 +46,7 @@ def _serialize_escrow(escrow: Escrow) -> dict:
         "status": escrow.status,
     }
 
+
 def _serialize_project(project: Project) -> dict:
     return {
         "id": project.id,
@@ -50,10 +54,12 @@ def _serialize_project(project: Project) -> dict:
         "selected_proposal_id": project.selected_proposal_id,
     }
 
+
 def _build_hash_chain(payload: dict) -> str:
     previous = FinancialAuditLog.objects.order_by("-id").values_list("hash_chain", flat=True).first() or "GENESIS"
     raw = f"{previous}:{json.dumps(payload, sort_keys=True, default=str)}".encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
+
 
 def _log_financial_event(
     *,

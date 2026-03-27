@@ -49,24 +49,23 @@ class EscrowAdminApproveView(APIView):
 
 
 class ProjectConfirmCompletionView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsProjectOwnerForPayment]
+    permission_classes = [IsProjectOwnerForPayment]
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
 
+        # 1. Хамгийн түрүүнд маргаан (Dispute) шалгах
+        from apps.payments.models import Dispute
         if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
-            return Response(
-                {"error": "Project has an unresolved dispute."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Unresolved dispute exists."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if project.status == Project.STATUS_COMPLETED:
-            return Response({"status": "completed"}, status.HTTP_200_OK)
-
+        # 2. Шууд service дуудах логик руу орох
         def _executor():
+            from apps.payments.services import confirm_completion
             confirm_completion(project, approved_by=request.user)
             return {"status": "completed"}, status.HTTP_200_OK
 
+        from apps.payments.idempotency import execute_idempotent
         return execute_idempotent(request, _executor)
 
 
