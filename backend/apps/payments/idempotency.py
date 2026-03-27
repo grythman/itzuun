@@ -1,3 +1,5 @@
+from django.core.cache import cache
+
 def execute_idempotent(request, executor):
     key = request.headers.get("Idempotency-Key") or request.META.get("HTTP_IDEMPOTENCY_KEY")
     if not key:
