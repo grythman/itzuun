@@ -85,19 +85,29 @@ class ProjectConfirmCompletionView(APIView):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id, owner=request.user)
-        
-        # Check for active disputes
-        if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
-             return Response({"detail": "Cannot confirm completion with an open dispute."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if escrow is already released
+        if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
+            return Response(
+                {"detail": "Cannot confirm completion with an open dispute."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             escrow = Escrow.objects.get(project=project)
             if escrow.status == Escrow.STATUS_RELEASED:
-                 # Already released, return success (idempotent)
-                 return Response(EscrowSerializer(escrow).data, status=status.HTTP_200_OK)
+                return Response(EscrowSerializer(escrow).data, status=status.HTTP_200_OK)
+            if escrow.status != Escrow.STATUS_HELD:
+                return Response(
+                    {
+                        "detail": f"Cannot confirm completion. Escrow is in '{escrow.status}' status, not 'held'."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         except Escrow.DoesNotExist:
-            return Response({"detail": "Escrow does not exist for this project."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Escrow does not exist for this project."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         def _executor():
             escrow = confirm_completion(project, approved_by=request.user)
@@ -112,6 +122,7 @@ class ProjectConfirmCompletionView(APIView):
             )
         except DomainError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(payload, status=status_code)
 
 class EscrowReleaseView(APIView):
