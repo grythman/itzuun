@@ -1,7 +1,6 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { use } from "react";
 import Link from "next/link";
 
 import { ErrorState, LoadingState } from "@/components/states";
@@ -10,8 +9,8 @@ import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useProfile } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
 
-export default function FreelancerPublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function FreelancerPublicProfilePage({ params }: { params: { id: string } }) {
+  const id = params?.id;
   const profile = useProfile(id);
   const rating = useQuery({
     queryKey: ["rating-summary", id],
