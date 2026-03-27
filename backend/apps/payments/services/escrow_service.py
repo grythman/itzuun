@@ -161,6 +161,16 @@ def approve_escrow(escrow: Escrow, actor) -> Escrow:
     return escrow
 
 @transaction.atomic
+def expire_stale_pending_payments(*, ttl_minutes: int = 30) -> int:
+    threshold = timezone.now() - timezone.timedelta(minutes=ttl_minutes)
+    stale = Payment.objects.select_for_update().filter(status=Payment.STATUS_PENDING, created_at__lt=threshold)
+    count = stale.count()
+    if count > 0:
+        stale.update(status=Payment.STATUS_FAILED)
+        bump_admin_resource_version("payments")
+    return count
+
+@transaction.atomic
 def confirm_completion(project: Project, approved_by) -> Escrow:
     project = _lock_project(project)
     if project.owner_id != approved_by.id:
