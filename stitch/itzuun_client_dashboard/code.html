@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ITZuun | Client Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#414560",
+                        "secondary-fixed": "#dee0ff",
+                        "on-error": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "surface-container-highest": "#e1e2e8",
+                        "primary-fixed": "#e6deff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e7e8ee",
+                        "inverse-on-surface": "#eff0f6",
+                        "inverse-primary": "#cabeff",
+                        "primary-container": "#5d3fd3",
+                        "background": "#f8f9ff",
+                        "surface-container-low": "#f2f3f9",
+                        "surface-container": "#eceef3",
+                        "outline-variant": "#c9c4d7",
+                        "secondary-container": "#dbdeff",
+                        "tertiary-fixed": "#c2e8ff",
+                        "on-secondary-fixed": "#161a32",
+                        "tertiary-container": "#006384",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#1c0062",
+                        "on-primary-container": "#d8ceff",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#004d67",
+                        "on-background": "#191c20",
+                        "inverse-surface": "#2e3135",
+                        "surface-bright": "#f8f9ff",
+                        "on-surface": "#191c20",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#4723be",
+                        "on-secondary-container": "#5d617d",
+                        "outline": "#797586",
+                        "on-tertiary-fixed": "#001e2b",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#9eddff",
+                        "surface-variant": "#e1e2e8",
+                        "primary": "#451ebb",
+                        "secondary-fixed-dim": "#c1c4e5",
+                        "tertiary": "#004a64",
+                        "primary-fixed-dim": "#cabeff",
+                        "secondary": "#595d78",
+                        "surface-tint": "#6042d6",
+                        "tertiary-fixed-dim": "#75d1ff",
+                        "on-surface-variant": "#484554",
+                        "surface-dim": "#d8dae0"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tonal-shift { background-color: #f2f3f9; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body antialiased">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/30 dark:border-slate-800/30 shadow-sm dark:shadow-none">
+<div class="flex items-center justify-between px-6 py-4 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tighter text-indigo-700 dark:text-indigo-400 font-headline">ITZuun</span>
+<nav class="hidden md:flex items-center gap-6 font-['Manrope'] font-semibold tracking-tight">
+<a class="text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors" href="#">Browse Projects</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors" href="#">Find Freelancers</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors" href="#">MN/EN</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-600 font-semibold hover:opacity-80 transition-all duration-200">Login</button>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-bold hover:opacity-90 scale-95 active:scale-90 transition-transform">Post a Project</button>
+</div>
+</div>
+</header>
+<div class="flex min-h-screen pt-16">
+<!-- Side Navigation Bar -->
+<aside class="h-screen w-64 border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex flex-col p-4 space-y-2 sticky top-16">
+<div class="mb-8 px-2 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="User Profile Avatar" data-alt="professional male portrait with friendly expression in a modern office setting, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgsbPHkpEOxpL1nRhJAU_sl0QIg4TzxEeIxolyGa7FNQkmnQUS9trFcGuT-XnZVE4cEtRF5Ve3W3767unxfutgIZCEFKaZHTDLNT2eZEKQuY6EK8-KVHr2lFD1KIKbZevFfxGW6FVOgFA6G4cCV7hvaVmaXTHYQ-vI_h6bmkcC3VHNGZnAzcUi0RVlwjLaZQ4Yt3_aTo-NJUyVo1aOMSs0aJL2T9YPeNXEG1g48bzF0Dfi0VUXS5s1H8nqei7rqktEgaVFFi61j0sU"/>
+</div>
+<div>
+<p class="font-['Inter'] text-sm font-bold text-on-surface">Client Portal</p>
+<p class="text-xs text-secondary italic">Verified Enterprise</p>
+</div>
+</div>
+</div>
+<!-- Dashboard Item (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded-lg font-bold font-['Inter'] text-sm hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg font-medium font-['Inter'] text-sm hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+<span>My Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg font-medium font-['Inter'] text-sm hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+<span class="flex-1">Messages</span>
+<span class="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full">3</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg font-medium font-['Inter'] text-sm hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg font-medium font-['Inter'] text-sm hover:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<div class="mt-auto pt-4 border-t border-slate-200/50">
+<button class="w-full py-3 px-4 rounded-xl text-sm font-semibold text-primary bg-primary-fixed hover:opacity-80 transition-all">
+                    Switch to Freelancer View
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 md:p-12 max-w-7xl">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="text-4xl md:text-5xl font-extrabold font-headline tracking-tight text-on-background mb-2">Welcome back, Bat-Erdene</h1>
+<p class="text-lg text-secondary font-medium">Your IT infrastructure transformation is 65% complete. Here's your project pulse.</p>
+</header>
+<!-- Top Row: Quick Actions & Overview Cards -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+<!-- Escrow Status -->
+<div class="lg:col-span-2 bg-surface-container-low p-8 rounded-xl flex flex-col md:flex-row justify-between items-center gap-8 border-none relative overflow-hidden">
+<div class="z-10">
+<div class="flex items-center gap-2 text-tertiary-container font-bold mb-2">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="uppercase text-xs tracking-widest">Secure Escrow Shield</span>
+</div>
+<h3 class="text-3xl font-bold font-headline mb-1">₮ 12,450,000.00</h3>
+<p class="text-on-surface-variant text-sm">Total Held in Secured Milestone Payments</p>
+</div>
+<div class="flex flex-wrap gap-3 z-10">
+<button class="bg-primary-container text-on-primary-container px-6 py-3 rounded-full font-bold text-sm hover:opacity-90 transition-all">Add Funds</button>
+<button class="bg-surface-container-highest text-on-surface px-6 py-3 rounded-full font-bold text-sm hover:opacity-90 transition-all">View Statement</button>
+</div>
+<!-- Decorative background glow -->
+<div class="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+</div>
+<!-- Quick Actions Bento -->
+<div class="bg-primary text-white p-8 rounded-xl flex flex-col justify-between group cursor-pointer hover:bg-primary/95 transition-all">
+<div>
+<span class="material-symbols-outlined text-4xl mb-4" data-icon="rocket_launch">rocket_launch</span>
+<h3 class="text-xl font-bold font-headline mb-2">Launch New Sprint</h3>
+<p class="text-primary-fixed-dim text-sm leading-relaxed">Instantly post a project and receive proposals within 24 hours from verified devs.</p>
+</div>
+<div class="mt-6 flex items-center gap-2 font-bold group-hover:translate-x-2 transition-transform">
+                        Post Project <span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Active Projects Section -->
+<section class="mb-12">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-bold font-headline text-on-background">Active Project Streams</h2>
+<a class="text-primary font-semibold text-sm hover:underline" href="#">View All Projects</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Project Card 1: In Progress -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border-none shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-black uppercase rounded-full mb-3 inline-block">In Progress</span>
+<h4 class="text-xl font-bold font-headline">Enterprise ERP Cloud Migration</h4>
+<p class="text-xs text-on-surface-variant mt-1">Managed by: <span class="font-bold text-primary">Dulam Systems LLC</span></p>
+</div>
+<div class="w-12 h-12 bg-surface-container-low rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">cloud_sync</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-xs font-bold">
+<span>Milestone 3 of 5</span>
+<span>75%</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-3/4 rounded-full"></div>
+</div>
+<div class="flex items-center justify-between pt-4">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-white" data-alt="close up of male software engineer with glasses, soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdfk7b9O-vHQnLM4EWx3yyxOsTm9AxUa2PHWckRhFFo-wa_g39wBdrvTiRITh_6h80hpQFuz88LcZoZBMBPi8AKYlFofSpLmxI9NnzTHXEnNO9a3TtM1YCiyPQT6fn5CovU43bnHLbwylm5W-zFhInF-pTlkv9t9GI63cjg4ogGn-ZPhmQQi0uN94XybDspTDZ77lYo0t5KBO8aWlEA9ttMKLxZC7AamXAo9AtAYAYs7IFb6RkNNBPOP5wQmm677C9PYgveYgYC-Qc"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-white" data-alt="professional female UI designer smiling, soft outdoor city lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCVsud-_DSpy9nPVwrA5MG2WQgPd1IMv0rAf8QlJ_iKAMaXNXRruUOe8b-Z7IzX-5qwMyKnNGlmS6gfvlFBf_ydICNF1jIChTYbvjHMU8Cu6Zx4Pqp8WOsrvzkZMa9H-k-4IvWXIyar86DWTSfT8wNp01NYOauSs8oyAl9ctA_Vdj5qBOtjPKKbrNjPCHGrzzgUVaZxtcbmuBGVRfoarmtuECC7KDySpz8SGBrnvRZR2H548T6YJFNyQH42G-vGofyrDK7fwkkkvfc"/>
+<div class="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-slate-400">+2</div>
+</div>
+<button class="text-sm font-bold text-primary hover:opacity-80">Workspace <span class="material-symbols-outlined text-sm">open_in_new</span></button>
+</div>
+</div>
+</div>
+<!-- Project Card 2: Bidding -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border-none shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase rounded-full mb-3 inline-block">Bidding</span>
+<h4 class="text-xl font-bold font-headline">Mobile App (iOS/Android) for Retail</h4>
+<p class="text-xs text-on-surface-variant mt-1">Open for 3 more days</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-low rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">smartphone</span>
+</div>
+</div>
+<div class="flex items-center gap-4 py-4 bg-slate-50 rounded-lg px-4 mb-4">
+<span class="material-symbols-outlined text-amber-500">description</span>
+<div>
+<p class="text-sm font-bold">12 New Proposals</p>
+<p class="text-[10px] text-slate-500">Average Bid: ₮ 8,200,000</p>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-high text-on-surface py-2 rounded-lg font-bold text-sm">View Bids</button>
+<button class="flex-1 bg-primary text-white py-2 rounded-lg font-bold text-sm">Shortlist</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Tools Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Recent Messages -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm md:col-span-2">
+<h3 class="text-lg font-bold font-headline mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">chat_bubble</span>
+                        Unread Communications
+                    </h3>
+<div class="space-y-4">
+<div class="flex items-start gap-4 p-3 hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer">
+<img alt="Freelancer avatar" class="w-10 h-10 rounded-full" data-alt="professional male portrait with warm smile, minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsogVc2CeudKEndhkRXwZmh_DqwPLAJ7mzGH3rKaJrqlrC20GvaF-flWvfzFr6lGIFArCgSFCiWgBd1BLOa7yhNSTN41QYs9ux4eJKjhexORXpmgDpr0gxnz6PnafDFUimVvRq1_n4LVv6YoKh69G8ocTDvyj4CbZSe-AV0qWMKuoEp7U9fevJlIUaOIUCARRMfcQt6bwWoBVkBoKSGS0SbbdCBpi4WeJx09lY7Fw0jPjwrkJVR0ci4vlTvB5kMFCsyZYwUsrn7x2A"/>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<p class="text-sm font-bold">Amaraa (Senior Developer)</p>
+<span class="text-[10px] text-slate-400">2h ago</span>
+</div>
+<p class="text-xs text-on-surface-variant line-clamp-1">I've updated the API documentation for the payment gateway module. Please check milestone 2...</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-3 hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer border-t border-slate-100">
+<img alt="Freelancer avatar" class="w-10 h-10 rounded-full" data-alt="close up of confident female professional, high key lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIYpUvfnho_n0iaAz2YjKGvQC-PC9ktOiFz8gSGo0406PP4XFdSE3CIUPvKK5VmtNa_28tPohAVb2anp0MCfBH-HzFzDeGaXMwCcZZYls8vx_PUBgLn-wuMS3R5tAQ0NmUozG3MqLiqnA2gFLuCsL5R8cBAyFU8YIMa7nIkAK7_of8gD3RqGagXnHIEpTPDA40qnmUwBImtHNP8-0cDHLvOfRdrAeGQ38mOSVbKg_9w7N4at5yGbo8VIP6WvepFQMpTtIZoEH7fSAe"/>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<p class="text-sm font-bold">Zorig (Project Lead)</p>
+<span class="text-[10px] text-slate-400">5h ago</span>
+</div>
+<p class="text-xs text-on-surface-variant line-clamp-1">The security audit is complete. We are ready to deploy to staging tonight at 10 PM.</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-primary transition-colors">Go to Messages</button>
+</div>
+<!-- Secondary Actions Card -->
+<div class="space-y-6">
+<div class="bg-white p-6 rounded-xl border border-indigo-100 shadow-sm">
+<h4 class="font-bold text-sm mb-4 text-on-surface">Browse Top Talents</h4>
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">code</span>
+</div>
+<span class="text-sm font-medium">Node.js Experts</span>
+<span class="ml-auto material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">brush</span>
+</div>
+<span class="text-sm font-medium">UI/UX Architects</span>
+<span class="ml-auto material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">data_exploration</span>
+</div>
+<span class="text-sm font-medium">Data Scientists</span>
+<span class="ml-auto material-symbols-outlined text-slate-300">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Support Card -->
+<div class="bg-slate-900 text-white p-6 rounded-xl">
+<h4 class="font-bold text-sm mb-2">Need assistance?</h4>
+<p class="text-xs text-slate-400 mb-4 leading-relaxed">Your dedicated account manager is online. Get help with project scoping.</p>
+<button class="w-full py-2 bg-slate-800 rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors">Contact Support</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 mt-auto bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+<div class="col-span-1 md:col-span-1">
+<span class="text-lg font-bold text-slate-900 dark:text-white font-headline">ITZuun Mongolia</span>
+<p class="mt-4 font-['Inter'] text-xs text-slate-500 leading-relaxed">The premier destination for high-tier IT talent and digital transformation in the heart of Eurasia.</p>
+</div>
+<div>
+<h5 class="font-bold text-sm mb-4">Platform</h5>
+<ul class="space-y-2 font-['Inter'] text-xs text-slate-500">
+<li><a class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold text-sm mb-4">Security</h5>
+<ul class="space-y-2 font-['Inter'] text-xs text-slate-500">
+<li><a class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">QPay Security</a></li>
+<li><a class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Escrow Protection</a></li>
+<li><a class="hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Support</a></li>
+</ul>
+</div>
+<div class="flex flex-col items-start md:items-end">
+<div class="flex gap-4 mb-4">
+<span class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors cursor-pointer">language</span>
+<span class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors cursor-pointer">public</span>
+</div>
+<p class="font-['Inter'] text-xs text-slate-500">© 2024 ITZuun Mongolia. All rights reserved.</p>
+</div>
+</div>
+</footer>
+</body></html>

@@ -52,15 +52,16 @@ export default function ProjectsPage() {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Projects</h1>
-        <Link href="/projects/new" className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white shadow-sm hover:bg-brand-700">
+        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Projects</h1>
+        <Link href="/projects/new" className="rounded-full primary-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-card hover:opacity-95">
           Create Project
         </Link>
       </div>
 
       {/* Search and filters */}
+      <div className="rounded-2xl bg-surface-100 p-3 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <form onSubmit={handleSearch} className="flex flex-1 gap-2">
           <input
@@ -70,7 +71,7 @@ export default function ProjectsPage() {
             onChange={(e) => setSearchInput(e.target.value)}
             className="flex-1 rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
           />
-          <button type="submit" className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
+          <button type="submit" className="rounded-full primary-gradient px-5 py-2 text-[13px] text-white">
             Search
           </button>
         </form>
@@ -80,6 +81,7 @@ export default function ProjectsPage() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+      </div>
       </div>
 
       {categoryList.length > 0 && (
@@ -121,12 +123,12 @@ export default function ProjectsPage() {
         <>
           <ul className="grid gap-3">
             {items.map((project) => (
-              <li key={project.id} className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card transition hover:shadow-card-hover">
+              <li key={project.id} className="rounded-2xl bg-white p-5 shadow-card transition hover:shadow-card-hover">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-medium text-surface-900">{project.title}</h2>
-                      <span className="rounded-full bg-surface-100 px-2 py-0.5 text-[11px] text-surface-600">
+                      <h2 className="font-headline text-2xl font-bold text-surface-900">{project.title}</h2>
+                      <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] text-brand-700">
                         {project.category_obj ? project.category_obj.name_mn : project.category}
                       </span>
                     </div>
@@ -139,7 +141,7 @@ export default function ProjectsPage() {
                       </span>
                     </div>
                   </div>
-                  <Link href={`/projects/${project.id}`} className="shrink-0 rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
+                  <Link href={`/projects/${project.id}`} className="shrink-0 rounded-full primary-gradient px-5 py-2 text-[13px] text-white">
                     View
                   </Link>
                 </div>

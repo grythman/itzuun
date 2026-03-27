@@ -204,23 +204,23 @@ function AuthCard() {
 
   return (
     <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-6 shadow-hero sm:p-8">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-brand-600">Secure Access</p>
-        <h1 className="mt-3 text-center text-2xl font-semibold tracking-tight text-surface-900">Welcome to ITZuun</h1>
-        <p className="mt-1.5 text-center text-[13px] text-surface-500">Manage projects, proposals, and escrow in one secure account.</p>
+      <div className="w-full max-w-[460px] rounded-3xl bg-white/90 p-6 shadow-hero sm:p-8">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">Secure Access</p>
+        <h1 className="mt-3 text-center font-headline text-4xl font-extrabold tracking-tight text-surface-900">Welcome to ITZuun</h1>
+        <p className="mt-1.5 text-center text-[13px] text-surface-600">Manage projects, proposals, and escrow in one secure account.</p>
 
-        <div className="mt-6 grid grid-cols-2 rounded-xl bg-surface-100 p-1">
+        <div className="mt-6 grid grid-cols-2 rounded-full bg-surface-100 p-1">
           <button
             type="button"
             onClick={() => setActiveTab("signin")}
-            className={activeTab === "signin" ? "bg-white text-surface-900 shadow-sm font-medium" : "text-surface-500 hover:text-surface-700"}
+            className={activeTab === "signin" ? "rounded-full bg-white text-surface-900 shadow-card font-medium" : "text-surface-500 hover:text-surface-700"}
           >
             Sign In
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("register")}
-            className={activeTab === "register" ? "bg-white text-surface-900 shadow-sm font-medium" : "text-surface-500 hover:text-surface-700"}
+            className={activeTab === "register" ? "rounded-full bg-white text-surface-900 shadow-card font-medium" : "text-surface-500 hover:text-surface-700"}
           >
             Register
           </button>
@@ -249,7 +249,7 @@ function AuthCard() {
             </label>
             {loginForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.password.message}</p> : null}
 
-            <ActionButton className="w-full py-2.5 text-sm font-semibold" type="submit" loading={loginMutation.isPending}>
+            <ActionButton className="w-full primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={loginMutation.isPending}>
               Sign In
             </ActionButton>
           </form>
@@ -275,7 +275,7 @@ function AuthCard() {
               </select>
             </label>
 
-            <ActionButton className="w-full py-2.5 text-sm font-semibold" type="submit" loading={registerMutation.isPending}>
+            <ActionButton className="w-full primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={registerMutation.isPending}>
               Create Account
             </ActionButton>
           </form>
@@ -290,7 +290,7 @@ function AuthCard() {
         </button>
 
         {showPasswordless ? (
-          <div className="mt-4 space-y-4 rounded-xl border border-surface-200/60 bg-surface-50 p-4">
+          <div className="mt-4 space-y-4 rounded-2xl bg-surface-100 p-4">
             <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
               <p className="text-[13px] font-semibold text-surface-800">1) Request OTP</p>
               <label className="block text-[13px] font-medium text-surface-600">
@@ -298,7 +298,7 @@ function AuthCard() {
                 <input className="mt-1" type="email" {...requestForm.register("email")} />
               </label>
               {requestForm.formState.errors.email ? <p className="text-[11px] text-red-600">{requestForm.formState.errors.email.message}</p> : null}
-              <ActionButton className="w-full" type="submit" loading={requestMutation.isPending}>Request OTP</ActionButton>
+              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={requestMutation.isPending}>Request OTP</ActionButton>
             </form>
 
             <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
@@ -320,7 +320,7 @@ function AuthCard() {
                   {verifyForm.formState.errors.email?.message || verifyForm.formState.errors.otp_token?.message || verifyForm.formState.errors.otp?.message}
                 </p>
               ) : null}
-              <ActionButton className="w-full" type="submit" loading={verifyMutation.isPending}>Verify OTP</ActionButton>
+              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={verifyMutation.isPending}>Verify OTP</ActionButton>
             </form>
           </div>
         ) : null}

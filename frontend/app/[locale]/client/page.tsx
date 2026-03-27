@@ -61,7 +61,7 @@ export default function ClientDashboardPage() {
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath="/auth">
       <section className="space-y-6 pb-20">
-        <h1 className="text-2xl font-semibold">Client Dashboard</h1>
+        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Client Dashboard</h1>
 
         <div className="flex gap-4">
           <RoleSidebar role="client" />
@@ -72,7 +72,7 @@ export default function ClientDashboardPage() {
             
             <TrustPanel />
 
-            <AppCard>
+            <AppCard className="border-none bg-surface-100">
               <p className="text-[13px] font-semibold text-surface-800">Company Profile Completeness: {profileCompleteness}%</p>
               <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
                 <div className="h-1.5 rounded-full bg-brand-600" style={{ width: `${profileCompleteness}%` }} />
@@ -88,27 +88,27 @@ export default function ClientDashboardPage() {
               </p>
             </AppCard>
 
-            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-              <h2 className="mb-3 text-lg font-medium text-surface-900">My Projects</h2>
+            <div className="rounded-2xl bg-white p-6 shadow-card">
+              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">My Projects</h2>
               {!myProjects.length ? (
                 <div className="text-center py-10">
-                  <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                  <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
                   </div>
                   <h3 className="text-sm font-medium text-surface-900">No projects yet</h3>
                   <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">Get started by posting your first project. It takes just a few minutes to connect with top verified freelancers.</p>
-                  <Link href="/projects/new" className="mt-4 inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700">
+                  <Link href="/projects/new" className="mt-4 inline-flex items-center justify-center rounded-full primary-gradient px-5 py-2 text-xs font-semibold text-white shadow-card">
                     Post a Project
                   </Link>
                 </div>
               ) : (
                 <ul className="space-y-2">
                   {myProjects.map((project) => (
-                    <li key={project.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px] space-y-2">
+                    <li key={project.id} className="rounded-xl bg-surface-100 p-4 text-[13px] space-y-2">
                       <p className="font-medium text-surface-900">{project.title}</p>
                       <p className="text-surface-500">Status: {project.status}</p>
                       <div className="flex flex-wrap gap-2">
-                        <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setActiveProjectId(project.id)}>
+                        <button className="primary-gradient text-white" onClick={() => setActiveProjectId(project.id)}>
                           View Proposals
                         </button>
                         <button className="bg-brand-700 text-white hover:bg-brand-800" onClick={() => router.push(`/projects/${project.id}/payment`)}>
@@ -127,8 +127,8 @@ export default function ClientDashboardPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-              <h2 className="mb-3 text-lg font-medium text-surface-900">Project Proposals</h2>
+            <div className="rounded-2xl bg-white p-6 shadow-card">
+              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">Project Proposals</h2>
               {!activeProjectId ? (
                 <EmptyState label="Select a project to view proposals." />
               ) : proposals.isLoading ? (

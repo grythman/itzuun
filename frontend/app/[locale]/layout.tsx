@@ -33,7 +33,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages} locale={locale}>
           <Providers>
             <Nav />
-            <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+            <main className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">{children}</main>
             <ToastCenter />
           </Providers>
         </NextIntlClientProvider>

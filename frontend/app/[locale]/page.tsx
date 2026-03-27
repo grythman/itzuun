@@ -19,119 +19,96 @@ export default function HomePage() {
   const items = (projects.data?.results || []).slice(0, 3);
 
   return (
-    <section className="space-y-16 py-6">
-      {/* Hero */}
-      <div className="grid items-center gap-10 rounded-3xl bg-white p-8 shadow-hero lg:grid-cols-2 lg:p-14">
-        <div className="space-y-6">
-          <p className="inline-flex rounded-full bg-brand-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-brand-700">IT Freelance Platform</p>
-          <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-surface-900 sm:text-5xl">
+    <section className="space-y-20 py-6">
+      <div className="grid items-center gap-10 rounded-[2rem] bg-surface-100 p-8 lg:grid-cols-[1.1fr_0.9fr] lg:p-12">
+        <div className="space-y-7">
+          <p className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-700">IT FREELANCE PLATFORM</p>
+          <h1 className="font-headline text-5xl font-extrabold leading-[1.05] tracking-tight text-surface-900 sm:text-6xl">
             {t("title")}
           </h1>
-          <p className="max-w-xl text-[15px] leading-relaxed text-surface-500">
-            {t("subtitle")}
-          </p>
+          <p className="max-w-xl text-[15px] leading-relaxed text-surface-600">{t("subtitle")}</p>
 
-          <div className="flex flex-wrap gap-3 pt-1">
-            <Link href="/projects/new" className="rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors">
+          <div className="flex flex-wrap gap-3">
+            <Link href="/projects/new" className="primary-gradient rounded-full px-7 py-3 text-sm font-semibold text-white shadow-card hover:opacity-95">
               {t("ctaClient")}
             </Link>
-            <Link href="/projects" className="rounded-xl border border-surface-200 bg-white px-6 py-3 text-sm font-semibold text-surface-700 hover:bg-surface-50 transition-colors">
+            <Link href="/projects" className="rounded-full bg-surface-300 px-7 py-3 text-sm font-semibold text-surface-800 hover:bg-surface-400/70">
               {t("ctaFreelancer")}
             </Link>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 p-8 text-white shadow-lg overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <div className="relative z-10">
-            <p className="text-[11px] font-semibold text-brand-200 tracking-[0.2em] mb-6">PROJECT WORKFLOW</p>
-            
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold">1</div>
-                  <div className="w-0.5 h-full bg-brand-500/30 my-1"></div>
-                </div>
-                <div className="pb-4">
-                  <p className="font-medium text-white">Post & Match</p>
-                  <p className="text-[13px] text-brand-200 mt-1">Clients post projects, verified freelancers submit competitive proposals.</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold">2</div>
-                  <div className="w-0.5 h-full bg-brand-500/30 my-1"></div>
-                </div>
-                <div className="pb-4">
-                  <p className="font-medium text-white">Secure Escrow Lock</p>
-                  <p className="text-[13px] text-brand-200 mt-1">Funds are deposited safely into an escrow lock before work begins.</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold">3</div>
-                </div>
-                <div>
-                  <p className="font-medium text-white">Deliver & Release</p>
-                  <p className="text-[13px] text-brand-200 mt-1">Freelancer delivers the assets. Client approves and platform releases funds automatically.</p>
-                </div>
-              </div>
+        <div className="rounded-2xl primary-gradient p-7 text-white shadow-hero">
+          <p className="mb-5 text-[11px] font-semibold tracking-[0.2em] text-brand-100">PROJECT WORKFLOW</p>
+          <div className="space-y-4 text-[13px]">
+            <div>
+              <p className="font-semibold">1. Post & Match</p>
+              <p className="mt-1 text-brand-100">Clients post projects, verified freelancers submit proposals.</p>
+            </div>
+            <div>
+              <p className="font-semibold">2. Secure Escrow Lock</p>
+              <p className="mt-1 text-brand-100">Funds are secured before work starts, reducing delivery risk.</p>
+            </div>
+            <div>
+              <p className="font-semibold">3. Deliver & Release</p>
+              <p className="mt-1 text-brand-100">Approve deliverables and release funds through protected flow.</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Features */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <AppCard>
-          <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          </div>
-          <h3 className="text-[15px] font-semibold text-surface-900">Verified Specialists</h3>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-surface-500">Work with vetted developers, designers, and QA engineers for production-ready delivery.</p>
+      <div className="grid gap-5 md:grid-cols-3">
+        <AppCard className="border-none bg-white">
+          <h3 className="font-headline text-lg font-bold text-surface-900">Verified Specialists</h3>
+          <p className="mt-2 text-[13px] leading-relaxed text-surface-600">Work with vetted developers, designers, and QA engineers for production-ready delivery.</p>
         </AppCard>
-        <AppCard>
-          <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          </div>
-          <h3 className="text-[15px] font-semibold text-surface-900">Escrow Protection</h3>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-surface-500">Funds remain secure until each milestone is reviewed and approved by the client.</p>
+        <AppCard className="border-none bg-white">
+          <h3 className="font-headline text-lg font-bold text-surface-900">QPay Escrow Protection</h3>
+          <p className="mt-2 text-[13px] leading-relaxed text-surface-600">Funds remain secure until each milestone is reviewed and approved by the client.</p>
         </AppCard>
-        <AppCard>
-          <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent-50 text-accent-600">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          </div>
-          <h3 className="text-[15px] font-semibold text-surface-900">Transparent Progress</h3>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-surface-500">Track proposals, project updates, and communication in a single clean workflow.</p>
+        <AppCard className="border-none bg-white">
+          <h3 className="font-headline text-lg font-bold text-surface-900">Transparent Progress</h3>
+          <p className="mt-2 text-[13px] leading-relaxed text-surface-600">Track proposals, project updates, and communication in a single clean workflow.</p>
         </AppCard>
       </div>
 
-      {/* Latest Projects */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold tracking-tight text-surface-900">Latest Projects</h2>
+        <div className="flex items-end justify-between">
+          <h2 className="font-headline text-3xl font-bold tracking-tight text-surface-900">Featured Projects</h2>
+          <Link href="/projects" className="text-sm font-semibold text-brand-700">View All Projects</Link>
+        </div>
         {!items.length ? (
           <EmptyState label="No projects found." />
         ) : (
-          <ul className="grid gap-3">
-            {items.map((project) => (
-              <li key={project.id} className="group rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-[15px] font-semibold text-surface-900">{project.title}</h3>
-                    <p className="mt-1 text-[13px] leading-relaxed text-surface-500">{project.description}</p>
-                  </div>
-                  <Link href={`/projects/${project.id}`} className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors">
-                    View
-                  </Link>
-                </div>
-              </li>
-            ))}
+          <ul className="grid gap-4 md:grid-cols-[2fr_1fr]">
+            <li className="rounded-2xl bg-white p-6 shadow-card">
+              <h3 className="font-headline text-2xl font-bold text-surface-900">{items[0].title}</h3>
+              <p className="mt-2 max-w-xl text-[13px] text-surface-600">{items[0].description}</p>
+              <div className="mt-6 flex items-center justify-between">
+                <span className="text-sm font-semibold text-brand-700">₮{Number(items[0].budget || 0).toLocaleString()}</span>
+                <Link href={`/projects/${items[0].id}`} className="rounded-full bg-brand-100 px-4 py-2 text-xs font-semibold text-brand-700">View Details</Link>
+              </div>
+            </li>
+            <div className="grid gap-4">
+              {items.slice(1).map((project) => (
+                <li key={project.id} className="rounded-2xl bg-white p-5 shadow-card">
+                  <h3 className="font-headline text-lg font-bold text-surface-900">{project.title}</h3>
+                  <p className="mt-2 line-clamp-2 text-[12px] text-surface-600">{project.description}</p>
+                  <Link href={`/projects/${project.id}`} className="mt-3 inline-block text-xs font-semibold text-brand-700">Open Project →</Link>
+                </li>
+              ))}
+            </div>
           </ul>
         )}
+      </div>
+
+      <div className="rounded-[2rem] primary-gradient px-8 py-14 text-center text-white">
+        <h2 className="font-headline text-4xl font-extrabold tracking-tight">Ready to build something great?</h2>
+        <p className="mx-auto mt-4 max-w-2xl text-[14px] text-brand-100">Join the fastest-growing community of elite IT professionals in Mongolia.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/auth?tab=register" className="rounded-full bg-white px-7 py-3 text-xs font-bold uppercase tracking-wider text-brand-700">Join ITZuun Today</Link>
+          <Link href="/projects" className="rounded-full border border-white/40 px-7 py-3 text-xs font-bold uppercase tracking-wider text-white">Talk to an Expert</Link>
+        </div>
       </div>
     </section>
   );

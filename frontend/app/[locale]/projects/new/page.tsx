@@ -67,97 +67,110 @@ export default function NewProjectPage() {
   });
 
   return (
-    <section className="mx-auto max-w-3xl space-y-4">
-      <AppCard>
-        <h1 className="text-2xl font-semibold">Post a Project</h1>
-        <p className="mt-1 text-[13px] text-surface-500">Guided 3-step posting flow for better scope clarity and faster proposals.</p>
-        <div className="mt-3">
-          <StepProgress steps={steps} currentStep={step} />
-        </div>
-      </AppCard>
+    <section className="mx-auto max-w-6xl space-y-6">
+      <div className="rounded-2xl bg-surface-100 p-5">
+        <StepProgress steps={steps} currentStep={step} />
+      </div>
 
-      <form className="space-y-4" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
-        {step === 0 ? (
-          <AppCard className="space-y-3">
-            <h2 className="text-lg font-semibold">Step 1: Basic Info</h2>
-            <label className="block text-sm">
-              Title
-              <input {...form.register("title")} aria-label="Project title" />
-            </label>
-            <label className="block text-sm">
-              Category
-              <select {...form.register("category_id")} aria-label="Project category" className="w-full rounded-md border-surface-300 py-1.5 px-3">
-                <option value="">Сонгох...</option>
-                {categoryOptions.map(c => (
-                  <option key={c.id} value={c.id}>{c.name_mn}</option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              Scope checklist / Required skills
-              <input
-                value={skillsInput}
-                onChange={(event) => setSkillsInput(event.target.value)}
-                aria-label="Project skills"
-                placeholder="react, django, postgresql"
-              />
-            </label>
-          </AppCard>
-        ) : null}
+      <form className="grid gap-6 lg:grid-cols-[1.6fr_0.9fr]" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
+        <div className="space-y-4">
+          {step === 0 ? (
+            <AppCard className="space-y-4 border-none bg-white">
+              <h1 className="font-headline text-4xl font-extrabold text-surface-900">Let&apos;s start with your project title</h1>
+              <p className="text-sm text-surface-600">This helps us match you with the right Mongolian tech talent.</p>
+              <label className="block text-sm font-medium">
+                Project Title
+                <input {...form.register("title")} aria-label="Project title" placeholder="e.g., Build a custom inventory management system" />
+              </label>
+              <label className="block text-sm font-medium">
+                Select a Category
+                <select {...form.register("category_id")} aria-label="Project category">
+                  <option value="">Сонгох...</option>
+                  {categoryOptions.map(c => (
+                    <option key={c.id} value={c.id}>{c.name_mn}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm font-medium">
+                Scope checklist / Required skills
+                <input
+                  value={skillsInput}
+                  onChange={(event) => setSkillsInput(event.target.value)}
+                  aria-label="Project skills"
+                  placeholder="react, django, postgresql"
+                />
+              </label>
+            </AppCard>
+          ) : null}
 
-        {step === 1 ? (
-          <AppCard className="space-y-3">
-            <h2 className="text-lg font-semibold">Step 2: Budget & Timeline</h2>
-            <label className="block text-sm">
-              Budget (MNT)
-              <input type="number" {...form.register("budget", { valueAsNumber: true })} aria-label="Project budget" />
-            </label>
-            <p className="text-[11px] text-surface-500">Budget guidance: clear budget increases proposal quality and reduces negotiation delay.</p>
-            <label className="block text-sm">
-              Timeline (days)
-              <input type="number" {...form.register("timeline_days", { valueAsNumber: true })} aria-label="Project timeline" />
-            </label>
-          </AppCard>
-        ) : null}
+          {step === 1 ? (
+            <AppCard className="space-y-4 border-none bg-white">
+              <h2 className="font-headline text-3xl font-bold">Budget & Timeline</h2>
+              <label className="block text-sm font-medium">
+                Budget (MNT)
+                <input type="number" {...form.register("budget", { valueAsNumber: true })} aria-label="Project budget" />
+              </label>
+              <label className="block text-sm font-medium">
+                Timeline (days)
+                <input type="number" {...form.register("timeline_days", { valueAsNumber: true })} aria-label="Project timeline" />
+              </label>
+            </AppCard>
+          ) : null}
 
-        {step === 2 ? (
-          <AppCard className="space-y-3">
-            <h2 className="text-lg font-semibold">Step 3: Review & Confirm</h2>
-            <label className="block text-sm">
-              Description
-              <textarea {...form.register("description")} aria-label="Project description" rows={5} />
-            </label>
+          {step === 2 ? (
+            <AppCard className="space-y-4 border-none bg-white">
+              <h2 className="font-headline text-3xl font-bold">Review & Confirm</h2>
+              <label className="block text-sm font-medium">
+                Description
+                <textarea {...form.register("description")} aria-label="Project description" rows={6} />
+              </label>
+              <button
+                type="button"
+                className="w-full rounded-full bg-surface-200 py-3 text-sm font-semibold text-surface-700 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => aiMutation.mutate()}
+                disabled={aiMutation.isPending}
+              >
+                {aiMutation.isPending ? "Generating..." : "Suggest Description (AI)"}
+              </button>
+              <TrustPanel />
+            </AppCard>
+          ) : null}
+
+          <div className="flex items-center justify-between gap-3 pt-2">
             <button
               type="button"
-              className="w-full bg-brand-600 text-white disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={() => aiMutation.mutate()}
-              disabled={aiMutation.isPending}
+              className="bg-transparent px-0 text-sm font-semibold text-surface-600"
+              onClick={() => setStep((prev) => Math.max(0, prev - 1))}
+              disabled={step === 0}
             >
-              {aiMutation.isPending ? "Generating..." : "Suggest Description (AI)"}
+              ← Back
             </button>
-            <TrustPanel />
-          </AppCard>
-        ) : null}
-
-        <div className="flex flex-wrap justify-between gap-2">
-          <button
-            type="button"
-            className="bg-surface-100 text-surface-700"
-            onClick={() => setStep((prev) => Math.max(0, prev - 1))}
-            disabled={step === 0}
-          >
-            Back
-          </button>
-          {step < steps.length - 1 ? (
-            <button type="button" className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}>
-              Continue
-            </button>
-          ) : (
-            <button type="submit" className="bg-brand-600 text-white hover:bg-brand-700" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving..." : "Publish Project"}
-            </button>
-          )}
+            {step < steps.length - 1 ? (
+              <button type="button" className="primary-gradient rounded-full px-9 py-3 text-sm font-semibold text-white" onClick={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}>
+                Continue
+              </button>
+            ) : (
+              <button type="submit" className="primary-gradient rounded-full px-9 py-3 text-sm font-semibold text-white" disabled={mutation.isPending}>
+                {mutation.isPending ? "Saving..." : "Publish Project"}
+              </button>
+            )}
+          </div>
         </div>
+
+        <aside className="space-y-4">
+          <AppCard className="border-none bg-surface-100">
+            <h3 className="font-headline text-xl font-bold text-surface-900">Why post on ITZuun?</h3>
+            <ul className="mt-4 space-y-3 text-[13px] text-surface-600">
+              <li>Vetted Mongolian talent pool</li>
+              <li>Secure QPay payments with escrow</li>
+              <li>Workflow optimized for local market</li>
+            </ul>
+          </AppCard>
+          <AppCard className="border-none bg-accent-50">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-700">Pro Tip</p>
+            <p className="mt-2 text-[13px] text-surface-700">Projects with specific titles attract more qualified applications in the first 24 hours.</p>
+          </AppCard>
+        </aside>
       </form>
     </section>
   );
