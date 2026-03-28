@@ -50,17 +50,22 @@ export function Nav() {
 
   const iconClass = "h-4 w-4 text-surface-500";
 
+  const baseNavLinks = publicLinks.map((link) => ({
+    href: link.href,
+    icon: link.icon,
+    label: t(link.labelKey as "browseProjects" | "findFreelancers"),
+  }));
+
   const navLinks = user
     ? [
-        ...publicLinks,
+        ...baseNavLinks,
         { href: dashboardPath(user.role), label: t("dashboard"), icon: "dashboard" },
       ]
-    : publicLinks.map((link) => ({ ...link, label: t(link.labelKey as "browseProjects" | "findFreelancers") }));
+    : baseNavLinks;
 
   const resolvedNavLinks = navLinks.map((link) => ({
     ...link,
     href: withLocale(link.href),
-    label: ("label" in link && link.label) || t(link.labelKey as "browseProjects" | "findFreelancers"),
   }));
 
   return (
