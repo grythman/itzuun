@@ -3,11 +3,12 @@ export const dynamic = "force-dynamic";
 
 import Script from "next/script";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 
 import { ActionButton } from "@/components/ui-kit";
 import { authApi } from "@/lib/api/endpoints";
@@ -55,9 +56,14 @@ function roleDashboard(role?: string) {
 }
 
 function AuthCard() {
+  const t = useTranslations("Auth");
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
   const me = useMe();
+  const pathParts = pathname.split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const initialTab = useMemo<AuthTab>(() => (searchParams.get("tab") === "register" ? "register" : "signin"), [searchParams]);
 
   const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
@@ -71,8 +77,8 @@ function AuthCard() {
 
   // Redirect authenticated users to their dashboard
   useEffect(() => {
-    if (me.data) router.replace(roleDashboard(me.data.role));
-  }, [me.data, router]);
+    if (me.data) router.replace(withLocale(roleDashboard(me.data.role)));
+  }, [me.data, router, locale]);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -120,7 +126,7 @@ function AuthCard() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "Account created and logged in");
-      router.push(roleDashboard(data?.role));
+      router.push(withLocale(roleDashboard(data?.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -130,7 +136,7 @@ function AuthCard() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "Logged in");
-      router.push(roleDashboard(data?.role));
+      router.push(withLocale(roleDashboard(data?.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -140,7 +146,7 @@ function AuthCard() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "Google login амжилттай");
-      router.push(roleDashboard(data?.role));
+      router.push(withLocale(roleDashboard(data?.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -166,7 +172,7 @@ function AuthCard() {
       await queryClient.invalidateQueries({ queryKey: ["me"] });
       toast("success", "OTP verified. Session started");
       const user = await queryClient.fetchQuery({ queryKey: ["me", true], queryFn: () => authApi.me(true) });
-      router.push(roleDashboard(user.role));
+      router.push(withLocale(roleDashboard(user.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -205,9 +211,9 @@ function AuthCard() {
   return (
     <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
       <div className="w-full max-w-[460px] rounded-3xl bg-white/90 p-6 shadow-hero sm:p-8">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">Secure Access</p>
-        <h1 className="mt-3 text-center font-headline text-4xl font-extrabold tracking-tight text-surface-900">Welcome to ITZuun</h1>
-        <p className="mt-1.5 text-center text-[13px] text-surface-600">Manage projects, proposals, and escrow in one secure account.</p>
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">{t("badge")}</p>
+        <h1 className="mt-3 text-center font-headline text-4xl font-extrabold tracking-tight text-surface-900">{t("title")}</h1>
+        <p className="mt-1.5 text-center text-[13px] text-surface-600">{t("subtitle")}</p>
 
         <div className="mt-6 grid grid-cols-2 rounded-full bg-surface-100 p-1">
           <button
@@ -215,20 +221,20 @@ function AuthCard() {
             onClick={() => setActiveTab("signin")}
             className={activeTab === "signin" ? "rounded-full bg-white text-surface-900 shadow-card font-medium" : "text-surface-500 hover:text-surface-700"}
           >
-            Sign In
+            {t("signIn")}
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("register")}
             className={activeTab === "register" ? "rounded-full bg-white text-surface-900 shadow-card font-medium" : "text-surface-500 hover:text-surface-700"}
           >
-            Register
+            {t("register")}
           </button>
         </div>
 
         {googleClientId ? (
           <div className="mt-5 space-y-3">
-            <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-surface-400">Passwordless with Google</p>
+            <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-surface-400">{t("passwordlessGoogle")}</p>
             <div className="flex justify-center">
               <div ref={googleButtonRef} className="min-h-[44px]" />
             </div>
@@ -238,45 +244,45 @@ function AuthCard() {
         {activeTab === "signin" ? (
           <form className="mt-6 space-y-4" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
             <label className="block text-[13px] font-medium text-surface-700">
-              Email
+              {t("email")}
               <input className="mt-1.5" type="email" placeholder="name@example.com" {...loginForm.register("email")} />
             </label>
             {loginForm.formState.errors.email ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.email.message}</p> : null}
 
             <label className="block text-[13px] font-medium text-surface-700">
-              Password
+              {t("password")}
               <input className="mt-1.5" type="password" placeholder="••••••••" {...loginForm.register("password")} />
             </label>
             {loginForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.password.message}</p> : null}
 
             <ActionButton className="w-full primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={loginMutation.isPending}>
-              Sign In
+              {t("signIn")}
             </ActionButton>
           </form>
         ) : (
           <form className="mt-6 space-y-4" onSubmit={registerForm.handleSubmit((values) => registerMutation.mutate(values))}>
             <label className="block text-[13px] font-medium text-surface-700">
-              Email
+              {t("email")}
               <input className="mt-1.5" type="email" placeholder="name@example.com" {...registerForm.register("email")} />
             </label>
             {registerForm.formState.errors.email ? <p className="-mt-2 text-[11px] text-red-600">{registerForm.formState.errors.email.message}</p> : null}
 
             <label className="block text-[13px] font-medium text-surface-700">
-              Password
-              <input className="mt-1.5" type="password" placeholder="At least 8 characters" {...registerForm.register("password")} />
+              {t("password")}
+              <input className="mt-1.5" type="password" placeholder={t("passwordPlaceholder")} {...registerForm.register("password")} />
             </label>
             {registerForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{registerForm.formState.errors.password.message}</p> : null}
 
             <label className="block text-[13px] font-medium text-surface-700">
-              Role
+              {t("role")}
               <select className="mt-1.5" {...registerForm.register("role")}>
-                <option value="client">Client</option>
-                <option value="freelancer">Freelancer</option>
+                <option value="client">{t("roleClient")}</option>
+                <option value="freelancer">{t("roleFreelancer")}</option>
               </select>
             </label>
 
             <ActionButton className="w-full primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={registerMutation.isPending}>
-              Create Account
+              {t("createAccount")}
             </ActionButton>
           </form>
         )}
@@ -286,33 +292,33 @@ function AuthCard() {
           onClick={() => setShowPasswordless((prev) => !prev)}
           className="mt-5 w-full text-center text-[13px] font-medium text-brand-600 hover:text-brand-700"
         >
-          Use email OTP instead
+          {t("useOtp")}
         </button>
 
         {showPasswordless ? (
           <div className="mt-4 space-y-4 rounded-2xl bg-surface-100 p-4">
             <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
-              <p className="text-[13px] font-semibold text-surface-800">1) Request OTP</p>
+              <p className="text-[13px] font-semibold text-surface-800">{t("otpStep1")}</p>
               <label className="block text-[13px] font-medium text-surface-600">
-                Email
+                {t("email")}
                 <input className="mt-1" type="email" {...requestForm.register("email")} />
               </label>
               {requestForm.formState.errors.email ? <p className="text-[11px] text-red-600">{requestForm.formState.errors.email.message}</p> : null}
-              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={requestMutation.isPending}>Request OTP</ActionButton>
+              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={requestMutation.isPending}>{t("requestOtp")}</ActionButton>
             </form>
 
             <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
-              <p className="text-[13px] font-semibold text-surface-800">2) Verify OTP</p>
+              <p className="text-[13px] font-semibold text-surface-800">{t("otpStep2")}</p>
               <label className="block text-[13px] font-medium text-surface-600">
-                Email
+                {t("email")}
                 <input className="mt-1" type="email" {...verifyForm.register("email")} />
               </label>
               <label className="block text-[13px] font-medium text-surface-600">
-                OTP Token
+                {t("otpToken")}
                 <input className="mt-1" {...verifyForm.register("otp_token")} />
               </label>
               <label className="block text-[13px] font-medium text-surface-600">
-                OTP
+                {t("otp")}
                 <input className="mt-1" {...verifyForm.register("otp")} />
               </label>
               {(verifyForm.formState.errors.email || verifyForm.formState.errors.otp_token || verifyForm.formState.errors.otp) ? (
@@ -320,7 +326,7 @@ function AuthCard() {
                   {verifyForm.formState.errors.email?.message || verifyForm.formState.errors.otp_token?.message || verifyForm.formState.errors.otp?.message}
                 </p>
               ) : null}
-              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={verifyMutation.isPending}>Verify OTP</ActionButton>
+              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={verifyMutation.isPending}>{t("verifyOtp")}</ActionButton>
             </form>
           </div>
         ) : null}
@@ -330,6 +336,7 @@ function AuthCard() {
 }
 
 export default function AuthPage() {
+  const t = useTranslations("Auth");
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
@@ -337,7 +344,7 @@ export default function AuthPage() {
         fallback={
           <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
             <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-8 shadow-hero">
-              <p className="text-center text-[13px] text-surface-500">Loading authentication...</p>
+              <p className="text-center text-[13px] text-surface-500">{t("loading")}</p>
             </div>
           </section>
         }

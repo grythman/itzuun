@@ -2,21 +2,19 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { useCategories, useProjects } from "@/lib/hooks";
 
-const statusOptions = [
-  { value: "", label: "All Status" },
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "awaiting_client_review", label: "Awaiting Review" },
-  { value: "completed", label: "Completed" },
-  { value: "disputed", label: "Disputed" },
-];
-
 export default function ProjectsPage() {
+  const t = useTranslations("Projects");
+  const pathname = usePathname();
+  const pathParts = pathname.split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -37,6 +35,14 @@ export default function ProjectsPage() {
   const items = projects.data?.results || [];
   const hasNext = !!projects.data?.next;
   const hasPrev = page > 1;
+  const statusOptions = [
+    { value: "", label: t("allStatus") },
+    { value: "open", label: t("open") },
+    { value: "in_progress", label: t("inProgress") },
+    { value: "awaiting_client_review", label: t("awaitingReview") },
+    { value: "completed", label: t("completed") },
+    { value: "disputed", label: t("disputed") },
+  ];
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -54,9 +60,9 @@ export default function ProjectsPage() {
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Projects</h1>
-        <Link href="/projects/new" className="rounded-full primary-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-card hover:opacity-95">
-          Create Project
+        <h1 className="font-headline text-4xl font-extrabold tracking-tight">{t("title")}</h1>
+        <Link href={withLocale("/projects/new")} className="rounded-full primary-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-card hover:opacity-95">
+          {t("create")}
         </Link>
       </div>
 
@@ -66,13 +72,13 @@ export default function ProjectsPage() {
         <form onSubmit={handleSearch} className="flex flex-1 gap-2">
           <input
             type="text"
-            placeholder="Search projects..."
+            placeholder={t("searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="flex-1 rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
           />
           <button type="submit" className="rounded-full primary-gradient px-5 py-2 text-[13px] text-white">
-            Search
+            {t("search")}
           </button>
         </form>
 
@@ -94,7 +100,7 @@ export default function ProjectsPage() {
                 : "bg-surface-100 text-surface-700 hover:bg-surface-200"
             }`}
           >
-            Бүгд
+            {t("allCategories")}
           </button>
           {categoryList.map(cat => (
             <button
@@ -107,18 +113,18 @@ export default function ProjectsPage() {
               }`}
             >
               {cat.icon && <span>{cat.icon}</span>}
-              {cat.name_mn}
+              {locale === "en" ? (cat.name_en || cat.name_mn || cat.name) : (cat.name_mn || cat.name_en || cat.name)}
             </button>
           ))}
         </div>
       )}
 
       {projects.isLoading ? (
-        <LoadingState label="Loading projects..." />
+        <LoadingState label={t("loading")} />
       ) : projects.isError ? (
-        <ErrorState label="Could not load projects." />
+        <ErrorState label={t("loadError")} />
       ) : !items.length ? (
-        <EmptyState label="No projects found." />
+        <EmptyState label={t("empty")} />
       ) : (
         <>
           <ul className="grid gap-3">
@@ -129,20 +135,24 @@ export default function ProjectsPage() {
                     <div className="flex items-center gap-2">
                       <h2 className="font-headline text-2xl font-bold text-surface-900">{project.title}</h2>
                       <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] text-brand-700">
-                        {project.category_obj ? project.category_obj.name_mn : project.category}
+                        {project.category_obj
+                          ? (locale === "en"
+                            ? (project.category_obj.name_en || project.category_obj.name_mn || project.category_obj.name)
+                            : (project.category_obj.name_mn || project.category_obj.name_en || project.category_obj.name))
+                          : project.category}
                       </span>
                     </div>
                     <p className="mt-1 line-clamp-2 text-[13px] text-surface-600">{project.description}</p>
                     <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-surface-500">
-                      <span>Budget: {Number(project.budget).toLocaleString()}₮</span>
-                      <span>Timeline: {project.timeline_days} days</span>
+                      <span>{t("budget")}: {Number(project.budget).toLocaleString()}₮</span>
+                      <span>{t("timeline")}: {project.timeline_days} {t("days")}</span>
                       <span className="rounded-full bg-brand-50 px-2 py-0.5 font-medium capitalize text-brand-700">
                         {project.status?.replace(/_/g, " ")}
                       </span>
                     </div>
                   </div>
-                  <Link href={`/projects/${project.id}`} className="shrink-0 rounded-full primary-gradient px-5 py-2 text-[13px] text-white">
-                    View
+                  <Link href={withLocale(`/projects/${project.id}`)} className="shrink-0 rounded-full primary-gradient px-5 py-2 text-[13px] text-white">
+                    {t("view")}
                   </Link>
                 </div>
               </li>
@@ -157,16 +167,16 @@ export default function ProjectsPage() {
               onClick={() => setPage((p) => p - 1)}
               className="rounded-xl border border-surface-200/60 px-4 py-2 text-[13px] disabled:opacity-40"
             >
-              Previous
+              {t("previous")}
             </button>
-            <span className="text-[13px] text-surface-600">Page {page}</span>
+            <span className="text-[13px] text-surface-600">{t("page")} {page}</span>
             <button
               type="button"
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
               className="rounded-xl border border-surface-200/60 px-4 py-2 text-[13px] disabled:opacity-40"
             >
-              Next
+              {t("next")}
             </button>
           </div>
         </>

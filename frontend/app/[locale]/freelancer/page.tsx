@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -22,6 +24,11 @@ import type { Proposal } from "@/lib/types";
 type ProposalForm = z.infer<typeof proposalSchema>;
 
 export default function FreelancerDashboardPage() {
+  const t = useTranslations("FreelancerDash");
+  const pathname = usePathname();
+  const pathParts = pathname.split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const me = useMe();
   const proposals = useMyProposals();
   const projects = useProjects(1);
@@ -111,10 +118,10 @@ export default function FreelancerDashboardPage() {
   }
 
   return (
-    <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath="/auth">
+    <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
       <section className="space-y-6 pb-20">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Freelancer Dashboard</h1>
+          <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <VerifiedBadge verified={me.data.is_verified} />
         </div>
 
@@ -128,61 +135,61 @@ export default function FreelancerDashboardPage() {
 
             <div className="grid gap-3 md:grid-cols-4">
               <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Earnings summary</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("earnings")}</p>
                 <p className="mt-1 text-xl font-semibold text-surface-900">{earnings.toLocaleString()} MNT</p>
               </AppCard>
               <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Active projects</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("activeProjects")}</p>
                 <p className="mt-1 text-xl font-semibold text-surface-900">{activeProjects.length}</p>
               </AppCard>
               <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Pending proposals</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("pendingProposals")}</p>
                 <p className="mt-1 text-xl font-semibold text-surface-900">{pendingProposals}</p>
               </AppCard>
               <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Rating</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("rating")}</p>
                 <div className="mt-1"><RatingStars value={rating.data?.average ?? 0} /></div>
-                <p className="mt-0.5 text-[11px] text-surface-500">{rating.data?.total ?? 0} reviews</p>
+                <p className="mt-0.5 text-[11px] text-surface-500">{rating.data?.total ?? 0} {t("reviews")}</p>
               </AppCard>
             </div>
 
             <AppCard>
-              <p className="text-[13px] font-semibold text-surface-800">Profile completeness: {profileCompleteness}%</p>
+              <p className="text-[13px] font-semibold text-surface-800">{t("profileCompleteness")}: {profileCompleteness}%</p>
               <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
                 <div className="h-1.5 rounded-full bg-emerald-600" style={{ width: `${profileCompleteness}%` }} />
               </div>
               <p className="mt-2 text-[11px] text-surface-500">
                 {profileCompleteness < 100 ? (
-                  <Link href="/freelancer/profile" className="text-brand-600 hover:underline">
-                    Complete your profile to get 2x more selection chances →
+                  <Link href={withLocale("/freelancer/profile")} className="text-brand-600 hover:underline">
+                    {t("completeProfile")} →
                   </Link>
                 ) : (
-                  "Your profile is complete!"
+                  t("profileDone")
                 )}
               </p>
             </AppCard>
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-              <h2 className="mb-3 text-lg font-medium text-surface-900">My Proposals</h2>
+              <h2 className="mb-3 text-lg font-medium text-surface-900">{t("myProposals")}</h2>
               {!myProposals.length ? (
                 <div className="text-center py-10">
                   <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                   </div>
-                  <h3 className="text-sm font-medium text-surface-900">No proposals submitted</h3>
-                  <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">Browse available projects and submit proposals to start earning.</p>
-                  <Link href="/projects" className="mt-4 inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700">
-                    Browse Projects
+                  <h3 className="text-sm font-medium text-surface-900">{t("noProposals")}</h3>
+                  <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">{t("noProposalsDesc")}</p>
+                  <Link href={withLocale("/projects")} className="mt-4 inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700">
+                    {t("browseProjects")}
                   </Link>
                 </div>
               ) : (
                 <ul className="space-y-2">
                   {myProposals.map((proposal) => (
                     <li key={proposal.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                      <p className="font-medium text-surface-900">Project #{proposal.project}</p>
-                      <p className="text-surface-600">Price: {Number(proposal.price).toLocaleString()} MNT</p>
-                      <p className="text-surface-600">Timeline: {proposal.timeline_days} days</p>
-                      <p className="text-surface-600">Status: <span className="inline-block rounded-full bg-surface-100 px-2 py-0.5 capitalize text-[11px]">{proposal.status || "pending"}</span></p>
+                      <p className="font-medium text-surface-900">{t("project")} #{proposal.project}</p>
+                      <p className="text-surface-600">{t("price")}: {Number(proposal.price).toLocaleString()} MNT</p>
+                      <p className="text-surface-600">{t("timeline")}: {proposal.timeline_days} {t("days")}</p>
+                      <p className="text-surface-600">{t("status")}: <span className="inline-block rounded-full bg-surface-100 px-2 py-0.5 capitalize text-[11px]">{proposal.status || "pending"}</span></p>
                       {(proposal.status || "pending") === "pending" && (
                         <div className="mt-2 flex gap-2">
                           <button
@@ -190,7 +197,7 @@ export default function FreelancerDashboardPage() {
                             className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs text-white hover:bg-brand-700"
                             onClick={() => openEditModal(proposal)}
                           >
-                            Edit
+                            {t("edit")}
                           </button>
                           <button
                             type="button"
@@ -198,7 +205,7 @@ export default function FreelancerDashboardPage() {
                             disabled={withdrawMutation.isPending}
                             onClick={() => withdrawMutation.mutate(proposal.id)}
                           >
-                            {withdrawMutation.isPending ? "Withdrawing..." : "Withdraw"}
+                            {withdrawMutation.isPending ? t("withdrawing") : t("withdraw")}
                           </button>
                         </div>
                       )}
@@ -211,18 +218,18 @@ export default function FreelancerDashboardPage() {
             {editingProposalId !== null && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4">
                 <div className="w-full max-w-[480px] rounded-2xl border border-surface-200/60 bg-white p-6 shadow-modal">
-                  <h3 className="text-lg font-semibold text-surface-900">Edit Proposal</h3>
+                  <h3 className="text-lg font-semibold text-surface-900">{t("editProposal")}</h3>
                   <form className="mt-4 space-y-3" onSubmit={editForm.handleSubmit((v) => updateProposalMutation.mutate(v))}>
                     <label className="block text-[13px] font-medium text-surface-700">
-                      Price (MNT)
+                      {t("price")} (MNT)
                       <input type="number" {...editForm.register("price", { valueAsNumber: true })} className="mt-1" />
                     </label>
                     <label className="block text-[13px] font-medium text-surface-700">
-                      Timeline (days)
+                      {t("timeline")} ({t("days")})
                       <input type="number" {...editForm.register("timeline_days", { valueAsNumber: true })} className="mt-1" />
                     </label>
                     <label className="block text-[13px] font-medium text-surface-700">
-                      Message
+                      {t("message")}
                       <textarea {...editForm.register("message")} rows={3} className="mt-1" />
                     </label>
                     <div className="flex gap-2 pt-2">
@@ -231,14 +238,14 @@ export default function FreelancerDashboardPage() {
                         className="flex-1 rounded-lg bg-surface-100 py-2 text-[13px] text-surface-700 hover:bg-surface-200"
                         onClick={() => setEditingProposalId(null)}
                       >
-                        Cancel
+                        {t("cancel")}
                       </button>
                       <button
                         type="submit"
                         disabled={updateProposalMutation.isPending}
                         className="flex-1 rounded-lg bg-brand-600 py-2 text-[13px] text-white hover:bg-brand-700 disabled:opacity-60"
                       >
-                        {updateProposalMutation.isPending ? "Saving..." : "Save"}
+                        {updateProposalMutation.isPending ? t("saving") : t("save")}
                       </button>
                     </div>
                   </form>
@@ -247,21 +254,21 @@ export default function FreelancerDashboardPage() {
             )}
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-              <h2 className="mb-3 text-lg font-medium text-surface-900">Active Projects</h2>
+              <h2 className="mb-3 text-lg font-medium text-surface-900">{t("activeProjectsSection")}</h2>
               {!activeProjects.length ? (
-                <EmptyState label="No active selected projects." />
+                <EmptyState label={t("noActive")} />
               ) : (
                 <ul className="space-y-2">
                   {activeProjects.map((project) => (
                     <li key={project.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px] space-y-2">
                       <p className="font-medium text-surface-900">{project.title}</p>
-                      <p className="text-surface-600">Status: {project.status}</p>
+                      <p className="text-surface-600">{t("status")}: {project.status}</p>
                       <div className="flex flex-wrap gap-2">
-                        <Link href={`/projects/${project.id}`} className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
-                          Open Project
+                        <Link href={withLocale(`/projects/${project.id}`)} className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
+                          {t("openProject")}
                         </Link>
                         <button className="bg-emerald-600 text-white" onClick={() => submitMutation.mutate(project.id)}>
-                          Submit Result
+                          {t("submitResult")}
                         </button>
                       </div>
                     </li>

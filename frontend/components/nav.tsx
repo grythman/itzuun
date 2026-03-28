@@ -10,8 +10,8 @@ import { authApi } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
 
 const publicLinks = [
-  { href: "/projects", label: "Browse Projects", icon: "projects" },
-  { href: "/freelancers", label: "Find Freelancers", icon: "search" },
+  { href: "/projects", labelKey: "browseProjects", icon: "projects" },
+  { href: "/freelancers", labelKey: "findFreelancers", icon: "search" },
 ];
 
 function dashboardPath(role?: string) {
@@ -25,7 +25,16 @@ export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const needsSessionCheck = ["/client", "/freelancer", "/admin"].some((prefix) => pathname.startsWith(prefix));
+  const pathParts = pathname.split("/").filter(Boolean);
+  const activeLocale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withoutLocale = pathParts[0] === "en" || pathParts[0] === "mn"
+    ? `/${pathParts.slice(1).join("/")}`
+    : pathname;
+  const normalizePath = withoutLocale === "/" ? "" : withoutLocale;
+  const withLocale = (href: string) => `/${activeLocale}${href}`;
+  const switchLocalePath = (locale: "mn" | "en") => `/${locale}${normalizePath}`;
+  const pathForChecks = normalizePath || "/";
+  const needsSessionCheck = ["/client", "/freelancer", "/admin"].some((prefix) => pathForChecks.startsWith(prefix));
   const me = useMe({ enabled: needsSessionCheck, retryOnAuth: needsSessionCheck });
   const user = me.data;
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,9 +52,15 @@ export function Nav() {
   const navLinks = user
     ? [
         ...publicLinks,
-        { href: dashboardPath(user.role), label: "Dashboard", icon: "dashboard" },
+        { href: dashboardPath(user.role), label: t("dashboard"), icon: "dashboard" },
       ]
-    : publicLinks;
+    : publicLinks.map((link) => ({ ...link, label: t(link.labelKey as "browseProjects" | "findFreelancers") }));
+
+  const resolvedNavLinks = navLinks.map((link) => ({
+    ...link,
+    href: withLocale(link.href),
+    label: ("label" in link && link.label) || t(link.labelKey as "browseProjects" | "findFreelancers"),
+  }));
 
   return (
     <header className="sticky top-0 z-30 border-b border-surface-300/35 glass-panel">
@@ -57,7 +72,7 @@ export function Nav() {
           </Link>
 
           <div className="hidden items-center gap-0.5 md:flex">
-            {navLinks.map((link) => {
+            {resolvedNavLinks.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
                 <Link
@@ -123,18 +138,18 @@ export function Nav() {
                 disabled={logoutMutation.isPending}
                 className="rounded-lg px-3 py-1.5 text-[13px] text-surface-500 hover:bg-surface-100 hover:text-surface-800"
               >
-                Logout
+                {t("logout")}
               </button>
             </>
           ) : (
             <>
-              <Link href="/mn" className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">MN</Link>
+              <Link href={switchLocalePath("mn")} className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">MN</Link>
               <span className="text-slate-300">|</span>
-              <Link href="/en" className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">EN</Link>
-              <Link href="/auth?tab=signin" className="ml-2 rounded-lg px-3 py-1.5 text-[13px] font-medium text-surface-600 hover:bg-surface-100">
+              <Link href={switchLocalePath("en")} className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">EN</Link>
+              <Link href={`${withLocale("/auth")}?tab=signin`} className="ml-2 rounded-lg px-3 py-1.5 text-[13px] font-medium text-surface-600 hover:bg-surface-100">
                 {t("login")}
               </Link>
-              <Link href="/auth?tab=register" className="rounded-full primary-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-card hover:opacity-95 transition-colors">
+              <Link href={`${withLocale("/auth")}?tab=register`} className="rounded-full primary-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-card hover:opacity-95 transition-colors">
                 {t("postProject")}
               </Link>
             </>
@@ -146,7 +161,7 @@ export function Nav() {
       {mobileOpen && (
         <div className="border-t border-surface-100 bg-white px-4 py-3 md:hidden">
           <div className="space-y-0.5">
-            {navLinks.map((link) => {
+            {resolvedNavLinks.map((link) => {
               const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
                 <Link

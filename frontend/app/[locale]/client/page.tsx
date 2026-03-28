@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
@@ -14,7 +16,12 @@ import { useMe, useMutation, useProjectProposals, useProjects, useMyProfile } fr
 import { useToastStore } from "@/lib/toast-store";
 
 export default function ClientDashboardPage() {
+  const t = useTranslations("ClientDash");
   const router = useRouter();
+  const pathname = usePathname();
+  const pathParts = pathname.split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const me = useMe();
   const projects = useProjects(1);
   const toast = useToastStore((s) => s.push);
@@ -59,9 +66,9 @@ export default function ClientDashboardPage() {
     }
 
   return (
-    <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath="/auth">
+    <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
       <section className="space-y-6 pb-20">
-        <h1 className="font-headline text-4xl font-extrabold tracking-tight">Client Dashboard</h1>
+        <h1 className="font-headline text-4xl font-extrabold tracking-tight">{t("title")}</h1>
 
         <div className="flex gap-4">
           <RoleSidebar role="client" />
@@ -73,32 +80,32 @@ export default function ClientDashboardPage() {
             <TrustPanel />
 
             <AppCard className="border-none bg-surface-100">
-              <p className="text-[13px] font-semibold text-surface-800">Company Profile Completeness: {profileCompleteness}%</p>
+              <p className="text-[13px] font-semibold text-surface-800">{t("profileCompleteness")}: {profileCompleteness}%</p>
               <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
                 <div className="h-1.5 rounded-full bg-brand-600" style={{ width: `${profileCompleteness}%` }} />
               </div>
               <p className="mt-2 text-[11px] text-surface-500">
                 {profileCompleteness < 100 ? (
-                  <Link href="/client/profile" className="text-brand-600 hover:underline">
-                    Complete your profile to build trust with freelancers →
+                  <Link href={withLocale("/client/profile")} className="text-brand-600 hover:underline">
+                    {t("completeProfile")} →
                   </Link>
                 ) : (
-                  "Your profile is complete!"
+                  t("profileDone")
                 )}
               </p>
             </AppCard>
 
             <div className="rounded-2xl bg-white p-6 shadow-card">
-              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">My Projects</h2>
+              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">{t("myProjects")}</h2>
               {!myProjects.length ? (
                 <div className="text-center py-10">
                   <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
                   </div>
-                  <h3 className="text-sm font-medium text-surface-900">No projects yet</h3>
-                  <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">Get started by posting your first project. It takes just a few minutes to connect with top verified freelancers.</p>
-                  <Link href="/projects/new" className="mt-4 inline-flex items-center justify-center rounded-full primary-gradient px-5 py-2 text-xs font-semibold text-white shadow-card">
-                    Post a Project
+                  <h3 className="text-sm font-medium text-surface-900">{t("noProjects")}</h3>
+                  <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">{t("noProjectsDesc")}</p>
+                  <Link href={withLocale("/projects/new")} className="mt-4 inline-flex items-center justify-center rounded-full primary-gradient px-5 py-2 text-xs font-semibold text-white shadow-card">
+                    {t("postProject")}
                   </Link>
                 </div>
               ) : (
@@ -106,19 +113,19 @@ export default function ClientDashboardPage() {
                   {myProjects.map((project) => (
                     <li key={project.id} className="rounded-xl bg-surface-100 p-4 text-[13px] space-y-2">
                       <p className="font-medium text-surface-900">{project.title}</p>
-                      <p className="text-surface-500">Status: {project.status}</p>
+                      <p className="text-surface-500">{t("status")}: {project.status}</p>
                       <div className="flex flex-wrap gap-2">
                         <button className="primary-gradient text-white" onClick={() => setActiveProjectId(project.id)}>
-                          View Proposals
+                          {t("viewProposals")}
                         </button>
-                        <button className="bg-brand-700 text-white hover:bg-brand-800" onClick={() => router.push(`/projects/${project.id}/payment`)}>
-                          Open Escrow Payment
+                        <button className="bg-brand-700 text-white hover:bg-brand-800" onClick={() => router.push(withLocale(`/projects/${project.id}/payment`))}>
+                          {t("openEscrowPayment")}
                         </button>
                         <button className="bg-emerald-600 text-white" onClick={() => releaseMutation.mutate(project.id)}>
-                          Release Escrow
+                          {t("releaseEscrow")}
                         </button>
                         <button className="bg-accent-600 text-white" onClick={() => disputeMutation.mutate(project.id)}>
-                          Open Dispute
+                          {t("openDispute")}
                         </button>
                       </div>
                     </li>
@@ -128,22 +135,22 @@ export default function ClientDashboardPage() {
             </div>
 
             <div className="rounded-2xl bg-white p-6 shadow-card">
-              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">Project Proposals</h2>
+              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">{t("projectProposals")}</h2>
               {!activeProjectId ? (
-                <EmptyState label="Select a project to view proposals." />
+                <EmptyState label={t("selectProject")} />
               ) : proposals.isLoading ? (
-                <LoadingState label="Loading proposals..." />
+                <LoadingState label={t("loadingProposals")} />
               ) : proposals.isError ? (
-                <ErrorState label="Could not load proposals." />
+                <ErrorState label={t("proposalError")} />
               ) : !proposalItems.length ? (
-                <EmptyState label="No proposals for this project." />
+                <EmptyState label={t("noProposals")} />
               ) : (
                 <ul className="space-y-2">
                   {proposalItems.map((proposal) => (
                     <li key={proposal.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                      <p className="text-surface-700">Freelancer #{proposal.freelancer}</p>
-                      <p className="text-surface-600">Price: {proposal.price}</p>
-                      <p className="text-surface-600">Timeline: {proposal.timeline_days} days</p>
+                      <p className="text-surface-700">{t("freelancer")} #{proposal.freelancer}</p>
+                      <p className="text-surface-600">{t("price")}: {proposal.price}</p>
+                      <p className="text-surface-600">{t("timeline")}: {proposal.timeline_days} {t("days")}</p>
                     </li>
                   ))}
                 </ul>

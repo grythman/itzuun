@@ -2,9 +2,10 @@
 export const dynamic = "force-dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 
 import { AppCard, StepProgress, TrustPanel } from "@/components/ui-kit";
 import { projectsApi } from "@/lib/api/endpoints";
@@ -17,11 +18,16 @@ import type { z } from "zod";
 type FormValues = z.infer<typeof createProjectSchema>;
 
 export default function NewProjectPage() {
+  const t = useTranslations("ProjectNew");
   const router = useRouter();
+  const pathname = usePathname();
+  const pathParts = pathname.split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const toast = useToastStore((s) => s.push);
   const [skillsInput, setSkillsInput] = useState("");
   const [step, setStep] = useState(0);
-  const steps = ["Basic Info", "Budget & Timeline", "Review & Confirm"];
+  const steps = [t("step1"), t("step2"), t("step3")];
   const categories = useCategories();
   const categoryOptions = Array.isArray(categories.data) ? categories.data : [];
   const form = useForm<FormValues>({
@@ -36,7 +42,7 @@ export default function NewProjectPage() {
     },
     onSuccess: (data) => {
       toast("success", "Project created");
-      router.push(`/projects/${data.id}`);
+      router.push(withLocale(`/projects/${data.id}`));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -76,28 +82,28 @@ export default function NewProjectPage() {
         <div className="space-y-4">
           {step === 0 ? (
             <AppCard className="space-y-4 border-none bg-white">
-              <h1 className="font-headline text-4xl font-extrabold text-surface-900">Let&apos;s start with your project title</h1>
-              <p className="text-sm text-surface-600">This helps us match you with the right Mongolian tech talent.</p>
+              <h1 className="font-headline text-4xl font-extrabold text-surface-900">{t("headline")}</h1>
+              <p className="text-sm text-surface-600">{t("sub")}</p>
               <label className="block text-sm font-medium">
-                Project Title
-                <input {...form.register("title")} aria-label="Project title" placeholder="e.g., Build a custom inventory management system" />
+                {t("projectTitle")}
+                <input {...form.register("title")} aria-label={t("projectTitle")} placeholder={t("titlePlaceholder")} />
               </label>
               <label className="block text-sm font-medium">
-                Select a Category
-                <select {...form.register("category_id")} aria-label="Project category">
-                  <option value="">Сонгох...</option>
+                {t("selectCategory")}
+                <select {...form.register("category_id")} aria-label={t("selectCategory")}>
+                  <option value="">{t("selectPlaceholder")}</option>
                   {categoryOptions.map(c => (
-                    <option key={c.id} value={c.id}>{c.name_mn}</option>
+                    <option key={c.id} value={c.id}>{locale === "en" ? (c.name_en || c.name_mn || c.name) : (c.name_mn || c.name_en || c.name)}</option>
                   ))}
                 </select>
               </label>
               <label className="block text-sm font-medium">
-                Scope checklist / Required skills
+                {t("skills")}
                 <input
                   value={skillsInput}
                   onChange={(event) => setSkillsInput(event.target.value)}
-                  aria-label="Project skills"
-                  placeholder="react, django, postgresql"
+                  aria-label={t("skills")}
+                  placeholder={t("skillsPlaceholder")}
                 />
               </label>
             </AppCard>
@@ -105,24 +111,24 @@ export default function NewProjectPage() {
 
           {step === 1 ? (
             <AppCard className="space-y-4 border-none bg-white">
-              <h2 className="font-headline text-3xl font-bold">Budget & Timeline</h2>
+              <h2 className="font-headline text-3xl font-bold">{t("step2")}</h2>
               <label className="block text-sm font-medium">
-                Budget (MNT)
-                <input type="number" {...form.register("budget", { valueAsNumber: true })} aria-label="Project budget" />
+                {t("budget")}
+                <input type="number" {...form.register("budget", { valueAsNumber: true })} aria-label={t("budget")} />
               </label>
               <label className="block text-sm font-medium">
-                Timeline (days)
-                <input type="number" {...form.register("timeline_days", { valueAsNumber: true })} aria-label="Project timeline" />
+                {t("timeline")}
+                <input type="number" {...form.register("timeline_days", { valueAsNumber: true })} aria-label={t("timeline")} />
               </label>
             </AppCard>
           ) : null}
 
           {step === 2 ? (
             <AppCard className="space-y-4 border-none bg-white">
-              <h2 className="font-headline text-3xl font-bold">Review & Confirm</h2>
+              <h2 className="font-headline text-3xl font-bold">{t("step3")}</h2>
               <label className="block text-sm font-medium">
-                Description
-                <textarea {...form.register("description")} aria-label="Project description" rows={6} />
+                {t("description")}
+                <textarea {...form.register("description")} aria-label={t("description")} rows={6} />
               </label>
               <button
                 type="button"
@@ -130,7 +136,7 @@ export default function NewProjectPage() {
                 onClick={() => aiMutation.mutate()}
                 disabled={aiMutation.isPending}
               >
-                {aiMutation.isPending ? "Generating..." : "Suggest Description (AI)"}
+                {aiMutation.isPending ? t("aiGenerating") : t("aiSuggest")}
               </button>
               <TrustPanel />
             </AppCard>
@@ -143,15 +149,15 @@ export default function NewProjectPage() {
               onClick={() => setStep((prev) => Math.max(0, prev - 1))}
               disabled={step === 0}
             >
-              ← Back
+              ← {t("back")}
             </button>
             {step < steps.length - 1 ? (
               <button type="button" className="primary-gradient rounded-full px-9 py-3 text-sm font-semibold text-white" onClick={() => setStep((prev) => Math.min(steps.length - 1, prev + 1))}>
-                Continue
+                {t("continue")}
               </button>
             ) : (
               <button type="submit" className="primary-gradient rounded-full px-9 py-3 text-sm font-semibold text-white" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Publish Project"}
+                {mutation.isPending ? t("saving") : t("publish")}
               </button>
             )}
           </div>
@@ -159,16 +165,16 @@ export default function NewProjectPage() {
 
         <aside className="space-y-4">
           <AppCard className="border-none bg-surface-100">
-            <h3 className="font-headline text-xl font-bold text-surface-900">Why post on ITZuun?</h3>
+            <h3 className="font-headline text-xl font-bold text-surface-900">{t("whyPost")}</h3>
             <ul className="mt-4 space-y-3 text-[13px] text-surface-600">
-              <li>Vetted Mongolian talent pool</li>
-              <li>Secure QPay payments with escrow</li>
-              <li>Workflow optimized for local market</li>
+              <li>{t("why1")}</li>
+              <li>{t("why2")}</li>
+              <li>{t("why3")}</li>
             </ul>
           </AppCard>
           <AppCard className="border-none bg-accent-50">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-700">Pro Tip</p>
-            <p className="mt-2 text-[13px] text-surface-700">Projects with specific titles attract more qualified applications in the first 24 hours.</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-700">{t("proTip")}</p>
+            <p className="mt-2 text-[13px] text-surface-700">{t("proTipText")}</p>
           </AppCard>
         </aside>
       </form>
