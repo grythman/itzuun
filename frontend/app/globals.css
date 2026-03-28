@@ -10,7 +10,7 @@
 
 body {
   @apply min-h-screen bg-surface-50 text-surface-900 antialiased font-body;
-  background-image: radial-gradient(circle at 15% -15%, rgba(69, 30, 187, 0.08), transparent 40%), radial-gradient(circle at 90% 5%, rgba(0, 99, 132, 0.08), transparent 28%);
+  background: #f2f3f8;
 }
 
 a {
@@ -30,8 +30,8 @@ button {
 }
 
 .glass-panel {
-  background-color: rgba(248, 249, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background-color: rgba(245, 246, 251, 0.95);
+  backdrop-filter: blur(12px);
 }
 
 .primary-gradient {

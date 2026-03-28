@@ -64,12 +64,12 @@ export function Nav() {
   }));
 
   return (
-    <header className="sticky top-0 z-30 border-b border-surface-300/35 glass-panel">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5" aria-label="Main">
+    <header className="z-30 border-b border-[#e7e8f1] bg-[#f5f6fb]/95">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3" aria-label="Main">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg primary-gradient text-xs font-bold text-white shadow-card">IZ</span>
-            <span className="text-[24px] font-extrabold tracking-tighter text-brand-700 font-headline">ITZuun</span>
+          <Link href={withLocale("/")} className="flex items-center gap-2.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg primary-gradient text-xs font-bold text-white">IZ</span>
+            <span className="text-[34px] font-extrabold tracking-tighter text-brand-700 font-headline">ITZuun</span>
           </Link>
 
           <div className="hidden items-center gap-0.5 md:flex">
@@ -79,7 +79,7 @@ export function Nav() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-all ${
+                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-medium transition-all ${
                     active ? "bg-brand-100 text-brand-700" : "text-surface-600 hover:bg-surface-100 hover:text-surface-900"
                   }`}
                 >
@@ -144,13 +144,13 @@ export function Nav() {
             </>
           ) : (
             <>
-              <Link href={switchLocalePath("mn")} className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">MN</Link>
+              <Link href={switchLocalePath("mn")} className="font-semibold text-[14px] text-slate-400 hover:text-slate-800">MN</Link>
               <span className="text-slate-300">|</span>
-              <Link href={switchLocalePath("en")} className="font-semibold text-[13px] text-slate-400 hover:text-slate-800">EN</Link>
-              <Link href={`${withLocale("/auth")}?tab=signin`} className="ml-2 rounded-lg px-3 py-1.5 text-[13px] font-medium text-surface-600 hover:bg-surface-100">
+              <Link href={switchLocalePath("en")} className="font-semibold text-[14px] text-slate-400 hover:text-slate-800">EN</Link>
+              <Link href={`${withLocale("/auth")}?tab=signin`} className="ml-2 rounded-lg px-3 py-1.5 text-[14px] font-medium text-surface-600 hover:bg-surface-100">
                 {t("login")}
               </Link>
-              <Link href={`${withLocale("/auth")}?tab=register`} className="rounded-full primary-gradient px-5 py-2 text-[13px] font-semibold text-white shadow-card hover:opacity-95 transition-colors">
+              <Link href={`${withLocale("/auth")}?tab=register`} className="rounded-full primary-gradient px-6 py-2 text-[14px] font-semibold text-white shadow-card hover:opacity-95 transition-colors">
                 {t("postProject")}
               </Link>
             </>

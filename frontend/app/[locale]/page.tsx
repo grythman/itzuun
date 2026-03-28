@@ -24,28 +24,28 @@ export default function HomePage() {
   const items = (projects.data?.results || []).slice(0, 3);
 
   return (
-    <section className="space-y-20 py-6">
-      <div className="grid items-center gap-10 rounded-[2rem] bg-surface-100 p-8 lg:grid-cols-[1.1fr_0.9fr] lg:p-12">
-        <div className="space-y-7">
-          <p className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-700">{home("platformBadge")}</p>
-          <h1 className="font-headline text-5xl font-extrabold leading-[1.05] tracking-tight text-surface-900 sm:text-6xl">
+    <section className="space-y-14 py-3 md:space-y-16">
+      <div className="grid items-center gap-8 rounded-[30px] bg-[#eeeff5] p-6 md:p-10 lg:grid-cols-[1.08fr_0.92fr] lg:px-10 lg:py-12">
+        <div className="space-y-6 md:space-y-7">
+          <p className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-700">{home("platformBadge")}</p>
+          <h1 className="font-headline text-[44px] font-extrabold leading-[1.03] tracking-tight text-surface-900 sm:text-[56px]">
             {t("title")}
           </h1>
-          <p className="max-w-xl text-[15px] leading-relaxed text-surface-600">{t("subtitle")}</p>
+          <p className="max-w-xl text-[18px] leading-relaxed text-surface-500">{t("subtitle")}</p>
 
           <div className="flex flex-wrap gap-3">
-            <Link href={withLocale("/projects/new")} className="primary-gradient rounded-full px-7 py-3 text-sm font-semibold text-white shadow-card hover:opacity-95">
+            <Link href={withLocale("/projects/new")} className="primary-gradient rounded-full px-8 py-3 text-[14px] font-semibold text-white shadow-card hover:opacity-95">
               {t("ctaClient")}
             </Link>
-            <Link href={withLocale("/projects")} className="rounded-full bg-surface-300 px-7 py-3 text-sm font-semibold text-surface-800 hover:bg-surface-400/70">
+            <Link href={withLocale("/projects")} className="rounded-full bg-surface-300 px-8 py-3 text-[14px] font-semibold text-surface-800 hover:bg-surface-400/70">
               {t("ctaFreelancer")}
             </Link>
           </div>
         </div>
 
-        <div className="rounded-2xl primary-gradient p-7 text-white shadow-hero">
+        <div className="rounded-2xl primary-gradient px-6 py-7 text-white shadow-hero md:px-7">
           <p className="mb-5 text-[11px] font-semibold tracking-[0.2em] text-brand-100">{home("workflowTitle")}</p>
-          <div className="space-y-4 text-[13px]">
+          <div className="space-y-4 text-[13px] leading-relaxed">
             <div>
               <p className="font-semibold">{home("w1Title")}</p>
               <p className="mt-1 text-brand-100">{home("w1Text")}</p>
@@ -62,28 +62,31 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-3">
-        <AppCard className="border-none bg-white">
-          <h3 className="font-headline text-lg font-bold text-surface-900">{home("f1Title")}</h3>
-          <p className="mt-2 text-[13px] leading-relaxed text-surface-600">{home("f1Text")}</p>
+      <div className="grid gap-4 md:grid-cols-3">
+        <AppCard className="border border-[#ececf2] bg-[#f8f8fb] shadow-none hover:shadow-none">
+          <h3 className="font-headline text-[34px] font-extrabold leading-none text-brand-600">1</h3>
+          <h4 className="mt-3 font-headline text-[28px] font-semibold text-surface-900">{home("f1Title")}</h4>
+          <p className="mt-2 text-[14px] leading-relaxed text-surface-500">{home("f1Text")}</p>
         </AppCard>
-        <AppCard className="border-none bg-white">
-          <h3 className="font-headline text-lg font-bold text-surface-900">{home("f2Title")}</h3>
-          <p className="mt-2 text-[13px] leading-relaxed text-surface-600">{home("f2Text")}</p>
+        <AppCard className="border border-[#ececf2] bg-[#f8f8fb] shadow-none hover:shadow-none">
+          <h3 className="font-headline text-[34px] font-extrabold leading-none text-brand-600">2</h3>
+          <h4 className="mt-3 font-headline text-[28px] font-semibold text-surface-900">{home("f2Title")}</h4>
+          <p className="mt-2 text-[14px] leading-relaxed text-surface-500">{home("f2Text")}</p>
         </AppCard>
-        <AppCard className="border-none bg-white">
-          <h3 className="font-headline text-lg font-bold text-surface-900">{home("f3Title")}</h3>
-          <p className="mt-2 text-[13px] leading-relaxed text-surface-600">{home("f3Text")}</p>
+        <AppCard className="border border-[#ececf2] primary-gradient text-white shadow-none hover:shadow-none">
+          <h3 className="font-headline text-[34px] font-extrabold leading-none text-white">3</h3>
+          <h4 className="mt-3 font-headline text-[28px] font-semibold text-white">{home("f3Title")}</h4>
+          <p className="mt-2 text-[14px] leading-relaxed text-brand-100">{home("f3Text")}</p>
         </AppCard>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pt-1">
         <div className="flex items-end justify-between">
-          <h2 className="font-headline text-3xl font-bold tracking-tight text-surface-900">{home("featuredProjects")}</h2>
-          <Link href={withLocale("/projects")} className="text-sm font-semibold text-brand-700">{home("viewAllProjects")}</Link>
+          <h2 className="font-headline text-[44px] font-extrabold tracking-tight text-surface-900">{home("featuredProjects")}</h2>
+          <Link href={withLocale("/projects")} className="text-[26px] font-semibold text-brand-700">{home("viewAllProjects")}</Link>
         </div>
         {!items.length ? (
-          <EmptyState label={home("noProjects")} />
+          <div className="rounded-2xl border border-dashed border-[#d7d9e5] bg-[#f8f8fb] px-6 py-8 text-[14px] text-surface-400">{home("noProjects")}</div>
         ) : (
           <ul className="grid gap-4 md:grid-cols-[2fr_1fr]">
             <li className="rounded-2xl bg-white p-6 shadow-card">
@@ -107,12 +110,12 @@ export default function HomePage() {
         )}
       </div>
 
-      <div className="rounded-[2rem] primary-gradient px-8 py-14 text-center text-white">
-        <h2 className="font-headline text-4xl font-extrabold tracking-tight">{home("ctaTitle")}</h2>
-        <p className="mx-auto mt-4 max-w-2xl text-[14px] text-brand-100">{home("ctaSubtitle")}</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={`${withLocale("/auth")}?tab=register`} className="rounded-full bg-white px-7 py-3 text-xs font-bold uppercase tracking-wider text-brand-700">{home("ctaJoin")}</Link>
-          <Link href={withLocale("/projects")} className="rounded-full border border-white/40 px-7 py-3 text-xs font-bold uppercase tracking-wider text-white">{home("ctaTalk")}</Link>
+      <div className="rounded-[28px] primary-gradient px-6 py-12 text-center text-white md:px-10 md:py-14">
+        <h2 className="font-headline text-[42px] font-extrabold tracking-tight md:text-[56px]">{home("ctaTitle")}</h2>
+        <p className="mx-auto mt-3 max-w-3xl text-[18px] text-brand-100">{home("ctaSubtitle")}</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <Link href={`${withLocale("/auth")}?tab=register`} className="rounded-full bg-white px-8 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-brand-700">{home("ctaJoin")}</Link>
+          <Link href={withLocale("/projects")} className="rounded-full border border-white/40 px-8 py-3 text-[13px] font-bold uppercase tracking-[0.08em] text-white">{home("ctaTalk")}</Link>
         </div>
       </div>
     </section>
