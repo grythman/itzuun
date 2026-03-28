@@ -23,8 +23,9 @@ describe("HomePage", () => {
   it("renders landing and latest projects", () => {
     render(<HomePage />);
 
-    expect(screen.getByText("IT Freelance Platform")).toBeInTheDocument();
-    expect(screen.getByText("Latest Projects")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /title/i })).toBeInTheDocument();
+    expect(screen.getByText(/it\s+freelance\s+platform/i)).toBeInTheDocument();
+    expect(screen.getByText(/featured projects/i)).toBeInTheDocument();
     expect(screen.getByText("Landing page build")).toBeInTheDocument();
     expect(screen.getByText("Need freelancer")).toBeInTheDocument();
   });
