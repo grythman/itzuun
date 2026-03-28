@@ -12,7 +12,7 @@ import { useCategories, useProjects } from "@/lib/hooks";
 export default function ProjectsPage() {
   const t = useTranslations("Projects");
   const pathname = usePathname();
-  const pathParts = pathname.split("/").filter(Boolean);
+  const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
   const [page, setPage] = useState(1);

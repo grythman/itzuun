@@ -26,7 +26,7 @@ type ProposalForm = z.infer<typeof proposalSchema>;
 export default function FreelancerDashboardPage() {
   const t = useTranslations("FreelancerDash");
   const pathname = usePathname();
-  const pathParts = pathname.split("/").filter(Boolean);
+  const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
   const me = useMe();

@@ -19,7 +19,7 @@ export default function ClientDashboardPage() {
   const t = useTranslations("ClientDash");
   const router = useRouter();
   const pathname = usePathname();
-  const pathParts = pathname.split("/").filter(Boolean);
+  const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
   const me = useMe();

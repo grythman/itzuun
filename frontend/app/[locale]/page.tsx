@@ -13,7 +13,7 @@ export default function HomePage() {
   const t = useTranslations("Hero");
   const home = useTranslations("Home");
   const pathname = usePathname();
-  const pathParts = pathname.split("/").filter(Boolean);
+  const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
   const projects = useProjects(1);
