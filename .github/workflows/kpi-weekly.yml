@@ -1,0 +1,135 @@
+name: Weekly KPI Report
+
+on:
+  schedule:
+    - cron: "0 1 * * 1" # Every Monday at 01:00 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Lookback window in days"
+        required: false
+        default: "7"
+
+jobs:
+  kpi-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Prepare SSH key
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Generate KPI report on production server
+        env:
+          KPI_DAYS: ${{ github.event.inputs.days || '7' }}
+        run: |
+          set -e
+          ssh -i ~/.ssh/id_rsa "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py weekly_kpi_report --days ${KPI_DAYS} --json" \
+            > kpi_report.json
+
+      - name: Validate JSON report
+        run: |
+          set -e
+          python -m json.tool kpi_report.json > /dev/null
+
+      - name: Upload KPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-kpi-report
+          path: kpi_report.json
+
+      - name: Print KPI summary
+        run: |
+          set -e
+          python - <<'PY'
+          import json
+
+          with open('kpi_report.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+
+          print(f"Window days: {payload['window_days']}")
+          print(f"Since: {payload['since']}")
+          for k, v in payload['kpis'].items():
+              print(f"- {k}: {v}")
+          PY
+
+      - name: Notify Slack (optional)
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          set -e
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          with open('kpi_report.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+
+          k = payload['kpis']
+          text = (
+              f"ITZuun Weekly KPI ({payload['window_days']}d)\n"
+              f"projects_posted={k['projects_posted']}, hired_projects={k['hired_projects']}, "
+              f"proposal_to_hire_conversion_pct={k['proposal_to_hire_conversion_pct']}\n"
+              f"escrow_funded_count={k['escrow_funded_count']}, completion_rate_pct={k['completion_rate_pct']}, "
+              f"dispute_rate_pct={k['dispute_rate_pct']}\n"
+              f"avg_rating={k['avg_rating']}, new_freelancer_signups={k['new_freelancer_signups']}"
+          )
+
+          req = urllib.request.Request(
+              url=os.environ['SLACK_WEBHOOK_URL'],
+              data=json.dumps({'text': text}).encode('utf-8'),
+              headers={'Content-Type': 'application/json'},
+              method='POST',
+          )
+
+          with urllib.request.urlopen(req) as resp:
+              if resp.status >= 300:
+                  raise RuntimeError(f"Slack webhook failed: {resp.status}")
+          PY
+
+      - name: Notify Slack on failure (optional)
+        if: ${{ failure() && secrets.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          WORKFLOW: ${{ github.workflow }}
+        run: |
+          set -e
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          repo = os.environ["REPO"]
+          run_id = os.environ["RUN_ID"]
+          workflow = os.environ["WORKFLOW"]
+          run_url = f"https://github.com/{repo}/actions/runs/{run_id}"
+
+          text = (
+              f"KPI workflow failed: {workflow}\n"
+              f"Repository: {repo}\n"
+              f"Run: {run_url}"
+          )
+
+          req = urllib.request.Request(
+              url=os.environ["SLACK_WEBHOOK_URL"],
+              data=json.dumps({"text": text}).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+
+          with urllib.request.urlopen(req) as resp:
+              if resp.status >= 300:
+                  raise RuntimeError(f"Slack webhook failed: {resp.status}")
+          PY
