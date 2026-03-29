@@ -11,8 +11,8 @@
 | 5 projects posted | @tara_growth | 2026-04-06 | Todo | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#projects |
 | 5 projects funded escrow | @mike_ops | 2026-04-13 | Todo | jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
 | 3 projects completed | @mike_ops | 2026-04-20 | Todo | notion: https://www.notion.so/PLACEHOLDER |
-| 1 dispute resolved end-to-end | @julia_support | YYYY-MM-DD | Todo/In Progress/Done | Dispute ID + resolution note (notion/jira) |
-| 20 total pilot projects reached | @copilot | YYYY-MM-DD | Todo/In Progress/Done | Final tracker export (sheet) |
+| 1 dispute resolved end-to-end | @julia_support | 2026-04-27 | Todo/In Progress/Done | notion: https://www.notion.so/PLACEHOLDER#disputes, jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
+| 20 total pilot projects reached | @copilot | 2026-05-04 | Todo/In Progress/Done | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#final_export |
 
 ## Weekly KPI Mapping
 | KPI (`weekly_kpi_report`) | Rollout Signal | Owner | Evidence |
@@ -24,8 +24,8 @@
 | `completion_rate_pct` | Delivery success | @mike_ops | notion: https://www.notion.so/PLACEHOLDER |
 | `dispute_rate_pct` | Risk signal (must trend down) | @julia_support | notion: https://www.notion.so/PLACEHOLDER |
 | `avg_rating` | Quality signal | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#reviews |
-| `new_freelancer_signups` | Supply growth | @tara_growth | signup log extract (sheet) |
-| `verified_freelancers` | Trust supply quality | @mike_ops | verification report (sheet) |
+| `new_freelancer_signups` | Supply growth | @tara_growth | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#signups |
+| `verified_freelancers` | Trust supply quality | @mike_ops | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#verification_report |
 
 ## Weekly Review Cadence
 1. Run KPI workflow (`days=7`) every Monday.
