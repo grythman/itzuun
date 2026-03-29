@@ -14,6 +14,7 @@ from apps.payments.serializers import DisputeSerializer, EscrowSerializer, Ledge
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
 from common.cache_utils import admin_detail_cache_key, admin_list_cache_key, bump_admin_resource_version, bump_user_public_version
+from common.exceptions import DomainError
 from common.pagination import StandardResultsSetPagination
 from common.models import PlatformSetting
 
@@ -50,13 +51,19 @@ class AdminUserVerifyView(APIView):
 
     def post(self, request, user_id):
         action = request.data.get("action")
-        rejection_reason = request.data.get("rejection_reason", "")
-        
-        if action not in {"approve", "reject", "suspend"}:
+        # accept either `rejection_reason` (legacy) or `reason` (new)
+        rejection_reason = request.data.get("rejection_reason", "") or request.data.get("reason", "")
+
+        # Accept legacy and new action names: approve/reject/suspend and verify/unverify/suspend
+        allowed = {"approve", "reject", "suspend", "verify", "unverify"}
+        if action not in allowed:
             return Response({"detail": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         user = get_object_or_404(User, id=user_id)
-        verify_user(user, action=action, rejection_reason=rejection_reason)
+        try:
+            verify_user(user, action=action, rejection_reason=rejection_reason)
+        except DomainError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         bump_user_public_version(user.id)
         bump_admin_resource_version("users")
         return Response(UserSerializer(user).data)

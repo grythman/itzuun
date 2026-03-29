@@ -11,17 +11,39 @@ from common.models import PlatformSetting
 
 @transaction.atomic
 def verify_user(user: User, *, action: str, rejection_reason: str = "") -> User:
-    if action not in {"approve", "reject", "suspend"}:
+    # Support legacy action names while enforcing a stricter state machine.
+    alias_map = {"approve": "verify", "reject": "unverify"}
+    normalized = alias_map.get(action, action)
+
+    allowed = {"verify", "unverify", "suspend"}
+    if normalized not in allowed:
         raise DomainError("Invalid verification action")
 
-    if action == "approve":
+    # Require a reason for actions that remove or block access
+    if normalized in {"unverify", "suspend"} and not rejection_reason.strip():
+        raise DomainError("rejection_reason is required for this action")
+
+    current = user.verification_status
+
+    if normalized == "verify":
+        if current == User.VERIFICATION_VERIFIED:
+            raise DomainError("User is already verified")
         user.verification_status = User.VERIFICATION_VERIFIED
         user.rejection_reason = ""
-    elif action == "reject":
+        user.is_active = True
+
+    elif normalized == "unverify":
+        if current == User.VERIFICATION_UNVERIFIED:
+            raise DomainError("User is already unverified")
         user.verification_status = User.VERIFICATION_UNVERIFIED
         user.rejection_reason = rejection_reason
-    elif action == "suspend":
+        # keep is_active as-is (administrator might choose to unverify but keep active)
+
+    elif normalized == "suspend":
+        if current == User.VERIFICATION_SUSPENDED:
+            raise DomainError("User is already suspended")
         user.verification_status = User.VERIFICATION_SUSPENDED
+        user.rejection_reason = rejection_reason
         user.is_active = False
 
     user.save(update_fields=["verification_status", "rejection_reason", "is_verified", "is_active"])
