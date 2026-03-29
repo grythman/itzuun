@@ -69,6 +69,28 @@ class AdminUserVerifyView(APIView):
         return Response(UserSerializer(user).data)
 
 
+class AdminUserUnsuspendView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        if request.user.id == user.id:
+            return Response({"detail": "Cannot unsuspend self"}, status=status.HTTP_403_FORBIDDEN)
+
+        reason = (request.data.get("reason", "") or "").strip()
+        if len(reason) > 1000:
+            return Response({"detail": "reason must be <= 1000 chars"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            verify_user(user, action="unsuspend", rejection_reason=reason, actor=request.user)
+        except DomainError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        bump_user_public_version(user.id)
+        bump_admin_resource_version("users")
+        return Response(UserSerializer(user).data)
+
+
 class AdminProjectListView(APIView):
     permission_classes = [IsAdminUser]
 

@@ -52,6 +52,7 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: U
         # Explicit unsuspend flow for suspended users. Does not require a reason.
         if current != User.VERIFICATION_SUSPENDED:
             raise DomainError("Only suspended users can be unsuspended")
+        note = rejection_reason.strip() or "Admin unsuspended user"
         before_state = {
             "verification_status": current,
             "is_active": user.is_active,
@@ -74,7 +75,7 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: U
                 "is_active": user.is_active,
                 "rejection_reason": user.rejection_reason,
             },
-            "reason": "Admin unsuspended user",
+            "reason": note,
         }
         FinancialAuditLog.objects.create(
             actor=actor,
@@ -87,7 +88,7 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: U
                 "is_active": user.is_active,
                 "rejection_reason": user.rejection_reason,
             },
-            reason="Admin unsuspended user",
+            reason=note,
             hash_chain=_build_hash_chain(payload),
         )
         return user

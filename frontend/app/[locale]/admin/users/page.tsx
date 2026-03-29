@@ -31,13 +31,14 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient();
   const pushToast = useToastStore((s) => s.push);
   const unsuspendMutation = useMutation({
-    mutationFn: (userId: number | string) => adminApi.verifyUser(userId, { action: "unsuspend" }),
+    mutationFn: ({ userId, reason }: { userId: number | string; reason?: string }) =>
+      adminApi.unsuspendUser(userId, { reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-      pushToast("success", "User unsuspended");
+      pushToast("success", t("unsuspendSuccess"));
     },
     onError: (err: any) => {
-      pushToast("error", "Unsuspend failed", err?.response?.data?.detail || "Could not unsuspend user");
+      pushToast("error", t("unsuspendFailed"), err?.response?.data?.detail || t("unsuspendFailedDetail"));
     },
   });
 
@@ -61,7 +62,8 @@ export default function AdminUsersPage() {
                         className="rounded bg-green-600 px-3 py-1 text-white text-sm"
                         onClick={() => {
                           if (!confirm(t("confirmUnsuspend"))) return;
-                          unsuspendMutation.mutate(item.id);
+                          const reason = (window.prompt(t("unsuspendNotePrompt")) || "").trim();
+                          unsuspendMutation.mutate({ userId: item.id, reason: reason || undefined });
                         }}
                         disabled={unsuspendMutation.isLoading}
                       >

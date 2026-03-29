@@ -168,5 +168,21 @@
     "noActive": "No active selected projects.",
     "openProject": "Open Project",
     "submitResult": "Submit Result"
+  },
+  "AdminUsersPage": {
+    "loading": "Loading users...",
+    "signinRequired": "Sign in required.",
+    "loadError": "Could not load users.",
+    "title": "Admin Users",
+    "empty": "No users found.",
+    "role": "Role",
+    "verificationStatus": "Verification status",
+    "confirmUnsuspend": "Unsuspend this user?",
+    "unsuspend": "Unsuspend",
+    "unsuspending": "Unsuspending...",
+    "unsuspendNotePrompt": "Optional note for audit log:",
+    "unsuspendSuccess": "User unsuspended",
+    "unsuspendFailed": "Unsuspend failed",
+    "unsuspendFailedDetail": "Could not unsuspend user"
   }
 }

@@ -11,12 +11,14 @@ from .views import (
     AdminPaymentListView,
     AdminProjectListView,
     AdminUserListView,
+    AdminUserUnsuspendView,
     AdminUserVerifyView,
 )
 
 urlpatterns = [
     path("users", AdminUserListView.as_view(), name="admin-users"),
     path("users/<int:user_id>/verify", AdminUserVerifyView.as_view(), name="admin-users-verify"),
+    path("users/<int:user_id>/unsuspend", AdminUserUnsuspendView.as_view(), name="admin-users-unsuspend"),
     path("projects", AdminProjectListView.as_view(), name="admin-projects"),
     path("escrow", AdminEscrowListView.as_view(), name="admin-escrow"),
     path("ledger", AdminLedgerListView.as_view(), name="admin-ledger"),
