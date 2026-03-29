@@ -104,7 +104,79 @@
         "Run migrations if models changed: python manage.py makemigrations && python manage.py migrate",
         "Run targeted tests: pytest -q backend/apps/adminpanel/tests.py::test_unsuspend_updates_fields_and_audit_log"
       ],
-      "example_curl": "curl -X POST -H 'Content-Type: application/json' -b 'session_cookie' -d '{\"reason\":\"Reinstated after appeal\"}' http://localhost:8000/api/v1/admin/users/123/unsuspend/"
+      "example_curl": "curl -X POST -H 'Content-Type: application/json' -b 'session_cookie' -d '{\"reason\":\"Reinstated after appeal\"}' http://localhost:8000/api/v1/admin/users/123/unsuspend/",
+      "implementation_plan": [
+        {
+          "step": 1,
+          "title": "Create feature branch",
+          "action": "git checkout -b feat/unsuspend-api",
+          "notes": "Work on isolated branch named feat/unsuspend-api"
+        },
+        {
+          "step": 2,
+          "title": "Add API view for unsuspend",
+          "files": ["backend/apps/adminpanel/views.py"],
+          "change_summary": "Add AdminUserUnsuspendView.post that calls verify_user(user, action='unsuspend', rejection_reason=reason, actor=request.user) and returns UserSerializer(user).data",
+          "code_action": "Add class AdminUserUnsuspendView(APIView) with permission_classes [IsAdminUser] and post handler"
+        },
+        {
+          "step": 3,
+          "title": "Register URL",
+          "files": ["backend/apps/adminpanel/urls.py"],
+          "change_summary": "Add path 'users/<int:user_id>/unsuspend' -> AdminUserUnsuspendView, name 'admin-users-unsuspend'"
+        },
+        {
+          "step": 4,
+          "title": "Ensure serializer exposes fields",
+          "files": ["backend/apps/accounts/serializers.py"],
+          "change_summary": "Confirm UserSerializer includes verification_status, rejection_reason, is_active; add if missing"
+        },
+        {
+          "step": 5,
+          "title": "Add/Update unit tests",
+          "files": ["backend/apps/adminpanel/tests.py"],
+          "change_summary": "Add tests: permission check, cannot unsuspend self (403), 400 when not suspended, success updates fields and creates FinancialAuditLog",
+          "test_commands": ["pytest -q backend/apps/adminpanel/tests.py::test_unsuspend_flow","pytest -q backend/apps/adminpanel/tests.py::test_unsuspend_creates_audit_log"]
+        },
+        {
+          "step": 6,
+          "title": "Run backend tests locally in Docker",
+          "commands": [
+            "docker run --rm -v $(pwd):/src -w /src python:3.12 bash -lc 'apt-get update && apt-get install -y gcc libpq-dev build-essential && python -m pip install --upgrade pip setuptools wheel && pip install -r backend/requirements.txt && cd backend && python manage.py test apps.adminpanel.tests.AdminUserVerifyTests --verbosity=2'"
+          ],
+          "notes": "Run tests in isolated container to avoid local env issues. If CI exists, pushing branch will also trigger tests."
+        },
+        {
+          "step": 7,
+          "title": "Commit and push",
+          "commands": [
+            "git add -A",
+            "git commit -m 'feat(admin): add unsuspend API and tests'",
+            "git push -u origin feat/unsuspend-api"
+          ]
+        },
+        {
+          "step": 8,
+          "title": "Create PR",
+          "commands": [
+            "gh pr create --fill --title 'feat(admin): unsuspend API' --body 'Adds unsuspend API, tests, and audit logging'"
+          ]
+        },
+        {
+          "step": 9,
+          "title": "Monitor CI and address failures",
+          "notes": "Fix failing tests or lint errors, re-run tests locally, push fixes, then merge when green"
+        },
+        {
+          "step": 10,
+          "title": "Merge PR and deploy",
+          "notes": "After PR is approved and CI green, merge to main and follow deploy checklist"
+        }
+      ],
+      "executor": {
+        "engine": "codex-5.3",
+        "instructions": "Apply the implementation_plan steps in order. Use the project repo root as working dir. For code edits, create minimal, well-tested changes, run tests inside Docker using the provided command, and push a feature branch with a clear Conventional Commit message. Open a PR when tests pass."
+      }
     }
   }
 }
