@@ -7,25 +7,25 @@
 ## Milestone Tracker Template
 | Milestone | Owner | Target Date | Status | Evidence |
 |---|---|---|---|---|
-| Pilot cohort selected (clients/freelancers) | @copilot | 2026-03-30 | Todo | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER |
-| 5 projects posted | @tara_growth | 2026-04-06 | Todo | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#projects |
-| 5 projects funded escrow | @mike_ops | 2026-04-13 | Todo | jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
-| 3 projects completed | @mike_ops | 2026-04-20 | Todo | notion: https://www.notion.so/PLACEHOLDER |
-| 1 dispute resolved end-to-end | @julia_support | 2026-04-27 | Todo/In Progress/Done | notion: https://www.notion.so/PLACEHOLDER#disputes, jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
-| 20 total pilot projects reached | @copilot | 2026-05-04 | Todo/In Progress/Done | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#final_export |
+| Pilot cohort selected (clients/freelancers) | @copilot | 2026-03-30 | Todo | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId |
+| 5 projects posted | @tara_growth | 2026-04-06 | Todo | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#gid=0 |
+| 5 projects funded escrow | @mike_ops | 2026-04-13 | Todo | https://grythman.atlassian.net/browse/ITZ-101 |
+| 3 projects completed | @mike_ops | 2026-04-20 | Todo | https://www.notion.so/itzuun/3-Projects-Completed-Tracker-abcdef1234567890 |
+| 1 dispute resolved end-to-end | @julia_support | 2026-04-27 | Todo/In Progress/Done | https://www.notion.so/itzuun/Disputes-Tracker-abcdef1234567890, https://grythman.atlassian.net/browse/ITZ-102 |
+| 20 total pilot projects reached | @copilot | 2026-05-04 | Todo/In Progress/Done | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#final_export |
 
 ## Weekly KPI Mapping
 | KPI (`weekly_kpi_report`) | Rollout Signal | Owner | Evidence |
 |---|---|---|---|
-| `projects_posted` | Top-of-funnel activity | @tara_growth | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#kpi |
-| `hired_projects` | Match quality / conversion | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#kpi |
-| `proposal_to_hire_conversion_pct` | Marketplace efficiency | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#kpi |
-| `escrow_funded_count` | Transaction trust adoption | @mike_ops | jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
-| `completion_rate_pct` | Delivery success | @mike_ops | notion: https://www.notion.so/PLACEHOLDER |
-| `dispute_rate_pct` | Risk signal (must trend down) | @julia_support | notion: https://www.notion.so/PLACEHOLDER |
-| `avg_rating` | Quality signal | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#reviews |
-| `new_freelancer_signups` | Supply growth | @tara_growth | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#signups |
-| `verified_freelancers` | Trust supply quality | @mike_ops | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#verification_report |
+| `projects_posted` | Top-of-funnel activity | @tara_growth | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#kpi |
+| `hired_projects` | Match quality / conversion | @copilot | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#kpi |
+| `proposal_to_hire_conversion_pct` | Marketplace efficiency | @copilot | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#kpi |
+| `escrow_funded_count` | Transaction trust adoption | @mike_ops | https://grythman.atlassian.net/browse/ITZ-101 |
+| `completion_rate_pct` | Delivery success | @mike_ops | https://www.notion.so/itzuun/Completion-Rate-Reports-abcdef1234567890 |
+| `dispute_rate_pct` | Risk signal (must trend down) | @julia_support | https://www.notion.so/itzuun/Disputes-Tracker-abcdef1234567890 |
+| `avg_rating` | Quality signal | @copilot | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#reviews |
+| `new_freelancer_signups` | Supply growth | @tara_growth | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#signups |
+| `verified_freelancers` | Trust supply quality | @mike_ops | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#verification_report |
 
 ## Weekly Review Cadence
 1. Run KPI workflow (`days=7`) every Monday.
