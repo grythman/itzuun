@@ -45,7 +45,7 @@
 
 ### Exit Criteria
 - Real users with real escrow transactions
-- Support playbook for disputes
+- Support playbook for disputes (`backend/docs/DISPUTE_SUPPORT_PLAYBOOK.md`)
 - KPI tracking for activation and completion
 
 ## KPI Tracking (Weekly)
