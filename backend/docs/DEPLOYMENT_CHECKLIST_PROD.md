@@ -1,3 +1,65 @@
+# Production Deployment Checklist — Concrete Alerts & Runbook
+
+This checklist supplements existing deployment steps with concrete alert thresholds and a short runbook for on-call.
+
+Alert thresholds (tunable):
+- Service availability
+  - API 5m error-rate > 1% (5m window) -> page on-call
+  - Web 5m HTTP 5xx rate > 0.5% -> page on-call
+
+- Latency
+  - P95 API latency > 800ms (5m) -> P2 alert
+  - P99 API latency > 2s -> P1 alert
+
+- Throughput / success
+  - Request success rate (5m) < 98% -> investigate
+
+- Resource usage
+  - CPU (container) > 85% for 5m -> warn, > 95% -> page on-call
+  - Memory (container) > 80% for 5m -> warn, > 92% -> page on-call
+  - Disk usage on host > 85% -> page on-call
+
+- Data services
+  - Postgres connections > 90% of max -> warn
+  - DB replication lag > 30s -> page on-call
+  - Redis avg latency > 50ms over 1m -> warn, > 200ms -> page on-call
+
+- Jobs / queues
+  - Background job failures (error count / 5m) >= 5 -> warn
+  - Queue depth increasing > 5x baseline -> page on-call
+
+- Security / integrity
+  - TLS cert expiry < 14 days -> page on-call (automate renewal)
+  - Unexpected process restarts > 3/hr -> warn
+
+Runbook (first 10 minutes)
+1. Acknowledge the alert.
+2. Determine scope: which service(s) and region affected.
+   - `docker compose -f docker-compose.prod.yml ps`
+   - `docker compose -f docker-compose.prod.yml logs <service> --tail 200`
+3. Check health endpoints:
+   - `curl -fsS https://itzuun.works/ || true`
+   - `curl -fsS http://api:8000/healthz || true` (from host or jumpbox)
+4. Inspect resource pressure on host and containers:
+   - `docker stats --no-stream`
+   - `top` / `htop`
+5. If logs show errors in the app (e.g., DB connection errors, OOM), take targeted action:
+   - DB connection exhaustion: check active connections, consider scaling pool or restarting app workers.
+   - OOM: reduce worker count, restart container, investigate memory leak.
+6. If upstream (NGINX) shows stale upstream IPs, reload nginx:
+   - `docker compose -f docker-compose.prod.yml exec nginx nginx -s reload`
+7. If service is unresponsive and rolling restart is needed:
+   - `docker compose -f docker-compose.prod.yml up -d --no-deps --build api web`
+8. If deploy is suspected faulty, rollback to last known good image tag and restart.
+9. If incident persists >30 minutes or broad impact, escalate to on-call lead and open an incident in the tracker.
+
+Post-incident
+- Record timeline, root cause, actions taken, and follow-ups.
+- Add remediation tasks (e.g., autoscaling, circuit breaker, query optimization) to backlog.
+
+Notes
+- Thresholds should be tuned from production baselines; these are starting points.
+- Ensure alert destinations (pager, Slack) and runbook links are accessible to on-call.
 # Production Deployment Checklist (Docker + Nginx + Gunicorn)
 
 ## 0. Target Topology
