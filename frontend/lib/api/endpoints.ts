@@ -245,6 +245,10 @@ export const adminApi = {
     const res = await apiClient.post(`/admin/users/${userId}/verify/`, payload);
     return res.data;
   },
+  unsuspendUser: async (userId: string | number, payload?: { reason?: string }) => {
+    const res = await apiClient.post(`/admin/users/${userId}/unsuspend/`, payload || {});
+    return res.data;
+  },
   setCommission: async (platform_fee_pct: number) => {
     const res = await apiClient.post("/admin/commission/", { platform_fee_pct });
     return res.data;

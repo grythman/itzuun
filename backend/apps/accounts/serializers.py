@@ -146,7 +146,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "email", "role", "is_verified", "created_at",
-            "verification_status", "verification_type", "phone", "rejection_reason"
+            "verification_status", "verification_type", "phone", "rejection_reason", "is_active"
         ]
 
 

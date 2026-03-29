@@ -55,15 +55,37 @@ class AdminUserVerifyView(APIView):
         rejection_reason = request.data.get("rejection_reason", "") or request.data.get("reason", "")
 
         # Accept legacy and new action names: approve/reject/suspend and verify/unverify/suspend
-        allowed = {"approve", "reject", "suspend", "verify", "unverify"}
+        allowed = {"approve", "reject", "suspend", "verify", "unverify", "unsuspend"}
         if action not in allowed:
             return Response({"detail": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = get_object_or_404(User, id=user_id)
         try:
-            verify_user(user, action=action, rejection_reason=rejection_reason)
+            verify_user(user, action=action, rejection_reason=rejection_reason, actor=request.user)
         except DomainError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        bump_user_public_version(user.id)
+        bump_admin_resource_version("users")
+        return Response(UserSerializer(user).data)
+
+
+class AdminUserUnsuspendView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        if request.user.id == user.id:
+            return Response({"detail": "Cannot unsuspend self"}, status=status.HTTP_403_FORBIDDEN)
+
+        reason = (request.data.get("reason", "") or "").strip()
+        if len(reason) > 1000:
+            return Response({"detail": "reason must be <= 1000 chars"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            verify_user(user, action="unsuspend", rejection_reason=reason, actor=request.user)
+        except DomainError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
         bump_user_public_version(user.id)
         bump_admin_resource_version("users")
         return Response(UserSerializer(user).data)
