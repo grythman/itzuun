@@ -26,6 +26,8 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "") -> User:
     current = user.verification_status
 
     if normalized == "verify":
+        if current == User.VERIFICATION_SUSPENDED:
+            raise DomainError("Suspended user requires explicit unsuspend flow")
         if current == User.VERIFICATION_VERIFIED:
             raise DomainError("User is already verified")
         user.verification_status = User.VERIFICATION_VERIFIED

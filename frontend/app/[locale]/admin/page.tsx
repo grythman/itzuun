@@ -243,7 +243,11 @@ export default function AdminPage() {
                         verifyMutation.mutate({ userId: user.id, action: "reject", reason });
                       }
                     }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "reject"}>Reject</ActionButton>
-                    <ActionButton tone="danger" onClick={() => verifyMutation.mutate({ userId: user.id, action: "suspend" })} loading={verifyMutation.isPending && verifyMutation.variables?.action === "suspend"}>Suspend</ActionButton>
+                    <ActionButton tone="danger" onClick={() => {
+                      const r = window.prompt("Түр түдгэлзүүлэх шалтгаан:");
+                      if (!r || !r.trim()) return;
+                      verifyMutation.mutate({ userId: user.id, action: "suspend", reason: r.trim() });
+                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "suspend"}>Suspend</ActionButton>
                   </div>
                 </li>
               ))}
