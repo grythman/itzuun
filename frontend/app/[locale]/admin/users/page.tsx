@@ -8,6 +8,9 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { AppCard } from "@/components/ui-kit";
 import { useAdminSnapshot, useMe } from "@/lib/hooks";
+import { useMutation, useQueryClient } from "@/lib/hooks";
+import { adminApi } from "@/lib/api/endpoints";
+import { useToastStore } from "@/lib/toast-store";
 
 export default function AdminUsersPage() {
   const t = useTranslations("AdminUsersPage");
@@ -25,6 +28,19 @@ export default function AdminUsersPage() {
 
   const users = Array.isArray(admin.users.data) ? admin.users.data : [];
 
+  const queryClient = useQueryClient();
+  const pushToast = useToastStore((s) => s.push);
+  const unsuspendMutation = useMutation({
+    mutationFn: (userId: number | string) => adminApi.verifyUser(userId, { action: "unsuspend" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      pushToast("success", "User unsuspended");
+    },
+    onError: (err: any) => {
+      pushToast("error", "Unsuspend failed", err?.response?.data?.detail || "Could not unsuspend user");
+    },
+  });
+
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
       <section className="space-y-5">
@@ -38,6 +54,21 @@ export default function AdminUsersPage() {
                 <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
                   <p className="font-semibold text-surface-900">{item.email}</p>
                   <p className="text-surface-500">{t("role")}: {item.role}</p>
+                  <p className="text-surface-500">{t("verificationStatus")}: {item.verification_status}</p>
+                  {item.verification_status === "suspended" && (
+                    <div className="mt-2">
+                      <button
+                        className="rounded bg-green-600 px-3 py-1 text-white text-sm"
+                        onClick={() => {
+                          if (!confirm(t("confirmUnsuspend"))) return;
+                          unsuspendMutation.mutate(item.id);
+                        }}
+                        disabled={unsuspendMutation.isLoading}
+                      >
+                        {unsuspendMutation.isLoading ? t("unsuspending") : t("unsuspend")}
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

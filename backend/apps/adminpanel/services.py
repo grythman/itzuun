@@ -10,12 +10,12 @@ from common.models import PlatformSetting
 
 
 @transaction.atomic
-def verify_user(user: User, *, action: str, rejection_reason: str = "") -> User:
+def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: User | None = None) -> User:
     # Support legacy action names while enforcing a stricter state machine.
     alias_map = {"approve": "verify", "reject": "unverify"}
     normalized = alias_map.get(action, action)
 
-    allowed = {"verify", "unverify", "suspend"}
+    allowed = {"verify", "unverify", "suspend", "unsuspend"}
     if normalized not in allowed:
         raise DomainError("Invalid verification action")
 
@@ -47,6 +47,50 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "") -> User:
         user.verification_status = User.VERIFICATION_SUSPENDED
         user.rejection_reason = rejection_reason
         user.is_active = False
+
+    elif normalized == "unsuspend":
+        # Explicit unsuspend flow for suspended users. Does not require a reason.
+        if current != User.VERIFICATION_SUSPENDED:
+            raise DomainError("Only suspended users can be unsuspended")
+        before_state = {
+            "verification_status": current,
+            "is_active": user.is_active,
+            "rejection_reason": user.rejection_reason,
+        }
+        user.verification_status = User.VERIFICATION_VERIFIED
+        user.rejection_reason = ""
+        user.is_active = True
+        user.save(update_fields=["verification_status", "rejection_reason", "is_verified", "is_active"])
+
+        # Create an audit record for the unsuspend action
+        payload = {
+            "actor_id": getattr(actor, "id", None),
+            "action_type": "unsuspend",
+            "entity_type": "user",
+            "entity_id": user.id,
+            "before_state": before_state,
+            "after_state": {
+                "verification_status": user.verification_status,
+                "is_active": user.is_active,
+                "rejection_reason": user.rejection_reason,
+            },
+            "reason": "Admin unsuspended user",
+        }
+        FinancialAuditLog.objects.create(
+            actor=actor,
+            action_type="unsuspend",
+            entity_type="user",
+            entity_id=user.id,
+            before_state=before_state,
+            after_state={
+                "verification_status": user.verification_status,
+                "is_active": user.is_active,
+                "rejection_reason": user.rejection_reason,
+            },
+            reason="Admin unsuspended user",
+            hash_chain=_build_hash_chain(payload),
+        )
+        return user
 
     user.save(update_fields=["verification_status", "rejection_reason", "is_verified", "is_active"])
     return user
