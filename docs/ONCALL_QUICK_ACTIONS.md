@@ -30,7 +30,7 @@ Quick remediation (safe-first)
 
 Escalation
 - If recovery fails within 15-30 minutes:
-  - Notify on-call lead and create incident in the tracker with ``Incident: <short summary>``
+  - Notify on-call lead and create incident in the tracker with `Incident: <short summary>`
   - Add logs link, affected services, and reproduce steps.
 
 Contacts
@@ -38,3 +38,44 @@ Contacts
 - Pager: primary on-call (see rota)
 
 Keep this file short; link to `backend/docs/DEPLOYMENT_CHECKLIST_PROD.md` for full runbook.
+
+---
+
+## KPI Regression Incident Template
+
+### 1) Incident Header
+- Incident ID: `INC-YYYYMMDD-<n>`
+- Date/Time (UTC):
+- Detected by: `weekly_kpi_report` / dashboard / manual
+- Owner:
+- Severity: `sev2|sev3`
+
+### 2) Trigger
+- KPI affected: `completion_rate_pct|dispute_rate_pct|proposal_to_hire_conversion_pct|...`
+- Current value:
+- Baseline (last 4 weeks avg):
+- Delta (%):
+- Threshold breached:
+
+### 3) Impact
+- Affected cohort/project IDs:
+- User impact summary:
+- Revenue/escrow impact:
+
+### 4) Immediate Actions (0-4h)
+1. Validate data correctness from KPI artifact + DB spot-check.
+2. Identify top 3 causal segments (role, category, project stage).
+3. Apply mitigation owner + ETA (ops/product/support split).
+4. Post status update in incident tracker.
+
+### 5) Root Cause + Corrective Actions (24-72h)
+- Root cause hypothesis:
+- Confirmed cause:
+- Corrective action(s):
+- Owner per action:
+- Due date:
+
+### 6) Exit Criteria
+- KPI returns within threshold for 2 consecutive weekly runs.
+- Evidence links attached (artifact, query, decision note).
+- Postmortem status: `closed`.
