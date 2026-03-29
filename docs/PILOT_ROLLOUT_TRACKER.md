@@ -34,6 +34,21 @@
 4. Assign one action owner per KPI regression and capture evidence link.
 5. Use incident template: `docs/ONCALL_QUICK_ACTIONS.md`.
 
+## Weekly Review SOP
+- Owner: `@copilot` (chair), backups: `@mike_ops`, `@julia_support`
+- Inputs:
+  - `weekly-kpi-report` artifact (`kpi_report.json`)
+  - pilot milestone tracker table
+  - open incident list (if any)
+- Outputs:
+  - updated milestone statuses + KPI deltas
+  - action list with owner + due date
+  - incident decision (`open|monitor|close`)
+- SLA:
+  - Monday run kickoff by `09:00 UTC`
+  - tracker/evidence updates complete by `12:00 UTC`
+  - incident owner assigned within `2h` if threshold breached
+
 ## Exit Gate (Pilot Complete)
 - 20 real projects posted.
 - Meaningful escrow-funded and completed volume.

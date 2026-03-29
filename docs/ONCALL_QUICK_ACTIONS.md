@@ -79,3 +79,12 @@ Keep this file short; link to `backend/docs/DEPLOYMENT_CHECKLIST_PROD.md` for fu
 - KPI returns within threshold for 2 consecutive weekly runs.
 - Evidence links attached (artifact, query, decision note).
 - Postmortem status: `closed`.
+
+### 7) Evidence Bundle Format (Audit)
+- `bundle_id`: `KPI-YYYYMMDD-weekNN`
+- `incident_id`: `INC-YYYYMMDD-<n>` or `none`
+- `artifact_link`: GitHub Actions artifact URL
+- `tracker_link`: pilot tracker row/cell URL
+- `query_or_log_link`: DB query gist or log permalink
+- `decision_note`: 3-5 lines (what changed, why, owner, due date)
+- `approver`: reviewer handle + approval timestamp (UTC)

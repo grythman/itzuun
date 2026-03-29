@@ -20,6 +20,18 @@
 6. Check logs for `Print KPI summary` lines (`window_days`, `since`, KPI keys)
 7. If `SLACK_WEBHOOK_URL` exists, confirm Slack notification delivered
 
+## Monday Run Checklist (Ops)
+1. Trigger workflow manually with `days=7` (or confirm scheduled run succeeded).
+2. Confirm run is green and download artifact `weekly-kpi-report`.
+3. Update `docs/PILOT_ROLLOUT_TRACKER.md`:
+- milestone status changes
+- KPI delta vs previous week
+- evidence links for changed rows
+4. Incident decision:
+- if thresholds breached, open KPI incident using `docs/ONCALL_QUICK_ACTIONS.md`
+- else mark status as `monitor` and assign next check owner
+5. Post review summary with owner, decisions, and due dates.
+
 ## Top 5 Failure Causes + Exact Fixes
 1. SSH auth/host failure (`Permission denied`, `Host key verification failed`)
 - Fix: rotate and re-save `SERVER_KEY`, verify `SERVER_HOST` + `SERVER_USER`, re-run workflow.
