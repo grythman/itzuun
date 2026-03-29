@@ -13,6 +13,8 @@ on:
 jobs:
   kpi-report:
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout code
@@ -62,9 +64,7 @@ jobs:
           PY
 
       - name: Notify Slack (optional)
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         run: |
           set -e
           python - <<'PY'
@@ -98,9 +98,8 @@ jobs:
           PY
 
       - name: Notify Slack on failure (optional)
-        if: ${{ failure() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ failure() && env.SLACK_WEBHOOK_URL != '' }}
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
           WORKFLOW: ${{ github.workflow }}
