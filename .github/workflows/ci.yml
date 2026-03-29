@@ -171,11 +171,25 @@ jobs:
             echo "=== Building and restarting api + web ==="
             docker compose -f docker-compose.prod.yml up -d --build --no-deps api web
 
-            echo "=== Waiting for services ==="
-            sleep 25
+            echo "=== Health check (retry) ==="
+            ok=0
+            for i in $(seq 1 18); do
+              a=$(docker ps --filter "name=itzuun-api-1" --format "{{.Status}}" || true)
+              w=$(docker ps --filter "name=itzuun-web-1" --format "{{.Status}}" || true)
+              c=$(curl -sS -L -o /dev/null -w "%{http_code}" https://itzuun.works/ || true)
+              echo "try=$i api=[$a] web=[$w] code=$c"
+              if echo "$a" | grep -q "Up" && echo "$w" | grep -q "Up" && echo "$c" | grep -qE "^(200|301|302|307|308)$"; then
+                ok=1
+                break
+              fi
+              sleep 10
+            done
 
-            echo "=== Health check ==="
-            docker ps --filter "name=itzuun-api-1" --format "{{.Status}}" | grep -q "Up" && echo "API is UP" || (echo "API is DOWN" && exit 1)
-            curl -sf -o /dev/null -w "%{http_code}" https://itzuun.works/ | grep -qE "^(200|307)" && echo "Site is UP" || (echo "Site check failed" && exit 1)
+            if [ "$ok" -ne 1 ]; then
+              echo "API/WEB health check failed"
+              docker logs --tail 120 itzuun-api-1 || true
+              docker logs --tail 120 itzuun-web-1 || true
+              exit 1
+            fi
 
             echo "=== Deploy complete ==="
