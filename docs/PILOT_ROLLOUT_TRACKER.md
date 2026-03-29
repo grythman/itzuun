@@ -7,31 +7,32 @@
 ## Milestone Tracker Template
 | Milestone | Owner | Target Date | Status | Evidence |
 |---|---|---|---|---|
-| Pilot cohort selected (clients/freelancers) | Product Lead | YYYY-MM-DD | Todo/In Progress/Done | Cohort sheet URL |
-| 5 projects posted | Growth Lead | YYYY-MM-DD | Todo/In Progress/Done | Project IDs list |
-| 5 projects funded escrow | Ops Lead | YYYY-MM-DD | Todo/In Progress/Done | Escrow IDs + screenshot |
-| 3 projects completed | Ops Lead | YYYY-MM-DD | Todo/In Progress/Done | Completion IDs |
-| 1 dispute resolved end-to-end | Support Lead | YYYY-MM-DD | Todo/In Progress/Done | Dispute ID + resolution note |
-| 20 total pilot projects reached | Product Lead | YYYY-MM-DD | Todo/In Progress/Done | Final tracker export |
+| Pilot cohort selected (clients/freelancers) | @copilot | 2026-03-30 | Todo | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER |
+| 5 projects posted | @tara_growth | 2026-04-06 | Todo | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#projects |
+| 5 projects funded escrow | @mike_ops | 2026-04-13 | Todo | jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
+| 3 projects completed | @mike_ops | 2026-04-20 | Todo | notion: https://www.notion.so/PLACEHOLDER |
+| 1 dispute resolved end-to-end | @julia_support | YYYY-MM-DD | Todo/In Progress/Done | Dispute ID + resolution note (notion/jira) |
+| 20 total pilot projects reached | @copilot | YYYY-MM-DD | Todo/In Progress/Done | Final tracker export (sheet) |
 
 ## Weekly KPI Mapping
 | KPI (`weekly_kpi_report`) | Rollout Signal | Owner | Evidence |
 |---|---|---|---|
-| `projects_posted` | Top-of-funnel activity | Growth Lead | Weekly KPI artifact |
-| `hired_projects` | Match quality / conversion | Product Lead | Weekly KPI artifact |
-| `proposal_to_hire_conversion_pct` | Marketplace efficiency | Product Lead | Weekly KPI artifact |
-| `escrow_funded_count` | Transaction trust adoption | Ops Lead | Escrow IDs + KPI artifact |
-| `completion_rate_pct` | Delivery success | Ops Lead | Completed project IDs |
-| `dispute_rate_pct` | Risk signal (must trend down) | Support Lead | Dispute IDs + notes |
-| `avg_rating` | Quality signal | Product Lead | Review snapshots |
-| `new_freelancer_signups` | Supply growth | Growth Lead | Signup log extract |
-| `verified_freelancers` | Trust supply quality | Ops Lead | Verification report |
+| `projects_posted` | Top-of-funnel activity | @tara_growth | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#kpi |
+| `hired_projects` | Match quality / conversion | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#kpi |
+| `proposal_to_hire_conversion_pct` | Marketplace efficiency | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#kpi |
+| `escrow_funded_count` | Transaction trust adoption | @mike_ops | jira: https://your-jira.atlassian.net/browse/PLACEHOLDER |
+| `completion_rate_pct` | Delivery success | @mike_ops | notion: https://www.notion.so/PLACEHOLDER |
+| `dispute_rate_pct` | Risk signal (must trend down) | @julia_support | notion: https://www.notion.so/PLACEHOLDER |
+| `avg_rating` | Quality signal | @copilot | sheet: https://docs.google.com/spreadsheets/d/PLACEHOLDER#reviews |
+| `new_freelancer_signups` | Supply growth | @tara_growth | signup log extract (sheet) |
+| `verified_freelancers` | Trust supply quality | @mike_ops | verification report (sheet) |
 
 ## Weekly Review Cadence
 1. Run KPI workflow (`days=7`) every Monday.
 2. Fill tracker table with delta vs last week.
 3. Open incident if `dispute_rate_pct` spikes or `completion_rate_pct` drops.
 4. Assign one action owner per KPI regression and capture evidence link.
+5. Use incident template: `docs/ONCALL_QUICK_ACTIONS.md`.
 
 ## Exit Gate (Pilot Complete)
 - 20 real projects posted.
