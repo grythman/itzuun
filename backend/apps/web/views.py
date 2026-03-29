@@ -1,6 +1,9 @@
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.views.generic import TemplateView
+from django.views.decorators.http import require_GET
+from django.db import connection
+from django.core.cache import cache
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
@@ -42,3 +45,32 @@ class AdminDashboardView(TemplateView):
             return self._forbidden_response(request)
 
         return super().get(request, *args, **kwargs)
+
+
+@require_GET
+def healthz_view(_request):
+    status = {
+        "ok": True,
+        "checks": {
+            "database": "ok",
+            "cache": "ok",
+        },
+    }
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    except Exception:
+        status["ok"] = False
+        status["checks"]["database"] = "error"
+
+    try:
+        cache.set("healthz:ping", "ok", timeout=10)
+        if cache.get("healthz:ping") != "ok":
+            raise RuntimeError("cache readback mismatch")
+    except Exception:
+        status["ok"] = False
+        status["checks"]["cache"] = "error"
+
+    return JsonResponse(status, status=200 if status["ok"] else 503)

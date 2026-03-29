@@ -6,6 +6,13 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+except ImportError:  # pragma: no cover - optional dependency in local envs
+    sentry_sdk = None
+    DjangoIntegration = None
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
@@ -46,6 +53,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "common.middleware.RequestIdMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -262,15 +270,21 @@ else:
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "request_id": {
+            "()": "common.logging.RequestIdFilter",
+        },
+    },
     "formatters": {
         "standard": {
-            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+            "format": "%(asctime)s %(levelname)s [request_id=%(request_id)s] %(name)s %(message)s",
         },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "standard",
+            "filters": ["request_id"],
         },
     },
     "loggers": {
@@ -286,3 +300,16 @@ LOGGING = {
         },
     },
 }
+
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "development" if DEBUG else "production")
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
+
+if SENTRY_DSN and sentry_sdk and DjangoIntegration:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        environment=SENTRY_ENVIRONMENT,
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        send_default_pii=False,
+    )
