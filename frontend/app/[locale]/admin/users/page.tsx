@@ -65,9 +65,9 @@ export default function AdminUsersPage() {
                           const reason = (window.prompt(t("unsuspendNotePrompt")) || "").trim();
                           unsuspendMutation.mutate({ userId: item.id, reason: reason || undefined });
                         }}
-                        disabled={unsuspendMutation.isLoading}
+                        disabled={unsuspendMutation.isPending}
                       >
-                        {unsuspendMutation.isLoading ? t("unsuspending") : t("unsuspend")}
+                        {unsuspendMutation.isPending ? t("unsuspending") : t("unsuspend")}
                       </button>
                     </div>
                   )}
