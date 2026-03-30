@@ -86,6 +86,7 @@
     "page": "Хуудас"
   },
   "ProjectNew": {
+    "intakeLabel": "Төслийн эхлэлийн студи",
     "step1": "Үндсэн мэдээлэл",
     "step2": "Төсөв ба хугацаа",
     "step3": "Хянах ба батлах",
@@ -115,6 +116,14 @@
   },
   "ClientDash": {
     "title": "Клиент хянах самбар",
+    "controlRoomLabel": "Клиент удирдлагын төв",
+    "controlRoomSub": "Escrow урсгал, milestone явц, ирсэн саналуудыг нэг дороос хянаарай.",
+    "securedVolumeLabel": "Хамгаалагдсан дүн",
+    "securedVolumeSub": "Идэвхтэй escrow нийт дүнгийн тооцоо",
+    "activeProjectsLabel": "Идэвхтэй төслүүд",
+    "activeProjectsSub": "Хэрэгжиж буй төслүүдийн тоо",
+    "openBidsLabel": "Нээлттэй тендерүүд",
+    "openBidsSub": "Шортлист хүлээж буй төслүүд",
     "profileCompleteness": "Компанийн профайл бүрэн байдал",
     "completeProfile": "Фрийлансерүүдийн итгэлийг нэмэхийн тулд профайлаа бүрэн бөглөнө үү",
     "profileDone": "Таны профайл бүрэн байна!",

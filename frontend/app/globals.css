@@ -38,6 +38,39 @@ button {
   background-image: linear-gradient(135deg, #451ebb 0%, #5d3fd3 100%);
 }
 
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes breatheGlow {
+  0%, 100% {
+    box-shadow: 0 14px 40px rgba(74, 35, 200, 0.18);
+  }
+  50% {
+    box-shadow: 0 18px 48px rgba(74, 35, 200, 0.34);
+  }
+}
+
+.anim-rise {
+  opacity: 0;
+  animation: riseIn 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.anim-delay-1 { animation-delay: 80ms; }
+.anim-delay-2 { animation-delay: 160ms; }
+.anim-delay-3 { animation-delay: 240ms; }
+
+.anim-glow {
+  animation: breatheGlow 2.4s ease-in-out infinite;
+}
+
 /* Smooth scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

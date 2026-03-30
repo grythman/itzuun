@@ -86,6 +86,7 @@
     "page": "Page"
   },
   "ProjectNew": {
+    "intakeLabel": "Project Intake Studio",
     "step1": "Basic Info",
     "step2": "Budget & Timeline",
     "step3": "Review & Confirm",
@@ -115,6 +116,14 @@
   },
   "ClientDash": {
     "title": "Client Dashboard",
+    "controlRoomLabel": "Client Control Room",
+    "controlRoomSub": "Monitor escrow flow, active milestones, and incoming proposals from one dashboard.",
+    "securedVolumeLabel": "Secured Volume",
+    "securedVolumeSub": "Estimated active escrow total",
+    "activeProjectsLabel": "Active Projects",
+    "activeProjectsSub": "Projects currently in delivery",
+    "openBidsLabel": "Open Bids",
+    "openBidsSub": "Projects waiting for shortlist",
     "profileCompleteness": "Company Profile Completeness",
     "completeProfile": "Complete your profile to build trust with freelancers",
     "profileDone": "Your profile is complete!",

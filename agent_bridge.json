@@ -1,7 +1,45 @@
 {
-  "phase": "System Recovery",
-  "task": "Recover from crash",
+  "phase": "Launch Readiness",
+  "task": {
+    "id": "task-a8c424d4",
+    "title": "Critical: pilot cohort selection bootstrap",
+    "status": "completed"
+  },
   "status": "completed",
-  "feedback": "",
-  "iteration": 1
+  "spec": {
+    "implementation_plan": [
+      {
+        "step": 1,
+        "title": "Inspect pilot tracker and roadmap",
+        "commands": [
+          "cat docs/PILOT_ROLLOUT_TRACKER.md",
+          "cat backend/docs/ROADMAP_30_60_90.md"
+        ]
+      },
+      {
+        "step": 2,
+        "title": "Create missing Django management command directories",
+        "commands": [
+          "mkdir -p backend/apps/accounts/management/commands --force -y",
+          "test -f backend/apps/accounts/management/__init__.py || touch backend/apps/accounts/management/__init__.py",
+          "test -f backend/apps/accounts/management/commands/__init__.py || touch backend/apps/accounts/management/commands/__init__.py"
+        ]
+      },
+      {
+        "step": 3,
+        "title": "Create pilot cohort command placeholder",
+        "commands": [
+          "test -f backend/apps/accounts/management/commands/setup_pilot_cohort.py || printf '%s\n' 'from django.core.management.base import BaseCommand' '' 'class Command(BaseCommand):' '    help = \"Mark pilot users/projects\"' '' '    def handle(self, *args, **options):' '        self.stdout.write(self.style.SUCCESS(\"setup_pilot_cohort placeholder\"))' > backend/apps/accounts/management/commands/setup_pilot_cohort.py"
+        ]
+      }
+    ],
+    "executor": {
+      "engine": "codex-subprocess",
+      "validate_command": "test -f backend/apps/accounts/management/commands/setup_pilot_cohort.py && python3 -m py_compile backend/apps/accounts/management/commands/setup_pilot_cohort.py"
+    }
+  },
+  "feedback": "Planner cooldown active for 180s after 35 failures: exit=124 timeout",
+  "updated_at": "2026-03-30T12:40:20.891136+00:00",
+  "_planner_fallback": true,
+  "_planner_error": "exit=124 timeout"
 }
