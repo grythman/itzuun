@@ -10,7 +10,7 @@ import { ActionButton, CompareTable, ConfirmationDialog, EscrowStatusBadge, Rati
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import ProjectChat from "@/components/project-chat";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
-import { useMe, useMutation, useProjectDetail, useProjectProposals } from "@/lib/hooks";
+import { useMe, useMutation, useProjectDetail, useProjectProposals, useQuery } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { proposalSchema, reviewSchema } from "@/lib/validators";
 
@@ -18,6 +18,44 @@ import type { z } from "zod";
 
 type ProposalForm = z.infer<typeof proposalSchema>;
 type ReviewForm = z.infer<typeof reviewSchema>;
+
+function resolveFreelancerId(freelancer: unknown): string | number | null {
+  if (typeof freelancer === "number" || typeof freelancer === "string") return freelancer;
+  if (freelancer && typeof freelancer === "object" && "id" in freelancer) {
+    return (freelancer as { id: string | number }).id;
+  }
+  return null;
+}
+
+function ProposalTrustMeta({
+  freelancerId,
+  verificationStatus,
+  fallbackVerified,
+}: {
+  freelancerId: string | number | null;
+  verificationStatus?: string;
+  fallbackVerified?: boolean;
+}) {
+  const rating = useQuery({
+    queryKey: ["rating-summary", freelancerId],
+    queryFn: () => projectsApi.ratingSummary(freelancerId as string | number),
+    enabled: !!freelancerId,
+  });
+
+  return (
+    <div className="mb-2 flex items-center justify-between gap-3">
+      <VerifiedBadge status={verificationStatus} verified={fallbackVerified} />
+      {rating.data?.total ? (
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-surface-600">
+          <RatingStars value={rating.data.average} />
+          <span>({rating.data.total})</span>
+        </span>
+      ) : (
+        <span className="text-[11px] text-surface-400">No reviews yet</span>
+      )}
+    </div>
+  );
+}
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -169,9 +207,7 @@ export default function ProjectDetailPage() {
   const isClientOwner = me.data.id === project.owner;
   const canFreelancerPropose = me.data.role === "freelancer" && project.status === "open" && me.data.is_verified;
   const needsVerification = me.data.role === "freelancer" && project.status === "open" && !me.data.is_verified;
-  const isSelectedFreelancer = proposalItems.some(
-    (item) => item.id === project.selected_proposal && item.freelancer === me.data?.id,
-  );
+  const isSelectedFreelancer = proposalItems.some((item) => item.id === project.selected_proposal && resolveFreelancerId(item.freelancer) === me.data?.id);
   const milestoneBanner = project.status === "in_progress" ? "Project in escrow. Deliver milestones to unlock review." : null;
 
   const toggleCompareProposal = (proposalId: number) => {
@@ -392,10 +428,13 @@ export default function ProjectDetailPage() {
               <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="font-semibold">Freelancer #{item.freelancer}</p>
-                  <VerifiedBadge verified={true} />
                 </div>
-                <div className="mb-2"><RatingStars value={4.7} /></div>
-                <CompareTable rows={[{ label: "Price", value: `${item.price} MNT` }, { label: "Timeline", value: `${item.timeline_days} days` }, { label: "Completed projects", value: 12 }]} />
+                <ProposalTrustMeta
+                  freelancerId={resolveFreelancerId(item.freelancer)}
+                  verificationStatus={item.freelancer_verification_status}
+                  fallbackVerified={item.freelancer_is_verified}
+                />
+                <CompareTable rows={[{ label: "Price", value: `${item.price} MNT` }, { label: "Timeline", value: `${item.timeline_days} days` }]} />
                 {proposalCompareMode ? (
                   <label className="mt-2 flex items-center gap-2 text-xs text-slate-600">
                     <input

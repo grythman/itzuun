@@ -137,11 +137,11 @@ export const projectsApi = {
     return res.data;
   },
   submitResult: async (projectId: string | number, payload: any) => {
-    const res = await apiClient.post(`/projects/${projectId}/result/`, payload);
+    const res = await apiClient.post(`/projects/${projectId}/submit-result/`, payload);
     return res.data;
   },
   review: async (projectId: string | number, payload: any) => {
-    const res = await apiClient.post(`/projects/${projectId}/review/`, payload);
+    const res = await apiClient.post(`/projects/${projectId}/reviews/`, payload);
     return res.data;
   },
   createPayment: async (projectId: string | number) => {
@@ -153,11 +153,11 @@ export const projectsApi = {
     return res.data;
   },
   ratingSummary: async (userId: string | number) => {
-    const res = await apiClient.get(`/reviews/users/${userId}/summary/`);
+    const res = await apiClient.get(`/users/${userId}/rating-summary`);
     return res.data;
   },
   userReviews: async (userId: string | number) => {
-    const res = await apiClient.get(`/reviews/users/${userId}/`);
+    const res = await apiClient.get(`/users/${userId}/reviews`);
     return res.data;
   },
   updateProposal: async (proposalId: string | number, payload: any) => {
@@ -294,7 +294,7 @@ export const profilesApi = {
 
 export const verificationApi = {
   submit: async (data: any) => {
-    const res = await apiClient.post("/accounts/verification/", data);
+    const res = await apiClient.post("/accounts/users/me/verification/", data);
     return res.data;
   }
 }

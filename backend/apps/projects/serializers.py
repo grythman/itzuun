@@ -44,9 +44,22 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class ProposalSerializer(serializers.ModelSerializer):
+    freelancer_verification_status = serializers.CharField(source="freelancer.verification_status", read_only=True)
+    freelancer_is_verified = serializers.BooleanField(source="freelancer.is_verified", read_only=True)
+
     class Meta:
         model = Proposal
-        fields = ("id", "project", "freelancer", "price", "timeline_days", "message", "status")
+        fields = (
+            "id",
+            "project",
+            "freelancer",
+            "freelancer_verification_status",
+            "freelancer_is_verified",
+            "price",
+            "timeline_days",
+            "message",
+            "status",
+        )
         read_only_fields = ("id", "project", "freelancer", "status")
 
 

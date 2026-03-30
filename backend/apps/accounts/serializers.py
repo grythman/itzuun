@@ -1,5 +1,6 @@
 """Serializers for authentication and user profile."""
 from datetime import timedelta
+import re
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -130,12 +131,33 @@ class VerificationSubmitSerializer(serializers.Serializer):
     verification_type = serializers.ChoiceField(choices=User.VERIFICATION_TYPE_CHOICES)
     phone = serializers.CharField(max_length=20)
 
+    def validate_phone(self, value: str) -> str:
+        cleaned = value.strip().replace(" ", "").replace("-", "")
+        if cleaned.startswith("+"):
+            digits = cleaned[1:]
+        else:
+            digits = cleaned
+        if not re.fullmatch(r"\d{8,15}", digits):
+            raise serializers.ValidationError("Phone must contain 8-15 digits (optionally starting with +).")
+        normalized = f"+{digits}" if value.strip().startswith("+") else digits
+        return normalized
+
+    def validate(self, attrs):
+        user = self.context["request"].user
+        if user.verification_status == User.VERIFICATION_PENDING:
+            raise serializers.ValidationError("Verification is already under review.")
+        if user.verification_status == User.VERIFICATION_SUSPENDED:
+            raise serializers.ValidationError("Account is suspended. Contact support before re-submitting verification.")
+        return attrs
+
     def create(self, validated_data):
         user = self.context["request"].user
         user.verification_type = validated_data["verification_type"]
         user.phone = validated_data["phone"]
         user.verification_status = User.VERIFICATION_PENDING
-        user.save(update_fields=["verification_type", "phone", "verification_status", "is_verified"])
+        user.rejection_reason = ""
+        user.is_verified = False
+        user.save(update_fields=["verification_type", "phone", "verification_status", "rejection_reason", "is_verified"])
         bump_admin_resource_version("users")
         bump_user_public_version(user.id)
         return user

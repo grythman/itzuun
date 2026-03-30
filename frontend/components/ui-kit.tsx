@@ -33,15 +33,28 @@ export function EscrowStatusBadge({ status }: { status: string }) {
   );
 }
 
-export function VerifiedBadge({ verified }: { verified?: boolean }) {
+export function VerifiedBadge({
+  verified,
+  status,
+}: {
+  verified?: boolean;
+  status?: "unverified" | "pending" | "verified" | "suspended" | string;
+}) {
+  const normalized = status?.toLowerCase();
+  const isVerified = normalized ? normalized === "verified" : !!verified;
+  const isPending = normalized === "pending";
+  const isSuspended = normalized === "suspended";
+  const label = isVerified ? "✓ Verified" : isPending ? "Pending Review" : isSuspended ? "Suspended" : "Unverified";
+  const tone = isVerified
+    ? "bg-emerald-50 text-emerald-700"
+    : isPending
+      ? "bg-blue-50 text-blue-700"
+      : isSuspended
+        ? "bg-red-50 text-red-700"
+        : "bg-surface-100 text-surface-500";
+
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-        verified ? "bg-emerald-50 text-emerald-700" : "bg-surface-100 text-surface-500"
-      }`}
-    >
-      {verified ? "✓ Verified" : "Unverified"}
-    </span>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${tone}`}>{label}</span>
   );
 }
 

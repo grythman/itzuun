@@ -11,6 +11,8 @@ export interface User {
   last_name: string;
   is_verified?: boolean;
   verification_status?: "unverified" | "pending" | "verified" | "suspended";
+  verification_type?: "individual" | "business";
+  phone?: string;
   rejection_reason?: string;
 }
 
@@ -47,6 +49,8 @@ export interface Proposal {
     first_name: string;
     last_name: string;
   } | string | number;
+  freelancer_verification_status?: "unverified" | "pending" | "verified" | "suspended";
+  freelancer_is_verified?: boolean;
   cover_letter: string;
   proposed_budget: number;
   estimated_days: number;
@@ -67,6 +71,7 @@ export interface Profile {
   hourly_rate?: number;
   is_available?: boolean;
   response_time_hours?: number;
+  verification_status?: "unverified" | "pending" | "verified" | "suspended";
   portfolio?: Array<{ title?: string; url?: string }>;
   profile_completeness?: number;
 }

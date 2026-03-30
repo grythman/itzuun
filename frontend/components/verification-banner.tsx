@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { User } from "@/lib/types";
 import { authApi } from "@/lib/api/endpoints";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ export function VerificationBanner({ user }: { user: User | null | undefined }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ verification_type: "individual", phone: "" });
   const [error, setError] = useState("");
+  const cleanedPhone = useMemo(() => formData.phone.replace(/[^\d+]/g, ""), [formData.phone]);
 
   if (!user) return null;
 
@@ -46,17 +47,24 @@ export function VerificationBanner({ user }: { user: User | null | undefined }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.phone.trim()) {
+    if (!cleanedPhone.trim()) {
       setError("Утасны дугаараа оруулна уу.");
       return;
     }
     try {
       setIsSubmitting(true);
       setError("");
-      await authApi.submitVerification(formData);
-      queryClient.invalidateQueries({ queryKey: ["me"] });
+      await authApi.submitVerification({ ...formData, phone: cleanedPhone });
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     } catch (err: any) {
-      setError(err.message || "Алдаа гарлаа. Дахин оролдоно уу.");
+      const payload = err?.response?.data;
+      const detail =
+        payload?.detail ||
+        payload?.phone?.[0] ||
+        payload?.non_field_errors?.[0] ||
+        err?.message ||
+        "Алдаа гарлаа. Дахин оролдоно уу.";
+      setError(detail);
     } finally {
       setIsSubmitting(false);
     }
@@ -95,6 +103,7 @@ export function VerificationBanner({ user }: { user: User | null | undefined }) 
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full text-sm rounded-md border-surface-300 bg-white py-1.5 px-3 focus:ring-brand-500 focus:border-brand-500"
               />
+              <p className="text-[11px] text-surface-500">8-15 оронтой дугаар оруулна уу. Жишээ: +97699112233</p>
             </div>
             
             <button

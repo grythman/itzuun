@@ -1,7 +1,7 @@
 {
   "phase": "Launch Readiness",
   "task": {
-    "id": "task-a8c424d4",
+    "id": "task-8950680d",
     "title": "Critical: pilot cohort selection bootstrap",
     "status": "completed"
   },
@@ -38,8 +38,8 @@
       "validate_command": "test -f backend/apps/accounts/management/commands/setup_pilot_cohort.py && python3 -m py_compile backend/apps/accounts/management/commands/setup_pilot_cohort.py"
     }
   },
-  "feedback": "Planner cooldown active for 180s after 35 failures: exit=124 timeout",
-  "updated_at": "2026-03-30T12:40:20.891136+00:00",
+  "feedback": "Planner cooldown active for 180s after 74 failures: exit=124 timeout",
+  "updated_at": "2026-03-30T14:50:22.581509+00:00",
   "_planner_fallback": true,
   "_planner_error": "exit=124 timeout"
 }

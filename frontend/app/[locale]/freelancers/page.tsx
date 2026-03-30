@@ -2,15 +2,17 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { RatingStars, VerifiedBadge } from "@/components/ui-kit";
 import { profilesApi, projectsApi } from "@/lib/api/endpoints";
 
 import type { Profile } from "@/lib/types";
 
-function FreelancerCard({ profile }: { profile: Profile }) {
+function FreelancerCard({ profile, withLocale }: { profile: Profile; withLocale: (href: string) => string }) {
   const rating = useQuery({
     queryKey: ["rating", profile.user],
     queryFn: () => projectsApi.ratingSummary(profile.user),
@@ -45,19 +47,15 @@ function FreelancerCard({ profile }: { profile: Profile }) {
             {profile.hourly_rate > 0 && (
               <span>{Number(profile.hourly_rate).toLocaleString()}₮/hr</span>
             )}
-            {total > 0 && (
-              <span className="flex items-center gap-1">
-                <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-accent-500">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                {avg.toFixed(1)} ({total})
-              </span>
-            )}
+            <span className="flex items-center gap-2">
+              <VerifiedBadge status={profile.verification_status} />
+              {total > 0 ? <RatingStars value={avg} /> : <span className="text-[11px] text-surface-400">No reviews yet</span>}
+            </span>
           </div>
         </div>
 
         <Link
-          href={`/freelancer/${profile.user}`}
+          href={withLocale(`/freelancer/${profile.user}`)}
           className="shrink-0 rounded-xl bg-brand-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-brand-700"
         >
           View Profile
@@ -68,6 +66,10 @@ function FreelancerCard({ profile }: { profile: Profile }) {
 }
 
 export default function FreelancersPage() {
+  const pathname = usePathname();
+  const pathParts = (pathname || "").split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -116,7 +118,7 @@ export default function FreelancersPage() {
         <>
           <ul className="grid gap-3">
             {items.map((profile) => (
-              <FreelancerCard key={profile.id} profile={profile} />
+              <FreelancerCard key={profile.id} profile={profile} withLocale={withLocale} />
             ))}
           </ul>
 

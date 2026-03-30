@@ -2,15 +2,20 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { ErrorState, LoadingState } from "@/components/states";
-import { AppCard, RatingStars } from "@/components/ui-kit";
+import { AppCard, RatingStars, VerifiedBadge } from "@/components/ui-kit";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useProfile } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
 
 export default function FreelancerPublicProfilePage({ params }: { params: { id: string } }) {
   const id = params?.id;
+  const pathname = usePathname();
+  const pathParts = (pathname || "").split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const profile = useProfile(id);
   const rating = useQuery({
     queryKey: ["rating-summary", id],
@@ -32,7 +37,7 @@ export default function FreelancerPublicProfilePage({ params }: { params: { id: 
 
   return (
     <section className="mx-auto max-w-2xl space-y-6 pb-20">
-      <Link href="/projects" className="inline-flex items-center gap-1 text-[13px] text-brand-600 hover:underline">
+      <Link href={withLocale("/projects")} className="inline-flex items-center gap-1 text-[13px] text-brand-600 hover:underline">
         ← Back to projects
       </Link>
 
@@ -41,6 +46,7 @@ export default function FreelancerPublicProfilePage({ params }: { params: { id: 
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-semibold">{p.full_name || "Freelancer"}</h1>
+            <div className="mt-1"><VerifiedBadge status={p.verification_status} /></div>
             {ratingData && ratingData.total > 0 && (
               <div className="mt-1 flex items-center gap-2">
                 <RatingStars value={ratingData.average} />
