@@ -129,11 +129,11 @@ export function useAdminSnapshot() {
   });
   const escrow = useQuery({
     queryKey: ["admin", "escrow"],
-    queryFn: adminApi.escrow,
+    queryFn: () => adminApi.escrow(),
   });
   const disputes = useQuery({
     queryKey: ["admin", "disputes"],
-    queryFn: adminApi.disputes,
+    queryFn: () => adminApi.disputes(),
   });
   const commission = useQuery({
     queryKey: ["admin", "commission"],

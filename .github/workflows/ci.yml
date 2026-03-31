@@ -96,6 +96,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/1
         run: |
           cd backend
+          python manage.py migrate --noinput
           python manage.py weekly_kpi_report --days 7 --json
 
       - name: Run Backend Tests
