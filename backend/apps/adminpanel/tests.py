@@ -112,3 +112,53 @@ class AdminUserUnsuspendPermissionTests(TestCase):
         url = reverse("admin-users-unsuspend", kwargs={"user_id": self.target.id})
         resp = self.client.post(url, {"reason": "appeal accepted"}, format="json")
         self.assertEqual(resp.status_code, 403)
+
+
+class AdminAuditLogListTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(email="admin-audit@example.com", password="pass")
+        self.client_user = User.objects.create_user(email="client-audit@example.com", password="pass", role=User.ROLE_CLIENT)
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+
+        FinancialAuditLog.objects.create(
+            actor=self.admin,
+            action_type="unsuspend",
+            entity_type="user",
+            entity_id=self.client_user.id,
+            before_state={"verification_status": "suspended"},
+            after_state={"verification_status": "verified"},
+            reason="appeal accepted",
+            hash_chain="h1",
+        )
+        FinancialAuditLog.objects.create(
+            actor=self.admin,
+            action_type="approve",
+            entity_type="escrow",
+            entity_id=1,
+            before_state={"status": "created"},
+            after_state={"status": "held"},
+            reason="admin approval",
+            hash_chain="h2",
+        )
+
+    def test_list_audit_logs(self):
+        url = reverse("admin-audit-logs")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("results", resp.data)
+        self.assertGreaterEqual(len(resp.data["results"]), 2)
+
+    def test_filter_audit_logs_by_entity_type(self):
+        url = reverse("admin-audit-logs")
+        resp = self.client.get(url, {"entity_type": "escrow"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data["results"]), 1)
+        self.assertEqual(resp.data["results"][0]["entity_type"], "escrow")
+
+    def test_requires_admin_permission(self):
+        non_admin_client = APIClient()
+        non_admin_client.force_authenticate(user=self.client_user)
+        url = reverse("admin-audit-logs")
+        resp = non_admin_client.get(url)
+        self.assertEqual(resp.status_code, 403)

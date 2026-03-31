@@ -5,6 +5,8 @@ from rest_framework.test import APIClient
 
 from apps.accounts.models import User
 from apps.profiles.models import Profile
+from apps.projects.models import Project
+from apps.reviews.models import Review
 
 
 class ProfileMeApiTests(TestCase):
@@ -101,3 +103,46 @@ class ProfileDetailApiTests(TestCase):
         self.client_api.force_authenticate(self.viewer)
         response = self.client_api.get("/api/v1/profiles/99999")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class ProfileListFilterApiTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.client_api = APIClient()
+        self.client_user = User.objects.create_user(email="client-filter@test.com", role="client", password="pass1234")
+        self.f1 = User.objects.create_user(email="f1@test.com", role="freelancer", password="pass1234")
+        self.f1.verification_status = User.VERIFICATION_VERIFIED
+        self.f1.save(update_fields=["verification_status", "is_verified"])
+        self.f2 = User.objects.create_user(email="f2@test.com", role="freelancer", password="pass1234")
+        self.f3 = User.objects.create_user(email="f3@test.com", role="freelancer", password="pass1234")
+        self.f3.verification_status = User.VERIFICATION_VERIFIED
+        self.f3.save(update_fields=["verification_status", "is_verified"])
+
+        Profile.objects.create(user=self.f1, full_name="React Pro", skills=["react", "nextjs"])
+        Profile.objects.create(user=self.f2, full_name="Python Dev", skills=["python", "django"])
+        Profile.objects.create(user=self.f3, full_name="Senior React", skills=["react", "django"])
+
+        project = Project.objects.create(
+            owner=self.client_user,
+            title="Landing",
+            description="Landing page",
+            budget=100000,
+            timeline_days=7,
+            category="web",
+        )
+        Review.objects.create(project=project, reviewer=self.client_user, reviewee=self.f1, rating=5, comment="great")
+
+    def test_filters_skill_and_verified(self):
+        response = self.client_api.get("/api/v1/profiles", {"skill": "react", "verified": "true"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = {row["user"] for row in response.json()["results"]}
+        self.assertIn(self.f1.id, ids)
+        self.assertIn(self.f3.id, ids)
+        self.assertNotIn(self.f2.id, ids)
+
+    def test_filters_min_rating(self):
+        response = self.client_api.get("/api/v1/profiles", {"min_rating": "4.5"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rows = response.json()["results"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["user"], self.f1.id)

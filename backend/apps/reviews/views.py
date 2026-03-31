@@ -2,7 +2,7 @@
 from django.db.models import Avg, Count
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status
+from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,6 +16,7 @@ from .serializers import ReviewSerializer
 
 class ProjectReviewCreateView(generics.CreateAPIView):
     serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=self.kwargs["project_id"])
@@ -41,6 +42,7 @@ class ProjectReviewCreateView(generics.CreateAPIView):
 
 class UserReviewsListView(generics.ListAPIView):
     serializer_class = ReviewSerializer
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return Review.objects.filter(reviewee_id=self.kwargs["user_id"]).order_by("-created_at")
@@ -58,6 +60,8 @@ class UserReviewsListView(generics.ListAPIView):
 
 
 class UserRatingSummaryView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def get(self, request, user_id):
         cache_key = rating_summary_cache_key(user_id)
         cached_payload = cache.get(cache_key)

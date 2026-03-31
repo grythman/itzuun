@@ -7,15 +7,17 @@ from .models import Profile
 class ProfileSerializer(serializers.ModelSerializer):
     profile_completeness = serializers.IntegerField(read_only=True)
     verification_status = serializers.CharField(source="user.verification_status", read_only=True)
+    avg_rating = serializers.FloatField(read_only=True, default=0.0)
+    review_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Profile
         fields = (
             "id", "user", "full_name", "title", "bio", "skills", "hourly_rate",
             "portfolio", "is_available", "response_time_hours", "last_active",
-            "profile_completeness", "verification_status"
+            "profile_completeness", "verification_status", "avg_rating", "review_count"
         )
-        read_only_fields = ("id", "user", "last_active", "profile_completeness", "verification_status")
+        read_only_fields = ("id", "user", "last_active", "profile_completeness", "verification_status", "avg_rating", "review_count")
 
     def validate_portfolio(self, value):
         if not isinstance(value, list):

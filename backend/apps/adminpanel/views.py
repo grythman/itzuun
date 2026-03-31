@@ -8,9 +8,15 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUser
 from apps.accounts.serializers import UserSerializer
-from apps.payments.models import Dispute, Escrow, LedgerEntry, Payment
+from apps.payments.models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
 from apps.payments.idempotency import execute_idempotent
-from apps.payments.serializers import DisputeSerializer, EscrowSerializer, LedgerEntrySerializer, PaymentSerializer
+from apps.payments.serializers import (
+    DisputeSerializer,
+    EscrowSerializer,
+    FinancialAuditLogSerializer,
+    LedgerEntrySerializer,
+    PaymentSerializer,
+)
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
 from common.cache_utils import admin_detail_cache_key, admin_list_cache_key, bump_admin_resource_version, bump_user_public_version
@@ -213,6 +219,34 @@ class AdminLedgerListView(APIView):
             queryset = queryset.filter(escrow__project_id=project_id)
 
         response = _paginated_response(request, queryset, LedgerEntrySerializer, self)
+        cache.set(cache_key, response.data, timeout=60)
+        return response
+
+
+class AdminAuditLogListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        cache_key = admin_list_cache_key("audit_logs", request.query_params)
+        cached_payload = cache.get(cache_key)
+        if cached_payload is not None:
+            return Response(cached_payload)
+
+        queryset = FinancialAuditLog.objects.select_related("actor").all().order_by("-created_at")
+
+        entity_type = request.query_params.get("entity_type")
+        if entity_type:
+            queryset = queryset.filter(entity_type=entity_type)
+
+        action_type = request.query_params.get("action_type")
+        if action_type:
+            queryset = queryset.filter(action_type=action_type)
+
+        entity_id = request.query_params.get("entity_id")
+        if entity_id:
+            queryset = queryset.filter(entity_id=entity_id)
+
+        response = _paginated_response(request, queryset, FinancialAuditLogSerializer, self)
         cache.set(cache_key, response.data, timeout=60)
         return response
 

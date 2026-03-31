@@ -74,6 +74,8 @@ export interface Profile {
   verification_status?: "unverified" | "pending" | "verified" | "suspended";
   portfolio?: Array<{ title?: string; url?: string }>;
   profile_completeness?: number;
+  avg_rating?: number;
+  review_count?: number;
 }
 
 export interface MessageItem {

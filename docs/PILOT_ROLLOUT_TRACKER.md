@@ -25,7 +25,7 @@
 | `dispute_rate_pct` | Risk signal (must trend down) | @julia_support | https://www.notion.so/itzuun/Disputes-Tracker-abcdef1234567890 |
 | `avg_rating` | Quality signal | @copilot | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#reviews |
 | `new_freelancer_signups` | Supply growth | @tara_growth | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#signups |
-| `verified_freelancers` | Trust supply quality | @mike_ops | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#verification_report |
+| `verified_freelancers` | Trust supply quality (canonical key in workflow checks) | @mike_ops | https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#verification_report |
 
 ## Weekly Review Cadence
 1. Run KPI workflow (`days=7`) every Monday.

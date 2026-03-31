@@ -83,6 +83,21 @@ jobs:
           cd backend
           python manage.py makemigrations --check --dry-run
 
+      - name: KPI report smoke check
+        env:
+          DJANGO_SECRET_KEY: test-secret-key-do-not-use-in-prod
+          DJANGO_DEBUG: "0"
+          DB_NAME: itzuun
+          DB_USER: itzuun_user
+          DB_PASSWORD: itzuun_pass
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_SSLMODE: disable
+          REDIS_URL: redis://localhost:6379/1
+        run: |
+          cd backend
+          python manage.py weekly_kpi_report --days 7 --json
+
       - name: Run Backend Tests
         env:
           DJANGO_SECRET_KEY: test-secret-key-do-not-use-in-prod

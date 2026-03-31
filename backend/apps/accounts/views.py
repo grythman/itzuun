@@ -159,10 +159,16 @@ class LogoutView(APIView):
 
 
 class MeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response(None, status=status.HTTP_200_OK)
         return Response(MeSerializer(request.user).data)
 
     def patch(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
         role = request.data.get("role")
         if role not in [User.ROLE_CLIENT, User.ROLE_FREELANCER]:
             return Response({"detail": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)

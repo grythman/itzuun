@@ -1,0 +1,43 @@
+You are a senior full-stack engineer working in /root/itzuun.
+Implement the following with minimal, production-quality changes.
+
+Goals:
+1) Standardize KPI key naming to `verified_freelancers` across:
+- backend KPI command output
+- `.github/workflows/kpi-weekly.yml` summary/slack message
+- docs references
+(Keep backward compatibility alias only if needed.)
+
+2) Harden weekly KPI workflow:
+- Add required-key validation for KPI JSON.
+- Fail clearly with actionable logs if keys are missing.
+Required keys:
+`projects_posted`, `hired_projects`, `proposal_to_hire_conversion_pct`, `escrow_funded_count`, `completion_rate_pct`, `dispute_rate_pct`, `avg_rating`, `new_freelancer_signups`, `verified_freelancers`.
+
+3) Add CI KPI smoke check:
+- In `.github/workflows/ci.yml` backend job, run:
+`python manage.py weekly_kpi_report --days 7 --json`
+
+4) Add/update backend tests:
+- Validate KPI payload keys and basic value types.
+- Keep tests fast and focused.
+
+5) Align docs:
+- Update `docs/PILOT_ROLLOUT_TRACKER.md`
+- Update `docs/KPI_WORKFLOW_PLAYBOOK.md`
+so key names and workflow behavior match code.
+
+Constraints:
+- Minimal scope, no unrelated refactor.
+- Preserve existing behavior except required fixes.
+- Keep style consistent with repo.
+
+Validation:
+- Run affected backend tests.
+- Report exact commands and results.
+
+Final output format:
+1. What changed
+2. Files touched
+3. Test commands + results
+4. Remaining risks

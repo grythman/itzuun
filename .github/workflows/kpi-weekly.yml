@@ -37,10 +37,52 @@ jobs:
             "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py weekly_kpi_report --days ${KPI_DAYS} --json" \
             > kpi_report.json
 
-      - name: Validate JSON report
+      - name: Validate JSON report and required KPI keys
         run: |
           set -e
-          python -m json.tool kpi_report.json > /dev/null
+          python - <<'PY'
+          import json
+          import sys
+
+          REQUIRED_TOP_LEVEL = {"window_days", "since", "kpis"}
+          REQUIRED_KPI_KEYS = [
+              "projects_posted",
+              "hired_projects",
+              "proposal_to_hire_conversion_pct",
+              "escrow_funded_count",
+              "completion_rate_pct",
+              "dispute_rate_pct",
+              "avg_rating",
+              "new_freelancer_signups",
+              "verified_freelancers",
+          ]
+
+          with open('kpi_report.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+
+          missing_top = sorted(REQUIRED_TOP_LEVEL - set(payload.keys()))
+          if missing_top:
+              print("KPI JSON top-level keys are missing.", file=sys.stderr)
+              print(f"Found top-level keys: {sorted(payload.keys())}", file=sys.stderr)
+              print(f"Missing top-level keys: {missing_top}", file=sys.stderr)
+              sys.exit(1)
+
+          if not isinstance(payload["kpis"], dict):
+              print("KPI JSON field 'kpis' must be an object.", file=sys.stderr)
+              print(f"Actual type: {type(payload['kpis']).__name__}", file=sys.stderr)
+              sys.exit(1)
+
+          found_kpi_keys = sorted(payload["kpis"].keys())
+          missing_kpi = [key for key in REQUIRED_KPI_KEYS if key not in payload["kpis"]]
+          if missing_kpi:
+              print("KPI JSON is missing required KPI keys.", file=sys.stderr)
+              print(f"Found KPI keys: {found_kpi_keys}", file=sys.stderr)
+              print(f"Missing KPI keys: {missing_kpi}", file=sys.stderr)
+              sys.exit(1)
+
+          print("KPI JSON validation passed.")
+          print(f"Found KPI keys: {found_kpi_keys}")
+          PY
 
       - name: Upload KPI artifact
         uses: actions/upload-artifact@v4
@@ -82,7 +124,8 @@ jobs:
               f"proposal_to_hire_conversion_pct={k['proposal_to_hire_conversion_pct']}\n"
               f"escrow_funded_count={k['escrow_funded_count']}, completion_rate_pct={k['completion_rate_pct']}, "
               f"dispute_rate_pct={k['dispute_rate_pct']}\n"
-              f"avg_rating={k['avg_rating']}, new_freelancer_signups={k['new_freelancer_signups']}"
+              f"avg_rating={k['avg_rating']}, new_freelancer_signups={k['new_freelancer_signups']}, "
+              f"verified_freelancers={k['verified_freelancers']}"
           )
 
           req = urllib.request.Request(

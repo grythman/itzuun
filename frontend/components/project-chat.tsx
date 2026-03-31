@@ -25,6 +25,7 @@ export default function ProjectChat({
   const messages = useProjectMessages(projectId);
   const [text, setText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,7 +61,7 @@ export default function ProjectChat({
 
   const fileMutation = useMutation({
     mutationFn: async (file: File) => {
-      const result = await projectsApi.uploadMessageFile(projectId, file);
+      const result = await projectsApi.uploadMessageFile(projectId, file, setUploadProgress);
       // After uploading the file, send a message referencing it
       const fileData = JSON.stringify({ name: result.name || file.name, url: result.url });
       await projectsApi.sendMessage(projectId, fileData, "file");
@@ -68,11 +69,15 @@ export default function ProjectChat({
     },
     onSuccess: () => {
       setSelectedFile(null);
+      setUploadProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = "";
       messages.refetch();
       toast("success", "File sent");
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: any) => {
+      setUploadProgress(0);
+      toast("error", "File upload failed", extractErrorMessage(error));
+    },
   });
 
   const handleSend = useCallback(() => {
@@ -203,6 +208,17 @@ export default function ProjectChat({
             </button>
           </div>
         )}
+        {fileMutation.isPending && (
+          <div className="rounded-lg bg-surface-50 px-3 py-2">
+            <div className="mb-1 flex items-center justify-between text-[11px] text-surface-500">
+              <span>Uploading file...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
+              <div className="h-full bg-brand-600 transition-all" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          </div>
+        )}
 
         <div className="flex items-end gap-2">
           {/* File upload button */}
@@ -284,4 +300,13 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function extractErrorMessage(error: any): string {
+  return (
+    error?.response?.data?.detail ||
+    error?.response?.data?.file?.[0] ||
+    error?.message ||
+    "Upload failed. Please try again."
+  );
 }

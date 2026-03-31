@@ -51,12 +51,17 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         status_filter = self.request.query_params.get("status")
         category_filter = self.request.query_params.get("category")
         search = self.request.query_params.get("search")
+        skills = self.request.query_params.get("skills")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         if category_filter:
             queryset = queryset.filter(category=category_filter)
         if search:
             queryset = queryset.filter(Q(title__icontains=search) | Q(description__icontains=search))
+        if skills:
+            skill_terms = [item.strip() for item in skills.split(",") if item.strip()]
+            for skill in skill_terms:
+                queryset = queryset.filter(required_skills__icontains=skill)
         return queryset
 
     def get_permissions(self):

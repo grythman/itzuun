@@ -2,24 +2,19 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RatingStars, VerifiedBadge } from "@/components/ui-kit";
-import { profilesApi, projectsApi } from "@/lib/api/endpoints";
+import { profilesApi } from "@/lib/api/endpoints";
 
 import type { Profile } from "@/lib/types";
 
 function FreelancerCard({ profile, withLocale }: { profile: Profile; withLocale: (href: string) => string }) {
-  const rating = useQuery({
-    queryKey: ["rating", profile.user],
-    queryFn: () => projectsApi.ratingSummary(profile.user),
-  });
-
-  const avg = rating.data?.average ?? 0;
-  const total = rating.data?.total ?? 0;
+  const avg = Number(profile.avg_rating ?? 0);
+  const total = Number(profile.review_count ?? 0);
 
   return (
     <li className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card transition hover:shadow-card-hover">
@@ -67,16 +62,27 @@ function FreelancerCard({ profile, withLocale }: { profile: Profile; withLocale:
 
 export default function FreelancersPage() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(() => Math.max(1, Number(searchParams.get("page") || "1") || 1));
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") || "");
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
+  const [skillFilter, setSkillFilter] = useState(() => searchParams.get("skill") || "");
+  const [minRating, setMinRating] = useState(() => searchParams.get("min_rating") || "");
+  const [verifiedOnly, setVerifiedOnly] = useState(() => searchParams.get("verified") === "true");
 
   const profiles = useQuery({
-    queryKey: ["freelancers", page, search],
-    queryFn: () => profilesApi.list(page, search ? { search } : undefined),
+    queryKey: ["freelancers", page, search, skillFilter, minRating, verifiedOnly],
+    queryFn: () =>
+      profilesApi.list(page, {
+        ...(search ? { search } : {}),
+        ...(skillFilter ? { skill: skillFilter } : {}),
+        ...(minRating ? { min_rating: minRating } : {}),
+        ...(verifiedOnly ? { verified: true } : {}),
+      }),
   });
 
   const items = profiles.data?.results || [];
@@ -88,6 +94,43 @@ export default function FreelancersPage() {
     setSearch(searchInput);
     setPage(1);
   }
+
+  function applyPreset(preset: "verified_45" | "react_verified" | "top_rated") {
+    setPage(1);
+    if (preset === "verified_45") {
+      setVerifiedOnly(true);
+      setMinRating("4.5");
+      return;
+    }
+    if (preset === "react_verified") {
+      setSkillFilter("react");
+      setVerifiedOnly(true);
+      setMinRating("");
+      return;
+    }
+    setVerifiedOnly(false);
+    setMinRating("5");
+  }
+
+  function clearFilters() {
+    setPage(1);
+    setSearchInput("");
+    setSearch("");
+    setSkillFilter("");
+    setMinRating("");
+    setVerifiedOnly(false);
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set("page", String(page));
+    if (search) params.set("search", search);
+    if (skillFilter) params.set("skill", skillFilter);
+    if (minRating) params.set("min_rating", minRating);
+    if (verifiedOnly) params.set("verified", "true");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [page, search, skillFilter, minRating, verifiedOnly, pathname, router]);
 
   return (
     <section className="space-y-4">
@@ -107,6 +150,72 @@ export default function FreelancersPage() {
           Search
         </button>
       </form>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <input
+          type="text"
+          placeholder="Filter by skill..."
+          value={skillFilter}
+          onChange={(e) => {
+            setSkillFilter(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
+        />
+        <select
+          value={minRating}
+          onChange={(e) => {
+            setMinRating(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
+        >
+          <option value="">Min rating</option>
+          <option value="4">4.0+</option>
+          <option value="4.5">4.5+</option>
+          <option value="5">5.0</option>
+        </select>
+        <label className="flex items-center gap-2 rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]">
+          <input
+            type="checkbox"
+            checked={verifiedOnly}
+            onChange={(e) => {
+              setVerifiedOnly(e.target.checked);
+              setPage(1);
+            }}
+          />
+          Verified only
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="rounded-full bg-surface-100 px-3 py-1 text-xs font-medium text-surface-700 hover:bg-surface-200"
+          onClick={() => applyPreset("verified_45")}
+        >
+          Verified 4.5+
+        </button>
+        <button
+          type="button"
+          className="rounded-full bg-surface-100 px-3 py-1 text-xs font-medium text-surface-700 hover:bg-surface-200"
+          onClick={() => applyPreset("react_verified")}
+        >
+          React Verified
+        </button>
+        <button
+          type="button"
+          className="rounded-full bg-surface-100 px-3 py-1 text-xs font-medium text-surface-700 hover:bg-surface-200"
+          onClick={() => applyPreset("top_rated")}
+        >
+          Top Rated 5.0
+        </button>
+        <button
+          type="button"
+          className="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+          onClick={clearFilters}
+        >
+          Clear
+        </button>
+      </div>
 
       {profiles.isLoading ? (
         <LoadingState label="Loading freelancers..." />

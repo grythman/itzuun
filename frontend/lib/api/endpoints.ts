@@ -124,11 +124,15 @@ export const projectsApi = {
     const res = await apiClient.post(`/projects/${projectId}/messages/`, { text, type });
     return res.data;
   },
-  uploadMessageFile: async (projectId: string | number, file: File) => {
+  uploadMessageFile: async (projectId: string | number, file: File, onUploadProgress?: (percent: number) => void) => {
     const form = new FormData();
     form.append("file", file);
     const res = await apiClient.post(`/projects/${projectId}/messages/upload/`, form, {
       headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (event) => {
+        if (!onUploadProgress || !event.total) return;
+        onUploadProgress(Math.round((event.loaded * 100) / event.total));
+      },
     });
     return res.data;
   },
@@ -217,8 +221,8 @@ export const adminApi = {
     const res = await apiClient.get("/admin/projects/");
     return res.data;
   },
-  escrow: async () => {
-    const res = await apiClient.get("/admin/escrow/");
+  escrow: async (status?: string) => {
+    const res = await apiClient.get("/admin/escrow/", { params: status ? { status } : undefined });
     return res.data;
   },
   commission: async () => {
@@ -233,8 +237,13 @@ export const adminApi = {
     const res = await apiClient.get("/admin/payments/", { params: status ? { status } : undefined });
     return res.data;
   },
-  disputes: async () => {
-    const res = await apiClient.get("/admin/disputes/");
+  disputes: async (unresolved?: boolean) => {
+    const params = unresolved === undefined ? undefined : { unresolved };
+    const res = await apiClient.get("/admin/disputes/", { params });
+    return res.data;
+  },
+  auditLogs: async (params?: { entity_type?: string; action_type?: string; entity_id?: string | number }) => {
+    const res = await apiClient.get("/admin/audit-logs/", { params });
     return res.data;
   },
   resolveDispute: async (id: string | number, payload: any) => {
@@ -254,7 +263,7 @@ export const adminApi = {
     return res.data;
   },
   approveEscrow: async (escrowId: string | number) => {
-    const res = await apiClient.post(`/admin/escrow/${escrowId}/approve/`);
+    const res = await apiClient.post(`/escrow/${escrowId}/admin/approve/`);
     return res.data;
   }
 }

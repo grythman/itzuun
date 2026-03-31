@@ -68,6 +68,7 @@ export default function ProjectDetailPage() {
   const proposals = useProjectProposals(id);
 
   const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
+  const [deliverableUploadProgress, setDeliverableUploadProgress] = useState(0);
   const [checksum, setChecksum] = useState("");
   const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
   const [disputeConfirmOpen, setDisputeConfirmOpen] = useState(false);
@@ -140,15 +141,21 @@ export default function ProjectDetailPage() {
       if (!checksum.trim()) {
         throw new Error("Checksum is required");
       }
-      const upload = await projectsApi.uploadMessageFile(id, deliverableFile);
+      const upload = await projectsApi.uploadMessageFile(id, deliverableFile, setDeliverableUploadProgress);
       await projectsApi.uploadDeliverable(id, { file_id: String(upload.file_id), checksum: checksum.trim() });
       
       const fileData = JSON.stringify({ name: upload.name || deliverableFile.name, url: upload.url });
       await projectsApi.sendMessage(id, fileData, "file");
       await projectsApi.sendMessage(id, "I have submitted a deliverable for your review.");
     },
-    onSuccess: () => toast("success", "Deliverable uploaded"),
-    onError: (error: Error) => toast("error", error.message),
+    onSuccess: () => {
+      setDeliverableUploadProgress(0);
+      toast("success", "Deliverable uploaded");
+    },
+    onError: (error: any) => {
+      setDeliverableUploadProgress(0);
+      toast("error", "Deliverable upload failed", extractErrorMessage(error));
+    },
   });
 
   const resultMutation = useMutation({
@@ -485,6 +492,17 @@ export default function ProjectDetailPage() {
               Submit Result
             </button>
           </div>
+          {uploadDeliverableMutation.isPending && (
+            <div className="rounded-lg bg-surface-50 px-3 py-2">
+              <div className="mb-1 flex items-center justify-between text-[11px] text-surface-500">
+                <span>Uploading deliverable...</span>
+                <span>{deliverableUploadProgress}%</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
+                <div className="h-full bg-brand-600 transition-all" style={{ width: `${deliverableUploadProgress}%` }} />
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -520,5 +538,14 @@ export default function ProjectDetailPage() {
         }}
       />
     </section>
+  );
+}
+
+function extractErrorMessage(error: any): string {
+  return (
+    error?.response?.data?.detail ||
+    error?.response?.data?.file?.[0] ||
+    error?.message ||
+    "Upload failed. Please try again."
   );
 }

@@ -2,8 +2,8 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
@@ -12,14 +12,17 @@ import { useCategories, useProjects } from "@/lib/hooks";
 export default function ProjectsPage() {
   const t = useTranslations("Projects");
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [page, setPage] = useState(() => Math.max(1, Number(searchParams.get("page") || "1") || 1));
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") || "");
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get("status") || "");
+  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get("category") || "");
+  const [skillsFilter, setSkillsFilter] = useState(() => searchParams.get("skills") || "");
 
   const categories = useCategories();
 
@@ -27,6 +30,7 @@ export default function ProjectsPage() {
     ...(statusFilter && { status: statusFilter }),
     ...(categoryFilter && { category: categoryFilter }),
     ...(search && { search }),
+    ...(skillsFilter && { skills: skillsFilter }),
   };
 
   const projects = useProjects(page, Object.keys(filters).length ? filters : undefined);
@@ -49,6 +53,17 @@ export default function ProjectsPage() {
     setSearch(searchInput);
     setPage(1);
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set("page", String(page));
+    if (search) params.set("search", search);
+    if (statusFilter) params.set("status", statusFilter);
+    if (categoryFilter) params.set("category", categoryFilter);
+    if (skillsFilter) params.set("skills", skillsFilter);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [page, search, statusFilter, categoryFilter, skillsFilter, pathname, router]);
 
   function handleFilterChange(setter: (v: string) => void) {
     return (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -87,6 +102,18 @@ export default function ProjectsPage() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+      </div>
+      <div className="mt-3">
+        <input
+          type="text"
+          placeholder={t("skillsFilterPlaceholder")}
+          value={skillsFilter}
+          onChange={(e) => {
+            setSkillsFilter(e.target.value);
+            setPage(1);
+          }}
+          className="w-full rounded-xl border border-surface-200/60 px-3 py-2 text-[13px]"
+        />
       </div>
       </div>
 

@@ -14,11 +14,25 @@
 4. Validate run steps:
 - `Prepare SSH key` = success
 - `Generate KPI report on production server` = success
-- `Validate JSON report` = success
+- `Validate JSON report and required KPI keys` = success
 - `Upload KPI artifact` = success
 5. Open artifact `weekly-kpi-report`, confirm JSON exists
 6. Check logs for `Print KPI summary` lines (`window_days`, `since`, KPI keys)
 7. If `SLACK_WEBHOOK_URL` exists, confirm Slack notification delivered
+
+## KPI Schema Contract
+- Canonical verified freelancer key is `verified_freelancers`.
+- Backward-compatibility alias `verified_freelancer_count` may still appear in payload during transition.
+- Workflow enforces these required KPI keys in `payload.kpis`:
+  - `projects_posted`
+  - `hired_projects`
+  - `proposal_to_hire_conversion_pct`
+  - `escrow_funded_count`
+  - `completion_rate_pct`
+  - `dispute_rate_pct`
+  - `avg_rating`
+  - `new_freelancer_signups`
+  - `verified_freelancers`
 
 ## Monday Run Checklist (Ops)
 1. Trigger workflow manually with `days=7` (or confirm scheduled run succeeded).

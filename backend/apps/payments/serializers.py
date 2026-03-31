@@ -1,7 +1,7 @@
 """Payments serializers."""
 from rest_framework import serializers
 
-from .models import Dispute, Escrow, LedgerEntry, Payment
+from .models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
 
 
 class EscrowSerializer(serializers.ModelSerializer):
@@ -19,11 +19,14 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
 
 
 class DisputeSerializer(serializers.ModelSerializer):
+    escrow_amount = serializers.SerializerMethodField()
+
     class Meta:
         model = Dispute
         fields = (
             "id",
             "project",
+            "escrow_amount",
             "raised_by",
             "reason",
             "evidence_files",
@@ -32,6 +35,10 @@ class DisputeSerializer(serializers.ModelSerializer):
             "note",
         )
         read_only_fields = ("id", "project", "raised_by", "resolved_by", "resolved_at")
+
+    def get_escrow_amount(self, obj: Dispute):
+        escrow = getattr(obj.project, "escrow", None)
+        return getattr(escrow, "amount", 0)
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -59,3 +66,22 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 class PaymentCreateSerializer(serializers.Serializer):
     project_id = serializers.IntegerField(min_value=1)
+
+
+class FinancialAuditLogSerializer(serializers.ModelSerializer):
+    actor_id = serializers.IntegerField(source="actor.id", read_only=True)
+
+    class Meta:
+        model = FinancialAuditLog
+        fields = (
+            "id",
+            "actor_id",
+            "action_type",
+            "entity_type",
+            "entity_id",
+            "reason",
+            "before_state",
+            "after_state",
+            "created_at",
+        )
+        read_only_fields = fields

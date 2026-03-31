@@ -41,7 +41,7 @@ class Command(BaseCommand):
         ).count()
 
         # Current verified freelancer base size (total)
-        verified_freelancer_count = User.objects.filter(
+        verified_freelancers = User.objects.filter(
             role=User.ROLE_FREELANCER,
             verification_status=User.VERIFICATION_VERIFIED,
         ).count()
@@ -96,7 +96,8 @@ class Command(BaseCommand):
             "since": since.isoformat(),
             "kpis": {
                 "new_freelancer_signups": new_freelancer_signups,
-                "verified_freelancer_count": verified_freelancer_count,
+                "verified_freelancers": verified_freelancers,
+                "verified_freelancer_count": verified_freelancers,
                 "projects_posted": projects_posted,
                 "proposals_submitted": proposals_submitted,
                 "hired_projects": hired_projects,
@@ -118,7 +119,7 @@ class Command(BaseCommand):
             f"Since: {payload['since']}",
             "",
             f"- New freelancer signups: {new_freelancer_signups}",
-            f"- Verified freelancer count (total): {verified_freelancer_count}",
+            f"- Verified freelancers (total): {verified_freelancers}",
             f"- Projects posted: {projects_posted}",
             f"- Proposals submitted: {proposals_submitted}",
             f"- Hired projects: {hired_projects}",

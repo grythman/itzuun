@@ -2,6 +2,7 @@
 from django.urls import path
 
 from .views import (
+    AdminAuditLogListView,
     AdminCommissionDetailView,
     AdminCommissionUpdateView,
     AdminDisputeListView,
@@ -22,6 +23,7 @@ urlpatterns = [
     path("projects", AdminProjectListView.as_view(), name="admin-projects"),
     path("escrow", AdminEscrowListView.as_view(), name="admin-escrow"),
     path("ledger", AdminLedgerListView.as_view(), name="admin-ledger"),
+    path("audit-logs", AdminAuditLogListView.as_view(), name="admin-audit-logs"),
     path("payments", AdminPaymentListView.as_view(), name="admin-payments"),
     path("disputes", AdminDisputeListView.as_view(), name="admin-disputes"),
     path("disputes/<int:dispute_id>/resolve", AdminDisputeResolveView.as_view(), name="admin-disputes-resolve"),

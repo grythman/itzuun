@@ -1,0 +1,30 @@
+1. `KPI key mismatch` засах
+- `verified_freelancers` vs `verified_freelancer_count`-ийг нэг стандарт нэртэй болгох (код + docs + workflow print).
+
+2. `kpi-weekly.yml` hardening
+- KPI JSON schema validation нэмэх (required keys check).
+- Failure үед илүү тод log + Slack fallback мессеж.
+
+3. `Pilot tracker auto-update script`
+- `kpi_report.json`-оос delta тооцоод `docs/PILOT_ROLLOUT_TRACKER.md`-ийн KPI section-г автоматаар шинэчлэх script.
+
+4. `Incident auto-flag`
+- `completion_rate_pct` буурах / `dispute_rate_pct` өсөх үед incident payload үүсгээд `docs/ONCALL_QUICK_ACTIONS.md` template-р markdown файл generate хийх.
+
+5. `KPI history persistence`
+- `artifacts/kpi_history/*.json` эсвэл `docs/kpi_history.jsonl` дээр weekly snapshot хадгалах.
+
+6. `CI guard for KPI command`
+- `manage.py weekly_kpi_report --days 7 --json` smoke test-ийг CI backend job-д нэмэх.
+
+7. `Freelancer filter presets i18n`
+- Одоо hardcoded байгаа preset label-уудыг `en/mn` messages рүү зөөх.
+
+8. `Upload UX e2e`
+- Chat/deliverable upload progress + error message урсгалд Vitest/Playwright test нэмэх.
+
+9. `Admin ops audit filters`
+- Audit table дээр `entity_id` quick filter + “last 7/30 days” shortcut нэмэх.
+
+10. `Runbook alignment`
+- `docs/KPI_WORKFLOW_PLAYBOOK.md` ба `docs/PILOT_ROLLOUT_TRACKER.md` дээр одоогийн workflow/key нэрүүдийг бүрэн тааруулах.
