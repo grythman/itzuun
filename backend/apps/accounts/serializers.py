@@ -95,7 +95,7 @@ class GoogleAuthSerializer(serializers.Serializer):
             email=validated_data["google_email"],
             defaults={
                 "role": validated_data["role"],
-                "is_verified": True,
+                "verification_status": User.VERIFICATION_VERIFIED,
             },
         )
 
@@ -103,10 +103,12 @@ class GoogleAuthSerializer(serializers.Serializer):
         if not user.is_active:
             user.is_active = True
             update_fields.append("is_active")
-        if not user.is_verified:
-            user.is_verified = True
-            update_fields.append("is_verified")
+        if user.verification_status != User.VERIFICATION_VERIFIED:
+            user.verification_status = User.VERIFICATION_VERIFIED
+            update_fields.append("verification_status")
         if update_fields:
+            if "is_verified" not in update_fields:
+                update_fields.append("is_verified")
             user.save(update_fields=update_fields)
 
         bump_user_public_version(user.id)
