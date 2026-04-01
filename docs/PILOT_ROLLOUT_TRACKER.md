@@ -22,6 +22,7 @@
 | Confirm one escrow-funded project path end-to-end evidence | @mike_ops | 2026-04-03 12:00 UTC | Done | `cd backend && ../.venv/bin/python manage.py test apps.payments.tests.MvPHappyPathApiTests.test_e2e_happy_path_project_to_review -v 2` (2026-04-01 UTC, 1/1 OK), https://grythman.atlassian.net/browse/ITZ-101 |
 | Prepare dispute dry-run case and support evidence template | @julia_support | 2026-04-03 12:00 UTC | Done | docs/DISPUTE_DRY_RUN_EVIDENCE_TEMPLATE.md, `cd backend && ../.venv/bin/python manage.py test apps.payments.tests.EscrowAbuseMatrixTests.test_dispute_then_confirm_completion_is_blocked -v 2` (2026-04-01 UTC, 1/1 OK), https://www.notion.so/itzuun/Disputes-Tracker-abcdef1234567890 |
 | Run admin ops smoke checklist (dispute/escrow/audit/unsuspend) | @mike_ops | 2026-04-04 12:00 UTC | Done | `cd backend && ../.venv/bin/python manage.py test apps.adminpanel.tests apps.payments.tests -v 2` (2026-04-01 UTC, 26/26 OK), docs/ADMIN_OPS_HARDENING_CHECKLIST.md |
+| Generate consolidated pilot evidence pack | @copilot | 2026-04-01 14:40 UTC | Done | `./scripts/generate_pilot_evidence_pack.sh` (2026-04-01 UTC), docs/evidence/pilot_execution_20260401_143654.md |
 | Update milestone row statuses after Monday KPI review | @copilot | 2026-04-06 12:00 UTC | Done | Status review completed on 2026-04-01 UTC using latest KPI output + smoke test evidence in this tracker |
 
 ## Operational Rules (Pilot)
@@ -78,3 +79,10 @@
   - escrow happy-path and dispute dry-run evidence attached
 - Milestone status decision:
   - Keep milestone rows unchanged until real pilot cohort and production evidence are attached
+
+## External Dependency Gate
+- The following milestone rows require real production evidence from external systems before `Done`:
+  - `5 projects funded escrow` (Jira/ledger proof)
+  - `3 projects completed` (Notion/report proof)
+  - `1 dispute resolved end-to-end` (Notion/Jira case proof)
+  - `20 total pilot projects reached` (cohort sheet final export)
