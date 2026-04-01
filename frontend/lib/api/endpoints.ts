@@ -25,6 +25,7 @@ export const API_BASE = "/api/v1";
 export function toArray(obj: any): any[] {
   if (!obj) return [];
   if (Array.isArray(obj)) return obj;
+  if (obj && Array.isArray(obj.results)) return obj.results;
   return [obj];
 }
 
@@ -101,7 +102,7 @@ export const projectsApi = {
     return res.data;
   },
   suggestDescription: async (payload: any) => {
-    const res = await apiClient.post("/projects/ai/suggest-description/", payload);
+    const res = await apiClient.post("/projects/ai-description-suggest/", payload);
     return res.data;
   },
   submitProposal: async (projectId: string | number, data: any) => {
@@ -109,7 +110,7 @@ export const projectsApi = {
     return res.data;
   },
   selectFreelancer: async (projectId: string | number, proposalId: string | number) => {
-    const res = await apiClient.post(`/projects/${projectId}/proposals/${proposalId}/select/`);
+    const res = await apiClient.post(`/projects/${projectId}/select-freelancer/`, { proposal_id: proposalId });
     return res.data;
   },
   confirmCompletion: async (projectId: string | number) => {
@@ -117,7 +118,7 @@ export const projectsApi = {
     return res.data;
   },
   createDispute: async (projectId: string | number, payload: any) => {
-    const res = await apiClient.post(`/projects/${projectId}/disputes/`, payload);
+    const res = await apiClient.post(`/projects/${projectId}/dispute/`, payload);
     return res.data;
   },
   sendMessage: async (projectId: string | number, text: string, type: "text" | "file" = "text") => {
@@ -127,7 +128,7 @@ export const projectsApi = {
   uploadMessageFile: async (projectId: string | number, file: File, onUploadProgress?: (percent: number) => void) => {
     const form = new FormData();
     form.append("file", file);
-    const res = await apiClient.post(`/projects/${projectId}/messages/upload/`, form, {
+    const res = await apiClient.post(`/projects/${projectId}/files`, form, {
       headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (event) => {
         if (!onUploadProgress || !event.total) return;
@@ -184,11 +185,11 @@ export const proposalsApi = {
     return res.data;
   },
   select: async (projectId: string | number, proposalId: string | number) => {
-    const res = await apiClient.post(`/projects/${projectId}/proposals/${proposalId}/select/`);
+    const res = await apiClient.post(`/projects/${projectId}/select-freelancer/`, { proposal_id: proposalId });
     return res.data;
   },
   myProposals: async () => {
-    const res = await apiClient.get("/proposals/me/");
+    const res = await apiClient.get("/me/proposals/");
     return res.data;
   },
 };
@@ -226,7 +227,7 @@ export const adminApi = {
     return res.data;
   },
   commission: async () => {
-    const res = await apiClient.get("/admin/commission/");
+    const res = await apiClient.get("/admin/settings/commission/detail");
     return res.data;
   },
   ledger: async () => {
@@ -259,7 +260,7 @@ export const adminApi = {
     return res.data;
   },
   setCommission: async (platform_fee_pct: number) => {
-    const res = await apiClient.post("/admin/commission/", { platform_fee_pct });
+    const res = await apiClient.patch("/admin/settings/commission", { platform_fee_pct });
     return res.data;
   },
   approveEscrow: async (escrowId: string | number) => {

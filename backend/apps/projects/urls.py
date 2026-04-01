@@ -18,4 +18,6 @@ urlpatterns = [
     re_path(r"^projects/(?P<project_id>\d+)/submit-result/?$", ProjectSubmitResultView.as_view(), name="project-submit-result"),
     re_path(r"^projects/(?P<project_id>\d+)/confirm-completion/?$", ProjectConfirmCompletionView.as_view(), name="project-confirm-completion"),
     re_path(r"^me/proposals/?$", ProposalMeListView.as_view(), name="proposal-me"),
+    re_path(r"^proposals/(?P<pk>\d+)/?$", ProposalDetailView.as_view(), name="proposal-detail"),
+    re_path(r"^proposals/(?P<proposal_id>\d+)/withdraw/?$", ProposalWithdrawView.as_view(), name="proposal-withdraw"),
 ]
