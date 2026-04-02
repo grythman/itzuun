@@ -98,6 +98,7 @@ jobs:
           cd backend
           python manage.py migrate --noinput
           python manage.py weekly_kpi_report --days 7 --json
+          python manage.py pilot_readiness_report --json --cohort-validation /tmp/ci_missing_cohort_validation.json
 
       - name: Run Backend Tests
         env:

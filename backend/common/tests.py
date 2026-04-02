@@ -2,7 +2,12 @@ import json
 from io import StringIO
 
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase
+
+from apps.accounts.models import User
+from apps.payments.models import Dispute, Escrow
+from apps.projects.models import Project
 
 
 REQUIRED_KPI_KEYS = {
@@ -58,3 +63,62 @@ class WeeklyKpiReportCommandTests(TestCase):
 
         self.assertIn("verified_freelancer_count", kpis)
         self.assertEqual(kpis["verified_freelancers"], kpis["verified_freelancer_count"])
+
+
+class PilotReadinessReportCommandTests(TestCase):
+    def _run_report(self, strict=False, cohort_validation="/tmp/pilot_validation.json"):
+        out = StringIO()
+        args = {
+            "json": True,
+            "cohort_validation": cohort_validation,
+            "stdout": out,
+        }
+        if strict:
+            args["strict"] = True
+        call_command("pilot_readiness_report", **args)
+        return json.loads(out.getvalue())
+
+    def test_report_shows_not_ready_by_default(self):
+        payload = self._run_report(cohort_validation="/tmp/not_existing_validation.json")
+        self.assertFalse(payload["ready"])
+        self.assertIn("projects_posted_20", payload["missing_gates"])
+
+    def test_report_strict_raises_when_not_ready(self):
+        with self.assertRaises(CommandError):
+            self._run_report(strict=True, cohort_validation="/tmp/not_existing_validation.json")
+
+    def test_report_ready_when_all_gates_satisfied(self):
+        owner = User.objects.create_user(email="pilot-owner@test.com", password="Pass12345", role="client")
+        freelancer = User.objects.create_user(email="pilot-freelancer@test.com", password="Pass12345", role="freelancer")
+        project = None
+        for i in range(20):
+            p = Project.objects.create(
+                owner=owner,
+                title=f"Pilot {i}",
+                description="pilot",
+                budget=1000,
+                timeline_days=3,
+                category="web",
+                required_skills=["django"],
+                status=Project.STATUS_COMPLETED if i == 0 else Project.STATUS_OPEN,
+            )
+            if i == 0:
+                project = p
+
+        Escrow.objects.create(project=project, amount=1000, status=Escrow.STATUS_HELD)
+        Dispute.objects.create(
+            project=project,
+            raised_by=owner,
+            reason="pilot dispute",
+            resolved_by=freelancer,
+            resolved_at=project.updated_at,
+            note="refund",
+        )
+
+        validation_path = "/tmp/pilot_validation_ready.json"
+        with open(validation_path, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps({"summary": {"missing_total": 0}}))
+
+        payload = self._run_report(cohort_validation=validation_path)
+        self.assertTrue(payload["ready"])
+        self.assertEqual(payload["missing_gates"], [])

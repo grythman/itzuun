@@ -1,0 +1,14 @@
+{
+  "clients": [
+    "client1@example.com",
+    "client2@example.com"
+  ],
+  "freelancers": [
+    "freelancer1@example.com",
+    "freelancer2@example.com"
+  ],
+  "projects": [
+    101,
+    102
+  ]
+}

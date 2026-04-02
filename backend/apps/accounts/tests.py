@@ -1,8 +1,13 @@
 from django.test import TestCase
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from io import StringIO
+import json
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
+from apps.projects.models import Project
 
 
 class PasswordAuthApiTests(TestCase):
@@ -75,3 +80,42 @@ class VerificationSubmitApiTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class SetupPilotCohortCommandTests(TestCase):
+    def test_command_generates_validation_report(self):
+        client = User.objects.create_user(email="pilot-client@test.com", password="Pass12345", role="client")
+        freelancer = User.objects.create_user(email="pilot-freelancer@test.com", password="Pass12345", role="freelancer")
+        project = Project.objects.create(
+            owner=client,
+            title="Pilot project",
+            description="Pilot project for cohort",
+            budget=100000,
+            timeline_days=7,
+            category="web",
+            required_skills=["django"],
+        )
+        stdout = StringIO()
+        call_command(
+            "setup_pilot_cohort",
+            clients="pilot-client@test.com,missing-client@test.com",
+            freelancers="pilot-freelancer@test.com",
+            projects=f"{project.id},99999",
+            stdout=stdout,
+        )
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(payload["summary"]["client_total"], 2)
+        self.assertEqual(payload["summary"]["freelancer_total"], 1)
+        self.assertEqual(payload["summary"]["project_total"], 2)
+        self.assertEqual(payload["missing"]["clients"], ["missing-client@test.com"])
+        self.assertEqual(payload["missing"]["projects"], [99999])
+
+    def test_command_strict_mode_raises_on_missing(self):
+        stdout = StringIO()
+        with self.assertRaises(CommandError):
+            call_command(
+                "setup_pilot_cohort",
+                clients="missing-client@test.com",
+                strict=True,
+                stdout=stdout,
+            )

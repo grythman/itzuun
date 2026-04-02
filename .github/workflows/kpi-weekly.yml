@@ -37,6 +37,13 @@ jobs:
             "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py weekly_kpi_report --days ${KPI_DAYS} --json" \
             > kpi_report.json
 
+      - name: Generate pilot readiness report on production server
+        run: |
+          set -e
+          ssh -i ~/.ssh/id_rsa "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py pilot_readiness_report --json --cohort-validation /root/itzuun/docs/evidence/pilot_cohort_validation.json" \
+            > pilot_readiness_report.json
+
       - name: Validate JSON report and required KPI keys
         run: |
           set -e
@@ -90,6 +97,44 @@ jobs:
           name: weekly-kpi-report
           path: kpi_report.json
 
+      - name: Validate pilot readiness JSON schema
+        run: |
+          set -e
+          python - <<'PY'
+          import json
+          import sys
+
+          REQUIRED_TOP_LEVEL = {"phase", "summary", "gates", "ready", "missing_gates"}
+
+          with open('pilot_readiness_report.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+
+          missing_top = sorted(REQUIRED_TOP_LEVEL - set(payload.keys()))
+          if missing_top:
+              print("Pilot readiness JSON top-level keys are missing.", file=sys.stderr)
+              print(f"Found keys: {sorted(payload.keys())}", file=sys.stderr)
+              print(f"Missing keys: {missing_top}", file=sys.stderr)
+              sys.exit(1)
+
+          if not isinstance(payload["gates"], dict):
+              print("Pilot readiness field 'gates' must be an object.", file=sys.stderr)
+              sys.exit(1)
+          if not isinstance(payload["missing_gates"], list):
+              print("Pilot readiness field 'missing_gates' must be an array.", file=sys.stderr)
+              sys.exit(1)
+          if not isinstance(payload["ready"], bool):
+              print("Pilot readiness field 'ready' must be boolean.", file=sys.stderr)
+              sys.exit(1)
+
+          print("Pilot readiness JSON validation passed.")
+          PY
+
+      - name: Upload pilot readiness artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-readiness-report
+          path: pilot_readiness_report.json
+
       - name: Print KPI summary
         run: |
           set -e
@@ -105,6 +150,21 @@ jobs:
               print(f"- {k}: {v}")
           PY
 
+      - name: Print pilot readiness summary
+        run: |
+          set -e
+          python - <<'PY'
+          import json
+
+          with open('pilot_readiness_report.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+
+          print(f"Pilot ready: {payload['ready']}")
+          print(f"Missing gates: {payload['missing_gates']}")
+          for k, v in payload["summary"].items():
+              print(f"- {k}: {v}")
+          PY
+
       - name: Notify Slack (optional)
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         run: |
@@ -116,6 +176,8 @@ jobs:
 
           with open('kpi_report.json', 'r', encoding='utf-8') as f:
               payload = json.load(f)
+          with open('pilot_readiness_report.json', 'r', encoding='utf-8') as f:
+              readiness = json.load(f)
 
           k = payload['kpis']
           text = (
@@ -125,7 +187,8 @@ jobs:
               f"escrow_funded_count={k['escrow_funded_count']}, completion_rate_pct={k['completion_rate_pct']}, "
               f"dispute_rate_pct={k['dispute_rate_pct']}\n"
               f"avg_rating={k['avg_rating']}, new_freelancer_signups={k['new_freelancer_signups']}, "
-              f"verified_freelancers={k['verified_freelancers']}"
+              f"verified_freelancers={k['verified_freelancers']}\n"
+              f"pilot_ready={readiness['ready']}"
           )
 
           req = urllib.request.Request(

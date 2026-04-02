@@ -1,0 +1,48 @@
+{
+  "clients": [
+    "pilot.client01@itzuun.mn",
+    "pilot.client02@itzuun.mn",
+    "pilot.client03@itzuun.mn",
+    "pilot.client04@itzuun.mn",
+    "pilot.client05@itzuun.mn",
+    "pilot.client06@itzuun.mn",
+    "pilot.client07@itzuun.mn",
+    "pilot.client08@itzuun.mn",
+    "pilot.client09@itzuun.mn",
+    "pilot.client10@itzuun.mn"
+  ],
+  "freelancers": [
+    "pilot.freelancer01@itzuun.mn",
+    "pilot.freelancer02@itzuun.mn",
+    "pilot.freelancer03@itzuun.mn",
+    "pilot.freelancer04@itzuun.mn",
+    "pilot.freelancer05@itzuun.mn",
+    "pilot.freelancer06@itzuun.mn",
+    "pilot.freelancer07@itzuun.mn",
+    "pilot.freelancer08@itzuun.mn",
+    "pilot.freelancer09@itzuun.mn",
+    "pilot.freelancer10@itzuun.mn"
+  ],
+  "projects": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ]
+}

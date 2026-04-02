@@ -35,6 +35,21 @@ python manage.py weekly_kpi_report --days 7 --json
 ```
 
 ```bash
-cd /root/itzuun
-python3 -u orchestrator.py
+cd /root/itzuun/backend
+../.venv/bin/python manage.py setup_pilot_cohort \
+  --input-json /root/itzuun/docs/pilot_cohort_input.sample.json \
+  --output /root/itzuun/docs/evidence/pilot_cohort_validation.json
+```
+
+```bash
+cd /root/itzuun/backend
+../.venv/bin/python manage.py bootstrap_pilot_dataset \
+  --cohort-output /root/itzuun/docs/evidence/pilot_cohort_input.generated.json
+```
+
+```bash
+cd /root/itzuun/backend
+../.venv/bin/python manage.py pilot_readiness_report --json \
+  --cohort-validation /root/itzuun/docs/evidence/pilot_cohort_validation.json \
+  > /root/itzuun/docs/evidence/pilot_readiness_report.json
 ```
