@@ -78,12 +78,16 @@ class Command(BaseCommand):
 
     def _read_cohort_validation(self, filepath: str) -> dict:
         path = Path(filepath)
-        if not path.exists():
-            return {"missing_total": 999999, "exists": False}
+        try:
+            exists = path.exists()
+        except OSError:
+            return {"missing_total": 999999, "exists": False, "readable": False}
+        if not exists:
+            return {"missing_total": 999999, "exists": False, "readable": False}
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            return {"missing_total": 999999, "exists": True}
+        except (OSError, json.JSONDecodeError):
+            return {"missing_total": 999999, "exists": True, "readable": False}
         summary = payload.get("summary") or {}
         missing_total = int(summary.get("missing_total", 999999))
-        return {"missing_total": missing_total, "exists": True}
+        return {"missing_total": missing_total, "exists": True, "readable": True}
