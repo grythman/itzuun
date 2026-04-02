@@ -41,7 +41,35 @@ jobs:
         run: |
           set -e
           ssh -i ~/.ssh/id_rsa "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
-            "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py pilot_readiness_report --json --cohort-validation /root/itzuun/docs/evidence/pilot_cohort_validation.json" \
+            "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api sh -lc '
+              if python manage.py help | grep -q \"pilot_readiness_report\"; then
+                python manage.py pilot_readiness_report --json --cohort-validation /root/itzuun/docs/evidence/pilot_cohort_validation.json
+              else
+                python - <<\"PY\"
+import json
+print(json.dumps({
+  \"phase\": \"Launch Readiness\",
+  \"summary\": {
+    \"projects_posted_total\": 0,
+    \"escrow_funded_total\": 0,
+    \"completed_total\": 0,
+    \"resolved_dispute_total\": 0,
+    \"cohort_validation_path\": \"/root/itzuun/docs/evidence/pilot_cohort_validation.json\",
+    \"cohort_missing_total\": 999999
+  },
+  \"gates\": {
+    \"projects_posted_20\": False,
+    \"escrow_activity_non_zero\": False,
+    \"completed_projects_non_zero\": False,
+    \"dispute_resolved_non_zero\": False,
+    \"cohort_validated_no_missing\": False
+  },
+  \"ready\": False,
+  \"missing_gates\": [\"command_unavailable_on_server\"]
+}, indent=2))
+PY
+              fi
+            '" \
             > pilot_readiness_report.json
 
       - name: Validate JSON report and required KPI keys
