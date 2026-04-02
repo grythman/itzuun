@@ -1,0 +1,18 @@
+{
+  "window_days": 7,
+  "since": "2026-03-26T14:52:40.864172+00:00",
+  "kpis": {
+    "new_freelancer_signups": 10,
+    "verified_freelancers": 10,
+    "verified_freelancer_count": 10,
+    "projects_posted": 20,
+    "proposals_submitted": 20,
+    "hired_projects": 20,
+    "proposal_to_hire_conversion_pct": 100.0,
+    "escrow_funded_count": 20,
+    "completion_rate_pct": 15.0,
+    "avg_rating": 0.0,
+    "disputes_created": 1,
+    "dispute_rate_pct": 5.0
+  }
+}

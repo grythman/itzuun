@@ -24,6 +24,8 @@
 | Run admin ops smoke checklist (dispute/escrow/audit/unsuspend) | @mike_ops | 2026-04-04 12:00 UTC | Done | `cd backend && ../.venv/bin/python manage.py test apps.adminpanel.tests apps.payments.tests -v 2` (2026-04-01 UTC, 26/26 OK), docs/ADMIN_OPS_HARDENING_CHECKLIST.md |
 | Generate consolidated pilot evidence pack | @copilot | 2026-04-01 14:40 UTC | Done | `./scripts/generate_pilot_evidence_pack.sh` (2026-04-01 UTC), docs/evidence/pilot_execution_20260401_143654.md |
 | Generate pilot readiness report (exit-gate auto-check) | @copilot | 2026-04-02 15:30 UTC | Done | `cd backend && ../.venv/bin/python manage.py pilot_readiness_report --json --cohort-validation /root/itzuun/docs/evidence/pilot_cohort_validation.json > /root/itzuun/docs/evidence/pilot_readiness_report.json`, docs/evidence/pilot_readiness_report.json |
+| Start launch execution workstream plan | @copilot | 2026-04-02 16:30 UTC | Done | docs/LAUNCH_EXECUTION_PLAN.md |
+| Execute Week 1 launch checks script | @copilot | 2026-04-02 14:55 UTC | Done | `./scripts/run_week1_launch_checks.sh`, docs/evidence/week1_launch_checks_20260402_145235.md |
 | Update milestone row statuses after Monday KPI review | @copilot | 2026-04-06 12:00 UTC | Done | Status review completed on 2026-04-01 UTC using latest KPI output + smoke test evidence in this tracker |
 
 ## Operational Rules (Pilot)
