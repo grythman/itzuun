@@ -4,6 +4,7 @@
 - Workflow: `.github/workflows/kpi-weekly.yml`
 - Job: `kpi-report`
 - Outputs: `kpi_report.json`, `pilot_readiness_report.json`, artifacts `weekly-kpi-report` + `pilot-readiness-report`, optional Slack message
+- CI guardrail: `.github/workflows/ci.yml` runs `workflow-lint` (`rhysd/actionlint@v1`) to catch YAML/workflow syntax issues before deploy.
 
 ## End-to-End Verify Checklist
 1. GitHub `Settings -> Secrets and variables -> Actions`:
