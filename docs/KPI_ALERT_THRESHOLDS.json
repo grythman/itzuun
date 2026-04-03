@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "rules": {
+    "completion_rate_pct": {
+      "min": 60.0,
+      "severity": "sev2",
+      "message": "Completion rate dropped below minimum threshold."
+    },
+    "dispute_rate_pct": {
+      "max": 15.0,
+      "severity": "sev2",
+      "message": "Dispute rate exceeded maximum threshold."
+    },
+    "proposal_to_hire_conversion_pct": {
+      "min": 8.0,
+      "severity": "sev3",
+      "message": "Proposal-to-hire conversion dropped below minimum threshold."
+    },
+    "escrow_funded_count": {
+      "min": 1,
+      "severity": "sev3",
+      "message": "No escrow-funded projects detected in current window."
+    }
+  }
+}

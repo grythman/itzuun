@@ -167,6 +167,20 @@ jobs:
           name: pilot-readiness-report
           path: pilot_readiness_report.json
 
+      - name: Evaluate KPI alert thresholds
+        run: |
+          set -e
+          python scripts/evaluate_kpi_alerts.py \
+            --kpi-file kpi_report.json \
+            --threshold-file docs/KPI_ALERT_THRESHOLDS.json \
+            --output kpi_alerts_report.json
+
+      - name: Upload KPI alerts artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpi-alerts-report
+          path: kpi_alerts_report.json
+
       - name: Print KPI summary
         run: |
           set -e
@@ -195,6 +209,19 @@ jobs:
           print(f"Missing gates: {payload['missing_gates']}")
           for k, v in payload["summary"].items():
               print(f"- {k}: {v}")
+          PY
+
+      - name: Print KPI alerts summary
+        run: |
+          set -e
+          python - <<'PY'
+          import json
+          with open('kpi_alerts_report.json', 'r', encoding='utf-8') as f:
+              payload = json.load(f)
+          print(f"Incident decision: {payload['incident_decision']}")
+          print(f"Incident count: {payload['incident_count']}")
+          for item in payload["incidents"]:
+              print(f"- {item['severity']} {item['kpi']}: {item['message']}")
           PY
 
       - name: Notify Slack (optional)

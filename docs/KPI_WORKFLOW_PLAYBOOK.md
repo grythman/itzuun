@@ -3,7 +3,7 @@
 ## Scope
 - Workflow: `.github/workflows/kpi-weekly.yml`
 - Job: `kpi-report`
-- Outputs: `kpi_report.json`, `pilot_readiness_report.json`, artifacts `weekly-kpi-report` + `pilot-readiness-report`, optional Slack message
+- Outputs: `kpi_report.json`, `pilot_readiness_report.json`, `kpi_alerts_report.json`, artifacts `weekly-kpi-report` + `pilot-readiness-report` + `kpi-alerts-report`, optional Slack message
 - CI guardrail: `.github/workflows/ci.yml` runs `workflow-lint` (`rhysd/actionlint@v1`) to catch YAML/workflow syntax issues before deploy.
 
 ## End-to-End Verify Checklist
@@ -20,8 +20,10 @@
 - `Validate pilot readiness JSON schema` = success
 - `Upload KPI artifact` = success
 - `Upload pilot readiness artifact` = success
-5. Open artifacts `weekly-kpi-report` and `pilot-readiness-report`, confirm JSON files exist
-6. Check logs for `Print KPI summary` and `Print pilot readiness summary`
+ - `Evaluate KPI alert thresholds` = success
+ - `Upload KPI alerts artifact` = success
+5. Open artifacts `weekly-kpi-report`, `pilot-readiness-report`, `kpi-alerts-report`, confirm JSON files exist
+6. Check logs for `Print KPI summary`, `Print pilot readiness summary`, `Print KPI alerts summary`
 7. If `SLACK_WEBHOOK_URL` exists, confirm Slack notification delivered (`pilot_ready` line included)
 
 ## KPI Schema Contract
@@ -46,10 +48,11 @@
 - KPI delta vs previous week
 - evidence links for changed rows
 4. Review `pilot-readiness-report` artifact and note `ready` + `missing_gates`.
-5. Incident decision:
+5. Review `kpi-alerts-report` artifact and follow `incident_decision`.
+6. Incident decision:
 - if thresholds breached, open KPI incident using `docs/ONCALL_QUICK_ACTIONS.md`
 - else mark status as `monitor` and assign next check owner
-6. Post review summary with owner, decisions, and due dates.
+7. Post review summary with owner, decisions, and due dates.
 
 ## Top 5 Failure Causes + Exact Fixes
 1. SSH auth/host failure (`Permission denied`, `Host key verification failed`)

@@ -24,21 +24,24 @@
 4. Run admin critical smoke tests and attach evidence.
 5. Update pilot tracker milestones with latest evidence links.
 
-## Current Status (2026-04-02 UTC)
+## Current Status (2026-04-03 UTC)
 
 1. Local Week 1 queue executed successfully.
 2. Evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`.
 3. Local readiness report is `ready=true`.
-4. Remaining critical path is production verification (workflow run + live artifacts).
+4. Production `Weekly KPI Report` run completed and artifact links attached in tracker.
 
 ## Next Actions (Production-Only)
 
-1. Trigger GitHub `Weekly KPI Report` with `days=1`.
-2. Confirm artifacts:
-- `weekly-kpi-report`
-- `pilot-readiness-report`
-3. Verify `pilot_ready` in Slack message and workflow summary.
-4. Attach production run URL into `docs/PILOT_ROLLOUT_TRACKER.md`.
+1. Complete one more consecutive green production run (`days=7`) to satisfy stability lock.
+2. Confirm `pilot_ready=true` appears in workflow summary and Slack.
+3. Open follow-up item for replacing synthetic bootstrap evidence with fully organic production cohort progression.
+
+## Next Engineering Backlog (Now)
+
+1. Add API integration test covering `pilot_readiness_report` command against seeded production-like fixture.
+2. Add tracker sync helper to auto-append latest action run URL after successful KPI workflow.
+3. Add weekly drift alert threshold config file (versioned) for dispute/completion KPI monitoring.
 
 ## Engineering Guardrails
 

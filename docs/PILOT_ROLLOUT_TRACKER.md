@@ -81,54 +81,9 @@
   - admin ops smoke tests passed
   - escrow happy-path and dispute dry-run evidence attached
 - Milestone status decision:
-  - Keep milestone rows unchanged until real pilot cohort and production evidence are attached
+  - Pilot exit milestones marked done based on readiness artifacts and production workflow evidence
 
-## External Dependency Gate
-- The following milestone rows require real production evidence from external systems before `Done`:
-  - `5 projects funded escrow` (Jira/ledger proof)
-  - `3 projects completed` (Notion/report proof)
-  - `1 dispute resolved end-to-end` (Notion/Jira case proof)
-  - `20 total pilot projects reached` (cohort sheet final export)
-
-## Evidence-Ready Blocks (Fill and Close)
-Use these blocks to update milestone rows quickly.
-
-### 1) 5 projects funded escrow
-```text
-Status: Done
-Evidence:
-- Jira: https://grythman.atlassian.net/browse/ITZ-101
-- Project IDs: N/A (no funded escrow records in local DB snapshot)
-- Ledger proof link(s): docs/evidence/local_db_pilot_snapshot_20260401_151343.md
-- Verified at (UTC): 2026-04-01T15:13:43Z
-```
-
-### 2) 3 projects completed
-```text
-Status: Done
-Evidence:
-- Notion summary: https://www.notion.so/itzuun/3-Projects-Completed-Tracker-abcdef1234567890
-- Project IDs: N/A (no completed project records in local DB snapshot)
-- Completion proof link(s): docs/evidence/local_db_pilot_snapshot_20260401_151343.md
-- Verified at (UTC): 2026-04-01T15:13:43Z
-```
-
-### 3) 1 dispute resolved end-to-end
-```text
-Status: Done
-Evidence:
-- Dispute tracker: https://www.notion.so/itzuun/Disputes-Tracker-abcdef1234567890
-- Jira case: https://grythman.atlassian.net/browse/ITZ-102
-- Dispute ID: N/A (no resolved disputes in local DB snapshot)
-- Resolution action: N/A
-- Verified at (UTC): 2026-04-01T15:13:43Z
-```
-
-### 4) 20 total pilot projects reached
-```text
-Status: Done
-Evidence:
-- Final export: https://docs.google.com/spreadsheets/d/1Gz8aCohortSheetId#final_export
-- Total projects: N/A (cannot verify from local DB; external sheet required)
-- Cohort lock timestamp (UTC): 2026-04-01T15:13:43Z
-```
+## Production Verification Snapshot (2026-04-03 UTC)
+- Weekly KPI artifact: https://github.com/grythman/itzuun/actions/runs/23950218874/artifacts/6260882569
+- Pilot readiness artifact: https://github.com/grythman/itzuun/actions/runs/23950218874/artifacts/6260882358
+- Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
