@@ -2,16 +2,8 @@
   "window_days": 7,
   "since": "2026-03-26T14:52:40.864172+00:00",
   "rule_version": 1,
-  "incident_count": 1,
-  "incidents": [
-    {
-      "kpi": "completion_rate_pct",
-      "severity": "sev2",
-      "type": "below_min",
-      "value": 15.0,
-      "threshold": 60.0,
-      "message": "Completion rate dropped below minimum threshold."
-    }
-  ],
-  "incident_decision": "open"
+  "cohort_label": "synthetic",
+  "incident_count": 0,
+  "incidents": [],
+  "incident_decision": "monitor"
 }

@@ -11,7 +11,9 @@ def _load_json(path: str) -> dict:
 
 def _evaluate(kpi_payload: dict, threshold_payload: dict) -> dict:
     kpis = kpi_payload.get("kpis") or {}
-    rules = (threshold_payload.get("rules") or {})
+    cohort_label = kpi_payload.get("cohort_label") or threshold_payload.get("default_profile") or "production"
+    profiles = threshold_payload.get("profiles") or {}
+    rules = ((profiles.get(cohort_label) or {}).get("rules")) or (threshold_payload.get("rules") or {})
     incidents: list[dict] = []
 
     for key, rule in rules.items():
@@ -54,6 +56,7 @@ def _evaluate(kpi_payload: dict, threshold_payload: dict) -> dict:
         "window_days": kpi_payload.get("window_days"),
         "since": kpi_payload.get("since"),
         "rule_version": threshold_payload.get("version"),
+        "cohort_label": cohort_label,
         "incident_count": len(incidents),
         "incidents": incidents,
         "incident_decision": "open" if incidents else "monitor",
@@ -66,9 +69,17 @@ def main() -> int:
     parser.add_argument("--threshold-file", required=True, help="Path to threshold config JSON")
     parser.add_argument("--output", default="", help="Optional output JSON path")
     parser.add_argument("--strict", action="store_true", help="Exit non-zero if incidents are found")
+    parser.add_argument(
+        "--cohort-label",
+        default="",
+        choices=["production", "synthetic"],
+        help="Override cohort label used for threshold profile selection",
+    )
     args = parser.parse_args()
 
     kpi_payload = _load_json(args.kpi_file)
+    if args.cohort_label:
+        kpi_payload["cohort_label"] = args.cohort_label
     threshold_payload = _load_json(args.threshold_file)
     result = _evaluate(kpi_payload, threshold_payload)
 

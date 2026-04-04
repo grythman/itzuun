@@ -173,6 +173,7 @@ jobs:
           python scripts/evaluate_kpi_alerts.py \
             --kpi-file kpi_report.json \
             --threshold-file docs/KPI_ALERT_THRESHOLDS.json \
+            --cohort-label production \
             --output kpi_alerts_report.json
 
       - name: Upload KPI alerts artifact

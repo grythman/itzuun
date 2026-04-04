@@ -5,6 +5,7 @@
 - Job: `kpi-report`
 - Outputs: `kpi_report.json`, `pilot_readiness_report.json`, `kpi_alerts_report.json`, artifacts `weekly-kpi-report` + `pilot-readiness-report` + `kpi-alerts-report`, optional Slack message
 - CI guardrail: `.github/workflows/ci.yml` runs `workflow-lint` (`rhysd/actionlint@v1`) to catch YAML/workflow syntax issues before deploy.
+- KPI alert evaluator supports threshold profiles by `cohort_label` (`production` vs `synthetic`).
 
 ## End-to-End Verify Checklist
 1. GitHub `Settings -> Secrets and variables -> Actions`:
