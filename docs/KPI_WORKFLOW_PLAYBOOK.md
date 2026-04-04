@@ -3,7 +3,7 @@
 ## Scope
 - Workflow: `.github/workflows/kpi-weekly.yml`
 - Job: `kpi-report`
-- Outputs: `kpi_report.json`, `pilot_readiness_report.json`, `kpi_alerts_report.json`, artifacts `weekly-kpi-report` + `pilot-readiness-report` + `kpi-alerts-report`, optional Slack message
+- Outputs: `kpi_report.json`, `pilot_readiness_report.json`, `kpi_alerts_report.json`, `kpi_run_summary.json`, `tracker_update_snippet.md`, artifacts `weekly-kpi-report` + `pilot-readiness-report` + `kpi-alerts-report` + `kpi-run-summary`, optional Slack message
 - CI guardrail: `.github/workflows/ci.yml` runs `workflow-lint` (`rhysd/actionlint@v1`) to catch YAML/workflow syntax issues before deploy.
 - KPI alert evaluator supports threshold profiles by `cohort_label` (`production` vs `synthetic`).
 
@@ -23,7 +23,9 @@
 - `Upload pilot readiness artifact` = success
  - `Evaluate KPI alert thresholds` = success
  - `Upload KPI alerts artifact` = success
-5. Open artifacts `weekly-kpi-report`, `pilot-readiness-report`, `kpi-alerts-report`, confirm JSON files exist
+ - `Build KPI run summary snippet` = success
+ - `Upload KPI run summary artifact` = success
+5. Open artifacts `weekly-kpi-report`, `pilot-readiness-report`, `kpi-alerts-report`, `kpi-run-summary`, confirm files exist
 6. Check logs for `Print KPI summary`, `Print pilot readiness summary`, `Print KPI alerts summary`
 7. If `SLACK_WEBHOOK_URL` exists, confirm Slack notification delivered (`pilot_ready` line included)
 
@@ -50,10 +52,11 @@
 - evidence links for changed rows
 4. Review `pilot-readiness-report` artifact and note `ready` + `missing_gates`.
 5. Review `kpi-alerts-report` artifact and follow `incident_decision`.
-6. Incident decision:
+6. Copy `tracker_update_snippet.md` into `docs/PILOT_ROLLOUT_TRACKER.md` production snapshot section.
+7. Incident decision:
 - if thresholds breached, open KPI incident using `docs/ONCALL_QUICK_ACTIONS.md`
 - else mark status as `monitor` and assign next check owner
-7. Post review summary with owner, decisions, and due dates.
+8. Post review summary with owner, decisions, and due dates.
 
 ## Top 5 Failure Causes + Exact Fixes
 1. SSH auth/host failure (`Permission denied`, `Host key verification failed`)

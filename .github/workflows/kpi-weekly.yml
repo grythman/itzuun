@@ -182,6 +182,24 @@ jobs:
           name: kpi-alerts-report
           path: kpi_alerts_report.json
 
+      - name: Build KPI run summary snippet
+        run: |
+          set -e
+          python scripts/build_kpi_run_summary.py \
+            --kpi-file kpi_report.json \
+            --readiness-file pilot_readiness_report.json \
+            --alerts-file kpi_alerts_report.json \
+            --summary-output kpi_run_summary.json \
+            --snippet-output tracker_update_snippet.md
+
+      - name: Upload KPI run summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kpi-run-summary
+          path: |
+            kpi_run_summary.json
+            tracker_update_snippet.md
+
       - name: Print KPI summary
         run: |
           set -e
