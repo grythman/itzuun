@@ -86,4 +86,6 @@
 ## Production Verification Snapshot (2026-04-03 UTC)
 - Weekly KPI artifact: https://github.com/grythman/itzuun/actions/runs/23950218874/artifacts/6260882569
 - Pilot readiness artifact: https://github.com/grythman/itzuun/actions/runs/23950218874/artifacts/6260882358
+- KPI alerts artifact: https://github.com/grythman/itzuun/actions/runs/23979637084/artifacts/6270976944
+- KPI incident decision: `open`
 - Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
