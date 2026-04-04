@@ -1,0 +1,23 @@
+{
+  "window_days": 7,
+  "since": "2026-03-28T15:30:26.835751+00:00",
+  "projects_total": 20,
+  "disputes_total": 1,
+  "by_status": {
+    "closed_refunded": 1,
+    "completed": 3,
+    "in_progress": 16
+  },
+  "by_category": [
+    {
+      "category": "pilot",
+      "total": 20,
+      "hired": 20,
+      "completed": 3,
+      "disputed": 1,
+      "hire_rate_pct": 100.0,
+      "completion_rate_pct": 15.0,
+      "dispute_rate_pct": 5.0
+    }
+  ]
+}
