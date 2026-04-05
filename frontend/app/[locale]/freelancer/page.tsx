@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -25,6 +25,7 @@ type ProposalForm = z.infer<typeof proposalSchema>;
 
 export default function FreelancerDashboardPage() {
   const t = useTranslations("FreelancerDash");
+  const router = useRouter();
   const pathname = usePathname();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
@@ -35,6 +36,13 @@ export default function FreelancerDashboardPage() {
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
+  const retryAll = () => {
+    me.refetch();
+    proposals.refetch();
+    projects.refetch();
+    profile.refetch();
+    rating.refetch();
+  };
 
   const editForm = useForm<ProposalForm>({
     resolver: zodResolver(proposalSchema),
@@ -92,8 +100,30 @@ export default function FreelancerDashboardPage() {
   }
 
   if (me.isLoading || proposals.isLoading || projects.isLoading) return <LoadingState label="Loading freelancer dashboard..." />;
-  if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
-  if (proposals.isError || !proposals.data || projects.isError || !projects.data) return <ErrorState label="Could not load dashboard data." />;
+  if (me.isError || !me.data) {
+    return (
+      <ErrorState
+        label="Please sign in first."
+        action={
+          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
+            Go to sign in
+          </button>
+        }
+      />
+    );
+  }
+  if (proposals.isError || !proposals.data || projects.isError || !projects.data) {
+    return (
+      <ErrorState
+        label="Could not load dashboard data."
+        action={
+          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
+            Retry
+          </button>
+        }
+      />
+    );
+  }
 
   const myProposals = toArray(proposals.data);
   const myProposalIds = new Set(myProposals.map((proposal) => proposal.id));
@@ -256,7 +286,14 @@ export default function FreelancerDashboardPage() {
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
               <h2 className="mb-3 text-lg font-medium text-surface-900">{t("activeProjectsSection")}</h2>
               {!activeProjects.length ? (
-                <EmptyState label={t("noActive")} />
+                <EmptyState
+                  label={t("noActive")}
+                  action={
+                    <Link href={withLocale("/projects")} className="inline-flex items-center rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
+                      {t("browseProjects")}
+                    </Link>
+                  }
+                />
               ) : (
                 <ul className="space-y-2">
                   {activeProjects.map((project) => (

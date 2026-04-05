@@ -29,6 +29,12 @@ export default function ClientDashboardPage() {
 
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const proposals = useProjectProposals(activeProjectId || "");
+  const retryAll = () => {
+    me.refetch();
+    profile.refetch();
+    projects.refetch();
+    if (activeProjectId) proposals.refetch();
+  };
 
   const releaseMutation = useMutation({
     mutationFn: (projectId: number) => projectsApi.confirmCompletion(projectId),
@@ -49,8 +55,30 @@ export default function ClientDashboardPage() {
   });
 
   if (me.isLoading || projects.isLoading || profile.isLoading) return <LoadingState label="Loading client dashboard..." />;
-  if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
-  if (projects.isError || !projects.data) return <ErrorState label="Could not load projects." />;
+  if (me.isError || !me.data) {
+    return (
+      <ErrorState
+        label="Please sign in first."
+        action={
+          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
+            Go to sign in
+          </button>
+        }
+      />
+    );
+  }
+  if (projects.isError || !projects.data) {
+    return (
+      <ErrorState
+        label="Could not load projects."
+        action={
+          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
+            Retry
+          </button>
+        }
+      />
+    );
+  }
 
   const myProjects = projects.data.results.filter((project) => project.owner === me.data?.id);
   const proposalItems = proposals.data ? toArray(proposals.data) : [];
@@ -132,10 +160,17 @@ export default function ClientDashboardPage() {
               </div>
 
               {!myProjects.length ? (
-                <div className="text-center py-10">
-                  <h3 className="text-sm font-medium text-surface-900">{t("noProjects")}</h3>
-                  <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">{t("noProjectsDesc")}</p>
-                </div>
+                <EmptyState
+                  label={t("noProjects")}
+                  action={
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-surface-500">{t("noProjectsDesc")}</p>
+                      <Link href={withLocale("/projects/new")} className="rounded-full bg-[#4a23c8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
+                        {t("postProject")}
+                      </Link>
+                    </div>
+                  }
+                />
               ) : (
                 <ul className="grid gap-3 md:grid-cols-2">
                   {myProjects.map((project) => (
@@ -169,7 +204,14 @@ export default function ClientDashboardPage() {
               ) : proposals.isLoading ? (
                 <LoadingState label={t("loadingProposals")} />
               ) : proposals.isError ? (
-                <ErrorState label={t("proposalError")} />
+                <ErrorState
+                  label={t("proposalError")}
+                  action={
+                    <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => proposals.refetch()}>
+                      Retry
+                    </button>
+                  }
+                />
               ) : !proposalItems.length ? (
                 <EmptyState label={t("noProposals")} />
               ) : (
