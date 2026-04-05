@@ -122,3 +122,32 @@ class PilotReadinessReportCommandTests(TestCase):
         payload = self._run_report(cohort_validation=validation_path)
         self.assertTrue(payload["ready"])
         self.assertEqual(payload["missing_gates"], [])
+
+
+class LaunchPipelineCommandIntegrationTests(TestCase):
+    def test_bootstrap_to_readiness_strict_pipeline(self):
+        cohort_input = "/tmp/integration_pilot_cohort_input.json"
+        cohort_validation = "/tmp/integration_pilot_cohort_validation.json"
+        readiness_out = StringIO()
+
+        call_command(
+            "bootstrap_pilot_dataset",
+            cohort_output=cohort_input,
+        )
+        call_command(
+            "setup_pilot_cohort",
+            input_json=cohort_input,
+            output=cohort_validation,
+            strict=True,
+        )
+        call_command(
+            "pilot_readiness_report",
+            json=True,
+            cohort_validation=cohort_validation,
+            strict=True,
+            stdout=readiness_out,
+        )
+
+        payload = json.loads(readiness_out.getvalue())
+        self.assertTrue(payload["ready"])
+        self.assertEqual(payload["missing_gates"], [])
