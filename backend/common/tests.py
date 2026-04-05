@@ -10,6 +10,13 @@ from apps.payments.models import Dispute, Escrow
 from apps.projects.models import Project
 
 
+REQUIRED_TOP_LEVEL_KEYS = {
+    "window_days",
+    "cohort_label",
+    "since",
+    "kpis",
+}
+
 REQUIRED_KPI_KEYS = {
     "projects_posted",
     "hired_projects",
@@ -33,8 +40,8 @@ class WeeklyKpiReportCommandTests(TestCase):
         payload = self._run_command_json(days=7)
 
         self.assertEqual(payload["window_days"], 7)
-        self.assertIn("since", payload)
-        self.assertIn("kpis", payload)
+        self.assertEqual(payload["cohort_label"], "production")
+        self.assertTrue(REQUIRED_TOP_LEVEL_KEYS.issubset(payload.keys()))
 
         kpis = payload["kpis"]
         self.assertTrue(REQUIRED_KPI_KEYS.issubset(kpis.keys()))
@@ -44,6 +51,7 @@ class WeeklyKpiReportCommandTests(TestCase):
         kpis = payload["kpis"]
 
         self.assertIsInstance(payload["window_days"], int)
+        self.assertIsInstance(payload["cohort_label"], str)
         self.assertIsInstance(payload["since"], str)
 
         self.assertIsInstance(kpis["projects_posted"], int)

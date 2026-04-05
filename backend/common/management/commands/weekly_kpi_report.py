@@ -24,6 +24,12 @@ class Command(BaseCommand):
             help="Lookback window in days (default: 7).",
         )
         parser.add_argument(
+            "--cohort-label",
+            default="production",
+            choices=["production", "synthetic"],
+            help="Cohort label used by downstream alert evaluators.",
+        )
+        parser.add_argument(
             "--json",
             action="store_true",
             help="Print JSON output for automation dashboards.",
@@ -31,6 +37,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         days = max(1, int(options["days"]))
+        cohort_label = options["cohort_label"]
         as_json = bool(options["json"])
         since = timezone.now() - timedelta(days=days)
 
@@ -93,6 +100,7 @@ class Command(BaseCommand):
 
         payload = {
             "window_days": days,
+            "cohort_label": cohort_label,
             "since": since.isoformat(),
             "kpis": {
                 "new_freelancer_signups": new_freelancer_signups,
@@ -116,6 +124,7 @@ class Command(BaseCommand):
 
         lines = [
             f"KPI window: last {days} days",
+            f"Cohort label: {cohort_label}",
             f"Since: {payload['since']}",
             "",
             f"- New freelancer signups: {new_freelancer_signups}",

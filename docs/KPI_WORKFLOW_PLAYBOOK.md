@@ -30,6 +30,7 @@
 7. If `SLACK_WEBHOOK_URL` exists, confirm Slack notification delivered (`pilot_ready` line included)
 
 ## KPI Schema Contract
+- `cohort_label` top-level field is required (`production` in weekly workflow runs).
 - Canonical verified freelancer key is `verified_freelancers`.
 - Backward-compatibility alias `verified_freelancer_count` may still appear in payload during transition.
 - Workflow enforces these required KPI keys in `payload.kpis`:

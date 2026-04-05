@@ -112,7 +112,7 @@ jobs:
           python manage.py migrate --noinput
           python manage.py bootstrap_pilot_dataset --cohort-output /tmp/ci_pilot_cohort_input.json
           python manage.py setup_pilot_cohort --input-json /tmp/ci_pilot_cohort_input.json --output /tmp/ci_pilot_cohort_validation.json --strict
-          python manage.py weekly_kpi_report --days 7 --json
+          python manage.py weekly_kpi_report --days 7 --cohort-label production --json
           python manage.py pilot_readiness_report --json --cohort-validation /tmp/ci_pilot_cohort_validation.json --strict
 
       - name: Run Backend Tests

@@ -34,7 +34,7 @@ jobs:
         run: |
           set -e
           ssh -i ~/.ssh/id_rsa "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
-            "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py weekly_kpi_report --days ${KPI_DAYS} --json" \
+            "cd /root/itzuun && docker compose -f docker-compose.prod.yml run --rm api python manage.py weekly_kpi_report --days ${KPI_DAYS} --cohort-label production --json" \
             > kpi_report.json
 
       - name: Generate pilot readiness report on production server
@@ -173,7 +173,6 @@ jobs:
           python scripts/evaluate_kpi_alerts.py \
             --kpi-file kpi_report.json \
             --threshold-file docs/KPI_ALERT_THRESHOLDS.json \
-            --cohort-label production \
             --output kpi_alerts_report.json
 
       - name: Upload KPI alerts artifact
