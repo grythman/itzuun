@@ -106,9 +106,10 @@ class GoogleAuthSerializer(serializers.Serializer):
         if user.verification_status != User.VERIFICATION_VERIFIED:
             user.verification_status = User.VERIFICATION_VERIFIED
             update_fields.append("verification_status")
+        if not user.is_verified:
+            user.is_verified = True
+            update_fields.append("is_verified")
         if update_fields:
-            if "is_verified" not in update_fields:
-                update_fields.append("is_verified")
             user.save(update_fields=update_fields)
 
         bump_user_public_version(user.id)

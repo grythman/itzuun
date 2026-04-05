@@ -61,6 +61,33 @@ class GoogleAuthApiTests(TestCase):
         self.assertEqual(user.role, "client")
 
     @patch("apps.accounts.services.requests.get")
+    def test_google_auth_repairs_inconsistent_verified_flag(self, mock_get):
+        User.objects.create(
+            email="drift@test.com",
+            role="client",
+            verification_status=User.VERIFICATION_VERIFIED,
+            is_verified=False,
+        )
+
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "aud": "test-client-id",
+            "email_verified": True,
+            "email": "drift@test.com",
+        }
+
+        response = self.client_api.post(
+            "/api/v1/auth/google",
+            {"credential": "fake-token"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user = User.objects.get(email="drift@test.com")
+        self.assertEqual(user.verification_status, User.VERIFICATION_VERIFIED)
+        self.assertTrue(user.is_verified)
+
+    @patch("apps.accounts.services.requests.get")
     def test_google_auth_fails_on_invalid_audience(self, mock_get):
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
