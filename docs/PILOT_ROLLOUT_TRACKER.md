@@ -94,3 +94,4 @@
 - KPI incident decision: `monitor` (finalized for RC1; move to `close` after 2 consecutive healthy weekly runs)
 - Incident file: `docs/incidents/INC-20260404-1.md`
 - Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
+- Launch day runbook: `docs/LAUNCH_DAY_RUNBOOK.md`
