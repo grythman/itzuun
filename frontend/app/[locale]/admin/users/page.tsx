@@ -21,13 +21,6 @@ export default function AdminUsersPage() {
 
   const me = useMe();
   const admin = useAdminSnapshot();
-
-  if (me.isLoading || admin.users.isLoading) return <LoadingState label={t("loading")} />;
-  if (me.isError || !me.data) return <ErrorState label={t("signinRequired")} />;
-  if (admin.users.isError) return <ErrorState label={t("loadError")} />;
-
-  const users = Array.isArray(admin.users.data) ? admin.users.data : [];
-
   const queryClient = useQueryClient();
   const pushToast = useToastStore((s) => s.push);
   const unsuspendMutation = useMutation({
@@ -41,6 +34,12 @@ export default function AdminUsersPage() {
       pushToast("error", t("unsuspendFailed"), err?.response?.data?.detail || t("unsuspendFailedDetail"));
     },
   });
+
+  if (me.isLoading || admin.users.isLoading) return <LoadingState label={t("loading")} />;
+  if (me.isError || !me.data) return <ErrorState label={t("signinRequired")} />;
+  if (admin.users.isError) return <ErrorState label={t("loadError")} />;
+
+  const users = Array.isArray(admin.users.data) ? admin.users.data : [];
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
