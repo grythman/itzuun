@@ -124,9 +124,11 @@ function AuthCard() {
   const registerMutation = useMutation({
     mutationFn: (values: RegisterForm) => authApi.register(values),
     onSuccess: async (data) => {
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      const user = data?.user ?? data;
+      queryClient.setQueryData(["auth", "me"], user);
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "Account created and logged in");
-      router.push(withLocale(roleDashboard(data?.role)));
+      router.push(withLocale(roleDashboard(user?.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -134,9 +136,11 @@ function AuthCard() {
   const loginMutation = useMutation({
     mutationFn: (values: LoginForm) => authApi.login(values),
     onSuccess: async (data) => {
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      const user = data?.user ?? data;
+      queryClient.setQueryData(["auth", "me"], user);
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "Logged in");
-      router.push(withLocale(roleDashboard(data?.role)));
+      router.push(withLocale(roleDashboard(user?.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -144,9 +148,11 @@ function AuthCard() {
   const googleMutation = useMutation({
     mutationFn: (payload: { credential: string; role?: "client" | "freelancer" }) => authApi.google(payload),
     onSuccess: async (data) => {
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      const user = data?.user ?? data;
+      queryClient.setQueryData(["auth", "me"], user);
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "Google login амжилттай");
-      router.push(withLocale(roleDashboard(data?.role)));
+      router.push(withLocale(roleDashboard(user?.role)));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -168,10 +174,12 @@ function AuthCard() {
 
   const verifyMutation = useMutation({
     mutationFn: ({ email, otp, otp_token }: OtpVerifyForm) => authApi.verifyOtp(email, otp, otp_token),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+    onSuccess: async (data) => {
+      const userFromResponse = data?.user ?? data;
+      queryClient.setQueryData(["auth", "me"], userFromResponse);
+      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "OTP verified. Session started");
-      const user = await queryClient.fetchQuery({ queryKey: ["me", true], queryFn: () => authApi.me(true) });
+      const user = await queryClient.fetchQuery({ queryKey: ["auth", "me"], queryFn: () => authApi.me(true) });
       router.push(withLocale(roleDashboard(user.role)));
     },
     onError: (error: Error) => toast("error", error.message),
