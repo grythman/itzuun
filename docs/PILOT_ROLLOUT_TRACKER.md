@@ -90,6 +90,7 @@
 - UI/UX smoke evidence: `cd frontend && npm run build` (pass), `cd frontend && npm test -- --run` (40/40 pass), commit `33b728d`
 - Backend verification evidence: `cd backend && /root/itzuun/.venv/bin/python manage.py test` (74/74 pass), `cd backend && /root/itzuun/.venv/bin/python manage.py test apps.accounts.test_google_auth -v 2` (4/4 pass)
 - RC1 live smoke evidence: `docs/evidence/release_rc1_smoke_20260406_0731.md` (public routes 200; auth-protected endpoints returned expected 401/405/400 without session)
+- Admin unsuspend + audit evidence: browser console query `GET /api/v1/admin/audit-logs?action_type=unsuspend&entity_type=user` returned `count=1`, first row `{id:3, actor_id:2, action_type:\"unsuspend\", entity_type:\"user\", entity_id:4}` on 2026-04-06 UTC
 - KPI incident decision: `monitor`
 - Incident file: `docs/incidents/INC-20260404-1.md`
 - Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
