@@ -39,7 +39,12 @@ export default function AdminUsersPage() {
   if (me.isError || !me.data) return <ErrorState label={t("signinRequired")} />;
   if (admin.users.isError) return <ErrorState label={t("loadError")} />;
 
-  const users = Array.isArray(admin.users.data) ? admin.users.data : [];
+  const rawUsers = admin.users.data as any;
+  const users = Array.isArray(rawUsers)
+    ? rawUsers
+    : Array.isArray(rawUsers?.results)
+      ? rawUsers.results
+      : [];
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
