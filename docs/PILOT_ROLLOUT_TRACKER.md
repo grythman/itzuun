@@ -83,12 +83,13 @@
 - Milestone status decision:
   - Pilot exit milestones marked done based on readiness artifacts and production workflow evidence
 
-## Production Verification Snapshot (2026-04-05 UTC)
+## Production Verification Snapshot (2026-04-06 UTC)
 - Weekly KPI artifact: https://github.com/grythman/itzuun/actions/runs/23950218874/artifacts/6260882569
 - Pilot readiness artifact: https://github.com/grythman/itzuun/actions/runs/23950218874/artifacts/6260882358
 - KPI alerts artifact: https://github.com/grythman/itzuun/actions/runs/23979637084/artifacts/6270976944
 - UI/UX smoke evidence: `cd frontend && npm run build` (pass), `cd frontend && npm test -- --run` (40/40 pass), commit `33b728d`
 - Backend verification evidence: `cd backend && /root/itzuun/.venv/bin/python manage.py test` (74/74 pass), `cd backend && /root/itzuun/.venv/bin/python manage.py test apps.accounts.test_google_auth -v 2` (4/4 pass)
+- RC1 live smoke evidence: `docs/evidence/release_rc1_smoke_20260406_0731.md` (public routes 200; auth-protected endpoints returned expected 401/405/400 without session)
 - KPI incident decision: `monitor`
 - Incident file: `docs/incidents/INC-20260404-1.md`
 - Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
