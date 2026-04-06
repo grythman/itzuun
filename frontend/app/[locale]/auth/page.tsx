@@ -55,6 +55,27 @@ function roleDashboard(role?: string) {
   return "/client";
 }
 
+async function waitForAuthenticatedUser(
+  queryClient: ReturnType<typeof useQueryClient>,
+  fallbackUser?: any,
+) {
+  if (fallbackUser?.role) {
+    queryClient.setQueryData(["auth", "me"], fallbackUser);
+    return fallbackUser;
+  }
+
+  for (let i = 0; i < 4; i += 1) {
+    const user = await authApi.me(true).catch(() => null);
+    if (user?.role) {
+      queryClient.setQueryData(["auth", "me"], user);
+      return user;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+
+  return null;
+}
+
 function AuthCard() {
   const t = useTranslations("Auth");
   const searchParams = useSearchParams();
@@ -124,8 +145,7 @@ function AuthCard() {
   const registerMutation = useMutation({
     mutationFn: (values: RegisterForm) => authApi.register(values),
     onSuccess: async (data) => {
-      const user = data?.user ?? data;
-      queryClient.setQueryData(["auth", "me"], user);
+      const user = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "Account created and logged in");
       router.push(withLocale(roleDashboard(user?.role)));
@@ -136,8 +156,7 @@ function AuthCard() {
   const loginMutation = useMutation({
     mutationFn: (values: LoginForm) => authApi.login(values),
     onSuccess: async (data) => {
-      const user = data?.user ?? data;
-      queryClient.setQueryData(["auth", "me"], user);
+      const user = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "Logged in");
       router.push(withLocale(roleDashboard(user?.role)));
@@ -148,8 +167,7 @@ function AuthCard() {
   const googleMutation = useMutation({
     mutationFn: (payload: { credential: string; role?: "client" | "freelancer" }) => authApi.google(payload),
     onSuccess: async (data) => {
-      const user = data?.user ?? data;
-      queryClient.setQueryData(["auth", "me"], user);
+      const user = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "Google login амжилттай");
       router.push(withLocale(roleDashboard(user?.role)));
@@ -175,11 +193,10 @@ function AuthCard() {
   const verifyMutation = useMutation({
     mutationFn: ({ email, otp, otp_token }: OtpVerifyForm) => authApi.verifyOtp(email, otp, otp_token),
     onSuccess: async (data) => {
-      const userFromResponse = data?.user ?? data;
-      queryClient.setQueryData(["auth", "me"], userFromResponse);
+      const userFromResponse = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       toast("success", "OTP verified. Session started");
-      const user = await queryClient.fetchQuery({ queryKey: ["auth", "me"], queryFn: () => authApi.me(true) });
+      const user = userFromResponse ?? await queryClient.fetchQuery({ queryKey: ["auth", "me"], queryFn: () => authApi.me(true) });
       router.push(withLocale(roleDashboard(user.role)));
     },
     onError: (error: Error) => toast("error", error.message),
