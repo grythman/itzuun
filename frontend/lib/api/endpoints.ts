@@ -211,19 +211,19 @@ export const escrowApi = {
 
 export const adminApi = {
   snapshots: async () => {
-    const res = await apiClient.get("/admin/metrics/snapshot/");
+    const res = await apiClient.get("/admin/metrics/snapshot");
     return res.data;
   },
   users: async () => {
-    const res = await apiClient.get("/admin/users/");
+    const res = await apiClient.get("/admin/users");
     return res.data;
   },
   projects: async () => {
-    const res = await apiClient.get("/admin/projects/");
+    const res = await apiClient.get("/admin/projects");
     return res.data;
   },
   escrow: async (status?: string) => {
-    const res = await apiClient.get("/admin/escrow/", { params: status ? { status } : undefined });
+    const res = await apiClient.get("/admin/escrow", { params: status ? { status } : undefined });
     return res.data;
   },
   commission: async () => {
@@ -231,32 +231,32 @@ export const adminApi = {
     return res.data;
   },
   ledger: async () => {
-    const res = await apiClient.get("/admin/ledger/");
+    const res = await apiClient.get("/admin/ledger");
     return res.data;
   },
   payments: async (status?: string) => {
-    const res = await apiClient.get("/admin/payments/", { params: status ? { status } : undefined });
+    const res = await apiClient.get("/admin/payments", { params: status ? { status } : undefined });
     return res.data;
   },
   disputes: async (unresolved?: boolean) => {
     const params = unresolved === undefined ? undefined : { unresolved };
-    const res = await apiClient.get("/admin/disputes/", { params });
+    const res = await apiClient.get("/admin/disputes", { params });
     return res.data;
   },
   auditLogs: async (params?: { entity_type?: string; action_type?: string; entity_id?: string | number }) => {
-    const res = await apiClient.get("/admin/audit-logs/", { params });
+    const res = await apiClient.get("/admin/audit-logs", { params });
     return res.data;
   },
   resolveDispute: async (id: string | number, payload: any) => {
-    const res = await apiClient.post(`/admin/disputes/${id}/resolve/`, payload);
+    const res = await apiClient.post(`/admin/disputes/${id}/resolve`, payload);
     return res.data;
   },
   verifyUser: async (userId: string | number, payload: any) => {
-    const res = await apiClient.post(`/admin/users/${userId}/verify/`, payload);
+    const res = await apiClient.post(`/admin/users/${userId}/verify`, payload);
     return res.data;
   },
   unsuspendUser: async (userId: string | number, payload?: { reason?: string }) => {
-    const res = await apiClient.post(`/admin/users/${userId}/unsuspend/`, payload || {});
+    const res = await apiClient.post(`/admin/users/${userId}/unsuspend`, payload || {});
     return res.data;
   },
   setCommission: async (platform_fee_pct: number) => {
