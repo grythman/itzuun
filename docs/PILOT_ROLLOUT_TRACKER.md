@@ -75,7 +75,7 @@
 - KPI trend is stable enough for broader rollout decision.
 
 ## Latest Review Snapshot
-- Reviewed at: `2026-04-01 UTC`
+- Reviewed at: `2026-04-06 UTC`
 - Basis:
   - `weekly_kpi_report --days 7 --json` executed successfully
   - admin ops smoke tests passed
@@ -91,6 +91,6 @@
 - Backend verification evidence: `cd backend && /root/itzuun/.venv/bin/python manage.py test` (74/74 pass), `cd backend && /root/itzuun/.venv/bin/python manage.py test apps.accounts.test_google_auth -v 2` (4/4 pass)
 - RC1 live smoke evidence: `docs/evidence/release_rc1_smoke_20260406_0731.md` (public routes 200; auth-protected endpoints returned expected 401/405/400 without session)
 - Admin unsuspend + audit evidence: browser console query `GET /api/v1/admin/audit-logs?action_type=unsuspend&entity_type=user` returned `count=1`, first row `{id:3, actor_id:2, action_type:\"unsuspend\", entity_type:\"user\", entity_id:4}` on 2026-04-06 UTC
-- KPI incident decision: `monitor`
+- KPI incident decision: `monitor` (finalized for RC1; move to `close` after 2 consecutive healthy weekly runs)
 - Incident file: `docs/incidents/INC-20260404-1.md`
 - Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
