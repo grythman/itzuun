@@ -14,6 +14,17 @@
 - [ ] Open `/auth/login` and sign in as client.
 - [ ] Open `/auth/login` and sign in as freelancer.
 - [ ] Call Google auth endpoint and confirm successful login for verified Google account.
+- [ ] After client sign-in, confirm redirect to `/client` without manual refresh.
+- [ ] After freelancer sign-in, confirm redirect to `/freelancer` without manual refresh.
+- [ ] Immediately after each sign-in, verify `GET /api/v1/accounts/users/me/` returns authenticated user payload.
+
+### Auth Evidence Capture
+- Verification date/time (UTC): `TBD`
+- Verifier: `TBD`
+- Client result: `TBD`
+- Freelancer result: `TBD`
+- `/api/v1/accounts/users/me/` immediate check: `TBD`
+- Artifacts (screenshots/network logs): `TBD`
 
 ## Client Dashboard
 - [x] Open `/client` and confirm page loads without `Could not load projects` error.

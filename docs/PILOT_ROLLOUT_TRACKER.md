@@ -95,3 +95,29 @@
 - Incident file: `docs/incidents/INC-20260404-1.md`
 - Local consolidated run evidence: `docs/evidence/week1_launch_checks_20260402_145235.md`
 - Launch day runbook: `docs/LAUNCH_DAY_RUNBOOK.md`
+
+## Priority Auth Verification (No-Refresh Session Check)
+- Verification date (UTC): `2026-04-06`
+- Status: `In Progress`
+- Objective: validate that post-login redirect lands on dashboard without manual refresh and authenticated `/api/v1/accounts/users/me/` succeeds immediately.
+
+### Evidence Checklist
+- [ ] Client login verified with no manual refresh.
+- [ ] Freelancer login verified with no manual refresh.
+- [ ] Immediate authenticated `GET /api/v1/accounts/users/me/` confirmed after sign-in.
+
+### Evidence Record Template
+- Environment: `production`
+- Verifier: `@mike_ops`
+- Browser/session notes: `TBD`
+- Client account result: `TBD`
+- Freelancer account result: `TBD`
+- `/api/v1/accounts/users/me/` result: `TBD`
+- Artifact links/screenshots: `TBD`
+- Decision: `pass | fail`
+
+### Recommended Capture Procedure
+1. Open `/auth/login`, sign in as client, and confirm direct navigation to `/client` without refresh.
+2. Immediately call `GET /api/v1/accounts/users/me/` in browser devtools or API client and confirm authenticated user payload.
+3. Repeat for freelancer and confirm direct navigation to `/freelancer` without refresh.
+4. Append timestamps + screenshots/network logs to this section.
