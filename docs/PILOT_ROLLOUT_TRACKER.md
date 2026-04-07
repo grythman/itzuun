@@ -97,24 +97,24 @@
 - Launch day runbook: `docs/LAUNCH_DAY_RUNBOOK.md`
 
 ## Priority Auth Verification (No-Refresh Session Check)
-- Verification date (UTC): `2026-04-06`
-- Status: `In Progress`
+- Verification date (UTC): `2026-04-07`
+- Status: `Blocked` (production credential validation failed)
 - Objective: validate that post-login redirect lands on dashboard without manual refresh and authenticated `/api/v1/accounts/users/me/` succeeds immediately.
 
 ### Evidence Checklist
-- [ ] Client login verified with no manual refresh.
-- [ ] Freelancer login verified with no manual refresh.
-- [ ] Immediate authenticated `GET /api/v1/accounts/users/me/` confirmed after sign-in.
+- [ ] Client login verified with no manual refresh. (`2026-04-07T04:21:01Z`: `POST /api/v1/accounts/auth/login/` -> `400 Invalid credentials`)
+- [ ] Freelancer login verified with no manual refresh. (`2026-04-07T04:21:01Z`: `POST /api/v1/accounts/auth/login/` -> `400 Invalid credentials`)
+- [ ] Immediate authenticated `GET /api/v1/accounts/users/me/` confirmed after sign-in. (`2026-04-07T04:21:01Z`: immediate check returned unauthenticated empty payload after failed login attempts)
 
 ### Evidence Record Template
 - Environment: `production`
-- Verifier: `@mike_ops`
-- Browser/session notes: `TBD`
-- Client account result: `TBD`
-- Freelancer account result: `TBD`
-- `/api/v1/accounts/users/me/` result: `TBD`
-- Artifact links/screenshots: `TBD`
-- Decision: `pass | fail`
+- Verifier: `@copilot`
+- Browser/session notes: `production API credential checks executed via curl`
+- Client account result: `fail` (`400 Invalid credentials`)
+- Freelancer account result: `fail` (`400 Invalid credentials`)
+- `/api/v1/accounts/users/me/` result: `unauthenticated`
+- Artifact links/screenshots: `terminal curl output @ 2026-04-07T04:21:01Z`
+- Decision: `fail` (requires valid production test credentials for no-refresh verification)
 
 ### Recommended Capture Procedure
 1. Open `/auth/login`, sign in as client, and confirm direct navigation to `/client` without refresh.
