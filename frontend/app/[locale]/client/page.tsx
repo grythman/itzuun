@@ -3,12 +3,12 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { AppCard, DashboardBottomBar, RoleSidebar, TrustPanel } from "@/components/ui-kit";
+import { ActionButton, AppCard, ConfirmationDialog, DashboardBottomBar, RoleSidebar, StatusPill, TrustPanel } from "@/components/ui-kit";
 import { VerificationBanner } from "@/components/verification-banner";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useProjectProposals, useProjects } from "@/lib/hooks";
@@ -18,6 +18,39 @@ import type { ProposalDto } from "@/lib/api/types";
 function proposalFreelancerLabel(freelancer: ProposalDto["freelancer"]): string | number {
   if (typeof freelancer === "number" || typeof freelancer === "string") return freelancer;
   return freelancer.id;
+}
+
+function formatMnt(amount: number): string {
+  return `${new Intl.NumberFormat("mn-MN").format(amount)} ₮`;
+}
+
+function formatRelativeTime(iso?: string): string {
+  if (!iso) return "Шинэчлэлийн мэдээлэл алга";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(diffMs)) return "Шинэчлэлийн мэдээлэл алга";
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "Яг одоо шинэчлэгдсэн";
+  if (diffMin < 60) return `${diffMin} минутын өмнө шинэчлэгдсэн`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} цагийн өмнө шинэчлэгдсэн`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay} өдрийн өмнө шинэчлэгдсэн`;
+}
+
+function statusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string; escrowLabel: string } {
+  if (status === "in_progress") {
+    return { label: "Escrow Held", tone: "success", nextStep: "Гүйцэтгэлийг хянаад шаардлагатай үед маргаан нээ.", escrowLabel: "Мөнгө найдвартай түгжээтэй байна." };
+  }
+  if (status === "awaiting_client_review") {
+    return { label: "Completion Pending", tone: "warning", nextStep: "Ажлыг шалгаад дууссаныг баталгаажуул.", escrowLabel: "Баталгаажуулмагц мөнгө freelancer руу шилжинэ." };
+  }
+  if (status === "disputed") {
+    return { label: "Disputed", tone: "danger", nextStep: "Нотолгоогоо шалгаад admin шийдвэрийг хүлээ.", escrowLabel: "Escrow маргааны горимд байна." };
+  }
+  if (status === "completed") {
+    return { label: "Released", tone: "info", nextStep: "Төсөл дууссан. Үнэлгээ үлдээж болно.", escrowLabel: "Escrow амжилттай release хийгдсэн." };
+  }
+  return { label: "Open", tone: "info", nextStep: "Саналуудаа харьцуулж freelancer сонго.", escrowLabel: "Escrow эхлээгүй байна." };
 }
 
 export default function ClientDashboardPage() {
@@ -32,9 +65,12 @@ export default function ClientDashboardPage() {
   const profile = useMyProfile();
   const projects = useProjects(1);
   const toast = useToastStore((s) => s.push);
+  const proposalSectionRef = useRef<HTMLDivElement | null>(null);
 
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const proposals = useProjectProposals(activeProjectId || "");
+  const [releaseTarget, setReleaseTarget] = useState<number | null>(null);
+  const [disputeTarget, setDisputeTarget] = useState<number | null>(null);
   const retryAll = () => {
     me.refetch();
     profile.refetch();
@@ -46,21 +82,50 @@ export default function ClientDashboardPage() {
     mutationFn: (projectId: number) => projectsApi.confirmCompletion(projectId),
     onSuccess: () => {
       projects.refetch();
-      toast("success", "Escrow released");
+      toast("success", "Escrow амжилттай release хийгдлээ.");
+      setReleaseTarget(null);
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
   const disputeMutation = useMutation({
-    mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: "Client raised dispute" }),
+    mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: "Client dashboard-аас маргаан нээв" }),
     onSuccess: () => {
       projects.refetch();
-      toast("warning", "Dispute opened");
+      toast("warning", "Маргаан нээгдлээ.");
+      setDisputeTarget(null);
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
-  if (me.isLoading || projects.isLoading || profile.isLoading) return <LoadingState label="Loading client dashboard..." />;
+  const selectMutation = useMutation({
+    mutationFn: ({ projectId, proposalId }: { projectId: number; proposalId: number }) => projectsApi.selectFreelancer(projectId, proposalId),
+    onSuccess: () => {
+      projects.refetch();
+      proposals.refetch();
+      toast("success", "Freelancer сонгогдлоо.");
+    },
+    onError: (error: Error) => toast("error", error.message),
+  });
+
+  const focusProposalSection = (projectId: number) => {
+    setActiveProjectId(projectId);
+    setTimeout(() => proposalSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  if (me.isLoading || projects.isLoading || profile.isLoading) {
+    return (
+      <section className="space-y-4 pb-20">
+        <div className="h-40 animate-pulse rounded-3xl border border-[#d6e2ee] bg-[#eef4fa]" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+        </div>
+        <div className="h-64 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f8fbff]" />
+      </section>
+    );
+  }
   if (me.isError || !me.data) {
     return (
       <ErrorState
@@ -88,6 +153,7 @@ export default function ClientDashboardPage() {
 
   const myProjects = projects.data.results.filter((project) => project.owner === me.data?.id);
   const proposalItems = proposals.data ? toArray<ProposalDto>(proposals.data) : [];
+  const activeProject = myProjects.find((project) => project.id === activeProjectId) || null;
 
   const profileData = profile.data;
   let profileCompleteness = 0;
@@ -104,27 +170,69 @@ export default function ClientDashboardPage() {
   const openCount = myProjects.filter((p) => p.status === "open").length;
   const totalEscrow = myProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
   const completedCount = myProjects.filter((p) => p.status === "completed").length;
+  const awaitingReview = myProjects.find((project) => project.status === "awaiting_client_review");
+  const openProject = myProjects.find((project) => project.status === "open");
+  const inProgressProject = myProjects.find((project) => project.status === "in_progress");
 
-  const statusTone: Record<string, string> = {
-    open: "bg-sky-50 text-sky-700 border border-sky-100",
-    in_progress: "bg-emerald-50 text-emerald-700 border border-emerald-100",
-    awaiting_client_review: "bg-amber-50 text-amber-700 border border-amber-100",
-    completed: "bg-violet-50 text-violet-700 border border-violet-100",
-    disputed: "bg-rose-50 text-rose-700 border border-rose-100",
-    closed_refunded: "bg-slate-100 text-slate-700 border border-slate-200",
-  };
+  const urgencyText = useMemo(() => {
+    if (awaitingReview) return "Одоо хийх ажил: Completion баталгаажуулж escrow release хийх.";
+    if (openProject) return "Одоо хийх ажил: Саналуудыг харьцуулж freelancer сонгох.";
+    if (inProgressProject) return "Одоо хийх ажил: Гүйцэтгэлийг хянаж эрсдэл гарвал маргаан нээх.";
+    return "Одоо хийх ажил: Шинэ төсөл оруулж ажил эхлүүлэх.";
+  }, [awaitingReview, openProject, inProgressProject]);
+
+  const freshestUpdate = myProjects.reduce<string | undefined>((latest, project) => {
+    const candidate = (project as { updated_at?: string; created_at?: string }).updated_at || (project as { updated_at?: string; created_at?: string }).created_at;
+    if (!candidate) return latest;
+    if (!latest) return candidate;
+    return new Date(candidate).getTime() > new Date(latest).getTime() ? candidate : latest;
+  }, undefined);
+
+  const sortedProposalItems = useMemo(() => {
+    return [...proposalItems].sort((a, b) => {
+      const aScore = Number(a.price || 0) + Math.max(1, Number(a.timeline_days || 1)) * 1000;
+      const bScore = Number(b.price || 0) + Math.max(1, Number(b.timeline_days || 1)) * 1000;
+      return aScore - bScore;
+    });
+  }, [proposalItems]);
+
+  const releaseProject = myProjects.find((p) => p.id === releaseTarget) || null;
+  const disputeProject = myProjects.find((p) => p.id === disputeTarget) || null;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
       <section className="space-y-6 pb-20">
-        <div className="relative overflow-hidden rounded-[28px] border border-[#dae4f0] bg-gradient-to-br from-[#f7fbff] via-[#f3f8ff] to-[#eef7f5] p-6 shadow-[0_20px_48px_rgba(13,39,80,0.12)] md:p-8">
+        <div className="relative overflow-hidden rounded-[28px] border border-[#d6e2ee] bg-gradient-to-br from-[#f8fbff] via-[#f2f8ff] to-[#eefaf4] p-5 shadow-[0_20px_48px_rgba(13,39,80,0.12)] md:p-8">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#44b39c]/12 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 left-20 h-56 w-56 rounded-full bg-[#5b8dff]/12 blur-3xl" />
           <div className="relative grid gap-6 md:grid-cols-[1.5fr_1fr] md:items-end">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1f5f96]">{t("controlRoomLabel")}</p>
-              <h1 className="mt-2 font-headline text-4xl font-extrabold tracking-tight text-[#12243a] md:text-5xl">{t("title")}</h1>
-              <p className="mt-2 max-w-3xl text-sm text-[#355067]">{t("controlRoomSub")}</p>
+              <h1 className="mt-2 font-headline text-[30px] font-extrabold tracking-tight text-[#12243a] sm:text-4xl md:text-5xl">{t("title")}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-[#355067]">{urgencyText}</p>
+              <p className="mt-2 text-xs text-[#45637e]">{formatRelativeTime(freshestUpdate)}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <Link
+                  href={withLocale("/projects/new")}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#175f8d] px-4 text-[13px] font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#175f8d]"
+                >
+                  Төсөл оруулах
+                </Link>
+                <button
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#bfd3e6] bg-white px-4 text-[13px] font-semibold text-[#1e4f78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e4f78]"
+                  onClick={() => (openProject ? focusProposalSection(openProject.id) : null)}
+                  disabled={!openProject}
+                >
+                  Санал харах
+                </button>
+                <button
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#bfd3e6] bg-white px-4 text-[13px] font-semibold text-[#1e4f78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e4f78]"
+                  onClick={() => (inProgressProject ? router.push(withLocale(`/projects/${inProgressProject.id}/payment`)) : null)}
+                  disabled={!inProgressProject}
+                >
+                  Escrow удирдах
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <AppCard className="border border-[#d2deec] bg-white/90 p-4 shadow-none">
@@ -148,7 +256,7 @@ export default function ClientDashboardPage() {
             <div className="anim-rise anim-delay-1 grid gap-4 md:grid-cols-3">
               <AppCard className="border border-[#cfe0df] bg-gradient-to-br from-[#0f5963] to-[#1f7f87] text-white shadow-[0_14px_34px_rgba(15,89,99,0.28)]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#bceaf0]">{t("securedVolumeLabel")}</p>
-                <p className="mt-2 text-2xl font-extrabold">₮{totalEscrow.toLocaleString()}</p>
+                <p className="mt-2 text-2xl font-extrabold">{formatMnt(totalEscrow)}</p>
                 <p className="mt-1 text-xs text-[#d3f1f4]">{t("securedVolumeSub")}</p>
               </AppCard>
               <AppCard className="border border-[#dce4ec] bg-white">
@@ -194,7 +302,7 @@ export default function ClientDashboardPage() {
             <div className="anim-rise anim-delay-2 rounded-2xl border border-[#dae4ef] bg-white p-6 shadow-card">
               <div className="mb-4 flex items-center justify-between gap-4">
                 <h2 className="font-headline text-2xl font-bold text-[#10243f]">{t("myProjects")}</h2>
-                <Link href={withLocale("/projects/new")} className="rounded-full bg-[#17618f] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-white">
+                <Link href={withLocale("/projects/new")} className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17618f]">
                   {t("postProject")}
                 </Link>
               </div>
@@ -215,59 +323,120 @@ export default function ClientDashboardPage() {
                 <ul className="grid gap-3 md:grid-cols-2">
                   {myProjects.map((project) => (
                     <li key={project.id} className="rounded-xl border border-[#dce6ef] bg-gradient-to-b from-[#ffffff] to-[#f7fbff] p-4 text-[13px] space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="font-semibold text-[#122740]">{project.title}</p>
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusTone[project.status] || "bg-slate-100 text-slate-700 border border-slate-200"}`}>
-                          {project.status}
-                        </span>
-                      </div>
-                      <p className="text-[#4f6782]">Budget: ₮{Number(project.budget || 0).toLocaleString()}</p>
-                      <div className="flex flex-wrap gap-2">
-                        <button className="rounded-full border border-[#c7d8e8] px-3 py-1 text-xs font-semibold text-[#2a5f8f]" onClick={() => setActiveProjectId(project.id)}>
-                          {t("viewProposals")}
-                        </button>
-                        <button className="rounded-full bg-[#1f8f73] px-3 py-1 text-xs font-semibold text-white" onClick={() => router.push(withLocale(`/projects/${project.id}/payment`))}>
-                          {t("openEscrowPayment")}
-                        </button>
-                        <button className="rounded-full bg-[#2a6cc2] px-3 py-1 text-xs font-semibold text-white" onClick={() => releaseMutation.mutate(project.id)}>
-                          {t("releaseEscrow")}
-                        </button>
-                        <button className="rounded-full bg-[#bf4d61] px-3 py-1 text-xs font-semibold text-white" onClick={() => disputeMutation.mutate(project.id)}>
-                          {t("openDispute")}
-                        </button>
-                      </div>
+                      {(() => {
+                        const meta = statusMeta(project.status);
+                        return (
+                          <>
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="font-semibold text-[#122740]">{project.title}</p>
+                              <StatusPill label={meta.label} tone={meta.tone} />
+                            </div>
+                            <div className="grid gap-2 text-[#4f6782]">
+                              <p>Төсөв: <span className="font-semibold text-[#16314f]">{formatMnt(Number(project.budget || 0))}</span></p>
+                              <p>Төлөв: {project.status}</p>
+                              <p className="rounded-lg bg-[#eef6ff] px-2.5 py-2 text-[12px] text-[#205483]">
+                                {meta.escrowLabel}{" "}
+                                <span className="cursor-help underline decoration-dotted" title="Escrow нь milestone дуусах хүртэл мөнгийг түр хадгалж, маргаан гарвал хамгаалалт үүсгэнэ.">
+                                  (?)</span>
+                              </p>
+                              <p className="text-[12px] font-medium text-[#1e4f78]">Дараагийн алхам: {meta.nextStep}</p>
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              {project.status === "open" ? (
+                                <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => focusProposalSection(project.id)}>
+                                  Санал харьцуулах
+                                </ActionButton>
+                              ) : project.status === "awaiting_client_review" ? (
+                                <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setReleaseTarget(project.id)}>
+                                  Completion баталгаажуулах
+                                </ActionButton>
+                              ) : (
+                                <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
+                                  Төслийн дэлгэрэнгүй
+                                </ActionButton>
+                              )}
+                              <button
+                                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#bfd3e6] bg-white px-4 text-[13px] font-semibold text-[#1e4f78] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1e4f78]"
+                                onClick={() => (["in_progress", "awaiting_client_review"].includes(project.status) ? setDisputeTarget(project.id) : router.push(withLocale(`/projects/${project.id}/payment`)))}
+                              >
+                                {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан нээх" : "Escrow хуудас"}
+                              </button>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
 
-            <div className="anim-rise anim-delay-3 rounded-2xl border border-[#dae4ef] bg-white p-6 shadow-card">
-              <h2 className="mb-3 font-headline text-2xl font-bold text-[#10243f]">{t("projectProposals")}</h2>
+            <div ref={proposalSectionRef} className="anim-rise anim-delay-3 rounded-2xl border border-[#dae4ef] bg-white p-6 shadow-card">
+              <h2 className="mb-1 font-headline text-2xl font-bold text-[#10243f]">Санал харьцуулалт</h2>
+              <p className="mb-3 text-[13px] text-[#4f6782]">1-2 товшилтоор freelancer сонгох урсгал.</p>
               {!activeProjectId ? (
-                <EmptyState label={t("selectProject")} />
+                <EmptyState
+                  label="Эхлээд нэг төсөл сонгоно уу."
+                  action={
+                    openProject ? (
+                      <button className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 text-[13px] font-semibold text-white" onClick={() => focusProposalSection(openProject.id)}>
+                        Нээлттэй төслийн санал харах
+                      </button>
+                    ) : (
+                      <Link href={withLocale("/projects/new")} className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 text-[13px] font-semibold text-white">
+                        Төсөл оруулах
+                      </Link>
+                    )
+                  }
+                />
               ) : proposals.isLoading ? (
-                <LoadingState label={t("loadingProposals")} />
+                <div className="space-y-2">
+                  <div className="h-16 animate-pulse rounded-xl border border-[#dce6ef] bg-[#f3f8fd]" />
+                  <div className="h-16 animate-pulse rounded-xl border border-[#dce6ef] bg-[#f3f8fd]" />
+                  <div className="h-16 animate-pulse rounded-xl border border-[#dce6ef] bg-[#f3f8fd]" />
+                </div>
               ) : proposals.isError ? (
                 <ErrorState
-                  label={t("proposalError")}
+                  label="Санал ачааллахад алдаа гарлаа."
                   action={
-                    <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => proposals.refetch()}>
-                      Retry
-                    </button>
+                    <div className="flex gap-2">
+                      <button className="inline-flex min-h-11 items-center rounded-xl bg-white px-4 text-[13px] font-semibold text-red-700" onClick={() => proposals.refetch()}>
+                        Дахин оролдох
+                      </button>
+                      <button className="inline-flex min-h-11 items-center rounded-xl bg-white px-4 text-[13px] font-semibold text-red-700" onClick={retryAll}>
+                        Dashboard сэргээх
+                      </button>
+                    </div>
                   }
                 />
               ) : !proposalItems.length ? (
-                <EmptyState label={t("noProposals")} />
+                <EmptyState
+                  label="Одоогоор санал ирээгүй байна."
+                  action={
+                    <button className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 text-[13px] font-semibold text-white" onClick={() => proposals.refetch()}>
+                      Сэргээж шалгах
+                    </button>
+                  }
+                />
               ) : (
                 <ul className="space-y-2">
-                  {proposalItems.map((proposal) => (
+                  {sortedProposalItems.map((proposal, idx) => (
                     <li key={proposal.id} className="rounded-xl border border-[#dce6ef] bg-[#f9fcff] p-3 text-[13px]">
-                      <p className="font-semibold text-[#17304e]">{t("freelancer")} #{proposalFreelancerLabel(proposal.freelancer)}</p>
-                      <p className="text-[#4f6782]">{t("price")}: ₮{Number(proposal.price || 0).toLocaleString()}</p>
-                      <p className="text-[#4f6782]">
-                        {t("timeline")}: {proposal.timeline_days} {t("days")}
-                      </p>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-[#17304e]">Freelancer #{proposalFreelancerLabel(proposal.freelancer)}</p>
+                          <p className="text-[#4f6782]">Үнэ: {formatMnt(Number(proposal.price || 0))}</p>
+                          <p className="text-[#4f6782]">Хугацаа: {proposal.timeline_days} өдөр</p>
+                          {idx === 0 ? <p className="mt-1 inline-flex rounded-full bg-[#e7f7ef] px-2 py-0.5 text-[11px] font-semibold text-[#186a44]">Best value</p> : null}
+                        </div>
+                        <ActionButton
+                          className="min-h-11 rounded-xl px-4 text-[13px] font-semibold"
+                          loading={selectMutation.isPending}
+                          onClick={() => selectMutation.mutate({ projectId: activeProjectId, proposalId: proposal.id })}
+                        >
+                          Сонгох
+                        </ActionButton>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -277,6 +446,44 @@ export default function ClientDashboardPage() {
         </div>
 
         <DashboardBottomBar role="client" />
+
+        <ConfirmationDialog
+          open={releaseTarget !== null}
+          title="Escrow release баталгаажуулах"
+          message={
+            releaseProject
+              ? `${releaseProject.title} төслийг дууссан гэж баталгаажуулбал ${formatMnt(Number(releaseProject.budget || 0))} escrow freelancer руу шууд шилжинэ. Буцаах боломжгүй.`
+              : "Та ажил бүрэн дууссан гэдгийг баталгаажуулбал escrow шууд freelancer руу шилжинэ. Буцаах боломжгүй тул ажлыг бүрэн шалгаарай."
+          }
+          confirmLabel="Тийм, release хий"
+          confirmTone="success"
+          loading={releaseMutation.isPending}
+          onCancel={() => setReleaseTarget(null)}
+          onConfirm={() => {
+            if (releaseTarget !== null) {
+              releaseMutation.mutate(releaseTarget);
+            }
+          }}
+        />
+
+        <ConfirmationDialog
+          open={disputeTarget !== null}
+          title="Маргаан нээх үү?"
+          message={
+            disputeProject
+              ? `${disputeProject.title} төсөл дээр маргаан нээгдмэгц ${formatMnt(Number(disputeProject.budget || 0))} escrow түр түгжигдэж admin шалгалт эхэлнэ.`
+              : "Маргаан нээгдмэгц escrow түр түгжигдэж admin шалгалт эхэлнэ. Зөвхөн бодит эрсдэлтэй үед энэ үйлдлийг ашигла."
+          }
+          confirmLabel="Маргаан нээх"
+          confirmTone="warning"
+          loading={disputeMutation.isPending}
+          onCancel={() => setDisputeTarget(null)}
+          onConfirm={() => {
+            if (disputeTarget !== null) {
+              disputeMutation.mutate(disputeTarget);
+            }
+          }}
+        />
       </section>
     </RoleGuard>
   );

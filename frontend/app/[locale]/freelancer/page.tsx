@@ -2,15 +2,15 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { EmptyState, ErrorState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { AppCard, DashboardBottomBar, RatingStars, RoleSidebar, VerifiedBadge } from "@/components/ui-kit";
+import { ActionButton, AppCard, ConfirmationDialog, DashboardBottomBar, RatingStars, RoleSidebar, StatusPill, VerifiedBadge } from "@/components/ui-kit";
 import { VerificationBanner } from "@/components/verification-banner";
 import { toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
@@ -22,6 +22,37 @@ import type { z } from "zod";
 import type { ProposalDto } from "@/lib/api/types";
 
 type ProposalForm = z.infer<typeof proposalSchema>;
+
+function formatMnt(value: number): string {
+  return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
+}
+
+function proposalAgeLabel(createdAt?: string): string {
+  if (!createdAt) return "Огноо алга";
+  const diffDays = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)));
+  if (diffDays === 0) return "Өнөөдөр илгээсэн";
+  return `${diffDays} хоног хүлээгдэж байна`;
+}
+
+function proposalStatusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info" } {
+  if (status === "accepted") return { label: "Accepted", tone: "success" };
+  if (status === "rejected") return { label: "Rejected", tone: "danger" };
+  if (status === "withdrawn") return { label: "Withdrawn", tone: "neutral" };
+  return { label: "Pending", tone: "warning" };
+}
+
+function projectStatusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string } {
+  if (status === "in_progress") {
+    return { label: "In progress", tone: "info", nextStep: "Даалгавраа гүйцээгээд үр дүнгээ илгээ." };
+  }
+  if (status === "awaiting_client_review") {
+    return { label: "Client review", tone: "warning", nextStep: "Client баталгаажуулалтыг хүлээж байна." };
+  }
+  if (status === "disputed") {
+    return { label: "Disputed", tone: "danger", nextStep: "Нотолгоогоо шинэчилж admin шийдвэрийг хүлээ." };
+  }
+  return { label: status, tone: "neutral", nextStep: "Төслийн явцаа шалга." };
+}
 
 export default function FreelancerDashboardPage() {
   const t = useTranslations("FreelancerDash");
@@ -36,6 +67,16 @@ export default function FreelancerDashboardPage() {
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "awaiting_client_review" | "disputed">("all");
+  const [submitTarget, setSubmitTarget] = useState<number | null>(null);
+
+  const rating = useQuery({
+    queryKey: ["my-rating", me.data?.id],
+    queryFn: () => projectsApi.ratingSummary(me.data!.id),
+    enabled: !!me.data?.id,
+  });
+  const toast = useToastStore((s) => s.push);
+
   const retryAll = () => {
     me.refetch();
     proposals.refetch();
@@ -49,18 +90,11 @@ export default function FreelancerDashboardPage() {
     defaultValues: { price: 0, timeline_days: 0, message: "" },
   });
 
-  const rating = useQuery({
-    queryKey: ["my-rating", me.data?.id],
-    queryFn: () => projectsApi.ratingSummary(me.data!.id),
-    enabled: !!me.data?.id,
-  });
-  const toast = useToastStore((s) => s.push);
-
   const submitMutation = useMutation({
     mutationFn: (projectId: number) => projectsApi.submitResult(projectId, { note: "Freelancer submission" }),
     onSuccess: () => {
       projects.refetch();
-      toast("success", "Result submitted");
+      toast("success", "Үр дүн амжилттай илгээгдлээ.");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -75,7 +109,7 @@ export default function FreelancerDashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["project-proposals"] });
       setEditingProposalId(null);
       editForm.reset();
-      toast("success", "Proposal updated");
+      toast("success", "Санал шинэчлэгдлээ.");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -85,7 +119,7 @@ export default function FreelancerDashboardPage() {
     onSuccess: () => {
       proposals.refetch();
       queryClient.invalidateQueries({ queryKey: ["project-proposals"] });
-      toast("success", "Proposal withdrawn");
+      toast("success", "Санал буцаагдлаа.");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -99,27 +133,47 @@ export default function FreelancerDashboardPage() {
     });
   }
 
-  if (me.isLoading || proposals.isLoading || projects.isLoading) return <LoadingState label="Loading freelancer dashboard..." />;
+  if (me.isLoading || proposals.isLoading || projects.isLoading || profile.isLoading) {
+    return (
+      <section className="space-y-4 pb-20">
+        <div className="h-36 animate-pulse rounded-3xl border border-[#d8e3ee] bg-[#eef4fa]" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+        </div>
+        <div className="h-60 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f8fbff]" />
+      </section>
+    );
+  }
+
   if (me.isError || !me.data) {
     return (
       <ErrorState
         label="Please sign in first."
         action={
-          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
+          <button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
             Go to sign in
           </button>
         }
       />
     );
   }
+
   if (proposals.isError || !proposals.data || projects.isError || !projects.data) {
     return (
       <ErrorState
-        label="Could not load dashboard data."
+        label="Dashboard мэдээлэл ачааллахад алдаа гарлаа."
         action={
-          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
-            Retry
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={retryAll}>
+              Дахин оролдох
+            </button>
+            <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white">
+              Төсөл хайх
+            </Link>
+          </div>
         }
       />
     );
@@ -131,10 +185,69 @@ export default function FreelancerDashboardPage() {
     (project) =>
       project.selected_proposal &&
       myProposalIds.has(project.selected_proposal) &&
-      ["in_progress", "awaiting_client_review"].includes(project.status),
+      ["in_progress", "awaiting_client_review", "disputed"].includes(project.status),
   );
+
   const pendingProposals = myProposals.filter((item) => (item.status || "pending") === "pending").length;
-  const earnings = activeProjects.reduce((acc, item) => acc + item.budget, 0);
+  const earnings = activeProjects.reduce((acc, item) => acc + Number(item.budget || 0), 0);
+
+  const sortedProposals = useMemo(() => {
+    const rank = (status: string) => {
+      if (status === "pending") return 0;
+      if (status === "accepted") return 1;
+      if (status === "rejected") return 2;
+      if (status === "withdrawn") return 3;
+      return 4;
+    };
+    return [...myProposals].sort((a, b) => rank(a.status || "pending") - rank(b.status || "pending") || Number(a.id) - Number(b.id));
+  }, [myProposals]);
+
+  const inProgressProject = activeProjects.find((p) => p.status === "in_progress");
+  const firstPendingProposal = sortedProposals.find((p) => (p.status || "pending") === "pending");
+  const projectById = useMemo(() => new Map(projects.data.results.map((project) => [project.id, project])), [projects.data.results]);
+  const filteredActiveProjects = activeProjects.filter((project) => (activeFilter === "all" ? true : project.status === activeFilter));
+  const submitProject = activeProjects.find((project) => project.id === submitTarget) || null;
+
+  const primaryAction = useMemo(() => {
+    if (me.data.verification_status === "suspended") {
+      return {
+        title: "Одоогийн гол зорилт: Бүртгэлийн асуудлаа шийдэх",
+        description: "Таны данс түр хаагдсан тул эхлээд support-т холбогдож дансаа сэргээ.",
+        actionLabel: "Support руу очих",
+        actionHref: withLocale("/support"),
+      };
+    }
+    if (me.data.verification_status !== "verified") {
+      return {
+        title: "Одоогийн гол зорилт: Баталгаажуулалтаа дуусгах",
+        description: "Verified болсноор илүү олон client таны саналыг хүлээн авах магадлал өснө.",
+        actionLabel: "Баталгаажуулалт илгээх",
+        actionHref: withLocale("/freelancer/profile"),
+      };
+    }
+    if (inProgressProject) {
+      return {
+        title: "Одоогийн гол зорилт: Ажлаа дуусгаад төлбөрөө авах",
+        description: `"${inProgressProject.title}" дээр үр дүнгээ илгээж client review руу оруул.`,
+        actionLabel: "Үр дүн илгээх",
+        actionProjectId: inProgressProject.id,
+      };
+    }
+    if (firstPendingProposal) {
+      return {
+        title: "Одоогийн гол зорилт: Pending саналаа хүчтэй болгох",
+        description: "Саналын үнэ, хугацаагаа шинэчилж ялгарал нэм.",
+        actionLabel: "Санал засах",
+        actionProposalId: firstPendingProposal.id,
+      };
+    }
+    return {
+      title: "Одоогийн гол зорилт: Шинэ ажил олох",
+      description: "Өнөөдөр дор хаяж 3 төсөлд санал илгээж pipeline-аа өсгө.",
+      actionLabel: "Төсөл хайх",
+      actionHref: withLocale("/projects"),
+    };
+  }, [me.data.verification_status, inProgressProject, firstPendingProposal, withLocale]);
 
   const profileData = profile.data;
   let profileCompleteness = 0;
@@ -150,31 +263,62 @@ export default function FreelancerDashboardPage() {
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
       <section className="space-y-6 pb-20">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{t("title")}</h1>
-          <VerifiedBadge verified={me.data.is_verified} />
+        <div className="relative overflow-hidden rounded-[28px] border border-[#d6e2ee] bg-gradient-to-br from-[#f8fbff] via-[#f2f8ff] to-[#eefaf4] p-5 shadow-[0_20px_48px_rgba(13,39,80,0.12)] md:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#44b39c]/12 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-20 h-56 w-56 rounded-full bg-[#5b8dff]/12 blur-3xl" />
+          <div className="relative space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h1 className="font-headline text-[28px] font-extrabold tracking-tight text-[#12243a] sm:text-4xl">{t("title")}</h1>
+              <VerifiedBadge status={me.data.verification_status} verified={me.data.is_verified} />
+            </div>
+            <div className="rounded-2xl border border-[#d8e5f0] bg-white/80 p-4">
+              <p className="text-sm font-semibold text-[#163457]">{primaryAction.title}</p>
+              <p className="mt-1 text-xs text-[#4d6681]">{primaryAction.description}</p>
+              <div className="mt-3">
+                {primaryAction.actionHref ? (
+                  <Link href={primaryAction.actionHref} className="inline-flex min-h-11 items-center rounded-xl bg-[#175f8d] px-4 text-[13px] font-semibold text-white">
+                    {primaryAction.actionLabel}
+                  </Link>
+                ) : primaryAction.actionProjectId ? (
+                  <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setSubmitTarget(primaryAction.actionProjectId)}>
+                    {primaryAction.actionLabel}
+                  </ActionButton>
+                ) : (
+                  <ActionButton
+                    className="min-h-11 rounded-xl px-4 text-[13px] font-semibold"
+                    onClick={() => {
+                      const target = sortedProposals.find((proposal) => proposal.id === primaryAction.actionProposalId);
+                      if (target) openEditModal(target);
+                    }}
+                  >
+                    {primaryAction.actionLabel}
+                  </ActionButton>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-4">
           <RoleSidebar role="freelancer" />
           <div className="flex-1 space-y-4">
-            
-            {me.data?.verification_status !== "verified" && (
-              <VerificationBanner user={me.data} />
-            )}
+            {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
 
-            <div className="grid gap-3 md:grid-cols-4">
-              <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("earnings")}</p>
-                <p className="mt-1 text-xl font-semibold text-surface-900">{earnings.toLocaleString()} MNT</p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <AppCard className="border border-[#cfe0df] bg-gradient-to-br from-[#0f5963] to-[#1f7f87] text-white shadow-[0_14px_34px_rgba(15,89,99,0.28)]">
+                <p className="text-[11px] uppercase tracking-widest text-[#bceaf0]">{t("earnings")}</p>
+                <p className="mt-1 text-2xl font-extrabold">{formatMnt(earnings)}</p>
+                <p className="mt-1 text-xs text-[#d3f1f4]">Идэвхтэй ажлуудын баталгаажсан дүн</p>
               </AppCard>
               <AppCard>
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("activeProjects")}</p>
-                <p className="mt-1 text-xl font-semibold text-surface-900">{activeProjects.length}</p>
+                <p className="mt-1 text-2xl font-extrabold text-surface-900">{activeProjects.length}</p>
+                <p className="mt-1 text-xs text-surface-500">Гүйцэтгэх шатанд</p>
               </AppCard>
               <AppCard>
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("pendingProposals")}</p>
-                <p className="mt-1 text-xl font-semibold text-surface-900">{pendingProposals}</p>
+                <p className="mt-1 text-2xl font-extrabold text-surface-900">{pendingProposals}</p>
+                <p className="mt-1 text-xs text-surface-500">Хариу хүлээж буй саналууд</p>
               </AppCard>
               <AppCard>
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("rating")}</p>
@@ -183,14 +327,16 @@ export default function FreelancerDashboardPage() {
               </AppCard>
             </div>
 
-            <AppCard>
-              <p className="text-[13px] font-semibold text-surface-800">{t("profileCompleteness")}: {profileCompleteness}%</p>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
-                <div className="h-1.5 rounded-full bg-emerald-600" style={{ width: `${profileCompleteness}%` }} />
+            <AppCard className="border border-[#dde4ec] bg-[#f8fbff]">
+              <p className="text-[13px] font-semibold text-[#17304e]">
+                {t("profileCompleteness")}: {profileCompleteness}%
+              </p>
+              <div className="mt-2 h-2 w-full rounded-full bg-[#dbe5ef]">
+                <div className="h-2 rounded-full bg-[#207ca0]" style={{ width: `${profileCompleteness}%` }} />
               </div>
-              <p className="mt-2 text-[11px] text-surface-500">
+              <p className="mt-2 text-[11px] text-[#5a728d]">
                 {profileCompleteness < 100 ? (
-                  <Link href={withLocale("/freelancer/profile")} className="text-brand-600 hover:underline">
+                  <Link href={withLocale("/freelancer/profile")} className="text-[#175b89] hover:underline">
                     {t("completeProfile")} →
                   </Link>
                 ) : (
@@ -200,53 +346,71 @@ export default function FreelancerDashboardPage() {
             </AppCard>
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-              <h2 className="mb-3 text-lg font-medium text-surface-900">{t("myProposals")}</h2>
-              {!myProposals.length ? (
-                <div className="text-center py-10">
-                  <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                  </div>
-                  <h3 className="text-sm font-medium text-surface-900">{t("noProposals")}</h3>
-                  <p className="mt-1 text-xs text-surface-500 max-w-sm mx-auto">{t("noProposalsDesc")}</p>
-                  <Link href={withLocale("/projects")} className="mt-4 inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700">
-                    {t("browseProjects")}
-                  </Link>
-                </div>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold text-surface-900">{t("myProposals")}</h2>
+                <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-[13px] font-semibold text-white">
+                  Төсөл хайх
+                </Link>
+              </div>
+
+              {!sortedProposals.length ? (
+                <EmptyState
+                  label={t("noProposals")}
+                  action={
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs text-surface-500">Орлогоо эхлүүлэхийн тулд одоо төсөл сонгоод санал илгээ.</p>
+                      <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-[13px] font-semibold text-white">
+                        {t("browseProjects")}
+                      </Link>
+                    </div>
+                  }
+                />
               ) : (
                 <ul className="space-y-2">
-                  {myProposals.map((proposal) => (
-                    <li key={proposal.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                      <p className="font-medium text-surface-900">{t("project")} #{proposal.project}</p>
-                      <p className="text-surface-600">{t("price")}: {Number(proposal.price).toLocaleString()} MNT</p>
-                      <p className="text-surface-600">{t("timeline")}: {proposal.timeline_days} {t("days")}</p>
-                      <p className="text-surface-600">{t("status")}: <span className="inline-block rounded-full bg-surface-100 px-2 py-0.5 capitalize text-[11px]">{proposal.status || "pending"}</span></p>
-                      {(proposal.status || "pending") === "pending" && (
-                        <div className="mt-2 flex gap-2">
-                          <button
-                            type="button"
-                            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs text-white hover:bg-brand-700"
-                            onClick={() => openEditModal(proposal)}
-                          >
-                            {t("edit")}
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs text-red-700 hover:bg-red-100"
-                            disabled={withdrawMutation.isPending}
-                            onClick={() => withdrawMutation.mutate(proposal.id)}
-                          >
-                            {withdrawMutation.isPending ? t("withdrawing") : t("withdraw")}
-                          </button>
+                  {sortedProposals.map((proposal) => {
+                    const meta = proposalStatusMeta(proposal.status || "pending");
+                    const isPending = (proposal.status || "pending") === "pending";
+                    const project = projectById.get(Number(proposal.project));
+                    return (
+                      <li key={proposal.id} className="rounded-xl border border-surface-200/60 bg-[#f9fcff] p-3 text-[13px]">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <p className="font-semibold text-surface-900">{project?.title || `Төсөл #${proposal.project}`}</p>
+                            <p className="text-[12px] text-surface-500">{project?.category_obj?.name_mn || project?.category || "Ангилалгүй"}</p>
+                            <p className="text-surface-600">Үнэ: {formatMnt(Number(proposal.price || 0))}</p>
+                            <p className="text-surface-600">Хугацаа: {proposal.timeline_days} {t("days")}</p>
+                            <p className="text-[12px] text-[#27577f]">{proposalAgeLabel(proposal.created_at)}</p>
+                          </div>
+                          <StatusPill label={meta.label} tone={meta.tone} />
                         </div>
-                      )}
-                    </li>
-                  ))}
+                        {isPending ? (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <ActionButton
+                              type="button"
+                              className="min-h-11 rounded-xl px-4 text-[13px] font-semibold"
+                              onClick={() => openEditModal(proposal)}
+                            >
+                              {t("edit")}
+                            </ActionButton>
+                            <button
+                              type="button"
+                              className="inline-flex min-h-11 items-center rounded-xl border border-red-200 bg-red-50 px-4 text-[13px] font-semibold text-red-700"
+                              disabled={withdrawMutation.isPending}
+                              onClick={() => withdrawMutation.mutate(proposal.id)}
+                            >
+                              {withdrawMutation.isPending ? t("withdrawing") : t("withdraw")}
+                            </button>
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
 
             {editingProposalId !== null && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 p-4 backdrop-blur-sm">
                 <div className="w-full max-w-[480px] rounded-2xl border border-surface-200/60 bg-white p-6 shadow-modal">
                   <h3 className="text-lg font-semibold text-surface-900">{t("editProposal")}</h3>
                   <form className="mt-4 space-y-3" onSubmit={editForm.handleSubmit((v) => updateProposalMutation.mutate(v))}>
@@ -265,7 +429,7 @@ export default function FreelancerDashboardPage() {
                     <div className="flex gap-2 pt-2">
                       <button
                         type="button"
-                        className="flex-1 rounded-lg bg-surface-100 py-2 text-[13px] text-surface-700 hover:bg-surface-200"
+                        className="min-h-11 flex-1 rounded-lg bg-surface-100 py-2 text-[13px] text-surface-700 hover:bg-surface-200"
                         onClick={() => setEditingProposalId(null)}
                       >
                         {t("cancel")}
@@ -273,7 +437,7 @@ export default function FreelancerDashboardPage() {
                       <button
                         type="submit"
                         disabled={updateProposalMutation.isPending}
-                        className="flex-1 rounded-lg bg-brand-600 py-2 text-[13px] text-white hover:bg-brand-700 disabled:opacity-60"
+                        className="min-h-11 flex-1 rounded-lg bg-brand-600 py-2 text-[13px] text-white hover:bg-brand-700 disabled:opacity-60"
                       >
                         {updateProposalMutation.isPending ? t("saving") : t("save")}
                       </button>
@@ -284,32 +448,69 @@ export default function FreelancerDashboardPage() {
             )}
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-              <h2 className="mb-3 text-lg font-medium text-surface-900">{t("activeProjectsSection")}</h2>
-              {!activeProjects.length ? (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold text-surface-900">{t("activeProjectsSection")}</h2>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { key: "all", label: "Бүгд" },
+                    { key: "in_progress", label: "In progress" },
+                    { key: "awaiting_client_review", label: "Review" },
+                    { key: "disputed", label: "Disputed" },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      className={`min-h-11 rounded-lg px-3 text-[12px] font-semibold ${
+                        activeFilter === item.key ? "bg-brand-600 text-white" : "bg-surface-100 text-surface-600"
+                      }`}
+                      onClick={() => setActiveFilter(item.key as typeof activeFilter)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {!filteredActiveProjects.length ? (
                 <EmptyState
                   label={t("noActive")}
                   action={
-                    <Link href={withLocale("/projects")} className="inline-flex items-center rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
-                      {t("browseProjects")}
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs text-surface-500">Идэвхтэй ажил алга. Орлого үргэлжлүүлэхийн тулд шинэ төсөл хай.</p>
+                      <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-[13px] font-semibold text-white">
+                        {t("browseProjects")}
+                      </Link>
+                    </div>
                   }
                 />
               ) : (
                 <ul className="space-y-2">
-                  {activeProjects.map((project) => (
-                    <li key={project.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px] space-y-2">
-                      <p className="font-medium text-surface-900">{project.title}</p>
-                      <p className="text-surface-600">{t("status")}: {project.status}</p>
-                      <div className="flex flex-wrap gap-2">
-                        <Link href={withLocale(`/projects/${project.id}`)} className="rounded-xl bg-brand-600 px-4 py-2 text-[13px] text-white hover:bg-brand-700">
-                          {t("openProject")}
-                        </Link>
-                        <button className="bg-emerald-600 text-white" onClick={() => submitMutation.mutate(project.id)}>
-                          {t("submitResult")}
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                  {filteredActiveProjects.map((project) => {
+                    const meta = projectStatusMeta(project.status);
+                    return (
+                      <li key={project.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <p className="font-semibold text-surface-900">{project.title}</p>
+                            <p className="text-surface-600">Төсөв: {formatMnt(Number(project.budget || 0))}</p>
+                            <p className="text-[12px] font-medium text-[#1e4f78]">Дараагийн алхам: {meta.nextStep}</p>
+                            <p className="text-[12px] text-surface-500">
+                              Төлбөрийн төлөв: {project.status === "awaiting_client_review" ? "Client баталгаажуулмагц payout хийгдэнэ." : "Result илгээсний дараа client review шат руу орно."}
+                            </p>
+                          </div>
+                          <StatusPill label={meta.label} tone={meta.tone} />
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Link href={withLocale(`/projects/${project.id}`)} className="inline-flex min-h-11 items-center rounded-xl border border-[#bfd3e6] bg-white px-4 text-[13px] font-semibold text-[#1e4f78]">
+                            {t("openProject")}
+                          </Link>
+                          {project.status === "in_progress" ? (
+                            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setSubmitTarget(project.id)}>
+                              {t("submitResult")}
+                            </ActionButton>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -317,6 +518,26 @@ export default function FreelancerDashboardPage() {
         </div>
 
         <DashboardBottomBar role="freelancer" />
+
+        <ConfirmationDialog
+          open={submitTarget !== null}
+          title="Үр дүн илгээхийг баталгаажуулах"
+          message={
+            submitProject
+              ? `${submitProject.title} төсөл дээр үр дүн илгээхэд client review эхэлнэ. Шалгах жагсаалт: 1) Deliverable файл хавсаргасан 2) Тайлбар тодорхой 3) Scope бүрэн биелсэн.`
+              : "Үр дүн илгээхэд client review эхэлнэ."
+          }
+          confirmLabel="Тийм, илгээе"
+          confirmTone="success"
+          loading={submitMutation.isPending}
+          onCancel={() => setSubmitTarget(null)}
+          onConfirm={() => {
+            if (submitTarget !== null) {
+              submitMutation.mutate(submitTarget);
+              setSubmitTarget(null);
+            }
+          }}
+        />
       </section>
     </RoleGuard>
   );
