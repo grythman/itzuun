@@ -24,8 +24,8 @@ export interface AuthUser {
   role: "client" | "freelancer" | "admin";
   is_verified?: boolean;
   verification_status?: string;
-  first_name?: string;
-  last_name?: string;
+  first_name: string;
+  last_name: string;
   is_active?: boolean;
   [key: string]: unknown;
 }
@@ -47,11 +47,29 @@ export interface ProposalDto {
   id: number;
   project: number;
   freelancer: number | { id: number; [key: string]: unknown };
+  cover_letter?: string;
+  proposed_budget?: number;
+  estimated_days?: number;
   price: number;
   timeline_days: number;
   message?: string;
   status: string;
+  created_at?: string;
+  freelancer_verification_status?: string;
+  freelancer_is_verified?: boolean;
   [key: string]: unknown;
+}
+
+export interface RatingSummaryDto {
+  average: number;
+  total: number;
+}
+
+export interface ReviewDto {
+  id: number;
+  rating: number;
+  comment?: string;
+  created_at?: string;
 }
 
 export interface EscrowDto {
@@ -103,6 +121,7 @@ export interface PaymentCreateResponse {
   qr_text: string;
   qr_image: string;
   expires_in_seconds: number;
+  fee_pct?: number;
   payment: PaymentDto;
   [key: string]: unknown;
 }

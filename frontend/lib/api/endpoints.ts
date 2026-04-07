@@ -1,4 +1,19 @@
 import axios from "axios";
+import type {
+  AdminPaymentDto,
+  AdminUserDto,
+  AuthUser,
+  DisputeDto,
+  EscrowDto,
+  LedgerEntryDto,
+  PaginatedResponse,
+  PaymentCreateResponse,
+  PaymentStatusResponse,
+  ProjectDto,
+  ProposalDto,
+  RatingSummaryDto,
+  ReviewDto,
+} from "./types";
 
 // Core Axios instance
 const apiClient = axios.create({
@@ -22,11 +37,11 @@ export default apiClient;
 
 export const API_BASE = "/api/v1";
 
-export function toArray(obj: any): any[] {
+export function toArray<T>(obj: T[] | PaginatedResponse<T> | null | undefined): T[] {
   if (!obj) return [];
   if (Array.isArray(obj)) return obj;
-  if (obj && Array.isArray(obj.results)) return obj.results;
-  return [obj];
+  if (Array.isArray(obj.results)) return obj.results;
+  return [];
 }
 
 // --- API Service Models ---
@@ -60,9 +75,9 @@ export const authApi = {
     const res = await apiClient.post("/accounts/auth/resend-otp/", data);
     return res.data;
   },
-  me: async (skipCache: boolean = false) => {
+  me: async (skipCache: boolean = false): Promise<AuthUser> => {
     const params = skipCache ? { refresh: Date.now() } : {};
-    const res = await apiClient.get("/accounts/users/me/", { params });
+    const res = await apiClient.get<AuthUser>("/accounts/users/me/", { params });
     return res.data;
   },
   submitVerification: async (data: any) => {
@@ -72,12 +87,12 @@ export const authApi = {
 };
 
 export const projectsApi = {
-  list: async (params?: Record<string, any>) => {
-    const res = await apiClient.get("/projects/", { params });
+  list: async (params?: Record<string, any>): Promise<PaginatedResponse<ProjectDto>> => {
+    const res = await apiClient.get<PaginatedResponse<ProjectDto>>("/projects/", { params });
     return res.data;
   },
-  get: async (id: string | number) => {
-    const res = await apiClient.get(`/projects/${id}/`);
+  get: async (id: string | number): Promise<ProjectDto> => {
+    const res = await apiClient.get<ProjectDto>(`/projects/${id}/`);
     return res.data;
   },
   create: async (data: any) => {
@@ -88,9 +103,9 @@ export const projectsApi = {
     const res = await apiClient.patch(`/projects/${id}/`, data);
     return res.data;
   },
-  myProjects: async (role: "client" | "freelancer") => {
+  myProjects: async (role: "client" | "freelancer"): Promise<PaginatedResponse<ProjectDto>> => {
     const params = role === "client" ? { client: "me" } : { freelancer: "me" };
-    const res = await apiClient.get("/projects/", { params });
+    const res = await apiClient.get<PaginatedResponse<ProjectDto>>("/projects/", { params });
     return res.data;
   },
   updateStatus: async (id: string | number, status: string) => {
@@ -149,20 +164,20 @@ export const projectsApi = {
     const res = await apiClient.post(`/projects/${projectId}/reviews/`, payload);
     return res.data;
   },
-  createPayment: async (projectId: string | number) => {
-    const res = await apiClient.post(`/payments/project/${projectId}/create/`);
+  createPayment: async (projectId: string | number): Promise<PaymentCreateResponse> => {
+    const res = await apiClient.post<PaymentCreateResponse>(`/payments/project/${projectId}/create/`);
     return res.data;
   },
-  paymentStatus: async (projectId: string | number) => {
-    const res = await apiClient.get(`/payments/project/${projectId}/status/`);
+  paymentStatus: async (projectId: string | number): Promise<PaymentStatusResponse> => {
+    const res = await apiClient.get<PaymentStatusResponse>(`/payments/project/${projectId}/status/`);
     return res.data;
   },
-  ratingSummary: async (userId: string | number) => {
-    const res = await apiClient.get(`/users/${userId}/rating-summary`);
+  ratingSummary: async (userId: string | number): Promise<RatingSummaryDto> => {
+    const res = await apiClient.get<RatingSummaryDto>(`/users/${userId}/rating-summary`);
     return res.data;
   },
-  userReviews: async (userId: string | number) => {
-    const res = await apiClient.get(`/users/${userId}/reviews`);
+  userReviews: async (userId: string | number): Promise<PaginatedResponse<ReviewDto>> => {
+    const res = await apiClient.get<PaginatedResponse<ReviewDto>>(`/users/${userId}/reviews`);
     return res.data;
   },
   updateProposal: async (proposalId: string | number, payload: any) => {
@@ -176,8 +191,8 @@ export const projectsApi = {
 };
 
 export const proposalsApi = {
-  listForProject: async (projectId: string | number) => {
-    const res = await apiClient.get(`/projects/${projectId}/proposals/`);
+  listForProject: async (projectId: string | number): Promise<ProposalDto[] | PaginatedResponse<ProposalDto>> => {
+    const res = await apiClient.get<ProposalDto[] | PaginatedResponse<ProposalDto>>(`/projects/${projectId}/proposals/`);
     return res.data;
   },
   submit: async (projectId: string | number, data: any) => {
@@ -188,8 +203,8 @@ export const proposalsApi = {
     const res = await apiClient.post(`/projects/${projectId}/select-freelancer/`, { proposal_id: proposalId });
     return res.data;
   },
-  myProposals: async () => {
-    const res = await apiClient.get("/me/proposals/");
+  myProposals: async (): Promise<PaginatedResponse<ProposalDto>> => {
+    const res = await apiClient.get<PaginatedResponse<ProposalDto>>("/me/proposals/");
     return res.data;
   },
 };
@@ -214,33 +229,33 @@ export const adminApi = {
     const res = await apiClient.get("/admin/metrics/snapshot");
     return res.data;
   },
-  users: async () => {
-    const res = await apiClient.get("/admin/users");
+  users: async (): Promise<AdminUserDto[] | PaginatedResponse<AdminUserDto>> => {
+    const res = await apiClient.get<AdminUserDto[] | PaginatedResponse<AdminUserDto>>("/admin/users");
     return res.data;
   },
   projects: async () => {
     const res = await apiClient.get("/admin/projects");
     return res.data;
   },
-  escrow: async (status?: string) => {
-    const res = await apiClient.get("/admin/escrow", { params: status ? { status } : undefined });
+  escrow: async (status?: string): Promise<EscrowDto[] | PaginatedResponse<EscrowDto>> => {
+    const res = await apiClient.get<EscrowDto[] | PaginatedResponse<EscrowDto>>("/admin/escrow", { params: status ? { status } : undefined });
     return res.data;
   },
   commission: async () => {
     const res = await apiClient.get("/admin/settings/commission/detail");
     return res.data;
   },
-  ledger: async () => {
-    const res = await apiClient.get("/admin/ledger");
+  ledger: async (): Promise<LedgerEntryDto[] | PaginatedResponse<LedgerEntryDto>> => {
+    const res = await apiClient.get<LedgerEntryDto[] | PaginatedResponse<LedgerEntryDto>>("/admin/ledger");
     return res.data;
   },
-  payments: async (status?: string) => {
-    const res = await apiClient.get("/admin/payments", { params: status ? { status } : undefined });
+  payments: async (status?: string): Promise<AdminPaymentDto[] | PaginatedResponse<AdminPaymentDto>> => {
+    const res = await apiClient.get<AdminPaymentDto[] | PaginatedResponse<AdminPaymentDto>>("/admin/payments", { params: status ? { status } : undefined });
     return res.data;
   },
-  disputes: async (unresolved?: boolean) => {
+  disputes: async (unresolved?: boolean): Promise<DisputeDto[] | PaginatedResponse<DisputeDto>> => {
     const params = unresolved === undefined ? undefined : { unresolved };
-    const res = await apiClient.get("/admin/disputes", { params });
+    const res = await apiClient.get<DisputeDto[] | PaginatedResponse<DisputeDto>>("/admin/disputes", { params });
     return res.data;
   },
   auditLogs: async (params?: { entity_type?: string; action_type?: string; entity_id?: string | number }) => {

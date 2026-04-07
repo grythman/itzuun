@@ -13,6 +13,7 @@ import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMe, useMutation, useProjectDetail, useProjectProposals, useQuery } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
+import type { ProposalDto } from "@/lib/api/types";
 import { proposalSchema, reviewSchema } from "@/lib/validators";
 
 import type { z } from "zod";
@@ -190,7 +191,7 @@ export default function ProjectDetailPage() {
   if (!me.data) return <ErrorState label="Please sign in first." />;
 
   const project = detail.data;
-  const proposalItems = proposals.data ? toArray(proposals.data) : [];
+  const proposalItems = proposals.data ? toArray<ProposalDto>(proposals.data) : [];
 
   const compareRows = proposalItems
     .filter((item) => selectedProposalIds.includes(item.id))

@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi, projectsApi, proposalsApi, escrowApi, adminApi, verificationApi, categoriesApi, profilesApi } from "./api/endpoints";
+import { extractApiErrorMessage } from "./api/errors";
 import { useToastStore } from "./toast-store";
+import type { AuthUser, PaginatedResponse, ProjectDto, ProposalDto } from "./api/types";
 
 export { useQuery, useMutation, useQueryClient };
 
@@ -21,7 +23,7 @@ export function useMe(options?: { enabled?: boolean; retryOnAuth?: boolean }) {
 export function useProjects(page = 1, filters?: Record<string, any>) {
   return useQuery({
     queryKey: ["projects", "list", page, filters],
-    queryFn: () => projectsApi.list({ page, ...filters }),
+    queryFn: () => projectsApi.list({ page, ...filters }) as Promise<PaginatedResponse<ProjectDto>>,
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
 }
@@ -37,7 +39,7 @@ export function useCategories() {
 export function useProjectDetail(id: string | number) {
   return useQuery({
     queryKey: ["projects", "detail", id],
-    queryFn: () => projectsApi.get(id),
+    queryFn: () => projectsApi.get(id) as Promise<ProjectDto>,
     enabled: !!id,
   });
 }
@@ -45,7 +47,7 @@ export function useProjectDetail(id: string | number) {
 export function useMyProjects(role: "client" | "freelancer") {
   return useQuery({
     queryKey: ["projects", "myList", role],
-    queryFn: () => projectsApi.myProjects(role),
+    queryFn: () => projectsApi.myProjects(role) as Promise<PaginatedResponse<ProjectDto>>,
   });
 }
 
@@ -54,7 +56,7 @@ export function useMyProjects(role: "client" | "freelancer") {
 export function useProposals(projectId: string | number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["proposals", "list", projectId],
-    queryFn: () => proposalsApi.listForProject(projectId),
+    queryFn: () => proposalsApi.listForProject(projectId) as Promise<ProposalDto[] | PaginatedResponse<ProposalDto>>,
     enabled: options?.enabled ?? !!projectId,
   });
 }
@@ -66,7 +68,7 @@ export function useProjectProposals(projectId: string | number, options?: { enab
 export function useMyProposals() {
   return useQuery({
     queryKey: ["proposals", "my"],
-    queryFn: proposalsApi.myProposals,
+    queryFn: proposalsApi.myProposals as () => Promise<PaginatedResponse<ProposalDto>>,
   });
 }
 
@@ -91,9 +93,9 @@ export function useSubmitProposal(projectId: string | number) {
     },
     onError: (err: any) => {
       pushToast(
-        "error", 
-        "Submission failed", 
-        err.response?.data?.detail || "Could not submit proposal." 
+        "error",
+        "Submission failed",
+        extractApiErrorMessage(err, "Could not submit proposal.")
       );
     }
   });

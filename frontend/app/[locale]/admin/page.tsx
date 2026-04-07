@@ -7,6 +7,7 @@ import { ActionButton, ConfirmationDialog, DashboardBottomBar, RoleSidebar, Stat
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
+import type { AdminPaymentDto, AdminUserDto, DisputeDto, EscrowDto, LedgerEntryDto } from "@/lib/api/types";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -26,6 +27,13 @@ export default function AdminPage() {
     queryFn: () => (paymentFilter === "all" ? adminApi.payments() : adminApi.payments(paymentFilter)),
   });
 
+  const userItems = users.data ? toArray<AdminUserDto>(users.data) : [];
+  const projectItems = projects.data ? toArray<any>(projects.data) : [];
+  const escrowItems = escrow.data ? toArray<EscrowDto>(escrow.data) : [];
+  const disputeItems = disputes.data ? toArray<DisputeDto>(disputes.data) : [];
+  const paymentItems = payments.data ? toArray<AdminPaymentDto>(payments.data) : [];
+  const ledgerItems = ledger.data ? toArray<LedgerEntryDto>(ledger.data) : [];
+
   const verifyMutation = useMutation({
     mutationFn: ({ userId, action, reason }: { userId: number; action: "approve" | "reject" | "suspend"; reason?: string }) =>
       adminApi.verifyUser(userId, { action: action, rejection_reason: reason }),
@@ -37,7 +45,6 @@ export default function AdminPage() {
 
   const resolveMutation = useMutation({
     mutationFn: ({ disputeId, projectId }: { disputeId: number; projectId: number }) => {
-      const escrowItems: any[] = escrow.data ? toArray(escrow.data as any[]) : [];
       const escrowItem = escrowItems.find((item) => item.project === projectId);
       if (!escrowItem) {
         throw new Error("Escrow not found for dispute project");
@@ -104,26 +111,26 @@ export default function AdminPage() {
             <div className="grid gap-3 md:grid-cols-4">
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Total Users</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">{users.data ? toArray(users.data as any[]).length : "..."}</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">{users.data ? userItems.length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">
-                  {users.data ? toArray(users.data as any[]).filter((u: any) => u.is_verified).length : 0} Verified
+                  {users.data ? userItems.filter((u) => u.is_verified).length : 0} Verified
                 </p>
               </div>
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Total Projects</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">{projects.data ? toArray(projects.data as any[]).length : "..."}</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">{projects.data ? projectItems.length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">Platform volume</p>
               </div>
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Escrow Value</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">
-                  {escrow.data ? toArray(escrow.data as any[]).reduce((acc, item) => acc + item.amount, 0).toLocaleString() : "..."}
+                  {escrow.data ? escrowItems.reduce((acc, item) => acc + item.amount, 0).toLocaleString() : "..."}
                 </p>
                 <p className="text-[11px] text-surface-500 mt-1">MNT Held</p>
               </div>
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Disputes</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">{disputes.data ? toArray(disputes.data as any[]).filter(d => !d.resolved_at).length : "..."}</p>
+                <p className="mt-1 text-2xl font-semibold text-surface-900">{disputes.data ? disputeItems.filter((d) => !d.resolved_at).length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">Active</p>
               </div>
             </div>
@@ -140,10 +147,10 @@ export default function AdminPage() {
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
             <h2 className="text-lg font-medium text-surface-900">Escrow</h2>
             {escrow.isLoading ? <LoadingState label="Loading escrow..." /> : null}
-            {escrow.data && toArray(escrow.data as any[]).length === 0 ? <EmptyState label="No escrow rows." /> : null}
-            {escrow.data && toArray(escrow.data as any[]).length > 0 ? (
+            {escrow.data && escrowItems.length === 0 ? <EmptyState label="No escrow rows." /> : null}
+            {escrow.data && escrowItems.length > 0 ? (
               <ul className="space-y-2 mt-2">
-                {toArray(escrow.data as any[]).map((item) => (
+                {escrowItems.map((item) => (
                   <li key={item.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
                     <div>
                       <p className="text-surface-800">Escrow #{item.id} — Project #{item.project}</p>
@@ -171,10 +178,10 @@ export default function AdminPage() {
           </div>
           <p className="mb-2 text-[11px] uppercase tracking-widest text-surface-500">Filter: {paymentFilter}</p>
           {payments.isLoading ? <LoadingState label="Loading payments..." /> : null}
-          {payments.data && toArray(payments.data as any[]).length === 0 ? <EmptyState label="No payments." /> : null}
-          {payments.data && toArray(payments.data as any[]).length > 0 ? (
+          {payments.data && paymentItems.length === 0 ? <EmptyState label="No payments." /> : null}
+          {payments.data && paymentItems.length > 0 ? (
             <ul className="space-y-2">
-              {toArray(payments.data as any[]).map((item) => (
+              {paymentItems.map((item) => (
                 <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
                   <p className="text-surface-800">Invoice: {item.invoice_id}</p>
                   <p className="mt-1">
@@ -197,10 +204,10 @@ export default function AdminPage() {
                 <h2 className="text-lg font-medium text-surface-900">Financial Audit Logs (Ledger)</h2>
               </div>
               {ledger.isLoading ? <LoadingState label="Loading ledger..." /> : null}
-              {ledger.data && toArray(ledger.data as any[]).length === 0 ? <EmptyState label="No ledger entries." /> : null}
-              {ledger.data && toArray(ledger.data as any[]).length > 0 ? (
+              {ledger.data && ledgerItems.length === 0 ? <EmptyState label="No ledger entries." /> : null}
+              {ledger.data && ledgerItems.length > 0 ? (
                 <ul className="space-y-2">
-                  {toArray(ledger.data as any[]).map((entry) => (
+                  {ledgerItems.map((entry) => (
                     <li key={entry.id} className="rounded-xl border border-surface-200/60 p-3 flex flex-col gap-1 text-[13px]">
                       <div className="flex items-center gap-2">
                         <StatusPill
@@ -226,7 +233,7 @@ export default function AdminPage() {
           {users.isError ? <ErrorState label="Unable to load users." /> : null}
           {users.data ? (
             <ul className="space-y-2">
-              {toArray(users.data as any[]).map((user) => (
+              {userItems.map((user) => (
                 <li key={user.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
                   <div className="flex items-center gap-2">
                     <span className="text-surface-700">{user.email} ({user.role})</span>
@@ -259,16 +266,16 @@ export default function AdminPage() {
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
             <h2 className="mb-3 text-lg font-medium text-surface-900">Projects</h2>
             {projects.isLoading ? <LoadingState label="Loading projects..." /> : null}
-            {projects.data ? <p className="text-[13px] text-surface-600">Total: {toArray(projects.data as any[]).length}</p> : null}
+            {projects.data ? <p className="text-[13px] text-surface-600">Total: {projectItems.length}</p> : null}
           </div>
 
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
             <h2 className="mb-3 text-lg font-medium text-surface-900">Disputes</h2>
             {disputes.isLoading ? <LoadingState label="Loading disputes..." /> : null}
-            {disputes.data && toArray(disputes.data as any[]).length === 0 ? <EmptyState label="No disputes." /> : null}
-            {disputes.data && toArray(disputes.data as any[]).length > 0 ? (
+            {disputes.data && disputeItems.length === 0 ? <EmptyState label="No disputes." /> : null}
+            {disputes.data && disputeItems.length > 0 ? (
               <ul className="space-y-2">
-                {toArray(disputes.data as any[]).map((item) => (
+                {disputeItems.map((item) => (
                   <li key={item.id} className="flex flex-col gap-2 rounded-xl border border-surface-200/60 p-3 text-[13px]">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-surface-800">Dispute #{item.id} — Project #{item.project}</span>
@@ -299,7 +306,7 @@ export default function AdminPage() {
               <p className="text-[13px] text-surface-500">
                 Choose how to distribute the funds held in escrow for Project #{resolveTarget.projectId}. 
                 Current Escrow Amount: {
-                  (toArray((escrow.data || []) as any[]).find((item: any) => item.project === resolveTarget.projectId)?.amount || 0).toLocaleString()
+                  (escrowItems.find((item) => item.project === resolveTarget.projectId)?.amount || 0).toLocaleString()
                 } MNT
               </p>
               <div className="flex gap-2">

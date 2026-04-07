@@ -2,7 +2,6 @@
 export const dynamic = "force-dynamic";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AppCard, CompareTable, EscrowStatusBadge, StepProgress, TrustPanel } from "@/components/ui-kit";
 import { ErrorState, LoadingState } from "@/components/states";
 import { projectsApi } from "@/lib/api/endpoints";
+import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useProjectDetail } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -31,25 +31,12 @@ export default function ProjectPaymentPage() {
       setExpiresAt(expiration);
       toast("success", "QPay invoice created");
     },
-    onError: (error: Error) => {
-      const axiosError = error as AxiosError<{ error?: string; detail?: string }>;
-      const message =
-        axiosError.response?.data?.error ||
-        axiosError.response?.data?.detail ||
-        error.message;
-      toast("error", message);
-    },
+    onError: (error: Error) => toast("error", extractApiErrorMessage(error, "Unable to create payment invoice.")),
   });
 
   const createErrorLabel = useMemo(() => {
     if (!createPaymentMutation.error) return "Unable to create payment invoice.";
-    const error = createPaymentMutation.error as AxiosError<{ error?: string; detail?: string }>;
-    return (
-      error.response?.data?.error ||
-      error.response?.data?.detail ||
-      error.message ||
-      "Unable to create payment invoice."
-    );
+    return extractApiErrorMessage(createPaymentMutation.error, "Unable to create payment invoice.");
   }, [createPaymentMutation.error]);
 
   useEffect(() => {
