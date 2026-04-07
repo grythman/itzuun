@@ -200,8 +200,13 @@ jobs:
 
             echo "=== Release files synced from CI runner ==="
 
+            echo "=== Sync with origin/main ==="
+            git fetch --all --tags || true
+            git pull origin main || true
+
             echo "=== Building and restarting api + web ==="
-            docker compose -f docker-compose.prod.yml up -d --build --no-deps api web
+            docker compose -f docker-compose.prod.yml up -d --build api web
+            docker compose -f docker-compose.prod.yml restart nginx
 
             echo "=== Health check (retry) ==="
             ok=0
