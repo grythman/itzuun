@@ -4,14 +4,82 @@ export const dynamic = "force-dynamic";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { AppCard, CompareTable, EscrowStatusBadge, StepProgress, TrustPanel } from "@/components/ui-kit";
+import { ActionButton, AppCard, CompareTable, ConfirmationDialog, EscrowStatusBadge, StatusPill, StepProgress, TrustPanel } from "@/components/ui-kit";
 import { ErrorState, LoadingState } from "@/components/states";
 import { projectsApi } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useProjectDetail } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
+
+type EscrowLifecycleState = "created" | "pending_admin" | "held" | "released" | "disputed" | "refunded";
+
+function formatMnt(value: number): string {
+  return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
+}
+
+const lifecycleMeta: Record<EscrowLifecycleState, { title: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; what: string; now: string; actor: string; next: string }> = {
+  created: {
+    title: "Created",
+    tone: "info",
+    what: "Invoice үүссэн, төлбөр хүлээгдэж байна.",
+    now: "QPay-ээр төлбөрөө дуусга.",
+    actor: "Client",
+    next: "Төлбөр амжилттай бол Held шат руу орно.",
+  },
+  pending_admin: {
+    title: "Pending admin",
+    tone: "warning",
+    what: "Төлбөр баталгаажуулалт хүлээгдэж байна.",
+    now: "Status-аа шинэчлэн шалга.",
+    actor: "Admin/System",
+    next: "Held шат руу шилжинэ.",
+  },
+  held: {
+    title: "Held",
+    tone: "success",
+    what: "Мөнгө escrow-д түгжигдсэн.",
+    now: "Ажлаа гүйцэтгэж review шат руу ор.",
+    actor: "Freelancer + Client",
+    next: "Released эсвэл Disputed.",
+  },
+  released: {
+    title: "Released",
+    tone: "info",
+    what: "Төлбөр freelancer руу шилжсэн.",
+    now: "Project дууссан.",
+    actor: "System",
+    next: "Final review үлдээж болно.",
+  },
+  disputed: {
+    title: "Disputed",
+    tone: "danger",
+    what: "Маргаантай тул escrow түгжигдсэн.",
+    now: "Нотолгоо бэлдэж support/admin-т ханд.",
+    actor: "Admin",
+    next: "Шийдвэрийн дагуу Released/Refunded.",
+  },
+  refunded: {
+    title: "Refunded",
+    tone: "neutral",
+    what: "Мөнгө client руу буцсан.",
+    now: "Case хаагдсан.",
+    actor: "System",
+    next: "Дахин ажил эхлүүлэх бол шинэ escrow үүсгэнэ.",
+  },
+};
+
+function mapEscrowState(status: string | undefined): EscrowLifecycleState {
+  if (!status) return "created";
+  const normalized = status.toLowerCase();
+  if (normalized === "pending_admin") return "pending_admin";
+  if (normalized === "held") return "held";
+  if (normalized === "released" || normalized === "paid") return "released";
+  if (normalized === "disputed") return "disputed";
+  if (normalized === "refunded") return "refunded";
+  return "created";
+}
 
 export default function ProjectPaymentPage() {
   const params = useParams<{ id: string }>();
@@ -19,120 +87,142 @@ export default function ProjectPaymentPage() {
   const router = useRouter();
   const toast = useToastStore((s) => s.push);
 
+  const [invoiceOpenConfirm, setInvoiceOpenConfirm] = useState(false);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
-  const initializedRef = useRef(false);
+
   const projectQuery = useProjectDetail(projectId);
 
   const createPaymentMutation = useMutation({
     mutationFn: () => projectsApi.createPayment(projectId),
     onSuccess: (data) => {
-      const expiration = Date.now() + data.expires_in_seconds * 1000;
-      setExpiresAt(expiration);
+      setExpiresAt(Date.now() + data.expires_in_seconds * 1000);
       toast("success", "QPay invoice created");
     },
     onError: (error: Error) => toast("error", extractApiErrorMessage(error, "Unable to create payment invoice.")),
   });
 
-  const createErrorLabel = useMemo(() => {
-    if (!createPaymentMutation.error) return "Unable to create payment invoice.";
-    return extractApiErrorMessage(createPaymentMutation.error, "Unable to create payment invoice.");
-  }, [createPaymentMutation.error]);
-
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-    createPaymentMutation.mutate();
-  }, [createPaymentMutation]);
-
   const paymentStatusQuery = useQuery({
     queryKey: ["payment-status", projectId],
     queryFn: () => projectsApi.paymentStatus(projectId),
-    enabled: !!projectId && !!createPaymentMutation.data,
+    enabled: !!projectId,
+    retry: false,
     refetchInterval: (query) => {
-      const statusValue = query.state.data?.status;
-      return statusValue === "paid" || statusValue === "failed" ? false : 5000;
+      const value = query.state.data?.status;
+      return value === "paid" || value === "failed" ? false : 5000;
     },
   });
 
-  useEffect(() => {
-    if (paymentStatusQuery.data?.status === "paid") {
-      toast("success", "Payment confirmed. Escrow is now held.");
-      router.push(`/projects/${projectId}`);
-    }
-  }, [paymentStatusQuery.data?.status, projectId, router, toast]);
+  const paymentData = createPaymentMutation.data;
+  const statusValue = paymentStatusQuery.data?.status ?? paymentData?.payment.status ?? "pending";
+  const escrowState = mapEscrowState(paymentData?.payment.escrow_status || statusValue);
+
+  const total = Number(paymentData?.payment.amount || projectQuery.data?.budget || 0);
+  const pct = Number(paymentData?.fee_pct || 12);
+  const fee = Math.round(total * (pct / 100));
+  const freelancerAmount = total - fee;
 
   const secondsLeft = useMemo(() => {
     if (!expiresAt) return 0;
     return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
   }, [expiresAt, paymentStatusQuery.dataUpdatedAt]);
 
-  if (createPaymentMutation.isPending) {
-    return <LoadingState label="Creating QPay invoice..." />;
-  }
+  const paymentSteps = ["Invoice", "Escrow hold", "Completion"];
+  const currentStep = statusValue === "paid" ? 1 : 0;
 
-  if (createPaymentMutation.isError || !createPaymentMutation.data) {
-    return <ErrorState label={createErrorLabel} />;
-  }
+  const createErrorLabel = useMemo(() => {
+    if (!createPaymentMutation.error) return "Unable to create payment invoice.";
+    return extractApiErrorMessage(createPaymentMutation.error, "Unable to create payment invoice.");
+  }, [createPaymentMutation.error]);
 
-  const invoice = createPaymentMutation.data;
-  const statusValue = paymentStatusQuery.data?.status ?? invoice.payment.status;
-  const paymentSteps = ["Invoice Created", "Waiting Payment", "Confirmed"];
-  const currentStep = statusValue === "paid" ? 2 : 1;
-  const total = invoice.payment.amount;
-  const pct = invoice.fee_pct || 12;
-  const fee = Math.round(total * (pct / 100));
-  const freelancerAmount = total - fee;
+  if (projectQuery.isLoading) return <LoadingState label="Loading payment flow..." />;
+
+  const canCreateInvoice = !paymentData || statusValue === "failed" || secondsLeft === 0;
 
   return (
-    <section className="mx-auto max-w-3xl space-y-4">
+    <section className="mx-auto max-w-4xl space-y-4 pb-20">
       <AppCard>
         <h1 className="text-2xl font-semibold">Escrow Payment</h1>
-        <p className="mt-1 text-[13px] text-surface-500">Complete secure invoice payment to hold funds safely in escrow.</p>
-        <div className="mt-3">
-          <StepProgress steps={paymentSteps} currentStep={currentStep} />
-        </div>
+        <p className="mt-1 text-[13px] text-surface-500">Төлбөрөө аюулгүй escrow-д байршуулж, эрсдэлгүй гүйцэтгэл эхлүүл.</p>
+        <div className="mt-3"><StepProgress steps={paymentSteps} currentStep={currentStep} /></div>
       </AppCard>
 
       <div className="grid gap-4 md:grid-cols-2">
         <AppCard className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Project Summary</p>
-          <p className="font-semibold text-surface-900">{projectQuery.data?.title || `Project #${projectId}`}</p>
-          <p className="text-[13px] text-surface-600">{projectQuery.data?.category}</p>
-          <EscrowStatusBadge status={invoice.payment.escrow_status || "created"} />
-          <p className="text-[13px]">Invoice ID: {invoice.invoice_id}</p>
-          <p className="text-[13px]">Current status: {statusValue}</p>
-          <p className="text-[13px]">Expires in: {secondsLeft}s</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Төлбөрийн задаргаа</p>
+          <CompareTable
+            rows={[
+              { label: "Нийт дүн", value: formatMnt(total) },
+              { label: `Платформ шимтгэл (${pct}%)`, value: formatMnt(fee) },
+              { label: "Freelancer авах дүн", value: formatMnt(freelancerAmount) },
+            ]}
+          />
+          <p className="text-[12px] text-surface-600">Давхар төлбөрөөс сэргийлэхийн тулд нэг invoice-г нэг удаа төлнө.</p>
         </AppCard>
 
         <AppCard className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Pricing Transparency</p>
-          <CompareTable
-            rows={[
-              { label: "Project amount", value: `${total} MNT` },
-              { label: `Platform fee (${pct}%)`, value: `${fee} MNT` },
-              { label: "Freelancer receives", value: `${freelancerAmount} MNT` },
-            ]}
-          />
-          <TrustPanel />
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Escrow state</p>
+          <div className="flex items-center gap-2">
+            <EscrowStatusBadge status={escrowState} />
+            <StatusPill label={lifecycleMeta[escrowState].title} tone={lifecycleMeta[escrowState].tone} />
+          </div>
+          <ul className="space-y-1 text-[12px] text-surface-700">
+            <li><strong>Юу болсон:</strong> {lifecycleMeta[escrowState].what}</li>
+            <li><strong>Одоо юу хийх:</strong> {lifecycleMeta[escrowState].now}</li>
+            <li><strong>Хэн хийх:</strong> {lifecycleMeta[escrowState].actor}</li>
+            <li><strong>Дараагийн алхам:</strong> {lifecycleMeta[escrowState].next}</li>
+          </ul>
         </AppCard>
       </div>
 
       <AppCard className="space-y-3">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Pay via QPay</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Project</p>
+        <p className="font-semibold text-surface-900">{projectQuery.data?.title || `Project #${projectId}`}</p>
+        <p className="text-[13px] text-surface-600">{projectQuery.data?.category}</p>
 
-        {invoice.qr_image ? (
-          <Image src={invoice.qr_image} alt="QPay QR" width={224} height={224} className="rounded-xl border border-surface-200/60" unoptimized />
+        {!paymentData ? (
+          <div className="space-y-2">
+            <p className="text-[12px] text-surface-600">Invoice үүсгэсний дараа QPay link/QR харагдана.</p>
+            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => createPaymentMutation.mutate()} loading={createPaymentMutation.isPending} disabled={createPaymentMutation.isPending || paymentStatusQuery.isFetching}>
+              Invoice үүсгэх
+            </ActionButton>
+            {createPaymentMutation.isError ? (
+              <ErrorState
+                label={createErrorLabel}
+                action={<button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={() => createPaymentMutation.mutate()}>Retry</button>}
+              />
+            ) : null}
+          </div>
         ) : (
-          <p className="text-[11px] text-surface-500">QR image unavailable</p>
-        )}
+          <>
+            <p className="text-[13px]">Invoice ID: {paymentData.invoice_id}</p>
+            <p className="text-[13px]">Current status: {statusValue}</p>
+            <p className="text-[13px]">Expires in: {secondsLeft}s</p>
 
-        {invoice.invoice_url ? (
-          <a className="inline-block rounded-xl bg-brand-700 px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-800" href={invoice.invoice_url} target="_blank" rel="noreferrer">
-            Open Payment Link
-          </a>
-        ) : null}
+            {paymentData.qr_image ? (
+              <Image src={paymentData.qr_image} alt="QPay QR" width={224} height={224} className="rounded-xl border border-surface-200/60" unoptimized />
+            ) : (
+              <p className="text-[11px] text-surface-500">QR image unavailable</p>
+            )}
+
+            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setInvoiceOpenConfirm(true)} disabled={!paymentData.invoice_url || statusValue === "paid"}>
+              Төлбөрийн линк нээх
+            </ActionButton>
+
+            {(secondsLeft === 0 || statusValue === "failed") && canCreateInvoice ? (
+              <button
+                className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 bg-white px-4 text-[13px] font-semibold text-surface-700"
+                onClick={() => createPaymentMutation.mutate()}
+                disabled={createPaymentMutation.isPending}
+              >
+                Шинэ invoice үүсгэх
+              </button>
+            ) : null}
+          </>
+        )}
       </AppCard>
+
+      <TrustPanel />
 
       <AppCard>
         <button className="w-full text-left text-[13px] font-semibold text-surface-800" onClick={() => setFaqOpen((prev) => !prev)}>
@@ -140,19 +230,40 @@ export default function ProjectPaymentPage() {
         </button>
         {faqOpen ? (
           <ul className="mt-3 list-disc space-y-1 pl-5 text-[13px] text-surface-600">
-            <li>Funds are held in escrow until delivery confirmation.</li>
-            <li>If issue occurs, admin mediation and dispute tools are available.</li>
-            <li>Never share payment credentials outside your bank app.</li>
+            <li>Escrow held үед client, freelancer 2 тал хамгаалагдана.</li>
+            <li>Issue гарвал dispute нээж admin mediation авна.</li>
+            <li>Төлбөр удааширвал status refresh хийгээд support-т ханд.</li>
           </ul>
         ) : null}
       </AppCard>
 
-      {paymentStatusQuery.isError ? <ErrorState label="Unable to fetch payment status." /> : null}
-      {paymentStatusQuery.data?.status === "failed" ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          Payment failed or expired. Please return and create a new invoice.
+      {paymentStatusQuery.isError ? (
+        <ErrorState
+          label="Unable to fetch payment status."
+          action={<button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={() => paymentStatusQuery.refetch()}>Retry status</button>}
+        />
+      ) : null}
+
+      {statusValue === "paid" ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+          Payment confirmed. Escrow held. <button className="ml-1 font-semibold underline" onClick={() => router.push(`/projects/${projectId}`)}>Project page руу буцах</button>
         </div>
       ) : null}
+
+      <ConfirmationDialog
+        open={invoiceOpenConfirm}
+        title="Төлбөр үргэлжлүүлэх"
+        message={`Та ${formatMnt(total)} төлж escrow-г идэвхжүүлнэ. Давхар төлбөрөөс сэргийлж банк апп дээр зөвхөн нэг удаа баталгаажуул.`}
+        confirmLabel="Тийм, үргэлжлүүл"
+        confirmTone="success"
+        onCancel={() => setInvoiceOpenConfirm(false)}
+        onConfirm={() => {
+          if (paymentData?.invoice_url) {
+            window.open(paymentData.invoice_url, "_blank", "noopener,noreferrer");
+          }
+          setInvoiceOpenConfirm(false);
+        }}
+      />
     </section>
   );
 }

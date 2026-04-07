@@ -3,10 +3,10 @@ export const dynamic = "force-dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { ActionButton, CompareTable, ConfirmationDialog, EscrowStatusBadge, RatingStars, TrustPanel, VerifiedBadge } from "@/components/ui-kit";
+import { ActionButton, CompareTable, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, TrustPanel, VerifiedBadge } from "@/components/ui-kit";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import ProjectChat from "@/components/project-chat";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
@@ -21,6 +21,12 @@ import type { z } from "zod";
 type ProposalForm = z.infer<typeof proposalSchema>;
 type ReviewForm = z.infer<typeof reviewSchema>;
 
+type EscrowLifecycleState = "created" | "pending_admin" | "held" | "released" | "disputed" | "refunded";
+
+function formatMnt(value: number): string {
+  return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
+}
+
 function resolveFreelancerId(freelancer: unknown): string | number | null {
   if (typeof freelancer === "number" || typeof freelancer === "string") return freelancer;
   if (freelancer && typeof freelancer === "object" && "id" in freelancer) {
@@ -33,15 +39,75 @@ function resolveFreelancerLabel(freelancer: unknown): string | number {
   return resolveFreelancerId(freelancer) ?? "unknown";
 }
 
-function ProposalTrustMeta({
-  freelancerId,
-  verificationStatus,
-  fallbackVerified,
-}: {
-  freelancerId: string | number | null;
-  verificationStatus?: string;
-  fallbackVerified?: boolean;
-}) {
+function normalizeProjectStatus(status: string): string {
+  if (status === "awaiting_review") return "awaiting_client_review";
+  return status;
+}
+
+function escrowStateFromProjectStatus(status: string): EscrowLifecycleState {
+  const normalized = normalizeProjectStatus(status);
+  if (normalized === "pending_admin") return "pending_admin";
+  if (normalized === "in_progress" || normalized === "awaiting_client_review") return "held";
+  if (normalized === "completed") return "released";
+  if (normalized === "disputed") return "disputed";
+  if (normalized === "refunded") return "refunded";
+  return "created";
+}
+
+const lifecycleOrder: EscrowLifecycleState[] = ["created", "pending_admin", "held", "released", "disputed", "refunded"];
+
+const lifecycleMeta: Record<EscrowLifecycleState, { title: string; tone: "info" | "warning" | "success" | "danger" | "neutral"; what: string; now: string; actor: string; next: string }> = {
+  created: {
+    title: "Created",
+    tone: "info",
+    what: "Escrow үүссэн, төлбөр хүлээгдэж байна.",
+    now: "Client invoice төлнө.",
+    actor: "Client",
+    next: "Төлбөр баталгаажвал Pending admin эсвэл Held шат руу орно.",
+  },
+  pending_admin: {
+    title: "Pending admin",
+    tone: "warning",
+    what: "Төлбөрийн баталгаажуулалт админ хяналтад байна.",
+    now: "Хүлээгээд status шинэчлэлээ шалга.",
+    actor: "Admin",
+    next: "Баталгаажмагц Held шат руу орно.",
+  },
+  held: {
+    title: "Held",
+    tone: "success",
+    what: "Мөнгө escrow-д түгжигдсэн, аюулгүй хадгалагдаж байна.",
+    now: "Freelancer ажил гүйцэтгэж, Client review хийнэ.",
+    actor: "Freelancer + Client",
+    next: "Completion баталгаажвал Released, асуудал гарвал Disputed.",
+  },
+  released: {
+    title: "Released",
+    tone: "info",
+    what: "Escrow амжилттай release хийгдсэн.",
+    now: "Project хаагдсан, review үлдээж болно.",
+    actor: "System",
+    next: "Дууссан төлөв.",
+  },
+  disputed: {
+    title: "Disputed",
+    tone: "danger",
+    what: "Маргаан нээгдсэн, escrow түр түгжигдсэн.",
+    now: "Нотолгоо бүрдүүлж шийдвэр хүлээ.",
+    actor: "Admin",
+    next: "Шийдвэрээс хамаарч Released эсвэл Refunded.",
+  },
+  refunded: {
+    title: "Refunded",
+    tone: "neutral",
+    what: "Мөнгө client руу буцаагдсан.",
+    now: "Маргаан/цуцлалт хаагдсан.",
+    actor: "Admin/System",
+    next: "Дууссан төлөв.",
+  },
+};
+
+function ProposalTrustMeta({ freelancerId, verificationStatus, fallbackVerified }: { freelancerId: string | number | null; verificationStatus?: string; fallbackVerified?: boolean }) {
   const rating = useQuery({
     queryKey: ["rating-summary", freelancerId],
     queryFn: () => projectsApi.ratingSummary(freelancerId as string | number),
@@ -71,8 +137,7 @@ export default function ProjectDetailPage() {
   const me = useMe();
 
   const detail = useProjectDetail(id);
-  const canReadProposals =
-    me.data?.role === "admin" || (typeof detail.data?.owner === "number" && me.data?.id === detail.data.owner);
+  const canReadProposals = me.data?.role === "admin" || (typeof detail.data?.owner === "number" && me.data?.id === detail.data.owner);
   const proposals = useProjectProposals(id, { enabled: Boolean(id && canReadProposals) });
 
   const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
@@ -80,19 +145,17 @@ export default function ProjectDetailPage() {
   const [checksum, setChecksum] = useState("");
   const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
   const [disputeConfirmOpen, setDisputeConfirmOpen] = useState(false);
+  const [selectConfirmProposalId, setSelectConfirmProposalId] = useState<number | null>(null);
+  const [submitResultConfirmOpen, setSubmitResultConfirmOpen] = useState(false);
   const [proposalCompareMode, setProposalCompareMode] = useState(false);
   const [selectedProposalIds, setSelectedProposalIds] = useState<number[]>([]);
   const [reviewStep, setReviewStep] = useState(0);
   const [communicationRating, setCommunicationRating] = useState(5);
   const [qualityRating, setQualityRating] = useState(5);
   const [wouldRecommend, setWouldRecommend] = useState<"yes" | "no">("yes");
-  const [reviewRecap, setReviewRecap] = useState<null | {
-    rating: number;
-    communication: number;
-    quality: number;
-    recommend: "yes" | "no";
-    comment: string;
-  }>(null);
+  const [reviewRecap, setReviewRecap] = useState<null | { rating: number; communication: number; quality: number; recommend: "yes" | "no"; comment: string }>(null);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeEvidence, setDisputeEvidence] = useState("");
 
   const proposalForm = useForm<ProposalForm>({
     resolver: zodResolver(proposalSchema),
@@ -133,9 +196,11 @@ export default function ProjectDetailPage() {
   });
 
   const disputeMutation = useMutation({
-    mutationFn: () => projectsApi.createDispute(id, { reason: "Dispute raised from dashboard" }),
+    mutationFn: () => projectsApi.createDispute(id, { reason: disputeEvidence.trim() ? `${disputeReason}\nEvidence: ${disputeEvidence}` : disputeReason }),
     onSuccess: () => {
       detail.refetch();
+      setDisputeReason("");
+      setDisputeEvidence("");
       toast("warning", "Dispute submitted");
     },
     onError: (error: Error) => toast("error", error.message),
@@ -143,15 +208,10 @@ export default function ProjectDetailPage() {
 
   const uploadDeliverableMutation = useMutation({
     mutationFn: async () => {
-      if (!deliverableFile) {
-        throw new Error("Select a file first");
-      }
-      if (!checksum.trim()) {
-        throw new Error("Checksum is required");
-      }
+      if (!deliverableFile) throw new Error("Select a file first");
+      if (!checksum.trim()) throw new Error("Checksum is required");
       const upload = await projectsApi.uploadMessageFile(id, deliverableFile, setDeliverableUploadProgress);
       await projectsApi.uploadDeliverable(id, { file_id: String(upload.file_id), checksum: checksum.trim() });
-      
       const fileData = JSON.stringify({ name: upload.name || deliverableFile.name, url: upload.url });
       await projectsApi.sendMessage(id, fileData, "file");
       await projectsApi.sendMessage(id, "I have submitted a deliverable for your review.");
@@ -195,110 +255,136 @@ export default function ProjectDetailPage() {
   if (!me.data) return <ErrorState label="Please sign in first." />;
 
   const project = detail.data;
+  const status = normalizeProjectStatus(project.status);
+  const escrowState = escrowStateFromProjectStatus(status);
   const proposalItems = proposals.data ? toArray<ProposalDto>(proposals.data) : [];
+  const selectedProposal = proposalItems.find((item) => item.id === selectConfirmProposalId) || null;
 
   const compareRows = proposalItems
     .filter((item) => selectedProposalIds.includes(item.id))
     .slice(0, 2)
-    .map((item) => ({
-      id: item.id,
-      freelancer: item.freelancer,
-      price: item.price,
-      timeline: item.timeline_days,
-      message: item.message || "-",
-    }));
+    .map((item) => ({ id: item.id, freelancer: item.freelancer, price: Number(item.price || 0), timeline: Number(item.timeline_days || 0), message: item.message || "-" }));
 
-  const bestValueProposalId = compareRows.length < 2
-    ? null
-    : (compareRows[0].price / Math.max(1, compareRows[0].timeline))
-      <= (compareRows[1].price / Math.max(1, compareRows[1].timeline))
-      ? compareRows[0].id
-      : compareRows[1].id;
+  const proposalPrices = proposalItems.map((item) => Number(item.price || 0)).sort((a, b) => a - b);
+  const proposalTimelines = proposalItems.map((item) => Number(item.timeline_days || 0)).sort((a, b) => a - b);
+  const medianPrice = proposalPrices.length ? proposalPrices[Math.floor(proposalPrices.length / 2)] : 0;
+  const medianTimeline = proposalTimelines.length ? proposalTimelines[Math.floor(proposalTimelines.length / 2)] : 0;
+
+  const bestProposalId = proposalItems.length
+    ? [...proposalItems]
+        .sort((a, b) => Number(a.price || 0) + Number(a.timeline_days || 0) * 10000 - (Number(b.price || 0) + Number(b.timeline_days || 0) * 10000))[0]?.id
+    : null;
+
+  const bestValueProposalId =
+    compareRows.length < 2
+      ? null
+      : compareRows[0].price / Math.max(1, compareRows[0].timeline) <= compareRows[1].price / Math.max(1, compareRows[1].timeline)
+        ? compareRows[0].id
+        : compareRows[1].id;
 
   const isClientOwner = me.data.id === project.owner;
-  const canFreelancerPropose = me.data.role === "freelancer" && project.status === "open" && me.data.is_verified;
-  const needsVerification = me.data.role === "freelancer" && project.status === "open" && !me.data.is_verified;
+  const canFreelancerPropose = me.data.role === "freelancer" && status === "open" && me.data.is_verified;
+  const needsVerification = me.data.role === "freelancer" && status === "open" && !me.data.is_verified;
   const isSelectedFreelancer = proposalItems.some((item) => item.id === project.selected_proposal && resolveFreelancerId(item.freelancer) === me.data?.id);
-  const milestoneBanner = project.status === "in_progress" ? "Project in escrow. Deliver milestones to unlock review." : null;
+  const canRelease = status === "awaiting_client_review";
+  const canDispute = ["in_progress", "awaiting_client_review"].includes(status);
 
   const toggleCompareProposal = (proposalId: number) => {
     setSelectedProposalIds((prev) => {
-      if (prev.includes(proposalId)) {
-        return prev.filter((idValue) => idValue !== proposalId);
-      }
-      if (prev.length >= 2) {
-        return [prev[1], proposalId];
-      }
+      if (prev.includes(proposalId)) return prev.filter((idValue) => idValue !== proposalId);
+      if (prev.length >= 2) return [prev[1], proposalId];
       return [...prev, proposalId];
     });
   };
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 pb-20">
       <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
         <h1 className="text-2xl font-semibold text-surface-900">{project.title}</h1>
         <p className="mt-2 text-[13px] text-surface-600">{project.description}</p>
-        <p className="mt-2 text-[11px] uppercase tracking-widest text-surface-500">Status: {project.status}</p>
-        <div className="mt-2"><EscrowStatusBadge status={project.status === "completed" ? "released" : "held"} /></div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <StatusPill label={`Status: ${status}`} tone="info" />
+          <EscrowStatusBadge status={escrowState} />
+          <span className="text-[12px] text-surface-600">Төсөв: {formatMnt(Number(project.budget || 0))}</span>
+        </div>
       </div>
 
-      {milestoneBanner ? <TrustPanel /> : null}
+      <div className="rounded-2xl border border-[#d8e3ee] bg-[#f8fbff] p-4">
+        <h2 className="text-lg font-semibold text-[#18324b]">Escrow Lifecycle</h2>
+        <p className="mt-1 text-[12px] text-[#4c6480]">Төлөв бүр дээр юу болсон, хэн юу хийхийг ил тод харуулна.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {lifecycleOrder.map((item) => {
+            const meta = lifecycleMeta[item];
+            const active = item === escrowState;
+            return (
+              <div key={item} className={`rounded-xl border p-3 ${active ? "border-brand-500 bg-brand-50" : "border-surface-200 bg-white"}`}>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[13px] font-semibold text-surface-900">{meta.title}</p>
+                  <StatusPill label={active ? "Current" : "State"} tone={active ? meta.tone : "neutral"} />
+                </div>
+                <ul className="space-y-1 text-[12px] text-surface-700">
+                  <li><strong>Юу болсон:</strong> {meta.what}</li>
+                  <li><strong>Одоо юу хийх:</strong> {meta.now}</li>
+                  <li><strong>Хэн хийх:</strong> {meta.actor}</li>
+                  <li><strong>Дараагийн алхам:</strong> {meta.next}</li>
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {escrowState === "held" ? <TrustPanel /> : null}
 
       {isClientOwner ? (
-        <div className="grid gap-3 md:grid-cols-3">
-          {project.status === "open" && (
-            <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => router.push(`/projects/${id}/edit`)}>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {status === "open" ? (
+            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => router.push(`/projects/${id}/edit`)}>
               Edit Project
-            </button>
-          )}
-          <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => router.push(`/projects/${id}/payment`)}>
+            </ActionButton>
+          ) : null}
+          <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => router.push(`/projects/${id}/payment`)}>
             Open Payment Page
-          </button>
-          <button 
-            className="bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50" 
-            onClick={() => setReleaseConfirmOpen(true)}
-            disabled={project.status !== "awaiting_review"}
-            title={project.status !== "awaiting_review" ? "Project must be awaiting review to release escrow" : ""}
-          >
+          </ActionButton>
+          <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setReleaseConfirmOpen(true)} disabled={!canRelease}>
             Release Escrow
-          </button>
-          <button 
-            className="bg-accent-600 text-white disabled:opacity-50" 
-            onClick={() => setDisputeConfirmOpen(true)}
-            disabled={!["in_progress", "awaiting_review"].includes(project.status)}
-          >
+          </ActionButton>
+          <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="warning" onClick={() => setDisputeConfirmOpen(true)} disabled={!canDispute || !disputeReason.trim()}>
             Open Dispute
-          </button>
+          </ActionButton>
+        </div>
+      ) : null}
+
+      {isClientOwner && canDispute ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-[13px]">
+          <p className="font-semibold text-amber-900">Dispute мэдээлэл</p>
+          <p className="mt-1 text-amber-800">Шалтгаанаа тодорхой бичээд нотолгооны линк/тайлбараа нэм. Энэ үед release action хаагдана.</p>
+          <textarea className="mt-2 w-full" rows={2} value={disputeReason} onChange={(e) => setDisputeReason(e.target.value)} placeholder="Маргааны шалтгаан" />
+          <textarea className="mt-2 w-full" rows={2} value={disputeEvidence} onChange={(e) => setDisputeEvidence(e.target.value)} placeholder="Нотолгоо (линк/тайлбар)" />
+          <div className="mt-2">
+            <a href="/support" className="text-[12px] font-semibold text-amber-900 underline">Support-т хандах</a>
+          </div>
         </div>
       ) : null}
 
       <div className="grid gap-6 md:grid-cols-2">
         {canFreelancerPropose ? (
-          <form
-            className="space-y-3 rounded-xl border border-surface-200/60 bg-white p-4"
-            onSubmit={proposalForm.handleSubmit((v) => proposalMutation.mutate(v))}
-          >
+          <form className="space-y-3 rounded-xl border border-surface-200/60 bg-white p-4" onSubmit={proposalForm.handleSubmit((v) => proposalMutation.mutate(v))}>
             <h2 className="text-lg font-medium text-surface-900">Submit Proposal</h2>
             <input type="number" {...proposalForm.register("price", { valueAsNumber: true })} aria-label="Proposal price" />
-            <input
-              type="number"
-              {...proposalForm.register("timeline_days", { valueAsNumber: true })}
-              aria-label="Proposal timeline"
-            />
+            <input type="number" {...proposalForm.register("timeline_days", { valueAsNumber: true })} aria-label="Proposal timeline" />
             <textarea placeholder="Message" {...proposalForm.register("message")} aria-label="Proposal message" rows={3} />
-            <button className="bg-brand-600 text-white" type="submit">Send Proposal</button>
+            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" type="submit" loading={proposalMutation.isPending}>Send Proposal</ActionButton>
           </form>
         ) : needsVerification ? (
           <div className="rounded-xl border border-amber-200/60 bg-amber-50 p-4 text-[13px] text-amber-800">
             <strong>Verification Required:</strong> You must be verified to submit proposals. Please go to your dashboard to complete your profile verification.
           </div>
         ) : (
-          <div className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-500">
-            Proposal submission is available for freelancers on open projects.
-          </div>
+          <div className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-500">Proposal submission is available for freelancers on open projects.</div>
         )}
 
-        {project.status === "completed" ? (
+        {status === "completed" ? (
           <form
             className="space-y-3 rounded-md border border-slate-200 bg-white p-4"
             onSubmit={reviewForm.handleSubmit((v) => {
@@ -315,7 +401,6 @@ export default function ProjectDetailPage() {
               <h2 className="text-lg font-medium">Guided Review</h2>
               <span className="text-[11px] text-surface-500">Step {reviewStep + 1} / 3</span>
             </div>
-
             {reviewStep === 0 ? (
               <div className="space-y-2">
                 <label className="block text-[13px] font-medium text-surface-700">Rate communication</label>
@@ -323,7 +408,6 @@ export default function ProjectDetailPage() {
                 <p className="text-[13px] text-surface-600">Communication score: {communicationRating}/5</p>
               </div>
             ) : null}
-
             {reviewStep === 1 ? (
               <div className="space-y-2">
                 <label className="block text-[13px] font-medium text-surface-700">Rate quality</label>
@@ -331,57 +415,33 @@ export default function ProjectDetailPage() {
                 <p className="text-[13px] text-surface-600">Quality score: {qualityRating}/5</p>
               </div>
             ) : null}
-
             {reviewStep === 2 ? (
               <div className="space-y-3">
                 <label className="block text-[13px] font-medium text-surface-700">Would you recommend this freelancer?</label>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className={wouldRecommend === "yes" ? "bg-emerald-600 text-white" : "bg-surface-100 text-surface-700"}
-                    onClick={() => setWouldRecommend("yes")}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    type="button"
-                    className={wouldRecommend === "no" ? "bg-red-600 text-white" : "bg-surface-100 text-surface-700"}
-                    onClick={() => setWouldRecommend("no")}
-                  >
-                    No
-                  </button>
+                  <button type="button" className={wouldRecommend === "yes" ? "bg-emerald-600 text-white" : "bg-surface-100 text-surface-700"} onClick={() => setWouldRecommend("yes")}>Yes</button>
+                  <button type="button" className={wouldRecommend === "no" ? "bg-red-600 text-white" : "bg-surface-100 text-surface-700"} onClick={() => setWouldRecommend("no")}>No</button>
                 </div>
                 <textarea placeholder="Detailed feedback" {...reviewForm.register("comment")} aria-label="Review comment" rows={3} />
               </div>
             ) : null}
-
             <div className="flex justify-between gap-2">
-              <button type="button" className="bg-surface-100 text-surface-700" onClick={() => setReviewStep((prev) => Math.max(0, prev - 1))} disabled={reviewStep === 0}>
-                Back
-              </button>
+              <button type="button" className="bg-surface-100 text-surface-700" onClick={() => setReviewStep((prev) => Math.max(0, prev - 1))} disabled={reviewStep === 0}>Back</button>
               {reviewStep < 2 ? (
-                <button type="button" className="bg-brand-600 text-white" onClick={() => setReviewStep((prev) => Math.min(2, prev + 1))}>
-                  Next
-                </button>
+                <button type="button" className="bg-brand-600 text-white" onClick={() => setReviewStep((prev) => Math.min(2, prev + 1))}>Next</button>
               ) : (
                 <button className="bg-blue-600 text-white" type="submit">Submit Review</button>
               )}
             </div>
-
             {reviewRecap ? (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
                 <p className="font-semibold">Review submitted successfully</p>
                 <p className="mt-1">Overall: {reviewRecap.rating}/5</p>
-                <p>Communication: {reviewRecap.communication}/5 • Quality: {reviewRecap.quality}/5</p>
-                <p>Recommend: {reviewRecap.recommend === "yes" ? "Yes" : "No"}</p>
-                {reviewRecap.comment ? <p className="mt-1 text-emerald-800">"{reviewRecap.comment.split("\n")[0]}"</p> : null}
               </div>
             ) : null}
           </form>
         ) : (
-          <div className="rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-600">
-            Review is available after escrow is released and project is completed.
-          </div>
+          <div className="rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-600">Review is available after escrow is released and project is completed.</div>
         )}
       </div>
 
@@ -389,20 +449,12 @@ export default function ProjectDetailPage() {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-medium">Proposals</h2>
           <div className="flex gap-2">
-            <button className="bg-slate-200 text-slate-800" onClick={() => setProposalCompareMode((prev) => !prev)}>
-              {proposalCompareMode ? "Hide Compare" : "Compare Proposals"}
-            </button>
-            {canReadProposals ? (
-              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => proposals.refetch()}>Refresh</button>
-            ) : null}
+            <button className="bg-slate-200 text-slate-800" onClick={() => setProposalCompareMode((prev) => !prev)}>{proposalCompareMode ? "Hide Compare" : "Compare Proposals"}</button>
+            {canReadProposals ? <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => proposals.refetch()}>Refresh</button> : null}
           </div>
         </div>
 
-        {!canReadProposals ? (
-          <div className="rounded-xl border border-surface-200/60 bg-surface-50 p-4 text-[13px] text-surface-600">
-            Proposal list is visible to the project owner and admins.
-          </div>
-        ) : null}
+        {!canReadProposals ? <div className="rounded-xl border border-surface-200/60 bg-surface-50 p-4 text-[13px] text-surface-600">Proposal list is visible to the project owner and admins.</div> : null}
 
         {canReadProposals && proposalCompareMode && compareRows.length >= 2 ? (
           <div className="mb-3 overflow-x-auto rounded-2xl border border-slate-200">
@@ -410,30 +462,14 @@ export default function ProjectDetailPage() {
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-3 py-2 text-left">Metric</th>
-                  <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[0].id ? "bg-emerald-50" : ""}`}>
-                    Freelancer #{resolveFreelancerLabel(compareRows[0].freelancer)} {bestValueProposalId === compareRows[0].id ? "(Best Value)" : ""}
-                  </th>
-                  <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[1].id ? "bg-emerald-50" : ""}`}>
-                    Freelancer #{resolveFreelancerLabel(compareRows[1].freelancer)} {bestValueProposalId === compareRows[1].id ? "(Best Value)" : ""}
-                  </th>
+                  <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[0].id ? "bg-emerald-50" : ""}`}>Freelancer #{resolveFreelancerLabel(compareRows[0].freelancer)} {bestValueProposalId === compareRows[0].id ? "(Best Value)" : ""}</th>
+                  <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[1].id ? "bg-emerald-50" : ""}`}>Freelancer #{resolveFreelancerLabel(compareRows[1].freelancer)} {bestValueProposalId === compareRows[1].id ? "(Best Value)" : ""}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t border-slate-100">
-                  <td className="px-3 py-2">Price</td>
-                  <td className="px-3 py-2">{compareRows[0].price} MNT</td>
-                  <td className="px-3 py-2">{compareRows[1].price} MNT</td>
-                </tr>
-                <tr className="border-t border-slate-100">
-                  <td className="px-3 py-2">Timeline</td>
-                  <td className="px-3 py-2">{compareRows[0].timeline} days</td>
-                  <td className="px-3 py-2">{compareRows[1].timeline} days</td>
-                </tr>
-                <tr className="border-t border-slate-100">
-                  <td className="px-3 py-2">Message</td>
-                  <td className="px-3 py-2">{compareRows[0].message}</td>
-                  <td className="px-3 py-2">{compareRows[1].message}</td>
-                </tr>
+                <tr className="border-t border-slate-100"><td className="px-3 py-2">Price</td><td className="px-3 py-2">{formatMnt(compareRows[0].price)}</td><td className="px-3 py-2">{formatMnt(compareRows[1].price)}</td></tr>
+                <tr className="border-t border-slate-100"><td className="px-3 py-2">Timeline</td><td className="px-3 py-2">{compareRows[0].timeline} days</td><td className="px-3 py-2">{compareRows[1].timeline} days</td></tr>
+                <tr className="border-t border-slate-100"><td className="px-3 py-2">Message</td><td className="px-3 py-2">{compareRows[0].message}</td><td className="px-3 py-2">{compareRows[1].message}</td></tr>
               </tbody>
             </table>
           </div>
@@ -443,93 +479,89 @@ export default function ProjectDetailPage() {
           <EmptyState label="No proposals yet." />
         ) : canReadProposals ? (
           <ul className="space-y-2">
-            {proposalItems.map((item) => (
-              <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="font-semibold">Freelancer #{resolveFreelancerLabel(item.freelancer)}</p>
-                </div>
-                <ProposalTrustMeta
-                  freelancerId={resolveFreelancerId(item.freelancer)}
-                  verificationStatus={item.freelancer_verification_status}
-                  fallbackVerified={item.freelancer_is_verified}
-                />
-                <CompareTable rows={[{ label: "Price", value: `${item.price} MNT` }, { label: "Timeline", value: `${item.timeline_days} days` }]} />
-                {proposalCompareMode ? (
-                  <label className="mt-2 flex items-center gap-2 text-xs text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={selectedProposalIds.includes(item.id)}
-                      onChange={() => toggleCompareProposal(item.id)}
-                    />
-                    Select for comparison (up to 2)
-                  </label>
-                ) : null}
-                {isClientOwner && project.status === "open" ? (
-                  <button className="mt-2 bg-green-600 text-white" onClick={() => selectMutation.mutate(item.id)}>
-                    Select Freelancer
-                  </button>
-                ) : null}
-              </li>
-            ))}
+            {proposalItems.map((item) => {
+              const price = Number(item.price || 0);
+              const timeline = Number(item.timeline_days || 0);
+              const lowPriceRisk = medianPrice > 0 && price < medianPrice * 0.6;
+              const longTimelineRisk = medianTimeline > 0 && timeline > medianTimeline * 1.7;
+              return (
+                <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="font-semibold">Freelancer #{resolveFreelancerLabel(item.freelancer)}</p>
+                    {bestProposalId === item.id ? <StatusPill label="Best value" tone="success" /> : null}
+                  </div>
+                  <ProposalTrustMeta freelancerId={resolveFreelancerId(item.freelancer)} verificationStatus={item.freelancer_verification_status} fallbackVerified={item.freelancer_is_verified} />
+                  <CompareTable rows={[{ label: "Price", value: formatMnt(price) }, { label: "Timeline", value: `${timeline} days` }]} />
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {lowPriceRisk ? <StatusPill label="Risk: price too low" tone="warning" /> : null}
+                    {longTimelineRisk ? <StatusPill label="Risk: long timeline" tone="warning" /> : null}
+                  </div>
+                  {proposalCompareMode ? (
+                    <label className="mt-2 flex items-center gap-2 text-xs text-slate-600">
+                      <input type="checkbox" checked={selectedProposalIds.includes(item.id)} onChange={() => toggleCompareProposal(item.id)} />
+                      Select for comparison (up to 2)
+                    </label>
+                  ) : null}
+                  {isClientOwner && status === "open" ? (
+                    <ActionButton className="mt-2 min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => setSelectConfirmProposalId(item.id)} disabled={selectMutation.isPending}>
+                      Select Freelancer
+                    </ActionButton>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         ) : null}
       </div>
 
       <ProjectChat projectId={id} currentUserId={me.data.id} />
 
-      {me.data.role === "freelancer" && isSelectedFreelancer && ["in_progress", "awaiting_review"].includes(project.status) ? (
+      {me.data.role === "freelancer" && isSelectedFreelancer && ["in_progress", "awaiting_client_review"].includes(status) ? (
         <div className="rounded-md border border-slate-200 bg-white p-4 space-y-3">
           <h2 className="text-lg font-medium">Delivery Actions</h2>
-          <input type="file" onChange={(event) => setDeliverableFile(event.target.files?.[0] || null)} disabled={project.status !== "in_progress"} />
-          <input
-            value={checksum}
-            onChange={(event) => setChecksum(event.target.value)}
-            placeholder="Checksum"
-            aria-label="Deliverable checksum"
-            disabled={project.status !== "in_progress"}
-          />
+          <input type="file" onChange={(event) => setDeliverableFile(event.target.files?.[0] || null)} disabled={status !== "in_progress"} />
+          <input value={checksum} onChange={(event) => setChecksum(event.target.value)} placeholder="Checksum" aria-label="Deliverable checksum" disabled={status !== "in_progress"} />
           <div className="flex gap-2">
-            <button 
-              className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50" 
-              onClick={() => uploadDeliverableMutation.mutate()}
-              disabled={project.status !== "in_progress"}
-            >
-              Upload Deliverable
-            </button>
-            <button 
-              className="bg-green-600 text-white disabled:opacity-50" 
-              onClick={() => resultMutation.mutate()}
-              disabled={project.status !== "in_progress"}
-            >
-              Submit Result
-            </button>
+            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" onClick={() => uploadDeliverableMutation.mutate()} disabled={status !== "in_progress"} loading={uploadDeliverableMutation.isPending}>Upload Deliverable</ActionButton>
+            <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setSubmitResultConfirmOpen(true)} disabled={status !== "in_progress"}>Submit Result</ActionButton>
           </div>
-          {uploadDeliverableMutation.isPending && (
+          {uploadDeliverableMutation.isPending ? (
             <div className="rounded-lg bg-surface-50 px-3 py-2">
-              <div className="mb-1 flex items-center justify-between text-[11px] text-surface-500">
-                <span>Uploading deliverable...</span>
-                <span>{deliverableUploadProgress}%</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
-                <div className="h-full bg-brand-600 transition-all" style={{ width: `${deliverableUploadProgress}%` }} />
-              </div>
+              <div className="mb-1 flex items-center justify-between text-[11px] text-surface-500"><span>Uploading deliverable...</span><span>{deliverableUploadProgress}%</span></div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-200"><div className="h-full bg-brand-600 transition-all" style={{ width: `${deliverableUploadProgress}%` }} /></div>
             </div>
-          )}
+          ) : null}
         </div>
       ) : null}
 
       <ConfirmationDialog
+        open={selectConfirmProposalId !== null}
+        title="Freelancer сонгохыг баталгаажуулах"
+        message={selectedProposal ? `${resolveFreelancerLabel(selectedProposal.freelancer)}-г сонговол төслийн гол ажил эхэлж, escrow урсгал идэвхжинэ. Үнэ: ${formatMnt(Number(selectedProposal.price || 0))}, хугацаа: ${selectedProposal.timeline_days} өдөр.` : "Сонголтоо баталгаажуулна уу."}
+        confirmLabel="Тийм, сонгоё"
+        confirmTone="primary"
+        loading={selectMutation.isPending}
+        onCancel={() => setSelectConfirmProposalId(null)}
+        onConfirm={() => {
+          if (selectConfirmProposalId !== null) {
+            selectMutation.mutate(selectConfirmProposalId, {
+              onSettled: () => setSelectConfirmProposalId(null),
+            });
+          }
+        }}
+      />
+
+      <ConfirmationDialog
         open={releaseConfirmOpen}
         title="Release Escrow"
-        message="Confirming this will release escrow and complete the project."
+        message={`Энэ үйлдлээр ${formatMnt(Number(project.budget || 0))} escrow freelancer руу шилжинэ. Буцаах боломжгүй тул deliverable бүрэн шалгана уу.`}
         confirmLabel="Release Now"
         confirmTone="success"
         loading={completionMutation.isPending}
         onCancel={() => setReleaseConfirmOpen(false)}
         onConfirm={() => {
           completionMutation.mutate(undefined, {
-            onSuccess: () => setReleaseConfirmOpen(false),
-            onError: () => setReleaseConfirmOpen(false),
+            onSettled: () => setReleaseConfirmOpen(false),
           });
         }}
       />
@@ -537,15 +569,29 @@ export default function ProjectDetailPage() {
       <ConfirmationDialog
         open={disputeConfirmOpen}
         title="Open Dispute"
-        message="This action escalates the project to admin mediation. Continue?"
+        message="Маргаан нээгдмэгц release action хаагдаж admin mediation эхэлнэ. Шалтгаан, нотолгоо зөв эсэхийг шалгаад үргэлжлүүлнэ үү."
         confirmLabel="Open Dispute"
         confirmTone="warning"
         loading={disputeMutation.isPending}
         onCancel={() => setDisputeConfirmOpen(false)}
         onConfirm={() => {
           disputeMutation.mutate(undefined, {
-            onSuccess: () => setDisputeConfirmOpen(false),
-            onError: () => setDisputeConfirmOpen(false),
+            onSettled: () => setDisputeConfirmOpen(false),
+          });
+        }}
+      />
+
+      <ConfirmationDialog
+        open={submitResultConfirmOpen}
+        title="Submit Result"
+        message="Үр дүн илгээснээр төсөл client review шат руу орно. Файлаа оруулж, checksum-аа баталгаажуулсан эсэхээ шалга."
+        confirmLabel="Submit"
+        confirmTone="success"
+        loading={resultMutation.isPending}
+        onCancel={() => setSubmitResultConfirmOpen(false)}
+        onConfirm={() => {
+          resultMutation.mutate(undefined, {
+            onSettled: () => setSubmitResultConfirmOpen(false),
           });
         }}
       />
