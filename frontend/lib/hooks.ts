@@ -51,16 +51,16 @@ export function useMyProjects(role: "client" | "freelancer") {
 
 // --- PROPOSAL HOOKS ---
 
-export function useProposals(projectId: string | number) {
+export function useProposals(projectId: string | number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["proposals", "list", projectId],
     queryFn: () => proposalsApi.listForProject(projectId),
-    enabled: !!projectId,
+    enabled: options?.enabled ?? !!projectId,
   });
 }
 
-export function useProjectProposals(projectId: string | number) {
-  return useProposals(projectId);
+export function useProjectProposals(projectId: string | number, options?: { enabled?: boolean }) {
+  return useProposals(projectId, options);
 }
 
 export function useMyProposals() {

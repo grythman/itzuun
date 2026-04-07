@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -30,8 +31,26 @@ export default function ProjectPaymentPage() {
       setExpiresAt(expiration);
       toast("success", "QPay invoice created");
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: Error) => {
+      const axiosError = error as AxiosError<{ error?: string; detail?: string }>;
+      const message =
+        axiosError.response?.data?.error ||
+        axiosError.response?.data?.detail ||
+        error.message;
+      toast("error", message);
+    },
   });
+
+  const createErrorLabel = useMemo(() => {
+    if (!createPaymentMutation.error) return "Unable to create payment invoice.";
+    const error = createPaymentMutation.error as AxiosError<{ error?: string; detail?: string }>;
+    return (
+      error.response?.data?.error ||
+      error.response?.data?.detail ||
+      error.message ||
+      "Unable to create payment invoice."
+    );
+  }, [createPaymentMutation.error]);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -42,7 +61,7 @@ export default function ProjectPaymentPage() {
   const paymentStatusQuery = useQuery({
     queryKey: ["payment-status", projectId],
     queryFn: () => projectsApi.paymentStatus(projectId),
-    enabled: !!projectId,
+    enabled: !!projectId && !!createPaymentMutation.data,
     refetchInterval: (query) => {
       const statusValue = query.state.data?.status;
       return statusValue === "paid" || statusValue === "failed" ? false : 5000;
@@ -66,21 +85,17 @@ export default function ProjectPaymentPage() {
   }
 
   if (createPaymentMutation.isError || !createPaymentMutation.data) {
-    return <ErrorState label="Unable to create payment invoice." />;
+    return <ErrorState label={createErrorLabel} />;
   }
 
   const invoice = createPaymentMutation.data;
   const statusValue = paymentStatusQuery.data?.status ?? invoice.payment.status;
   const paymentSteps = ["Invoice Created", "Waiting Payment", "Confirmed"];
   const currentStep = statusValue === "paid" ? 2 : 1;
-
-  const feeBreakdown = useMemo(() => {
-    const total = invoice.payment.amount;
-    const pct = invoice.fee_pct || 12;
-    const fee = Math.round(total * (pct / 100));
-    const freelancerAmount = total - fee;
-    return { total, fee, freelancerAmount, pct };
-  }, [invoice]);
+  const total = invoice.payment.amount;
+  const pct = invoice.fee_pct || 12;
+  const fee = Math.round(total * (pct / 100));
+  const freelancerAmount = total - fee;
 
   return (
     <section className="mx-auto max-w-3xl space-y-4">
@@ -107,9 +122,9 @@ export default function ProjectPaymentPage() {
           <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Pricing Transparency</p>
           <CompareTable
             rows={[
-              { label: "Project amount", value: `${feeBreakdown.total} MNT` },
-              { label: `Platform fee (${feeBreakdown.pct}%)`, value: `${feeBreakdown.fee} MNT` },
-              { label: "Freelancer receives", value: `${feeBreakdown.freelancerAmount} MNT` },
+              { label: "Project amount", value: `${total} MNT` },
+              { label: `Platform fee (${pct}%)`, value: `${fee} MNT` },
+              { label: "Freelancer receives", value: `${freelancerAmount} MNT` },
             ]}
           />
           <TrustPanel />

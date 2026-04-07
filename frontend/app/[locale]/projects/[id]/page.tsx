@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ActionButton, CompareTable, ConfirmationDialog, EscrowStatusBadge, RatingStars, TrustPanel, VerifiedBadge } from "@/components/ui-kit";
@@ -65,7 +65,9 @@ export default function ProjectDetailPage() {
   const me = useMe();
 
   const detail = useProjectDetail(id);
-  const proposals = useProjectProposals(id);
+  const canReadProposals =
+    me.data?.role === "admin" || (typeof detail.data?.owner === "number" && me.data?.id === detail.data.owner);
+  const proposals = useProjectProposals(id, { enabled: Boolean(id && canReadProposals) });
 
   const [deliverableFile, setDeliverableFile] = useState<File | null>(null);
   const [deliverableUploadProgress, setDeliverableUploadProgress] = useState(0);
@@ -189,27 +191,23 @@ export default function ProjectDetailPage() {
   const project = detail.data;
   const proposalItems = proposals.data ? toArray(proposals.data) : [];
 
-  const compareRows = useMemo(
-    () =>
-      proposalItems
-        .filter((item) => selectedProposalIds.includes(item.id))
-        .slice(0, 2)
-        .map((item) => ({
-          id: item.id,
-          freelancer: item.freelancer,
-          price: item.price,
-          timeline: item.timeline_days,
-          message: item.message || "-",
-        })),
-    [proposalItems, selectedProposalIds],
-  );
+  const compareRows = proposalItems
+    .filter((item) => selectedProposalIds.includes(item.id))
+    .slice(0, 2)
+    .map((item) => ({
+      id: item.id,
+      freelancer: item.freelancer,
+      price: item.price,
+      timeline: item.timeline_days,
+      message: item.message || "-",
+    }));
 
-  const bestValueProposalId = useMemo(() => {
-    if (compareRows.length < 2) return null;
-    const firstScore = compareRows[0].price / Math.max(1, compareRows[0].timeline);
-    const secondScore = compareRows[1].price / Math.max(1, compareRows[1].timeline);
-    return firstScore <= secondScore ? compareRows[0].id : compareRows[1].id;
-  }, [compareRows]);
+  const bestValueProposalId = compareRows.length < 2
+    ? null
+    : (compareRows[0].price / Math.max(1, compareRows[0].timeline))
+      <= (compareRows[1].price / Math.max(1, compareRows[1].timeline))
+      ? compareRows[0].id
+      : compareRows[1].id;
 
   const isClientOwner = me.data.id === project.owner;
   const canFreelancerPropose = me.data.role === "freelancer" && project.status === "open" && me.data.is_verified;
@@ -388,11 +386,19 @@ export default function ProjectDetailPage() {
             <button className="bg-slate-200 text-slate-800" onClick={() => setProposalCompareMode((prev) => !prev)}>
               {proposalCompareMode ? "Hide Compare" : "Compare Proposals"}
             </button>
-            <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => proposals.refetch()}>Refresh</button>
+            {canReadProposals ? (
+              <button className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => proposals.refetch()}>Refresh</button>
+            ) : null}
           </div>
         </div>
 
-        {proposalCompareMode && compareRows.length >= 2 ? (
+        {!canReadProposals ? (
+          <div className="rounded-xl border border-surface-200/60 bg-surface-50 p-4 text-[13px] text-surface-600">
+            Proposal list is visible to the project owner and admins.
+          </div>
+        ) : null}
+
+        {canReadProposals && proposalCompareMode && compareRows.length >= 2 ? (
           <div className="mb-3 overflow-x-auto rounded-2xl border border-slate-200">
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50">
@@ -427,9 +433,9 @@ export default function ProjectDetailPage() {
           </div>
         ) : null}
 
-        {!proposalItems.length ? (
+        {canReadProposals && !proposalItems.length ? (
           <EmptyState label="No proposals yet." />
-        ) : (
+        ) : canReadProposals ? (
           <ul className="space-y-2">
             {proposalItems.map((item) => (
               <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
@@ -460,7 +466,7 @@ export default function ProjectDetailPage() {
               </li>
             ))}
           </ul>
-        )}
+        ) : null}
       </div>
 
       <ProjectChat projectId={id} currentUserId={me.data.id} />
