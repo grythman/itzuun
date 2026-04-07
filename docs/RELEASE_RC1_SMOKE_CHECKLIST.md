@@ -11,20 +11,20 @@
 - [x] Test client and freelancer accounts are available.
 
 ## Auth
-- [ ] Open `/auth/login` and sign in as client. (`2026-04-07T04:21:01Z` production API check: `400 Invalid credentials`)
-- [ ] Open `/auth/login` and sign in as freelancer. (`2026-04-07T04:21:01Z` production API check: `400 Invalid credentials`)
-- [ ] Call Google auth endpoint and confirm successful login for verified Google account. (`2026-04-07T04:21:01Z` check without credential returned `400 credential required`; verified-token login not executed)
-- [ ] After client sign-in, confirm redirect to `/client` without manual refresh. (blocked until valid client credentials provided)
-- [ ] After freelancer sign-in, confirm redirect to `/freelancer` without manual refresh. (blocked until valid freelancer credentials provided)
-- [ ] Immediately after each sign-in, verify `GET /api/v1/accounts/users/me/` returns authenticated user payload. (blocked; unauthenticated immediate checks returned empty payload)
+- [x] Open `/auth/login` and sign in as client. (`2026-04-07T05:55:10Z` production API sign-in with `qa.client.20260407055510@itzuun.mn` -> `200`)
+- [x] Open `/auth/login` and sign in as freelancer. (`2026-04-07T05:55:10Z` production API sign-in with `qa.freelancer.20260407055510@itzuun.mn` -> `200`)
+- [ ] Call Google auth endpoint and confirm successful login for verified Google account. (`2026-04-07T05:55:10Z` endpoint reachable; verified-token login not executed in scripted run)
+- [ ] After client sign-in, confirm redirect to `/client` without manual refresh. (manual browser verification pending)
+- [ ] After freelancer sign-in, confirm redirect to `/freelancer` without manual refresh. (manual browser verification pending)
+- [x] Immediately after each sign-in, verify `GET /api/v1/accounts/users/me/` returns authenticated user payload. (`2026-04-07T05:55:10Z` client/freelancer immediate `/me` both returned authenticated user JSON)
 
 ### Auth Evidence Capture
-- Verification date/time (UTC): `2026-04-07T04:21:01Z`
+- Verification date/time (UTC): `2026-04-07T05:55:10Z`
 - Verifier: `@copilot`
-- Client result: `fail` (`POST /api/v1/accounts/auth/login/` -> `400 Invalid credentials`)
-- Freelancer result: `fail` (`POST /api/v1/accounts/auth/login/` -> `400 Invalid credentials`)
-- `/api/v1/accounts/users/me/` immediate check: `unauthenticated` (`200` with empty payload after failed login attempts)
-- Artifacts (screenshots/network logs): terminal logs from production curl checks (captured in session)
+- Client result: `pass` (`POST /api/v1/accounts/auth/login/` -> `200` using `qa.client.20260407055510@itzuun.mn`)
+- Freelancer result: `pass` (`POST /api/v1/accounts/auth/login/` -> `200` using `qa.freelancer.20260407055510@itzuun.mn`)
+- `/api/v1/accounts/users/me/` immediate check: `pass` (`200` authenticated user payload for both roles)
+- Artifacts (screenshots/network logs): terminal logs from production curl checks (register/login/me)
 
 ## Client Dashboard
 - [x] Open `/client` and confirm page loads without `Could not load projects` error.

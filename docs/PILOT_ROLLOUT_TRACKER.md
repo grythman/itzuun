@@ -98,23 +98,23 @@
 
 ## Priority Auth Verification (No-Refresh Session Check)
 - Verification date (UTC): `2026-04-07`
-- Status: `Blocked` (production credential validation failed)
+- Status: `In Progress` (core auth API checks passed; remaining manual browser checks pending)
 - Objective: validate that post-login redirect lands on dashboard without manual refresh and authenticated `/api/v1/accounts/users/me/` succeeds immediately.
 
 ### Evidence Checklist
-- [ ] Client login verified with no manual refresh. (`2026-04-07T04:21:01Z`: `POST /api/v1/accounts/auth/login/` -> `400 Invalid credentials`)
-- [ ] Freelancer login verified with no manual refresh. (`2026-04-07T04:21:01Z`: `POST /api/v1/accounts/auth/login/` -> `400 Invalid credentials`)
-- [ ] Immediate authenticated `GET /api/v1/accounts/users/me/` confirmed after sign-in. (`2026-04-07T04:21:01Z`: immediate check returned unauthenticated empty payload after failed login attempts)
+- [ ] Client login verified with no manual refresh. (`2026-04-07T05:55:10Z`: API sign-in passed; browser redirect verification pending)
+- [ ] Freelancer login verified with no manual refresh. (`2026-04-07T05:55:10Z`: API sign-in passed; browser redirect verification pending)
+- [x] Immediate authenticated `GET /api/v1/accounts/users/me/` confirmed after sign-in. (`2026-04-07T05:55:10Z`: client/freelancer immediate checks returned authenticated user payload)
 
 ### Evidence Record Template
 - Environment: `production`
 - Verifier: `@copilot`
-- Browser/session notes: `production API credential checks executed via curl`
-- Client account result: `fail` (`400 Invalid credentials`)
-- Freelancer account result: `fail` (`400 Invalid credentials`)
-- `/api/v1/accounts/users/me/` result: `unauthenticated`
-- Artifact links/screenshots: `terminal curl output @ 2026-04-07T04:21:01Z`
-- Decision: `fail` (requires valid production test credentials for no-refresh verification)
+- Browser/session notes: `production API checks executed via curl; manual browser redirect check pending`
+- Client account result: `pass` (`qa.client.20260407055510@itzuun.mn`, login `200`)
+- Freelancer account result: `pass` (`qa.freelancer.20260407055510@itzuun.mn`, login `200`)
+- `/api/v1/accounts/users/me/` result: `pass` (immediate authenticated payload for both)
+- Artifact links/screenshots: `terminal curl output @ 2026-04-07T05:55:10Z`
+- Decision: `partial-pass` (manual redirect + verified Google login checks still open)
 
 ### Recommended Capture Procedure
 1. Open `/auth/login`, sign in as client, and confirm direct navigation to `/client` without refresh.
