@@ -98,12 +98,12 @@
 
 ## Priority Auth Verification (No-Refresh Session Check)
 - Verification date (UTC): `2026-04-07`
-- Status: `In Progress` (core auth API checks passed; remaining manual browser checks pending)
+- Status: `In Progress` (no-refresh redirect + immediate `/me` passed; only verified Google login pending)
 - Objective: validate that post-login redirect lands on dashboard without manual refresh and authenticated `/api/v1/accounts/users/me/` succeeds immediately.
 
 ### Evidence Checklist
-- [ ] Client login verified with no manual refresh. (`2026-04-07T05:55:10Z`: API sign-in passed; browser redirect verification pending)
-- [ ] Freelancer login verified with no manual refresh. (`2026-04-07T05:55:10Z`: API sign-in passed; browser redirect verification pending)
+- [x] Client login verified with no manual refresh. (`2026-04-07`: manual browser check passed; redirect to `/client`)
+- [x] Freelancer login verified with no manual refresh. (`2026-04-07`: manual browser check passed; redirect to `/freelancer`)
 - [x] Immediate authenticated `GET /api/v1/accounts/users/me/` confirmed after sign-in. (`2026-04-07T05:55:10Z`: client/freelancer immediate checks returned authenticated user payload)
 
 ### Evidence Record Template
@@ -112,9 +112,10 @@
 - Browser/session notes: `production API checks executed via curl; manual browser redirect check pending`
 - Client account result: `pass` (`qa.client.20260407055510@itzuun.mn`, login `200`)
 - Freelancer account result: `pass` (`qa.freelancer.20260407055510@itzuun.mn`, login `200`)
+- No-refresh redirect result: `pass` (client/freelancer browser checks confirmed)
 - `/api/v1/accounts/users/me/` result: `pass` (immediate authenticated payload for both)
 - Artifact links/screenshots: `terminal curl output @ 2026-04-07T05:55:10Z`
-- Decision: `partial-pass` (manual redirect + verified Google login checks still open)
+- Decision: `partial-pass` (verified Google login check still open)
 
 ### Recommended Capture Procedure
 1. Open `/auth/login`, sign in as client, and confirm direct navigation to `/client` without refresh.

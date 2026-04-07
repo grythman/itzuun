@@ -13,9 +13,9 @@
 ## Auth
 - [x] Open `/auth/login` and sign in as client. (`2026-04-07T05:55:10Z` production API sign-in with `qa.client.20260407055510@itzuun.mn` -> `200`)
 - [x] Open `/auth/login` and sign in as freelancer. (`2026-04-07T05:55:10Z` production API sign-in with `qa.freelancer.20260407055510@itzuun.mn` -> `200`)
-- [ ] Call Google auth endpoint and confirm successful login for verified Google account. (`2026-04-07T05:55:10Z` endpoint reachable; verified-token login not executed in scripted run)
-- [ ] After client sign-in, confirm redirect to `/client` without manual refresh. (manual browser verification pending)
-- [ ] After freelancer sign-in, confirm redirect to `/freelancer` without manual refresh. (manual browser verification pending)
+- [ ] Call Google auth endpoint and confirm successful login for verified Google account. (`2026-04-07`: unavailable in current env; verified Google credential flow pending)
+- [x] After client sign-in, confirm redirect to `/client` without manual refresh. (`2026-04-07` manual browser check passed)
+- [x] After freelancer sign-in, confirm redirect to `/freelancer` without manual refresh. (`2026-04-07` manual browser check passed)
 - [x] Immediately after each sign-in, verify `GET /api/v1/accounts/users/me/` returns authenticated user payload. (`2026-04-07T05:55:10Z` client/freelancer immediate `/me` both returned authenticated user JSON)
 
 ### Auth Evidence Capture
@@ -23,6 +23,7 @@
 - Verifier: `@copilot`
 - Client result: `pass` (`POST /api/v1/accounts/auth/login/` -> `200` using `qa.client.20260407055510@itzuun.mn`)
 - Freelancer result: `pass` (`POST /api/v1/accounts/auth/login/` -> `200` using `qa.freelancer.20260407055510@itzuun.mn`)
+- No-refresh redirect result: `pass` (client -> `/client`, freelancer -> `/freelancer`)
 - `/api/v1/accounts/users/me/` immediate check: `pass` (`200` authenticated user payload for both roles)
 - Artifacts (screenshots/network logs): terminal logs from production curl checks (register/login/me)
 
