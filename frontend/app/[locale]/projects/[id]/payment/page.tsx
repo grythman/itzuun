@@ -90,6 +90,7 @@ export default function ProjectPaymentPage() {
   const [invoiceOpenConfirm, setInvoiceOpenConfirm] = useState(false);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [faqOpen, setFaqOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const projectQuery = useProjectDetail(projectId);
 
@@ -129,6 +130,9 @@ export default function ProjectPaymentPage() {
 
   const paymentSteps = ["Invoice", "Escrow hold", "Completion"];
   const currentStep = statusValue === "paid" ? 1 : 0;
+  const lastCheckedLabel = paymentStatusQuery.dataUpdatedAt
+    ? new Date(paymentStatusQuery.dataUpdatedAt).toLocaleTimeString("mn-MN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    : "-";
 
   const createErrorLabel = useMemo(() => {
     if (!createPaymentMutation.error) return "Unable to create payment invoice.";
@@ -198,6 +202,12 @@ export default function ProjectPaymentPage() {
             <p className="text-[13px]">Invoice ID: {paymentData.invoice_id}</p>
             <p className="text-[13px]">Current status: {statusValue}</p>
             <p className="text-[13px]">Expires in: {secondsLeft}s</p>
+            <div className="flex flex-wrap items-center gap-2 text-[12px] text-surface-600">
+              <span>Last checked: {lastCheckedLabel}</span>
+              <button className="rounded-md border border-surface-200 px-2 py-1 font-semibold" onClick={() => paymentStatusQuery.refetch()}>
+                Refresh status
+              </button>
+            </div>
 
             {paymentData.qr_image ? (
               <Image src={paymentData.qr_image} alt="QPay QR" width={224} height={224} className="rounded-xl border border-surface-200/60" unoptimized />
@@ -208,6 +218,21 @@ export default function ProjectPaymentPage() {
             <ActionButton className="min-h-11 rounded-xl px-4 text-[13px] font-semibold" tone="success" onClick={() => setInvoiceOpenConfirm(true)} disabled={!paymentData.invoice_url || statusValue === "paid"}>
               Төлбөрийн линк нээх
             </ActionButton>
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 bg-white px-4 text-[13px] font-semibold text-surface-700"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(paymentData.invoice_id);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1500);
+                }}
+              >
+                {copied ? "Invoice ID хуулсан" : "Copy invoice ID"}
+              </button>
+              <a href="/support" className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 bg-white px-4 text-[13px] font-semibold text-surface-700">
+                Contact support
+              </a>
+            </div>
 
             {(secondsLeft === 0 || statusValue === "failed") && canCreateInvoice ? (
               <button
@@ -240,7 +265,16 @@ export default function ProjectPaymentPage() {
       {paymentStatusQuery.isError ? (
         <ErrorState
           label="Unable to fetch payment status."
-          action={<button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={() => paymentStatusQuery.refetch()}>Retry status</button>}
+          action={
+            <div className="flex flex-wrap gap-2">
+              <button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={() => paymentStatusQuery.refetch()}>
+                Retry status
+              </button>
+              <a href="/support" className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700">
+                Contact support
+              </a>
+            </div>
+          }
         />
       ) : null}
 

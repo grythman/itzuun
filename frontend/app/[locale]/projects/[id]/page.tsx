@@ -15,6 +15,7 @@ import { useMe, useMutation, useProjectDetail, useProjectProposals, useQuery } f
 import { useToastStore } from "@/lib/toast-store";
 import type { ProposalDto } from "@/lib/api/types";
 import { proposalSchema, reviewSchema } from "@/lib/validators";
+import { profilesApi } from "@/lib/api/endpoints";
 
 import type { z } from "zod";
 
@@ -113,18 +114,29 @@ function ProposalTrustMeta({ freelancerId, verificationStatus, fallbackVerified 
     queryFn: () => projectsApi.ratingSummary(freelancerId as string | number),
     enabled: !!freelancerId,
   });
+  const profile = useQuery({
+    queryKey: ["profile", freelancerId],
+    queryFn: () => profilesApi.get(freelancerId as string | number),
+    enabled: !!freelancerId,
+  });
+  const skills = Array.isArray(profile.data?.skills) ? profile.data.skills.slice(0, 2) : [];
 
   return (
-    <div className="mb-2 flex items-center justify-between gap-3">
-      <VerifiedBadge status={verificationStatus} verified={fallbackVerified} />
-      {rating.data?.total ? (
-        <span className="inline-flex items-center gap-1.5 text-[12px] text-surface-600">
-          <RatingStars value={rating.data.average} />
-          <span>({rating.data.total})</span>
-        </span>
-      ) : (
-        <span className="text-[11px] text-surface-400">No reviews yet</span>
-      )}
+    <div className="mb-2 rounded-lg border border-surface-200/70 bg-surface-50 px-2.5 py-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <VerifiedBadge status={verificationStatus} verified={fallbackVerified} />
+        {rating.data?.total ? (
+          <span className="inline-flex items-center gap-1.5 text-[12px] text-surface-600">
+            <RatingStars value={rating.data.average} />
+            <span>{rating.data.total} reviews</span>
+          </span>
+        ) : (
+          <span className="text-[11px] text-surface-400">No reviews yet</span>
+        )}
+        {skills.length ? <span className="text-[11px] text-surface-600">Skills: {skills.join(", ")}</span> : null}
+        {rating.data?.total ? <span className="text-[11px] text-surface-600">Completed: {rating.data.total}</span> : null}
+      </div>
+      {profile.data?.bio ? <p className="mt-1 line-clamp-1 text-[11px] text-surface-500">{profile.data.bio}</p> : null}
     </div>
   );
 }
@@ -156,6 +168,7 @@ export default function ProjectDetailPage() {
   const [reviewRecap, setReviewRecap] = useState<null | { rating: number; communication: number; quality: number; recommend: "yes" | "no"; comment: string }>(null);
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeEvidence, setDisputeEvidence] = useState("");
+  const [openLifecycle, setOpenLifecycle] = useState<EscrowLifecycleState | null>(null);
 
   const proposalForm = useForm<ProposalForm>({
     resolver: zodResolver(proposalSchema),
@@ -288,6 +301,7 @@ export default function ProjectDetailPage() {
   const isSelectedFreelancer = proposalItems.some((item) => item.id === project.selected_proposal && resolveFreelancerId(item.freelancer) === me.data?.id);
   const canRelease = status === "awaiting_client_review";
   const canDispute = ["in_progress", "awaiting_client_review"].includes(status);
+  const activeLifecycle = openLifecycle || escrowState;
 
   const toggleCompareProposal = (proposalId: number) => {
     setSelectedProposalIds((prev) => {
@@ -312,17 +326,20 @@ export default function ProjectDetailPage() {
       <div className="rounded-2xl border border-[#d8e3ee] bg-[#f8fbff] p-4">
         <h2 className="text-lg font-semibold text-[#18324b]">Escrow Lifecycle</h2>
         <p className="mt-1 text-[12px] text-[#4c6480]">Төлөв бүр дээр юу болсон, хэн юу хийхийг ил тод харуулна.</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 space-y-2 md:grid md:grid-cols-2 md:gap-2 lg:grid-cols-3">
           {lifecycleOrder.map((item) => {
             const meta = lifecycleMeta[item];
             const active = item === escrowState;
+            const expanded = item === activeLifecycle;
             return (
               <div key={item} className={`rounded-xl border p-3 ${active ? "border-brand-500 bg-brand-50" : "border-surface-200 bg-white"}`}>
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="text-[13px] font-semibold text-surface-900">{meta.title}</p>
+                  <button type="button" className="text-left text-[13px] font-semibold text-surface-900 md:cursor-default" onClick={() => setOpenLifecycle(item)}>
+                    {meta.title}
+                  </button>
                   <StatusPill label={active ? "Current" : "State"} tone={active ? meta.tone : "neutral"} />
                 </div>
-                <ul className="space-y-1 text-[12px] text-surface-700">
+                <ul className={`space-y-1 text-[12px] text-surface-700 ${expanded ? "block" : "hidden md:block"}`}>
                   <li><strong>Юу болсон:</strong> {meta.what}</li>
                   <li><strong>Одоо юу хийх:</strong> {meta.now}</li>
                   <li><strong>Хэн хийх:</strong> {meta.actor}</li>
@@ -359,6 +376,18 @@ export default function ProjectDetailPage() {
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-[13px]">
           <p className="font-semibold text-amber-900">Dispute мэдээлэл</p>
           <p className="mt-1 text-amber-800">Шалтгаанаа тодорхой бичээд нотолгооны линк/тайлбараа нэм. Энэ үед release action хаагдана.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {["Scope зөрсөн", "Хугацаа хэтэрсэн", "Чанарын асуудал", "Communication issue"].map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                className={`min-h-11 rounded-lg px-3 text-[12px] font-semibold ${disputeReason === chip ? "bg-amber-600 text-white" : "bg-white text-amber-900"}`}
+                onClick={() => setDisputeReason(chip)}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
           <textarea className="mt-2 w-full" rows={2} value={disputeReason} onChange={(e) => setDisputeReason(e.target.value)} placeholder="Маргааны шалтгаан" />
           <textarea className="mt-2 w-full" rows={2} value={disputeEvidence} onChange={(e) => setDisputeEvidence(e.target.value)} placeholder="Нотолгоо (линк/тайлбар)" />
           <div className="mt-2">
