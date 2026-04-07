@@ -19,7 +19,7 @@ import { useToastStore } from "@/lib/toast-store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { proposalSchema } from "@/lib/validators";
 import type { z } from "zod";
-import type { Proposal } from "@/lib/types";
+import type { ProposalDto } from "@/lib/api/types";
 
 type ProposalForm = z.infer<typeof proposalSchema>;
 
@@ -90,7 +90,7 @@ export default function FreelancerDashboardPage() {
     onError: (error: Error) => toast("error", error.message),
   });
 
-  function openEditModal(proposal: Proposal) {
+  function openEditModal(proposal: ProposalDto) {
     setEditingProposalId(Number(proposal.id));
     editForm.reset({
       price: Number(proposal.price ?? 0),
@@ -125,7 +125,7 @@ export default function FreelancerDashboardPage() {
     );
   }
 
-  const myProposals = toArray(proposals.data);
+  const myProposals = toArray<ProposalDto>(proposals.data);
   const myProposalIds = new Set(myProposals.map((proposal) => proposal.id));
   const activeProjects = projects.data.results.filter(
     (project) =>

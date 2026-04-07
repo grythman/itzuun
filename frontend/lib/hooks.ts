@@ -3,6 +3,7 @@ import { authApi, projectsApi, proposalsApi, escrowApi, adminApi, verificationAp
 import { extractApiErrorMessage } from "./api/errors";
 import { useToastStore } from "./toast-store";
 import type { AuthUser, PaginatedResponse, ProjectDto, ProposalDto } from "./api/types";
+import type { MessageItem } from "./types";
 
 export { useQuery, useMutation, useQueryClient };
 
@@ -75,7 +76,7 @@ export function useMyProposals() {
 export function useProjectMessages(projectId: string | number) {
   return useQuery({
     queryKey: ["projects", "messages", projectId],
-    queryFn: () => projectsApi.get(projectId).then((data) => data?.messages ?? []),
+    queryFn: () => projectsApi.get(projectId).then((data) => (data?.messages ?? []) as MessageItem[]),
     enabled: !!projectId,
     refetchOnWindowFocus: false,
   });

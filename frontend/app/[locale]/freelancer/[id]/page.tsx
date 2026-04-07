@@ -9,6 +9,7 @@ import { AppCard, RatingStars, VerifiedBadge } from "@/components/ui-kit";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useProfile } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
+import type { ReviewDto } from "@/lib/api/types";
 
 export default function FreelancerPublicProfilePage({ params }: { params: { id: string } }) {
   const id = params?.id;
@@ -102,11 +103,11 @@ export default function FreelancerPublicProfilePage({ params }: { params: { id: 
       )}
 
       {/* Reviews */}
-      {reviews.data && toArray(reviews.data).length > 0 && (
+      {reviews.data && toArray<ReviewDto>(reviews.data).length > 0 && (
         <div className="rounded-2xl border border-surface-200/60 bg-white p-6 shadow-card">
           <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-surface-500">Reviews</h2>
           <ul className="space-y-4">
-            {toArray(reviews.data).map((review) => (
+            {toArray<ReviewDto>(reviews.data).map((review) => (
               <li key={review.id} className="border-b border-surface-100 pb-4 last:border-none last:pb-0">
                 <div className="flex items-center gap-2">
                   <RatingStars value={review.rating} />

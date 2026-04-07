@@ -29,6 +29,10 @@ function resolveFreelancerId(freelancer: unknown): string | number | null {
   return null;
 }
 
+function resolveFreelancerLabel(freelancer: unknown): string | number {
+  return resolveFreelancerId(freelancer) ?? "unknown";
+}
+
 function ProposalTrustMeta({
   freelancerId,
   verificationStatus,
@@ -407,10 +411,10 @@ export default function ProjectDetailPage() {
                 <tr>
                   <th className="px-3 py-2 text-left">Metric</th>
                   <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[0].id ? "bg-emerald-50" : ""}`}>
-                    Freelancer #{compareRows[0].freelancer} {bestValueProposalId === compareRows[0].id ? "(Best Value)" : ""}
+                    Freelancer #{resolveFreelancerLabel(compareRows[0].freelancer)} {bestValueProposalId === compareRows[0].id ? "(Best Value)" : ""}
                   </th>
                   <th className={`px-3 py-2 text-left ${bestValueProposalId === compareRows[1].id ? "bg-emerald-50" : ""}`}>
-                    Freelancer #{compareRows[1].freelancer} {bestValueProposalId === compareRows[1].id ? "(Best Value)" : ""}
+                    Freelancer #{resolveFreelancerLabel(compareRows[1].freelancer)} {bestValueProposalId === compareRows[1].id ? "(Best Value)" : ""}
                   </th>
                 </tr>
               </thead>
@@ -442,7 +446,7 @@ export default function ProjectDetailPage() {
             {proposalItems.map((item) => (
               <li key={item.id} className="rounded border border-slate-200 p-3 text-sm">
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="font-semibold">Freelancer #{item.freelancer}</p>
+                  <p className="font-semibold">Freelancer #{resolveFreelancerLabel(item.freelancer)}</p>
                 </div>
                 <ProposalTrustMeta
                   freelancerId={resolveFreelancerId(item.freelancer)}

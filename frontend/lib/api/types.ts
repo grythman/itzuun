@@ -23,7 +23,7 @@ export interface AuthUser {
   email: string;
   role: "client" | "freelancer" | "admin";
   is_verified?: boolean;
-  verification_status?: string;
+  verification_status?: "unverified" | "pending" | "verified" | "suspended";
   first_name: string;
   last_name: string;
   is_active?: boolean;
@@ -38,9 +38,19 @@ export interface ProjectDto {
   budget: number;
   timeline_days: number;
   category: string;
+  category_obj?: CategoryDto | null;
   status: string;
   selected_proposal?: number | null;
   [key: string]: unknown;
+}
+
+export interface CategoryDto {
+  id: number;
+  name_en?: string;
+  name_mn?: string;
+  name?: string;
+  slug?: string;
+  icon?: string;
 }
 
 export interface ProposalDto {
@@ -101,9 +111,7 @@ export interface DisputeDto {
   note?: string;
 }
 
-export interface AdminUserDto extends AuthUser {
-  verification_status?: string;
-}
+export interface AdminUserDto extends AuthUser {}
 
 export interface PaymentDto {
   id: string;

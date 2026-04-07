@@ -13,6 +13,12 @@ import { VerificationBanner } from "@/components/verification-banner";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useProjectProposals, useProjects } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
+import type { ProposalDto } from "@/lib/api/types";
+
+function proposalFreelancerLabel(freelancer: ProposalDto["freelancer"]): string | number {
+  if (typeof freelancer === "number" || typeof freelancer === "string") return freelancer;
+  return freelancer.id;
+}
 
 export default function ClientDashboardPage() {
   const t = useTranslations("ClientDash");
@@ -81,7 +87,7 @@ export default function ClientDashboardPage() {
   }
 
   const myProjects = projects.data.results.filter((project) => project.owner === me.data?.id);
-  const proposalItems = proposals.data ? toArray(proposals.data) : [];
+  const proposalItems = proposals.data ? toArray<ProposalDto>(proposals.data) : [];
 
   const profileData = profile.data;
   let profileCompleteness = 0;
@@ -257,7 +263,7 @@ export default function ClientDashboardPage() {
                 <ul className="space-y-2">
                   {proposalItems.map((proposal) => (
                     <li key={proposal.id} className="rounded-xl border border-[#dce6ef] bg-[#f9fcff] p-3 text-[13px]">
-                      <p className="font-semibold text-[#17304e]">{t("freelancer")} #{proposal.freelancer}</p>
+                      <p className="font-semibold text-[#17304e]">{t("freelancer")} #{proposalFreelancerLabel(proposal.freelancer)}</p>
                       <p className="text-[#4f6782]">{t("price")}: ₮{Number(proposal.price || 0).toLocaleString()}</p>
                       <p className="text-[#4f6782]">
                         {t("timeline")}: {proposal.timeline_days} {t("days")}

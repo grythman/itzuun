@@ -3,6 +3,7 @@ import type {
   AdminPaymentDto,
   AdminUserDto,
   AuthUser,
+  CategoryDto,
   DisputeDto,
   EscrowDto,
   LedgerEntryDto,
@@ -285,8 +286,8 @@ export const adminApi = {
 }
 
 export const categoriesApi = {
-  list: async () => {
-    const res = await apiClient.get("/projects/categories/");
+  list: async (): Promise<CategoryDto[]> => {
+    const res = await apiClient.get<CategoryDto[] | PaginatedResponse<CategoryDto>>("/projects/categories/");
     const payload = res.data;
     if (Array.isArray(payload)) {
       return payload;
