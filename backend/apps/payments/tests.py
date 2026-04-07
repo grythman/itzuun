@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 from django.test import TestCase
 from django.core.cache import caches
 from rest_framework import status
@@ -6,7 +7,7 @@ from rest_framework.test import APIClient
 
 from apps.accounts.models import User
 from apps.messaging.models import ProjectFile
-from apps.payments.models import Escrow, LedgerEntry
+from apps.payments.models import Escrow, LedgerEntry, Payment
 from apps.payments.services import deposit_to_escrow
 from apps.projects.models import Project, ProjectDeliverable, Proposal
 from common.exceptions import DomainError
@@ -312,6 +313,78 @@ class CacheInvalidationSmokeTests(TestCase):
         self.assertEqual(summary_after.json()["total"], 1)
         self.assertEqual(summary_after.json()["average"], 5)
         self.assertEqual(reviews_after.json()["count"], 1)
+
+
+class ProjectPaymentEndpointsTests(TestCase):
+    def setUp(self):
+        self.client_api = APIClient()
+        self.owner = User.objects.create_user(email="owner-pay@test.com", role="client", password="pass1234")
+        self.freelancer = User.objects.create_user(email="freelancer-pay@test.com", role="freelancer", password="pass1234")
+        self.project = Project.objects.create(
+            owner=self.owner,
+            title="Payment endpoint project",
+            description="desc",
+            budget=250000,
+            timeline_days=5,
+            category="web",
+            status=Project.STATUS_OPEN,
+        )
+        proposal = Proposal.objects.create(
+            project=self.project,
+            freelancer=self.freelancer,
+            price=250000,
+            timeline_days=5,
+            message="proposal",
+            status=Proposal.STATUS_ACCEPTED,
+        )
+        self.project.selected_proposal = proposal
+        self.project.save(update_fields=["selected_proposal"])
+        self.client_api.force_authenticate(self.owner)
+
+    @patch("apps.payments.views.create_invoice")
+    def test_payment_create_returns_invoice_contract(self, mock_create_invoice):
+        class _Invoice:
+            invoice_id = "inv-123"
+            invoice_url = "https://qpay.test/inv-123"
+            qr_text = "qpay://inv-123"
+            qr_image = "data:image/png;base64,abc"
+            raw_response = {"source": "test"}
+
+        mock_create_invoice.return_value = _Invoice()
+
+        response = self.client_api.post(f"/api/v1/payments/project/{self.project.id}/create", format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["invoice_id"], "inv-123")
+        self.assertEqual(response.json()["payment"]["status"], Payment.STATUS_PENDING)
+        self.assertIn("expires_in_seconds", response.json())
+
+    @patch("apps.payments.views.get_invoice_status")
+    @patch("apps.payments.views.create_invoice")
+    def test_payment_status_marks_paid_and_holds_escrow(self, mock_create_invoice, mock_get_invoice_status):
+        class _Invoice:
+            invoice_id = "inv-456"
+            invoice_url = "https://qpay.test/inv-456"
+            qr_text = "qpay://inv-456"
+            qr_image = "data:image/png;base64,xyz"
+            raw_response = {"source": "test"}
+
+        mock_create_invoice.return_value = _Invoice()
+        mock_get_invoice_status.return_value = {
+            "invoice_id": "inv-456",
+            "payment_status": "PAID",
+            "amount": 250000,
+        }
+
+        create_resp = self.client_api.post(f"/api/v1/payments/project/{self.project.id}/create", format="json")
+        self.assertEqual(create_resp.status_code, status.HTTP_201_CREATED)
+
+        status_resp = self.client_api.get(f"/api/v1/payments/project/{self.project.id}/status")
+        self.assertEqual(status_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(status_resp.json()["status"], Payment.STATUS_PAID)
+
+        escrow = Escrow.objects.get(project=self.project)
+        self.assertEqual(escrow.status, Escrow.STATUS_HELD)
 
 
 class MvPHappyPathApiTests(TestCase):
