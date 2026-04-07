@@ -1,6 +1,24 @@
 # ITZuun MVP API Contract (Current Backend Aligned)
 
+Related Phase 1 docs:
+- `docs/API_CONVENTION_RFC_PHASE1.md`
+- `docs/API_COMPATIBILITY_MATRIX_PHASE1.md`
+
 Base URL: `/api/v1`
+
+## Error Envelope Target
+Phase 1 freezes the target non-2xx JSON shape as:
+
+```json
+{
+  "code": "machine_readable_error",
+  "message": "Human readable summary",
+  "details": {},
+  "correlation_id": "request-id"
+}
+```
+
+Current endpoints are still partially mixed between `detail` and `error`. The migration window keeps backward compatibility while frontend moves to the shared contract.
 
 ## 1) Auth (`/auth`)
 ### POST `/auth/request-otp`

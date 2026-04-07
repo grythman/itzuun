@@ -64,7 +64,7 @@ jobs:
       - name: Formatting check (Black)
         run: |
           cd backend
-          black --check . || echo "Black found issues"
+          black --check .
 
       - name: Django System Checks
         env:
@@ -151,7 +151,7 @@ jobs:
       - name: Lint (ESLint)
         run: |
           cd frontend
-          npm run lint || echo "ESLint found issues"
+          npm run lint
 
       - name: Type Check
         run: |

@@ -121,9 +121,9 @@ export function ChatBubble({ mine, text, time, fileName, fileUrl }: { mine: bool
 
 export function TrustPanel() {
   return (
-    <div className="rounded-2xl border border-brand-100 bg-brand-50/50 p-4 text-[13px] text-brand-800">
+    <div className="rounded-2xl border border-[#cfe0eb] bg-gradient-to-r from-[#eef7ff] to-[#f2faf7] p-4 text-[13px] text-[#1a4a73]">
       <p className="font-semibold">Secure Escrow Protection</p>
-      <p className="mt-1">Your money is held securely until work is completed and confirmed.</p>
+      <p className="mt-1 text-[#355d80]">Your money is held securely until work is completed and confirmed.</p>
     </div>
   );
 }
@@ -149,12 +149,12 @@ export function RoleSidebar({ role }: { role: "client" | "freelancer" | "admin" 
   };
 
   return (
-    <aside className="hidden w-56 shrink-0 rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card lg:block">
-      <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-surface-400">{role} panel</p>
+    <aside className="hidden w-56 shrink-0 rounded-2xl border border-[#d9e4ef] bg-gradient-to-b from-[#ffffff] to-[#f8fbff] p-4 shadow-card lg:block">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-[#587392]">{role} panel</p>
       <ul className="space-y-0.5">
         {linksByRole[role].map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className="block rounded-lg px-3 py-2 text-[13px] font-medium text-surface-600 hover:bg-surface-50 hover:text-surface-900 transition-colors">
+            <Link href={link.href} className="block rounded-lg px-3 py-2 text-[13px] font-medium text-[#3c5f84] hover:bg-[#edf5ff] hover:text-[#173a61] transition-colors">
               {link.label}
             </Link>
           </li>

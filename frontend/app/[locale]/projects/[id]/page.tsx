@@ -10,6 +10,7 @@ import { ActionButton, CompareTable, ConfirmationDialog, EscrowStatusBadge, Rati
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import ProjectChat from "@/components/project-chat";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
+import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMe, useMutation, useProjectDetail, useProjectProposals, useQuery } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { proposalSchema, reviewSchema } from "@/lib/validators";
@@ -156,7 +157,7 @@ export default function ProjectDetailPage() {
     },
     onError: (error: any) => {
       setDeliverableUploadProgress(0);
-      toast("error", "Deliverable upload failed", extractErrorMessage(error));
+      toast("error", "Deliverable upload failed", extractApiErrorMessage(error, "Upload failed. Please try again."));
     },
   });
 
@@ -544,14 +545,5 @@ export default function ProjectDetailPage() {
         }}
       />
     </section>
-  );
-}
-
-function extractErrorMessage(error: any): string {
-  return (
-    error?.response?.data?.detail ||
-    error?.response?.data?.file?.[0] ||
-    error?.message ||
-    "Upload failed. Please try again."
   );
 }

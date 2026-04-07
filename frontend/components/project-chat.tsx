@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatBubble, StatusPill } from "@/components/ui-kit";
 import { EmptyState } from "@/components/states";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
+import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMutation, useProjectMessages } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -76,7 +77,7 @@ export default function ProjectChat({
     },
     onError: (error: any) => {
       setUploadProgress(0);
-      toast("error", "File upload failed", extractErrorMessage(error));
+      toast("error", "File upload failed", extractApiErrorMessage(error, "Upload failed. Please try again."));
     },
   });
 
@@ -300,13 +301,4 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function extractErrorMessage(error: any): string {
-  return (
-    error?.response?.data?.detail ||
-    error?.response?.data?.file?.[0] ||
-    error?.message ||
-    "Upload failed. Please try again."
-  );
 }

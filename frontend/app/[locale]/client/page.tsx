@@ -97,14 +97,40 @@ export default function ClientDashboardPage() {
   const activeCount = myProjects.filter((p) => p.status === "in_progress").length;
   const openCount = myProjects.filter((p) => p.status === "open").length;
   const totalEscrow = myProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
+  const completedCount = myProjects.filter((p) => p.status === "completed").length;
+
+  const statusTone: Record<string, string> = {
+    open: "bg-sky-50 text-sky-700 border border-sky-100",
+    in_progress: "bg-emerald-50 text-emerald-700 border border-emerald-100",
+    awaiting_client_review: "bg-amber-50 text-amber-700 border border-amber-100",
+    completed: "bg-violet-50 text-violet-700 border border-violet-100",
+    disputed: "bg-rose-50 text-rose-700 border border-rose-100",
+    closed_refunded: "bg-slate-100 text-slate-700 border border-slate-200",
+  };
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
       <section className="space-y-6 pb-20">
-        <div className="anim-rise rounded-[28px] border border-[#d7d5eb] bg-gradient-to-r from-[#f7f8ff] to-[#edf2ff] p-6 shadow-[0_14px_38px_rgba(42,36,84,0.14)] md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5b52a0]">{t("controlRoomLabel")}</p>
-          <h1 className="mt-2 font-headline text-4xl font-extrabold tracking-tight text-surface-900 md:text-5xl">{t("title")}</h1>
-          <p className="mt-2 max-w-3xl text-sm text-surface-600">{t("controlRoomSub")}</p>
+        <div className="relative overflow-hidden rounded-[28px] border border-[#dae4f0] bg-gradient-to-br from-[#f7fbff] via-[#f3f8ff] to-[#eef7f5] p-6 shadow-[0_20px_48px_rgba(13,39,80,0.12)] md:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#44b39c]/12 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-20 h-56 w-56 rounded-full bg-[#5b8dff]/12 blur-3xl" />
+          <div className="relative grid gap-6 md:grid-cols-[1.5fr_1fr] md:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1f5f96]">{t("controlRoomLabel")}</p>
+              <h1 className="mt-2 font-headline text-4xl font-extrabold tracking-tight text-[#12243a] md:text-5xl">{t("title")}</h1>
+              <p className="mt-2 max-w-3xl text-sm text-[#355067]">{t("controlRoomSub")}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <AppCard className="border border-[#d2deec] bg-white/90 p-4 shadow-none">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4a6785]">{t("activeProjectsLabel")}</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#102239]">{activeCount}</p>
+              </AppCard>
+              <AppCard className="border border-[#d2deec] bg-white/90 p-4 shadow-none">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4a6785]">{t("openBidsLabel")}</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#102239]">{openCount}</p>
+              </AppCard>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-4">
@@ -114,35 +140,43 @@ export default function ClientDashboardPage() {
             {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
 
             <div className="anim-rise anim-delay-1 grid gap-4 md:grid-cols-3">
-              <AppCard className="border-none bg-[#22144f] text-white shadow-[0_18px_40px_rgba(34,20,79,0.32)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#bcb6e9]">{t("securedVolumeLabel")}</p>
+              <AppCard className="border border-[#cfe0df] bg-gradient-to-br from-[#0f5963] to-[#1f7f87] text-white shadow-[0_14px_34px_rgba(15,89,99,0.28)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#bceaf0]">{t("securedVolumeLabel")}</p>
                 <p className="mt-2 text-2xl font-extrabold">₮{totalEscrow.toLocaleString()}</p>
-                <p className="mt-1 text-xs text-[#c8c5ec]">{t("securedVolumeSub")}</p>
+                <p className="mt-1 text-xs text-[#d3f1f4]">{t("securedVolumeSub")}</p>
               </AppCard>
-              <AppCard className="border-none bg-white">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6a5cbc]">{t("activeProjectsLabel")}</p>
-                <p className="mt-2 text-2xl font-extrabold text-surface-900">{activeCount}</p>
-                <p className="mt-1 text-xs text-surface-500">{t("activeProjectsSub")}</p>
+              <AppCard className="border border-[#dce4ec] bg-white">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3f6589]">{t("activeProjectsLabel")}</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{activeCount}</p>
+                <p className="mt-1 text-xs text-[#5a728d]">{t("activeProjectsSub")}</p>
               </AppCard>
-              <AppCard className="border-none bg-white">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6a5cbc]">{t("openBidsLabel")}</p>
-                <p className="mt-2 text-2xl font-extrabold text-surface-900">{openCount}</p>
-                <p className="mt-1 text-xs text-surface-500">{t("openBidsSub")}</p>
+              <AppCard className="border border-[#dce4ec] bg-white">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3f6589]">{t("openBidsLabel")}</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{openCount}</p>
+                <p className="mt-1 text-xs text-[#5a728d]">{t("openBidsSub")}</p>
               </AppCard>
             </div>
 
-            <TrustPanel />
+            <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+              <TrustPanel />
 
-            <AppCard className="border border-[#e8e5f4] bg-[#f7f7fc]">
-              <p className="text-[13px] font-semibold text-surface-800">
+              <AppCard className="border border-[#d8e3ee] bg-white">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3f6589]">Completed</p>
+                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{completedCount}</p>
+                <p className="mt-1 text-xs text-[#5a728d]">Delivery success in your portfolio</p>
+              </AppCard>
+            </div>
+
+            <AppCard className="border border-[#dde4ec] bg-[#f8fbff]">
+              <p className="text-[13px] font-semibold text-[#17304e]">
                 {t("profileCompleteness")}: {profileCompleteness}%
               </p>
-              <div className="mt-2 h-2 w-full rounded-full bg-[#e2e4f0]">
-                <div className="h-2 rounded-full bg-[#5132bf]" style={{ width: `${profileCompleteness}%` }} />
+              <div className="mt-2 h-2 w-full rounded-full bg-[#dbe5ef]">
+                <div className="h-2 rounded-full bg-[#207ca0]" style={{ width: `${profileCompleteness}%` }} />
               </div>
-              <p className="mt-2 text-[11px] text-surface-500">
+              <p className="mt-2 text-[11px] text-[#5a728d]">
                 {profileCompleteness < 100 ? (
-                  <Link href={withLocale("/client/profile")} className="text-brand-600 hover:underline">
+                  <Link href={withLocale("/client/profile")} className="text-[#175b89] hover:underline">
                     {t("completeProfile")} →
                   </Link>
                 ) : (
@@ -151,10 +185,10 @@ export default function ClientDashboardPage() {
               </p>
             </AppCard>
 
-            <div className="anim-rise anim-delay-2 rounded-2xl bg-white p-6 shadow-card">
+            <div className="anim-rise anim-delay-2 rounded-2xl border border-[#dae4ef] bg-white p-6 shadow-card">
               <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="font-headline text-2xl font-bold text-surface-900">{t("myProjects")}</h2>
-                <Link href={withLocale("/projects/new")} className="rounded-full bg-[#4a23c8] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-white">
+                <h2 className="font-headline text-2xl font-bold text-[#10243f]">{t("myProjects")}</h2>
+                <Link href={withLocale("/projects/new")} className="rounded-full bg-[#17618f] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-white">
                   {t("postProject")}
                 </Link>
               </div>
@@ -164,8 +198,8 @@ export default function ClientDashboardPage() {
                   label={t("noProjects")}
                   action={
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-surface-500">{t("noProjectsDesc")}</p>
-                      <Link href={withLocale("/projects/new")} className="rounded-full bg-[#4a23c8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
+                      <p className="text-xs text-[#5a728d]">{t("noProjectsDesc")}</p>
+                      <Link href={withLocale("/projects/new")} className="rounded-full bg-[#17618f] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
                         {t("postProject")}
                       </Link>
                     </div>
@@ -174,20 +208,25 @@ export default function ClientDashboardPage() {
               ) : (
                 <ul className="grid gap-3 md:grid-cols-2">
                   {myProjects.map((project) => (
-                    <li key={project.id} className="rounded-xl border border-[#eceaf6] bg-[#fcfcff] p-4 text-[13px] space-y-3">
-                      <p className="font-semibold text-surface-900">{project.title}</p>
-                      <p className="text-surface-500">{t("status")}: {project.status}</p>
+                    <li key={project.id} className="rounded-xl border border-[#dce6ef] bg-gradient-to-b from-[#ffffff] to-[#f7fbff] p-4 text-[13px] space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-semibold text-[#122740]">{project.title}</p>
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusTone[project.status] || "bg-slate-100 text-slate-700 border border-slate-200"}`}>
+                          {project.status}
+                        </span>
+                      </div>
+                      <p className="text-[#4f6782]">Budget: ₮{Number(project.budget || 0).toLocaleString()}</p>
                       <div className="flex flex-wrap gap-2">
-                        <button className="rounded-full border border-[#d5d1ea] px-3 py-1 text-xs font-semibold text-[#4b3db4]" onClick={() => setActiveProjectId(project.id)}>
+                        <button className="rounded-full border border-[#c7d8e8] px-3 py-1 text-xs font-semibold text-[#2a5f8f]" onClick={() => setActiveProjectId(project.id)}>
                           {t("viewProposals")}
                         </button>
-                        <button className="rounded-full bg-[#2a8f67] px-3 py-1 text-xs font-semibold text-white" onClick={() => router.push(withLocale(`/projects/${project.id}/payment`))}>
+                        <button className="rounded-full bg-[#1f8f73] px-3 py-1 text-xs font-semibold text-white" onClick={() => router.push(withLocale(`/projects/${project.id}/payment`))}>
                           {t("openEscrowPayment")}
                         </button>
-                        <button className="rounded-full bg-[#3659d4] px-3 py-1 text-xs font-semibold text-white" onClick={() => releaseMutation.mutate(project.id)}>
+                        <button className="rounded-full bg-[#2a6cc2] px-3 py-1 text-xs font-semibold text-white" onClick={() => releaseMutation.mutate(project.id)}>
                           {t("releaseEscrow")}
                         </button>
-                        <button className="rounded-full bg-[#be3d62] px-3 py-1 text-xs font-semibold text-white" onClick={() => disputeMutation.mutate(project.id)}>
+                        <button className="rounded-full bg-[#bf4d61] px-3 py-1 text-xs font-semibold text-white" onClick={() => disputeMutation.mutate(project.id)}>
                           {t("openDispute")}
                         </button>
                       </div>
@@ -197,8 +236,8 @@ export default function ClientDashboardPage() {
               )}
             </div>
 
-            <div className="anim-rise anim-delay-3 rounded-2xl bg-white p-6 shadow-card">
-              <h2 className="mb-3 font-headline text-2xl font-bold text-surface-900">{t("projectProposals")}</h2>
+            <div className="anim-rise anim-delay-3 rounded-2xl border border-[#dae4ef] bg-white p-6 shadow-card">
+              <h2 className="mb-3 font-headline text-2xl font-bold text-[#10243f]">{t("projectProposals")}</h2>
               {!activeProjectId ? (
                 <EmptyState label={t("selectProject")} />
               ) : proposals.isLoading ? (
@@ -217,10 +256,10 @@ export default function ClientDashboardPage() {
               ) : (
                 <ul className="space-y-2">
                   {proposalItems.map((proposal) => (
-                    <li key={proposal.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                      <p className="text-surface-700">{t("freelancer")} #{proposal.freelancer}</p>
-                      <p className="text-surface-600">{t("price")}: {proposal.price}</p>
-                      <p className="text-surface-600">
+                    <li key={proposal.id} className="rounded-xl border border-[#dce6ef] bg-[#f9fcff] p-3 text-[13px]">
+                      <p className="font-semibold text-[#17304e]">{t("freelancer")} #{proposal.freelancer}</p>
+                      <p className="text-[#4f6782]">{t("price")}: ₮{Number(proposal.price || 0).toLocaleString()}</p>
+                      <p className="text-[#4f6782]">
                         {t("timeline")}: {proposal.timeline_days} {t("days")}
                       </p>
                     </li>
