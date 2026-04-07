@@ -62,6 +62,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     restart: always
     depends_on:
       - api
@@ -69,6 +71,7 @@ services:
       - NODE_ENV=production
       # In production, Next.js can send its SSR API fetches directly to the internal network
       - BACKEND_ORIGIN=http://api:8000
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     expose:
       - "3000"
 
