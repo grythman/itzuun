@@ -32,7 +32,7 @@ describe("RoleGuard", () => {
       </RoleGuard>,
     );
 
-    expect(screen.getByText("Redirecting...")).toBeInTheDocument();
+    expect(screen.getByText("Зөв самбар руу шилжүүлж байна...")).toBeInTheDocument();
     expect(replace).toHaveBeenCalledWith("/auth");
   });
 });

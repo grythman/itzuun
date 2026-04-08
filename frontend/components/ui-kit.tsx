@@ -7,6 +7,28 @@ export function AppCard({ children, className = "" }: { children: ReactNode; cla
   return <div className={`rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${className}`}>{children}</div>;
 }
 
+export function MetricCard({
+  label,
+  value,
+  hint,
+  className = "",
+  valueClassName = "",
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: string;
+  className?: string;
+  valueClassName?: string;
+}) {
+  return (
+    <AppCard className={className}>
+      <p className="text-[11px] uppercase tracking-widest text-surface-500">{label}</p>
+      <p className={`mt-1 text-2xl font-extrabold text-surface-900 ${valueClassName}`}>{value}</p>
+      {hint ? <p className="mt-1 text-xs text-surface-500">{hint}</p> : null}
+    </AppCard>
+  );
+}
+
 export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="space-y-1">
@@ -257,7 +279,7 @@ export function ActionButton({
     <button
       {...props}
       disabled={disabled || loading}
-      className={`${toneClass[tone]} disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`${toneClass[tone]} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
       {loading ? "Processing..." : children}
     </button>

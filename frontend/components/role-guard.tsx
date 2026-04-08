@@ -28,7 +28,15 @@ export function RoleGuard({
   }, [fallbackPath, isAllowed, router]);
 
   if (!isAllowed) {
-    return <p className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-600">Redirecting...</p>;
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-[13px] text-amber-900">
+        <p className="font-semibold">Role mismatch илэрлээ</p>
+        <p className="mt-1">
+          Одоогийн эрх: <strong>{currentRole || "unknown"}</strong> · Шаардлагатай эрх: <strong>{requiredRole}</strong>
+        </p>
+        <p className="mt-1">Зөв самбар руу шилжүүлж байна...</p>
+      </div>
+    );
   }
 
   return <>{children}</>;

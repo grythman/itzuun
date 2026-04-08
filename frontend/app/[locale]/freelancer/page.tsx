@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 
 import { EmptyState, ErrorState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, AppCard, ConfirmationDialog, DashboardBottomBar, RatingStars, RoleSidebar, StatusPill, VerifiedBadge } from "@/components/ui-kit";
+import { ActionButton, AppCard, ConfirmationDialog, DashboardBottomBar, MetricCard, RatingStars, RoleSidebar, StatusPill, VerifiedBadge } from "@/components/ui-kit";
 import { VerificationBanner } from "@/components/verification-banner";
 import { toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
@@ -32,6 +32,25 @@ function proposalAgeLabel(createdAt?: string): string {
   const diffDays = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)));
   if (diffDays === 0) return "Өнөөдөр илгээсэн";
   return `${diffDays} хоног хүлээгдэж байна`;
+}
+
+function relativeUpdatedLabel(updatedAt?: string): string {
+  if (!updatedAt) return "Шинэчлэлийн огноо алга";
+  const diffHours = Math.max(0, Math.floor((Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60)));
+  if (diffHours < 1) return "Сая шинэчлэгдсэн";
+  if (diffHours < 24) return `${diffHours} цагийн өмнө шинэчлэгдсэн`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} өдрийн өмнө шинэчлэгдсэн`;
+}
+
+function projectRisk(project: { created_at?: string; timeline_days?: number }): { label: string; tone: "warning" | "danger" } | null {
+  const createdAt = project.created_at;
+  const timelineDays = Number(project.timeline_days || 0);
+  if (!createdAt || !timelineDays) return null;
+  const elapsedDays = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)));
+  if (elapsedDays > timelineDays) return { label: `Хугацаа хэтэрсэн: +${elapsedDays - timelineDays} хоног`, tone: "danger" };
+  if (elapsedDays >= Math.ceil(timelineDays * 0.8)) return { label: "Deadline ойртож байна", tone: "warning" };
+  return null;
 }
 
 function proposalStatusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info" } {
@@ -68,6 +87,7 @@ export default function FreelancerDashboardPage() {
   const queryClient = useQueryClient();
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "awaiting_client_review" | "disputed">("all");
+  const [proposalFilter, setProposalFilter] = useState<"all" | "pending" | "accepted" | "rejected">("all");
   const [submitTarget, setSubmitTarget] = useState<number | null>(null);
 
   const rating = useQuery({
@@ -135,7 +155,7 @@ export default function FreelancerDashboardPage() {
 
   if (me.isLoading || proposals.isLoading || projects.isLoading || profile.isLoading) {
     return (
-      <section className="space-y-4 pb-20">
+      <section className="space-y-4 pb-20" aria-busy="true" aria-live="polite">
         <div className="h-36 animate-pulse rounded-3xl border border-[#d8e3ee] bg-[#eef4fa]" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
@@ -144,6 +164,7 @@ export default function FreelancerDashboardPage() {
           <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
         </div>
         <div className="h-60 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f8fbff]" />
+        <p className="text-sm text-surface-500">Хянах самбар ачааллаж байна. Түр хүлээнэ үү...</p>
       </section>
     );
   }
@@ -205,6 +226,10 @@ export default function FreelancerDashboardPage() {
   const inProgressProject = activeProjects.find((p) => p.status === "in_progress");
   const firstPendingProposal = sortedProposals.find((p) => (p.status || "pending") === "pending");
   const projectById = useMemo(() => new Map(projects.data.results.map((project) => [project.id, project])), [projects.data.results]);
+  const filteredProposals = sortedProposals.filter((proposal) => {
+    const status = proposal.status || "pending";
+    return proposalFilter === "all" ? true : status === proposalFilter;
+  });
   const filteredActiveProjects = activeProjects.filter((project) => (activeFilter === "all" ? true : project.status === activeFilter));
   const submitProject = activeProjects.find((project) => project.id === submitTarget) || null;
 
@@ -249,6 +274,35 @@ export default function FreelancerDashboardPage() {
     };
   }, [me.data.verification_status, inProgressProject, firstPendingProposal, withLocale]);
 
+  const verificationGuidance = useMemo(() => {
+    if (me.data.verification_status === "verified") return null;
+    if (me.data.verification_status === "pending") {
+      return {
+        tone: "warning" as const,
+        title: "Баталгаажуулалт хянагдаж байна",
+        text: "Түр хүлээгээд meanwhile профайлаа сайжруулж, төсөл хайж shortlist бэлд.",
+        cta: "Профайл нээх",
+        href: withLocale("/freelancer/profile"),
+      };
+    }
+    if (me.data.verification_status === "suspended") {
+      return {
+        tone: "danger" as const,
+        title: "Данс түр хаагдсан",
+        text: "Support-т тайлбар илгээж сэргээх хүсэлт гарга. Идэвхтэй ажлаа чат дээр үргэлжлүүлж болно.",
+        cta: "Support",
+        href: withLocale("/support"),
+      };
+    }
+    return {
+      tone: "info" as const,
+      title: "Баталгаажуулалт шаардлагатай",
+      text: "Санал илгээх боломжоо бүрэн нээхийн тулд verification хүсэлтээ одоо илгээ.",
+      cta: "Verification эхлүүлэх",
+      href: withLocale("/freelancer/profile"),
+    };
+  }, [me.data.verification_status, withLocale]);
+
   const profileData = profile.data;
   let profileCompleteness = 0;
   if (profileData) {
@@ -262,7 +316,7 @@ export default function FreelancerDashboardPage() {
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
-      <section className="space-y-6 pb-20">
+      <section className="space-y-6 pb-20" aria-label="Freelancer dashboard">
         <div className="relative overflow-hidden rounded-[28px] border border-[#d6e2ee] bg-gradient-to-br from-[#f8fbff] via-[#f2f8ff] to-[#eefaf4] p-5 shadow-[0_20px_48px_rgba(13,39,80,0.12)] md:p-8">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#44b39c]/12 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 left-20 h-56 w-56 rounded-full bg-[#5b8dff]/12 blur-3xl" />
@@ -303,23 +357,36 @@ export default function FreelancerDashboardPage() {
           <RoleSidebar role="freelancer" />
           <div className="flex-1 space-y-4">
             {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
+            {verificationGuidance ? (
+              <div className="rounded-2xl border border-surface-200/70 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-surface-900">{verificationGuidance.title}</p>
+                    <p className="mt-1 text-xs text-surface-600">{verificationGuidance.text}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusPill label={me.data.verification_status || "unverified"} tone={verificationGuidance.tone} />
+                    <Link href={verificationGuidance.href} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-[13px] font-semibold text-white">
+                      {verificationGuidance.cta}
+                    </Link>
+                    <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 bg-white px-4 text-[13px] font-semibold text-surface-700">
+                      Support shortcut
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <AppCard className="border border-[#cfe0df] bg-gradient-to-br from-[#0f5963] to-[#1f7f87] text-white shadow-[0_14px_34px_rgba(15,89,99,0.28)]">
-                <p className="text-[11px] uppercase tracking-widest text-[#bceaf0]">{t("earnings")}</p>
-                <p className="mt-1 text-2xl font-extrabold">{formatMnt(earnings)}</p>
-                <p className="mt-1 text-xs text-[#d3f1f4]">Идэвхтэй ажлуудын баталгаажсан дүн</p>
-              </AppCard>
-              <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("activeProjects")}</p>
-                <p className="mt-1 text-2xl font-extrabold text-surface-900">{activeProjects.length}</p>
-                <p className="mt-1 text-xs text-surface-500">Гүйцэтгэх шатанд</p>
-              </AppCard>
-              <AppCard>
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("pendingProposals")}</p>
-                <p className="mt-1 text-2xl font-extrabold text-surface-900">{pendingProposals}</p>
-                <p className="mt-1 text-xs text-surface-500">Хариу хүлээж буй саналууд</p>
-              </AppCard>
+              <MetricCard
+                label={t("earnings")}
+                value={formatMnt(earnings)}
+                hint="Идэвхтэй ажлуудын баталгаажсан дүн"
+                className="border border-[#cfe0df] bg-gradient-to-br from-[#0f5963] to-[#1f7f87] text-white shadow-[0_14px_34px_rgba(15,89,99,0.28)]"
+                valueClassName="text-white"
+              />
+              <MetricCard label={t("activeProjects")} value={activeProjects.length} hint="Гүйцэтгэх шатанд" />
+              <MetricCard label={t("pendingProposals")} value={pendingProposals} hint="Хариу хүлээж буй саналууд" />
               <AppCard>
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">{t("rating")}</p>
                 <div className="mt-1"><RatingStars value={rating.data?.average ?? 0} /></div>
@@ -352,6 +419,25 @@ export default function FreelancerDashboardPage() {
                   Төсөл хайх
                 </Link>
               </div>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {[
+                  { key: "all", label: "Бүгд" },
+                  { key: "pending", label: "Pending" },
+                  { key: "accepted", label: "Accepted" },
+                  { key: "rejected", label: "Rejected" },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`min-h-11 rounded-lg px-3 text-[12px] font-semibold ${
+                      proposalFilter === item.key ? "bg-brand-600 text-white" : "bg-surface-100 text-surface-600"
+                    }`}
+                    onClick={() => setProposalFilter(item.key as typeof proposalFilter)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
 
               {!sortedProposals.length ? (
                 <EmptyState
@@ -365,9 +451,9 @@ export default function FreelancerDashboardPage() {
                     </div>
                   }
                 />
-              ) : (
+              ) : filteredProposals.length ? (
                 <ul className="space-y-2">
-                  {sortedProposals.map((proposal) => {
+                  {filteredProposals.map((proposal) => {
                     const meta = proposalStatusMeta(proposal.status || "pending");
                     const isPending = (proposal.status || "pending") === "pending";
                     const project = projectById.get(Number(proposal.project));
@@ -377,9 +463,10 @@ export default function FreelancerDashboardPage() {
                           <div className="space-y-1">
                             <p className="font-semibold text-surface-900">{project?.title || `Төсөл #${proposal.project}`}</p>
                             <p className="text-[12px] text-surface-500">{project?.category_obj?.name_mn || project?.category || "Ангилалгүй"}</p>
-                            <p className="text-surface-600">Үнэ: {formatMnt(Number(proposal.price || 0))}</p>
-                            <p className="text-surface-600">Хугацаа: {proposal.timeline_days} {t("days")}</p>
+                            <p className="text-surface-600">Үнэ: <strong>{formatMnt(Number(proposal.price || 0))}</strong></p>
+                            <p className="text-surface-600">Хугацаа: <strong>{proposal.timeline_days} {t("days")}</strong></p>
                             <p className="text-[12px] text-[#27577f]">{proposalAgeLabel(proposal.created_at)}</p>
+                            <p className="text-[12px] text-surface-500">{relativeUpdatedLabel((proposal as { updated_at?: string }).updated_at || proposal.created_at)}</p>
                           </div>
                           <StatusPill label={meta.label} tone={meta.tone} />
                         </div>
@@ -406,6 +493,15 @@ export default function FreelancerDashboardPage() {
                     );
                   })}
                 </ul>
+              ) : (
+                <EmptyState
+                  label="Энэ шүүлтүүрт санал алга."
+                  action={
+                    <button className="min-h-11 rounded-xl bg-surface-100 px-4 text-[13px] font-semibold text-surface-700" onClick={() => setProposalFilter("all")}>
+                      Бүх санал харах
+                    </button>
+                  }
+                />
               )}
             </div>
 
@@ -459,6 +555,7 @@ export default function FreelancerDashboardPage() {
                   ].map((item) => (
                     <button
                       key={item.key}
+                      type="button"
                       className={`min-h-11 rounded-lg px-3 text-[12px] font-semibold ${
                         activeFilter === item.key ? "bg-brand-600 text-white" : "bg-surface-100 text-surface-600"
                       }`}
@@ -471,13 +568,21 @@ export default function FreelancerDashboardPage() {
               </div>
               {!filteredActiveProjects.length ? (
                 <EmptyState
-                  label={t("noActive")}
+                  label={activeFilter === "all" ? t("noActive") : "Энэ төлөвт идэвхтэй ажил алга."}
                   action={
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-xs text-surface-500">Идэвхтэй ажил алга. Орлого үргэлжлүүлэхийн тулд шинэ төсөл хай.</p>
-                      <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-[13px] font-semibold text-white">
-                        {t("browseProjects")}
-                      </Link>
+                      {activeFilter !== "all" ? (
+                        <button className="inline-flex min-h-11 items-center rounded-xl bg-surface-100 px-4 text-[13px] font-semibold text-surface-700" onClick={() => setActiveFilter("all")}>
+                          Бүх төлөв харах
+                        </button>
+                      ) : (
+                        <>
+                          <p className="text-xs text-surface-500">Идэвхтэй ажил алга. Орлого үргэлжлүүлэхийн тулд шинэ төсөл хай.</p>
+                          <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-[13px] font-semibold text-white">
+                            {t("browseProjects")}
+                          </Link>
+                        </>
+                      )}
                     </div>
                   }
                 />
@@ -485,6 +590,7 @@ export default function FreelancerDashboardPage() {
                 <ul className="space-y-2">
                   {filteredActiveProjects.map((project) => {
                     const meta = projectStatusMeta(project.status);
+                    const risk = projectRisk(project as { created_at?: string; timeline_days?: number });
                     return (
                       <li key={project.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
                         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -495,6 +601,7 @@ export default function FreelancerDashboardPage() {
                             <p className="text-[12px] text-surface-500">
                               Төлбөрийн төлөв: {project.status === "awaiting_client_review" ? "Client баталгаажуулмагц payout хийгдэнэ." : "Result илгээсний дараа client review шат руу орно."}
                             </p>
+                            {risk ? <StatusPill label={risk.label} tone={risk.tone} /> : null}
                           </div>
                           <StatusPill label={meta.label} tone={meta.tone} />
                         </div>

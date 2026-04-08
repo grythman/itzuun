@@ -2,15 +2,14 @@
 export const dynamic = "force-dynamic";
 
 import Script from "next/script";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { useRef } from "react";
 import { useTranslations } from "next-intl";
 
-import { ActionButton } from "@/components/ui-kit";
+import { ActionButton, StatusPill } from "@/components/ui-kit";
 import { authApi } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
@@ -23,6 +22,8 @@ type OtpRequestForm = z.infer<typeof otpRequestSchema>;
 type OtpVerifyForm = z.infer<typeof otpVerifySchema>;
 type RegisterForm = z.infer<typeof registerSchema>;
 type LoginForm = z.infer<typeof loginSchema>;
+
+type AuthStage = "idle" | "establishing" | "redirecting";
 
 declare global {
   interface Window {
@@ -49,28 +50,42 @@ declare global {
   }
 }
 
-function roleDashboard(role?: string) {
+function defaultRoleDashboard(role?: string) {
   if (role === "admin") return "/admin";
   if (role === "freelancer") return "/freelancer";
   return "/client";
 }
 
+function onboardingFirstPath(user: any) {
+  const role = user?.role;
+  if (role === "freelancer") {
+    if (user?.verification_status !== "verified") return "/freelancer/profile";
+    return "/projects";
+  }
+  if (role === "client") {
+    if (!user?.is_verified || user?.verification_status !== "verified") return "/client/profile";
+    return "/projects/new";
+  }
+  return defaultRoleDashboard(role);
+}
+
 async function waitForAuthenticatedUser(
   queryClient: ReturnType<typeof useQueryClient>,
   fallbackUser?: any,
+  retries = 8,
 ) {
   if (fallbackUser?.role) {
     queryClient.setQueryData(["auth", "me"], fallbackUser);
     return fallbackUser;
   }
 
-  for (let i = 0; i < 4; i += 1) {
+  for (let i = 0; i < retries; i += 1) {
     const user = await authApi.me(true).catch(() => null);
     if (user?.role) {
       queryClient.setQueryData(["auth", "me"], user);
       return user;
     }
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200 + i * 150));
   }
 
   return null;
@@ -86,20 +101,53 @@ function AuthCard() {
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
   const initialTab = useMemo<AuthTab>(() => (searchParams.get("tab") === "register" ? "register" : "signin"), [searchParams]);
+  const expectedRole = searchParams.get("role");
+  const nextPath = searchParams.get("next");
 
   const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
   const [showPasswordless, setShowPasswordless] = useState(false);
   const [googleScriptReady, setGoogleScriptReady] = useState(false);
+  const [authStage, setAuthStage] = useState<AuthStage>("idle");
+  const [authMessage, setAuthMessage] = useState<string>("");
+  const [authError, setAuthError] = useState<string>("");
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
 
-  // Redirect authenticated users to their dashboard
+  const handleSuccessfulAuth = async (payload?: any) => {
+    setAuthError("");
+    setAuthStage("establishing");
+    setAuthMessage("Амжилттай нэвтэрлээ. Session бэлдэж байна...");
+    const user = await waitForAuthenticatedUser(queryClient, payload?.user ?? payload, 8);
+    if (!user?.role) {
+      setAuthStage("idle");
+      setAuthError("Session баталгаажуулалт удааширлаа. Дахин оролдоно уу.");
+      return;
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+
+    if (expectedRole && user.role !== expectedRole) {
+      setAuthStage("idle");
+      setAuthError(`Та ${user.role} эрхтэй байна. ${expectedRole} эрх сонгохын тулд өөр акаунтаар нэвтэрнэ үү.`);
+      return;
+    }
+
+    setAuthStage("redirecting");
+    setAuthMessage("Амжилттай нэвтэрлээ. Таны самбар руу шилжиж байна...");
+
+    const target = nextPath ? nextPath : onboardingFirstPath(user);
+    router.push(withLocale(target.startsWith("/") ? target : `/${target}`));
+  };
+
   useEffect(() => {
-    if (me.data) router.replace(withLocale(roleDashboard(me.data.role)));
-  }, [me.data, router, locale]);
+    if (me.data?.role && authStage === "idle") {
+      const target = nextPath ? nextPath : defaultRoleDashboard(me.data.role);
+      router.replace(withLocale(target.startsWith("/") ? target : `/${target}`));
+    }
+  }, [authStage, me.data, nextPath, router]);
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -145,67 +193,80 @@ function AuthCard() {
   const registerMutation = useMutation({
     mutationFn: (values: RegisterForm) => authApi.register(values),
     onSuccess: async (data) => {
-      const user = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast("success", "Account created and logged in");
-      router.push(withLocale(roleDashboard(user?.role)));
+      toast("success", "Бүртгэл амжилттай.");
+      await handleSuccessfulAuth(data);
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: Error) => {
+      const msg = error.message || "Бүртгэл амжилтгүй. Имэйлээ шалгаад дахин оролдоно уу.";
+      setAuthError(msg);
+      toast("error", msg);
+    },
   });
 
   const loginMutation = useMutation({
     mutationFn: (values: LoginForm) => authApi.login(values),
     onSuccess: async (data) => {
-      const user = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast("success", "Logged in");
-      router.push(withLocale(roleDashboard(user?.role)));
+      toast("success", "Нэвтрэлт амжилттай.");
+      await handleSuccessfulAuth(data);
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: Error) => {
+      const msg = error.message || "Нэвтрэхэд алдаа гарлаа. Нууц үг эсвэл имэйлээ шалгана уу.";
+      setAuthError(msg);
+      toast("error", msg);
+    },
   });
 
   const googleMutation = useMutation({
     mutationFn: (payload: { credential: string; role?: "client" | "freelancer" }) => authApi.google(payload),
     onSuccess: async (data) => {
-      const user = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast("success", "Google login амжилттай");
-      router.push(withLocale(roleDashboard(user?.role)));
+      toast("success", "Google нэвтрэлт амжилттай.");
+      await handleSuccessfulAuth(data);
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: Error) => {
+      const msg = error.message || "Google нэвтрэлт амжилтгүй. Дахин оролдоно уу.";
+      setAuthError(msg);
+      toast("error", msg);
+    },
   });
 
   const requestMutation = useMutation({
     mutationFn: ({ email }: OtpRequestForm) => authApi.requestOtp(email),
     onSuccess: (data, vars) => {
-      if (data.otp_token) {
-        verifyForm.setValue("otp_token", data.otp_token);
-      }
-      if (data.dev_otp) {
-        verifyForm.setValue("otp", data.dev_otp);
-      }
+      if (data.otp_token) verifyForm.setValue("otp_token", data.otp_token);
+      if (data.dev_otp) verifyForm.setValue("otp", data.dev_otp);
       verifyForm.setValue("email", vars.email);
-      toast("success", data.dev_otp ? `OTP ready for dev: ${data.dev_otp}` : "OTP token requested");
+      toast("success", data.dev_otp ? `OTP ready for dev: ${data.dev_otp}` : "OTP код илгээгдлээ.");
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: Error) => {
+      const msg = error.message || "OTP хүсэлт амжилтгүй. Имэйлээ шалгаад дахин оролдоно уу.";
+      setAuthError(msg);
+      toast("error", msg);
+    },
   });
 
   const verifyMutation = useMutation({
     mutationFn: ({ email, otp, otp_token }: OtpVerifyForm) => authApi.verifyOtp(email, otp, otp_token),
     onSuccess: async (data) => {
-      const userFromResponse = await waitForAuthenticatedUser(queryClient, data?.user ?? data);
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      toast("success", "OTP verified. Session started");
-      const user = userFromResponse ?? await queryClient.fetchQuery({ queryKey: ["auth", "me"], queryFn: () => authApi.me(true) });
-      router.push(withLocale(roleDashboard(user.role)));
+      toast("success", "OTP баталгаажлаа.");
+      await handleSuccessfulAuth(data);
     },
-    onError: (error: Error) => toast("error", error.message),
+    onError: (error: Error) => {
+      const msg = error.message || "OTP баталгаажуулалт амжилтгүй. Кодоо шалгаад дахин оролдоно уу.";
+      setAuthError(msg);
+      toast("error", msg);
+    },
   });
 
+  const logoutAndReset = async () => {
+    await authApi.logout().catch(() => null);
+    await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    setAuthError("");
+    setAuthStage("idle");
+    router.replace(withLocale("/auth?tab=register"));
+  };
+
   useEffect(() => {
-    if (!googleClientId || !googleScriptReady || !googleButtonRef.current || !window.google) {
-      return;
-    }
+    if (!googleClientId || !googleScriptReady || !googleButtonRef.current || !window.google) return;
 
     const buttonContainer = googleButtonRef.current;
     buttonContainer.innerHTML = "";
@@ -214,7 +275,9 @@ function AuthCard() {
       client_id: googleClientId,
       callback: ({ credential }) => {
         if (!credential) {
-          toast("error", "Google credential олдсонгүй");
+          const msg = "Google credential олдсонгүй";
+          setAuthError(msg);
+          toast("error", msg);
           return;
         }
         googleMutation.mutate({
@@ -233,12 +296,70 @@ function AuthCard() {
     });
   }, [activeTab, googleClientId, googleMutation, googleScriptReady, registerForm, toast]);
 
+  if (authStage !== "idle") {
+    return (
+      <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
+        <div className="w-full max-w-[460px] rounded-3xl bg-white/90 p-6 shadow-hero sm:p-8">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">{t("badge")}</p>
+          <h1 className="mt-3 text-center font-headline text-2xl font-extrabold tracking-tight text-surface-900">{authMessage}</h1>
+          <p className="mt-2 text-center text-[13px] text-surface-600">Хэрэв удааширвал session шалгах товчийг дарна уу.</p>
+          <div className="mt-5 flex justify-center">
+            <ActionButton
+              className="min-h-11 rounded-xl px-4 text-[13px] font-semibold"
+              onClick={async () => {
+                const user = await waitForAuthenticatedUser(queryClient, undefined, 4);
+                if (!user?.role) {
+                  setAuthError("Session хараахан бэлэн болоогүй байна. 2-3 сек хүлээгээд дахин оролдоно уу.");
+                  setAuthStage("idle");
+                  return;
+                }
+                router.push(withLocale(onboardingFirstPath(user)));
+              }}
+            >
+              Session дахин шалгах
+            </ActionButton>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
       <div className="w-full max-w-[460px] rounded-3xl bg-white/90 p-6 shadow-hero sm:p-8">
         <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">{t("badge")}</p>
         <h1 className="mt-3 text-center font-headline text-4xl font-extrabold tracking-tight text-surface-900">{t("title")}</h1>
         <p className="mt-1.5 text-center text-[13px] text-surface-600">{t("subtitle")}</p>
+
+        <div className="mt-3 rounded-xl border border-surface-200/70 bg-surface-50 p-3 text-[12px] text-surface-700">
+          <p className="font-semibold">Яагаад ITZuun?</p>
+          <ul className="mt-1 space-y-1">
+            <li>• Escrow хамгаалалттай төлбөр</li>
+            <li>• Role-д таарсан самбар руу автоматаар чиглүүлнэ</li>
+            <li>• Нэвтрэлтийн асуудал гарвал support руу шууд холбогдоно</li>
+          </ul>
+        </div>
+
+        {expectedRole ? (
+          <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+            <p className="text-[12px] text-amber-800">Сонгосон эрх: <strong>{expectedRole}</strong></p>
+            <StatusPill label="Role check" tone="warning" />
+          </div>
+        ) : null}
+
+        {authError ? (
+          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-[12px] text-red-700">
+            <p className="font-semibold">Алдаа</p>
+            <p className="mt-1">{authError}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button className="min-h-11 rounded-lg bg-white px-3 text-[12px] font-semibold" onClick={() => setAuthError("")}>Ойлголоо</button>
+              <a href={withLocale("/support")} className="inline-flex min-h-11 items-center rounded-lg bg-white px-3 text-[12px] font-semibold">Support</a>
+              {expectedRole ? (
+                <button className="min-h-11 rounded-lg bg-white px-3 text-[12px] font-semibold" onClick={logoutAndReset}>Role солих</button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-6 grid grid-cols-2 rounded-full bg-surface-100 p-1">
           <button
@@ -280,7 +401,7 @@ function AuthCard() {
             </label>
             {loginForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.password.message}</p> : null}
 
-            <ActionButton className="w-full primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={loginMutation.isPending}>
+            <ActionButton className="w-full min-h-11 primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={loginMutation.isPending}>
               {t("signIn")}
             </ActionButton>
           </form>
@@ -306,17 +427,13 @@ function AuthCard() {
               </select>
             </label>
 
-            <ActionButton className="w-full primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={registerMutation.isPending}>
+            <ActionButton className="w-full min-h-11 primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={registerMutation.isPending}>
               {t("createAccount")}
             </ActionButton>
           </form>
         )}
 
-        <button
-          type="button"
-          onClick={() => setShowPasswordless((prev) => !prev)}
-          className="mt-5 w-full text-center text-[13px] font-medium text-brand-600 hover:text-brand-700"
-        >
+        <button type="button" onClick={() => setShowPasswordless((prev) => !prev)} className="mt-5 w-full text-center text-[13px] font-medium text-brand-600 hover:text-brand-700">
           {t("useOtp")}
         </button>
 
@@ -329,7 +446,7 @@ function AuthCard() {
                 <input className="mt-1" type="email" {...requestForm.register("email")} />
               </label>
               {requestForm.formState.errors.email ? <p className="text-[11px] text-red-600">{requestForm.formState.errors.email.message}</p> : null}
-              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={requestMutation.isPending}>{t("requestOtp")}</ActionButton>
+              <ActionButton className="w-full min-h-11 primary-gradient text-white" type="submit" loading={requestMutation.isPending}>{t("requestOtp")}</ActionButton>
             </form>
 
             <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
@@ -351,10 +468,15 @@ function AuthCard() {
                   {verifyForm.formState.errors.email?.message || verifyForm.formState.errors.otp_token?.message || verifyForm.formState.errors.otp?.message}
                 </p>
               ) : null}
-              <ActionButton className="w-full primary-gradient text-white" type="submit" loading={verifyMutation.isPending}>{t("verifyOtp")}</ActionButton>
+              <ActionButton className="w-full min-h-11 primary-gradient text-white" type="submit" loading={verifyMutation.isPending}>{t("verifyOtp")}</ActionButton>
             </form>
           </div>
         ) : null}
+
+        <div className="mt-4 flex items-center justify-between text-[11px] text-surface-500">
+          <span>Secure auth • Privacy first</span>
+          <a href={withLocale("/support")} className="font-semibold text-brand-600">Support</a>
+        </div>
       </div>
     </section>
   );
