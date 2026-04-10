@@ -11,8 +11,12 @@ export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
 export const metadata: Metadata = {
-  title: "ITZuun MVP",
-  description: "MVP frontend for IT freelance marketplace",
+  title: "ITZuun",
+  description: "Secure IT freelance marketplace with escrow protection",
+  icons: {
+    icon: "/images/logo-icon.svg",
+    shortcut: "/favicon.ico",
+  },
 };
 
 export function generateStaticParams() {

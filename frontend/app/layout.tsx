@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ITZuun MVP",
-  description: "MVP frontend for IT freelance marketplace",
+  title: "ITZuun",
+  description: "Secure IT freelance marketplace with escrow protection",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/images/logo-icon.svg",
+    shortcut: "/favicon.ico",
   },
 };
 
