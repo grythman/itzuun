@@ -34,7 +34,7 @@ export function Logo({
 
   const proxyPrefixMatch = pathname.match(/^\/(proxy\/\d+)(?:\/|$)/);
   const assetPrefix = proxyPrefixMatch ? `/${proxyPrefixMatch[1]}` : "";
-  const src = `${assetPrefix}/images/${fileName}.svg`;
+  const src = `${assetPrefix}/images/${fileName}.svg?v=20260410`;
 
   // Default dimensions based on variant
   const defaultWidth = variant === "icon" ? 40 : variant === "vertical" ? 120 : 180;

@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   title: "ITZuun",
   description: "Secure IT freelance marketplace with escrow protection",
   icons: {
-    icon: "/images/logo-icon.svg",
-    shortcut: "/favicon.ico",
+    icon: "/images/logo-icon.svg?v=20260410",
+    shortcut: "/favicon.ico?v=20260410",
   },
 };
 
