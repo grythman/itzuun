@@ -2,6 +2,7 @@
 from django.db.models import Q
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -21,6 +22,20 @@ from .serializers import (
     ProposalSerializer,
 )
 from .services import close_project, select_freelancer, suggest_project_description
+
+
+def _proposal_limit_for_user(user) -> int:
+    now = timezone.now()
+    if user.is_premium and user.premium_expiry and user.premium_expiry <= now:
+        # Auto-downgrade expired premium users on write path.
+        user.is_premium = False
+        user.premium_plan_type = ""
+        user.premium_expiry = None
+        user.save(update_fields=["is_premium", "premium_plan_type", "premium_expiry"])
+        return 10
+    if user.is_premium:
+        return 50
+    return 10
 
 
 class CategoryListView(generics.ListAPIView):
@@ -156,7 +171,22 @@ class ProjectProposalListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         if not self.request.user.is_verified:
             raise ValidationError({"detail": "Only verified freelancers can submit proposals"})
-            
+
+        month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        proposal_limit = _proposal_limit_for_user(self.request.user)
+        monthly_count = Proposal.objects.filter(
+            freelancer=self.request.user,
+            created_at__gte=month_start,
+        ).count()
+        if monthly_count >= proposal_limit:
+            raise ValidationError(
+                {
+                    "code": "proposal_limit_reached",
+                    "detail": f"Monthly proposal limit reached ({proposal_limit}). Upgrade to PRO for 50 proposals/month.",
+                    "upgrade_url": "/pro",
+                }
+            )
+
         project = get_object_or_404(Project, id=self.kwargs["project_id"])
         if project.status != Project.STATUS_OPEN:
             raise ValidationError({"detail": "Project is not open"})

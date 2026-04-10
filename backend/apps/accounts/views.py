@@ -1,5 +1,8 @@
 """Views for OTP-based auth and user endpoints."""
+from datetime import timedelta
+
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -187,3 +190,64 @@ class VerificationSubmitView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(MeSerializer(user).data, status=status.HTTP_200_OK)
+
+
+class PremiumMeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        is_active = bool(user.is_premium and (not user.premium_expiry or user.premium_expiry > timezone.now()))
+        tier = "premium_freelancer" if is_active else "free"
+        proposal_limit = 50 if is_active else 10
+        return Response(
+            {
+                "tier": tier,
+                "is_premium": is_active,
+                "premium_plan_type": user.premium_plan_type,
+                "premium_expiry": user.premium_expiry,
+                "proposal_limit_monthly": proposal_limit,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PremiumSubscribeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.role != User.ROLE_FREELANCER:
+            return Response({"detail": "Premium subscription is only available for freelancers."}, status=status.HTTP_400_BAD_REQUEST)
+
+        plan_type = request.data.get("plan_type") or "pro_monthly"
+        now = timezone.now()
+        user.is_premium = True
+        user.premium_plan_type = str(plan_type)
+        user.premium_expiry = now + timedelta(days=30)
+        user.save(update_fields=["is_premium", "premium_plan_type", "premium_expiry"])
+        bump_user_public_version(user.id)
+        bump_admin_resource_version("users")
+        return Response(
+            {
+                "subscribed": True,
+                "tier": "premium_freelancer",
+                "premium_plan_type": user.premium_plan_type,
+                "premium_expiry": user.premium_expiry,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PremiumCancelView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.is_premium = False
+        user.premium_plan_type = ""
+        user.premium_expiry = None
+        user.save(update_fields=["is_premium", "premium_plan_type", "premium_expiry"])
+        bump_user_public_version(user.id)
+        bump_admin_resource_version("users")
+        return Response({"canceled": True, "tier": "free"}, status=status.HTTP_200_OK)

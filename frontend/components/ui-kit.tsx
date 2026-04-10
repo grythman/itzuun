@@ -162,6 +162,7 @@ export function RoleSidebar({ role }: { role: "client" | "freelancer" | "admin" 
       { href: "/freelancer", label: "Freelancer Dashboard" },
       { href: "/freelancer/profile", label: "My Profile" },
       { href: "/projects", label: "Find Projects" },
+      { href: "/pro", label: "Go PRO" },
     ],
     admin: [
       { href: "/admin", label: "Admin Control" },

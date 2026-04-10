@@ -62,6 +62,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     verification_type = models.CharField(max_length=20, choices=VERIFICATION_TYPE_CHOICES, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     rejection_reason = models.TextField(blank=True)
+    is_premium = models.BooleanField(default=False)
+    premium_expiry = models.DateTimeField(null=True, blank=True)
+    premium_plan_type = models.CharField(max_length=32, blank=True, default="")
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

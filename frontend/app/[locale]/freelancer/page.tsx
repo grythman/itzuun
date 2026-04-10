@@ -13,7 +13,7 @@ import { RoleGuard } from "@/components/role-guard";
 import { ActionButton, AppCard, ConfirmationDialog, DashboardBottomBar, MetricCard, RatingStars, RoleSidebar, StatusPill, VerifiedBadge } from "@/components/ui-kit";
 import { VerificationBanner } from "@/components/verification-banner";
 import { toArray } from "@/lib/api/endpoints";
-import { useMe, useMutation, useMyProfile, useMyProposals, useProjects } from "@/lib/hooks";
+import { useMe, useMutation, useMyProfile, useMyProposals, usePremiumMe, useProjects } from "@/lib/hooks";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useToastStore } from "@/lib/toast-store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -83,6 +83,7 @@ export default function FreelancerDashboardPage() {
   const me = useMe();
   const proposals = useMyProposals();
   const projects = useProjects(1);
+  const premiumMe = usePremiumMe({ enabled: !!me.data });
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
@@ -373,6 +374,19 @@ export default function FreelancerDashboardPage() {
                       Support shortcut
                     </Link>
                   </div>
+                </div>
+              </div>
+            ) : null}
+            {me.data.verification_status === "verified" && premiumMe.data && !premiumMe.data.is_premium ? (
+              <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50 to-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-surface-900">PRO-оор саналын лимитээ өсгөх үү?</p>
+                    <p className="mt-1 text-xs text-surface-600">Одоогийн лимит: {premiumMe.data.proposal_limit_monthly}/сар. PRO бол 50/сар болно.</p>
+                  </div>
+                  <Link href={withLocale("/pro")} className="inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-4 text-[13px] font-semibold text-white">
+                    PRO үзэх
+                  </Link>
                 </div>
               </div>
             ) : null}

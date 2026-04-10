@@ -10,6 +10,8 @@ import type {
   PaginatedResponse,
   PaymentCreateResponse,
   PaymentStatusResponse,
+  PremiumMeResponse,
+  PremiumSubscribeResponse,
   ProjectDto,
   ProposalDto,
   RatingSummaryDto,
@@ -221,6 +223,21 @@ export const escrowApi = {
   },
   release: async (id: string | number) => {
     const res = await apiClient.post(`/payments/escrow/${id}/release/`);
+    return res.data;
+  },
+};
+
+export const premiumApi = {
+  me: async (): Promise<PremiumMeResponse> => {
+    const res = await apiClient.get<PremiumMeResponse>("/premium/me/");
+    return res.data;
+  },
+  subscribe: async (plan_type: string = "pro_monthly"): Promise<PremiumSubscribeResponse> => {
+    const res = await apiClient.post<PremiumSubscribeResponse>("/premium/subscribe/", { plan_type });
+    return res.data;
+  },
+  cancel: async (): Promise<{ canceled: boolean; tier: "free" }> => {
+    const res = await apiClient.post<{ canceled: boolean; tier: "free" }>("/premium/cancel/", {});
     return res.data;
   },
 };

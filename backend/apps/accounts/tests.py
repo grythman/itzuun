@@ -119,3 +119,46 @@ class SetupPilotCohortCommandTests(TestCase):
                 strict=True,
                 stdout=stdout,
             )
+
+
+class PremiumApiTests(TestCase):
+    def setUp(self):
+        self.client_api = APIClient()
+
+    def test_premium_me_requires_authentication(self):
+        response = self.client_api.get("/api/v1/premium/me")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_freelancer_subscribe_and_cancel(self):
+        user = User.objects.create_user(email="pro-freelancer@test.com", password="Pass12345", role="freelancer")
+        self.client_api.force_authenticate(user=user)
+
+        subscribe = self.client_api.post("/api/v1/premium/subscribe", {"plan_type": "pro_monthly"}, format="json")
+        self.assertEqual(subscribe.status_code, status.HTTP_200_OK)
+        self.assertTrue(subscribe.json()["subscribed"])
+
+        user.refresh_from_db()
+        self.assertTrue(user.is_premium)
+        self.assertEqual(user.premium_plan_type, "pro_monthly")
+        self.assertIsNotNone(user.premium_expiry)
+
+        me = self.client_api.get("/api/v1/premium/me")
+        self.assertEqual(me.status_code, status.HTTP_200_OK)
+        self.assertEqual(me.json()["tier"], "premium_freelancer")
+        self.assertEqual(me.json()["proposal_limit_monthly"], 50)
+
+        cancel = self.client_api.post("/api/v1/premium/cancel", {}, format="json")
+        self.assertEqual(cancel.status_code, status.HTTP_200_OK)
+        self.assertTrue(cancel.json()["canceled"])
+
+        user.refresh_from_db()
+        self.assertFalse(user.is_premium)
+        self.assertEqual(user.premium_plan_type, "")
+        self.assertIsNone(user.premium_expiry)
+
+    def test_client_cannot_subscribe_premium_freelancer_plan(self):
+        user = User.objects.create_user(email="pro-client@test.com", password="Pass12345", role="client")
+        self.client_api.force_authenticate(user=user)
+
+        response = self.client_api.post("/api/v1/premium/subscribe", {"plan_type": "pro_monthly"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

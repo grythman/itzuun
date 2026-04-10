@@ -144,3 +144,18 @@ export interface PaymentStatusResponse {
 export interface AdminPaymentDto extends PaymentDto {
   paid_at?: string | null;
 }
+
+export interface PremiumMeResponse {
+  tier: "free" | "premium_freelancer";
+  is_premium: boolean;
+  premium_plan_type: string;
+  premium_expiry: string | null;
+  proposal_limit_monthly: number;
+}
+
+export interface PremiumSubscribeResponse {
+  subscribed: boolean;
+  tier: "premium_freelancer";
+  premium_plan_type: string;
+  premium_expiry: string | null;
+}
