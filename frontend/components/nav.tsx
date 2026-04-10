@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 
+import { Logo } from "@/components/logo";
 import { authApi } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
 
@@ -72,10 +73,12 @@ export function Nav() {
     <header className="z-30 border-b border-[#e7e8f1] bg-[#f5f6fb]/95">
       <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3" aria-label="Main">
         <div className="flex items-center gap-6">
-          <Link href={withLocale("/")} className="flex items-center gap-2.5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg primary-gradient text-xs font-bold text-white">IZ</span>
-            <span className="text-[34px] font-extrabold tracking-tighter text-brand-700 font-headline">ITZuun</span>
-          </Link>
+          <Logo 
+            variant="horizontal" 
+            theme="light" 
+            href={withLocale("/")} 
+            className="w-[140px]" 
+          />
 
           <div className="hidden items-center gap-0.5 md:flex">
             {resolvedNavLinks.map((link) => {
