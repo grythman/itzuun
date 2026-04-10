@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 interface LogoProps {
@@ -17,6 +20,7 @@ export function Logo({
   height,
   href,
 }: LogoProps) {
+  const pathname = usePathname() || "";
   let fileName = "logo-";
   
   if (variant === "icon") {
@@ -28,7 +32,9 @@ export function Logo({
     fileName += `${variant}-${theme}`;
   }
 
-  const src = `/images/${fileName}.svg`;
+  const proxyPrefixMatch = pathname.match(/^\/(proxy\/\d+)(?:\/|$)/);
+  const assetPrefix = proxyPrefixMatch ? `/${proxyPrefixMatch[1]}` : "";
+  const src = `${assetPrefix}/images/${fileName}.svg`;
 
   // Default dimensions based on variant
   const defaultWidth = variant === "icon" ? 40 : variant === "vertical" ? 120 : 180;
