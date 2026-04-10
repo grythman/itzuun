@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 interface LogoProps {
@@ -36,13 +35,14 @@ export function Logo({
   const defaultHeight = variant === "icon" ? 40 : variant === "vertical" ? 120 : 48;
 
   const content = (
-    <Image
+    <img
       src={src}
       alt="ITZuun Logo"
       width={width || defaultWidth}
       height={height || defaultHeight}
       className={`h-auto ${className}`}
-      priority
+      loading="eager"
+      decoding="async"
     />
   );
 
