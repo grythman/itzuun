@@ -8,7 +8,6 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.payments.models import Dispute, Escrow
 from apps.projects.models import Project
 
-
 DEFAULT_COHORT_VALIDATION = "/root/itzuun/docs/evidence/pilot_cohort_validation.json"
 
 
@@ -22,7 +21,9 @@ class Command(BaseCommand):
             default=DEFAULT_COHORT_VALIDATION,
             help=f"Path to cohort validation JSON (default: {DEFAULT_COHORT_VALIDATION})",
         )
-        parser.add_argument("--strict", action="store_true", help="Fail if any exit gate is not ready")
+        parser.add_argument(
+            "--strict", action="store_true", help="Fail if any exit gate is not ready"
+        )
 
     def handle(self, *args, **options):
         as_json = bool(options["json"])
@@ -37,8 +38,12 @@ class Command(BaseCommand):
         ]
         projects_posted_total = Project.objects.count()
         escrow_funded_total = Escrow.objects.filter(status__in=funded_statuses).count()
-        completed_total = Project.objects.filter(status=Project.STATUS_COMPLETED).count()
-        resolved_dispute_total = Dispute.objects.filter(resolved_at__isnull=False).count()
+        completed_total = Project.objects.filter(
+            status=Project.STATUS_COMPLETED
+        ).count()
+        resolved_dispute_total = Dispute.objects.filter(
+            resolved_at__isnull=False
+        ).count()
         cohort_validation = self._read_cohort_validation(cohort_path)
 
         gates = {

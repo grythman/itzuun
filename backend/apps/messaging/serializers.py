@@ -1,8 +1,8 @@
 """Messaging serializers."""
+
 from rest_framework import serializers
 
 from .models import ProjectFile, ProjectMessage
-
 
 MAX_FILE_SIZE = 10 * 1024 * 1024
 ALLOWED_MIME_TYPES = {

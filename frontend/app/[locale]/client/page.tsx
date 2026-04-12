@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
@@ -113,6 +113,15 @@ export default function ClientDashboardPage() {
     setTimeout(() => proposalSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
+  const myProjects = (projects.data?.results || []).filter((project) => project.owner === me.data?.id);
+  const openProject = myProjects.find((project) => project.status === "open");
+
+  useEffect(() => {
+    if (!activeProjectId && openProject) {
+      setActiveProjectId(openProject.id);
+    }
+  }, [activeProjectId, openProject]);
+
   if (me.isLoading || projects.isLoading || profile.isLoading) {
     return (
       <section className="space-y-4 pb-20">
@@ -151,7 +160,6 @@ export default function ClientDashboardPage() {
     );
   }
 
-  const myProjects = projects.data.results.filter((project) => project.owner === me.data?.id);
   const proposalItems = proposals.data ? toArray<ProposalDto>(proposals.data) : [];
   const activeProject = myProjects.find((project) => project.id === activeProjectId) || null;
 
@@ -171,15 +179,12 @@ export default function ClientDashboardPage() {
   const totalEscrow = myProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
   const completedCount = myProjects.filter((p) => p.status === "completed").length;
   const awaitingReview = myProjects.find((project) => project.status === "awaiting_client_review");
-  const openProject = myProjects.find((project) => project.status === "open");
   const inProgressProject = myProjects.find((project) => project.status === "in_progress");
 
-  const urgencyText = useMemo(() => {
-    if (awaitingReview) return "Одоо хийх ажил: Completion баталгаажуулж escrow release хийх.";
-    if (openProject) return "Одоо хийх ажил: Саналуудыг харьцуулж freelancer сонгох.";
-    if (inProgressProject) return "Одоо хийх ажил: Гүйцэтгэлийг хянаж эрсдэл гарвал маргаан нээх.";
-    return "Одоо хийх ажил: Шинэ төсөл оруулж ажил эхлүүлэх.";
-  }, [awaitingReview, openProject, inProgressProject]);
+  let urgencyText = "Одоо хийх ажил: Шинэ төсөл оруулж ажил эхлүүлэх.";
+  if (awaitingReview) urgencyText = "Одоо хийх ажил: Completion баталгаажуулж escrow release хийх.";
+  else if (openProject) urgencyText = "Одоо хийх ажил: Саналуудыг харьцуулж freelancer сонгох.";
+  else if (inProgressProject) urgencyText = "Одоо хийх ажил: Гүйцэтгэлийг хянаж эрсдэл гарвал маргаан нээх.";
 
   const freshestUpdate = myProjects.reduce<string | undefined>((latest, project) => {
     const candidate = (project as { updated_at?: string; created_at?: string }).updated_at || (project as { updated_at?: string; created_at?: string }).created_at;
@@ -188,23 +193,15 @@ export default function ClientDashboardPage() {
     return new Date(candidate).getTime() > new Date(latest).getTime() ? candidate : latest;
   }, undefined);
 
-  const sortedProposalItems = useMemo(() => {
-    return [...proposalItems].sort((a, b) => {
-      const aScore = Number(a.price || 0) + Math.max(1, Number(a.timeline_days || 1)) * 1000;
-      const bScore = Number(b.price || 0) + Math.max(1, Number(b.timeline_days || 1)) * 1000;
-      return aScore - bScore;
-    });
-  }, [proposalItems]);
+  const sortedProposalItems = [...proposalItems].sort((a, b) => {
+    const aScore = Number(a.price || 0) + Math.max(1, Number(a.timeline_days || 1)) * 1000;
+    const bScore = Number(b.price || 0) + Math.max(1, Number(b.timeline_days || 1)) * 1000;
+    return aScore - bScore;
+  });
 
   const releaseProject = myProjects.find((p) => p.id === releaseTarget) || null;
   const disputeProject = myProjects.find((p) => p.id === disputeTarget) || null;
   const proposalInbox = sortedProposalItems.slice(0, 3);
-
-  useEffect(() => {
-    if (!activeProjectId && openProject) {
-      setActiveProjectId(openProject.id);
-    }
-  }, [activeProjectId, openProject]);
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>

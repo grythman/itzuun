@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from apps.accounts.models import User
 
+
 @override_settings(GOOGLE_CLIENT_ID="test-client-id")
 class GoogleAuthApiTests(TestCase):
     def setUp(self):
@@ -33,7 +34,7 @@ class GoogleAuthApiTests(TestCase):
         self.assertEqual(response.json()["user"]["email"], "new-google-user@test.com")
         self.assertEqual(response.json()["user"]["role"], "freelancer")
         self.assertTrue(response.json()["user"]["is_verified"])
-        
+
         user = User.objects.get(email="new-google-user@test.com")
         self.assertTrue(user.is_verified)
         self.assertEqual(user.role, "freelancer")
@@ -41,7 +42,7 @@ class GoogleAuthApiTests(TestCase):
     @patch("apps.accounts.services.requests.get")
     def test_google_auth_logins_existing_user(self, mock_get):
         User.objects.create(email="existing@test.com", role="client", is_verified=False)
-        
+
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {
             "aud": "test-client-id",

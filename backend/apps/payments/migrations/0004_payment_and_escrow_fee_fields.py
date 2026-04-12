@@ -39,13 +39,25 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="Payment",
             fields=[
-                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
                 ("invoice_id", models.CharField(max_length=128, unique=True)),
                 ("amount", models.PositiveIntegerField()),
                 (
                     "status",
                     models.CharField(
-                        choices=[("pending", "Pending"), ("paid", "Paid"), ("failed", "Failed")],
+                        choices=[
+                            ("pending", "Pending"),
+                            ("paid", "Paid"),
+                            ("failed", "Failed"),
+                        ],
                         default="pending",
                         max_length=16,
                     ),
@@ -64,8 +76,14 @@ class Migration(migrations.Migration):
             ],
             options={
                 "indexes": [
-                    models.Index(fields=["project", "status", "-created_at"], name="idx_pay_proj_status_cr"),
-                    models.Index(fields=["status", "-created_at"], name="idx_payment_status_created"),
+                    models.Index(
+                        fields=["project", "status", "-created_at"],
+                        name="idx_pay_proj_status_cr",
+                    ),
+                    models.Index(
+                        fields=["status", "-created_at"],
+                        name="idx_payment_status_created",
+                    ),
                 ],
             },
         ),

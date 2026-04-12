@@ -1,4 +1,5 @@
 """QPay integration service."""
+
 import hashlib
 import hmac
 import json
@@ -46,7 +47,11 @@ def _payment_check_url() -> str:
 
 
 def authenticate() -> str:
-    if not settings.QPAY_BASE_URL or not settings.QPAY_USERNAME or not settings.QPAY_PASSWORD:
+    if (
+        not settings.QPAY_BASE_URL
+        or not settings.QPAY_USERNAME
+        or not settings.QPAY_PASSWORD
+    ):
         if getattr(settings, "DEBUG", False):
             return "mock_token"
         raise DomainError("QPay environment configuration is incomplete")
@@ -80,16 +85,17 @@ def authenticate() -> str:
 
 def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
     token = authenticate()
-    
+
     if token == "mock_token":
         import uuid
+
         invoice_id = f"mock-inv-{uuid.uuid4().hex[:8]}"
         return QPayInvoice(
             invoice_id=invoice_id,
             qr_text="qpay://mock",
             qr_image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
             invoice_url=f"http://localhost:3000/mock-qpay/{invoice_id}",
-            raw_response={"mock": True}
+            raw_response={"mock": True},
         )
 
     if not settings.QPAY_MERCHANT_CODE:
@@ -104,7 +110,9 @@ def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
         "callback_url": callback_url,
     }
     try:
-        response = requests.post(_invoice_url(), headers=_headers(token), json=payload, timeout=12)
+        response = requests.post(
+            _invoice_url(), headers=_headers(token), json=payload, timeout=12
+        )
     except requests.RequestException as exc:
         raise DomainError("Unable to reach QPay invoice endpoint") from exc
     if response.status_code >= 400:
@@ -151,7 +159,9 @@ def get_invoice_status(invoice_id: str) -> dict:
     try:
         return response.json()
     except ValueError as exc:
-        raise DomainError("QPay payment verification response was not valid JSON") from exc
+        raise DomainError(
+            "QPay payment verification response was not valid JSON"
+        ) from exc
 
 
 def verify_webhook(request) -> dict:
@@ -160,24 +170,25 @@ def verify_webhook(request) -> dict:
             payload = json.loads(request.body.decode("utf-8")) if request.body else {}
         except json.JSONDecodeError as exc:
             raise DomainError("Invalid webhook payload") from exc
-        
+
         invoice_id = payload.get("invoice_id") or payload.get("invoiceId")
         if not invoice_id:
             raise DomainError("Webhook payload missing invoice_id")
-            
+
         from apps.payments.models import Payment
+
         try:
             payment = Payment.objects.get(invoice_id=invoice_id)
             expected_amount = payment.amount
         except Payment.DoesNotExist:
             expected_amount = int(payload.get("amount") or 0)
-            
+
         return {
             "invoice_id": invoice_id,
             "is_paid": True,
             "amount": expected_amount,
             "payload": payload,
-            "verification": {"mock": True, "payment_status": "PAID"}
+            "verification": {"mock": True, "payment_status": "PAID"},
         }
 
     if not settings.QPAY_WEBHOOK_SECRET:
@@ -209,7 +220,9 @@ def verify_webhook(request) -> dict:
         raise DomainError("Webhook payload missing invoice_id")
 
     verification = get_invoice_status(invoice_id)
-    paid_flag = str(verification.get("payment_status") or verification.get("status") or "").lower()
+    paid_flag = str(
+        verification.get("payment_status") or verification.get("status") or ""
+    ).lower()
     is_paid = paid_flag in {"paid", "success", "succeeded"}
     paid_amount = int(verification.get("amount") or payload.get("amount") or 0)
 

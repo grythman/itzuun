@@ -61,10 +61,14 @@ class Command(BaseCommand):
         proposals_submitted = Proposal.objects.filter(created_at__gte=since).count()
 
         # Projects in the window that reached hire decision
-        hired_projects = projects_posted_qs.filter(selected_proposal__isnull=False).count()
+        hired_projects = projects_posted_qs.filter(
+            selected_proposal__isnull=False
+        ).count()
 
         proposal_to_hire_conversion_pct = (
-            round((hired_projects / projects_posted) * 100, 2) if projects_posted else 0.0
+            round((hired_projects / projects_posted) * 100, 2)
+            if projects_posted
+            else 0.0
         )
 
         # Escrow funded count approximation based on status and created_at
@@ -85,17 +89,25 @@ class Command(BaseCommand):
             status=Project.STATUS_COMPLETED,
         ).count()
         completion_rate_pct = (
-            round((completed_hired_projects / hired_projects) * 100, 2) if hired_projects else 0.0
+            round((completed_hired_projects / hired_projects) * 100, 2)
+            if hired_projects
+            else 0.0
         )
 
         # Average rating from reviews written in period
-        avg_rating_raw = Review.objects.filter(created_at__gte=since).aggregate(avg=Avg("rating"))["avg"]
-        avg_rating = round(float(avg_rating_raw), 2) if avg_rating_raw is not None else 0.0
+        avg_rating_raw = Review.objects.filter(created_at__gte=since).aggregate(
+            avg=Avg("rating")
+        )["avg"]
+        avg_rating = (
+            round(float(avg_rating_raw), 2) if avg_rating_raw is not None else 0.0
+        )
 
         # Dispute rate among funded escrows created in period
         disputes_created = Dispute.objects.filter(created_at__gte=since).count()
         dispute_rate_pct = (
-            round((disputes_created / escrow_funded_count) * 100, 2) if escrow_funded_count else 0.0
+            round((disputes_created / escrow_funded_count) * 100, 2)
+            if escrow_funded_count
+            else 0.0
         )
 
         payload = {

@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Script from "next/script";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -99,7 +99,7 @@ function AuthCard() {
   const me = useMe();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
-  const withLocale = (href: string) => `/${locale}${href}`;
+  const withLocale = useCallback((href: string) => `/${locale}${href}`, [locale]);
   const initialTab = useMemo<AuthTab>(() => (searchParams.get("tab") === "register" ? "register" : "signin"), [searchParams]);
   const expectedRole = searchParams.get("role");
   const nextPath = searchParams.get("next");
@@ -147,7 +147,7 @@ function AuthCard() {
       const target = nextPath ? nextPath : defaultRoleDashboard(me.data.role);
       router.replace(withLocale(target.startsWith("/") ? target : `/${target}`));
     }
-  }, [authStage, me.data, nextPath, router]);
+  }, [authStage, me.data, nextPath, router, withLocale]);
 
   useEffect(() => {
     setActiveTab(initialTab);

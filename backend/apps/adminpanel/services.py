@@ -1,4 +1,5 @@
 """Admin services."""
+
 from django.db import transaction
 
 from apps.accounts.models import User
@@ -10,7 +11,9 @@ from common.models import PlatformSetting
 
 
 @transaction.atomic
-def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: User | None = None) -> User:
+def verify_user(
+    user: User, *, action: str, rejection_reason: str = "", actor: User | None = None
+) -> User:
     # Support legacy action names while enforcing a stricter state machine.
     alias_map = {"approve": "verify", "reject": "unverify"}
     normalized = alias_map.get(action, action)
@@ -61,7 +64,14 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: U
         user.verification_status = User.VERIFICATION_VERIFIED
         user.rejection_reason = ""
         user.is_active = True
-        user.save(update_fields=["verification_status", "rejection_reason", "is_verified", "is_active"])
+        user.save(
+            update_fields=[
+                "verification_status",
+                "rejection_reason",
+                "is_verified",
+                "is_active",
+            ]
+        )
 
         # Create an audit record for the unsuspend action
         payload = {
@@ -93,7 +103,14 @@ def verify_user(user: User, *, action: str, rejection_reason: str = "", actor: U
         )
         return user
 
-    user.save(update_fields=["verification_status", "rejection_reason", "is_verified", "is_active"])
+    user.save(
+        update_fields=[
+            "verification_status",
+            "rejection_reason",
+            "is_verified",
+            "is_active",
+        ]
+    )
     return user
 
 
@@ -146,4 +163,6 @@ def resolve_project_dispute(
     note: str,
     resolver: User,
 ):
-    return resolve_dispute(dispute, action, release_amount, refund_amount, note, resolver)
+    return resolve_dispute(
+        dispute, action, release_amount, refund_amount, note, resolver
+    )

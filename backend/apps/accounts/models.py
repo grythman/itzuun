@@ -1,5 +1,10 @@
 """Account and authentication models."""
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.db import models
 from django.utils import timezone
 
@@ -58,8 +63,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_CLIENT)
     is_verified = models.BooleanField(default=False)
-    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default=VERIFICATION_UNVERIFIED)
-    verification_type = models.CharField(max_length=20, choices=VERIFICATION_TYPE_CHOICES, blank=True)
+    verification_status = models.CharField(
+        max_length=20,
+        choices=VERIFICATION_STATUS_CHOICES,
+        default=VERIFICATION_UNVERIFIED,
+    )
+    verification_type = models.CharField(
+        max_length=20, choices=VERIFICATION_TYPE_CHOICES, blank=True
+    )
     phone = models.CharField(max_length=20, blank=True)
     rejection_reason = models.TextField(blank=True)
     is_premium = models.BooleanField(default=False)
@@ -75,7 +86,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def save(self, *args, **kwargs):
-        self.is_verified = (self.verification_status == self.VERIFICATION_VERIFIED)
+        self.is_verified = self.verification_status == self.VERIFICATION_VERIFIED
         super().save(*args, **kwargs)
 
 
@@ -91,5 +102,7 @@ class EmailOTP(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["email", "is_used", "expires_at"], name="idx_otp_email_used_exp"),
+            models.Index(
+                fields=["email", "is_used", "expires_at"], name="idx_otp_email_used_exp"
+            ),
         ]

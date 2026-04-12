@@ -1,4 +1,5 @@
 """Common models."""
+
 from django.db import models
 
 
@@ -10,7 +11,8 @@ class PlatformSetting(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(platform_fee_pct__gte=0) & models.Q(platform_fee_pct__lte=30),
+                check=models.Q(platform_fee_pct__gte=0)
+                & models.Q(platform_fee_pct__lte=30),
                 name="valid_fee_bounds",
             ),
         ]

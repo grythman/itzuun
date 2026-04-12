@@ -12,7 +12,9 @@ from apps.projects.models import Project, Proposal
 class AiDescriptionSuggestTests(TestCase):
     def setUp(self):
         self.client_api = APIClient()
-        self.user = User.objects.create_user(email="client-ai@test.com", password="Pass12345", role="client")
+        self.user = User.objects.create_user(
+            email="client-ai@test.com", password="Pass12345", role="client"
+        )
 
     def test_suggest_requires_authentication(self):
         response = self.client_api.post(
@@ -49,7 +51,9 @@ class AiDescriptionSuggestTests(TestCase):
 class ProjectListFilterTests(TestCase):
     def setUp(self):
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner@test.com", password="Pass12345", role="client")
+        self.owner = User.objects.create_user(
+            email="owner@test.com", password="Pass12345", role="client"
+        )
         Project.objects.create(
             owner=self.owner,
             title="React dashboard",
@@ -80,8 +84,14 @@ class ProjectListFilterTests(TestCase):
 class ProposalLimitTests(TestCase):
     def setUp(self):
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="proposal-owner@test.com", password="Pass12345", role="client")
-        self.freelancer = User.objects.create_user(email="proposal-freelancer@test.com", password="Pass12345", role="freelancer")
+        self.owner = User.objects.create_user(
+            email="proposal-owner@test.com", password="Pass12345", role="client"
+        )
+        self.freelancer = User.objects.create_user(
+            email="proposal-freelancer@test.com",
+            password="Pass12345",
+            role="freelancer",
+        )
         self.freelancer.verification_status = User.VERIFICATION_VERIFIED
         self.freelancer.save(update_fields=["verification_status"])
         self.client_api.force_authenticate(self.freelancer)
@@ -142,7 +152,9 @@ class ProposalLimitTests(TestCase):
         self.freelancer.is_premium = True
         self.freelancer.premium_plan_type = "pro_monthly"
         self.freelancer.premium_expiry = timezone.now() - timedelta(days=1)
-        self.freelancer.save(update_fields=["is_premium", "premium_plan_type", "premium_expiry"])
+        self.freelancer.save(
+            update_fields=["is_premium", "premium_plan_type", "premium_expiry"]
+        )
 
         projects = [self._create_open_project(i) for i in range(1, 12)]
         for project in projects[:10]:

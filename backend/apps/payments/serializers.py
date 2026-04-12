@@ -1,4 +1,5 @@
 """Payments serializers."""
+
 from rest_framework import serializers
 
 from .models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
@@ -7,7 +8,14 @@ from .models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
 class EscrowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Escrow
-        fields = ("id", "project", "amount", "platform_fee_amount", "freelancer_amount", "status")
+        fields = (
+            "id",
+            "project",
+            "amount",
+            "platform_fee_amount",
+            "freelancer_amount",
+            "status",
+        )
         read_only_fields = ("id", "project", "status")
 
 

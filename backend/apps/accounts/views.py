@@ -1,4 +1,5 @@
 """Views for OTP-based auth and user endpoints."""
+
 from datetime import timedelta
 
 from django.conf import settings
@@ -11,7 +12,15 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 
 from .models import User
-from .serializers import GoogleAuthSerializer, LoginSerializer, MeSerializer, RegisterSerializer, RequestOtpSerializer, VerificationSubmitSerializer, VerifyOtpSerializer
+from .serializers import (
+    GoogleAuthSerializer,
+    LoginSerializer,
+    MeSerializer,
+    RegisterSerializer,
+    RequestOtpSerializer,
+    VerificationSubmitSerializer,
+    VerifyOtpSerializer,
+)
 
 
 def _set_auth_cookies(response: Response, access: str, refresh: str) -> None:
@@ -140,7 +149,9 @@ class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
-            return Response({"detail": "Refresh token missing"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"detail": "Refresh token missing"}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
         serializer = self.get_serializer(data={"refresh": refresh_token})
         serializer.is_valid(raise_exception=True)
@@ -171,10 +182,15 @@ class MeView(APIView):
 
     def patch(self, request):
         if not request.user or not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"detail": "Authentication credentials were not provided."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
         role = request.data.get("role")
         if role not in [User.ROLE_CLIENT, User.ROLE_FREELANCER]:
-            return Response({"detail": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST
+            )
         request.user.role = role
         request.user.save(update_fields=["role"])
         bump_user_public_version(request.user.id)
@@ -186,7 +202,9 @@ class VerificationSubmitView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        serializer = VerificationSubmitSerializer(data=request.data, context={"request": request})
+        serializer = VerificationSubmitSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(MeSerializer(user).data, status=status.HTTP_200_OK)
@@ -197,7 +215,10 @@ class PremiumMeView(APIView):
 
     def get(self, request):
         user = request.user
-        is_active = bool(user.is_premium and (not user.premium_expiry or user.premium_expiry > timezone.now()))
+        is_active = bool(
+            user.is_premium
+            and (not user.premium_expiry or user.premium_expiry > timezone.now())
+        )
         tier = "premium_freelancer" if is_active else "free"
         proposal_limit = 50 if is_active else 10
         return Response(
@@ -218,7 +239,10 @@ class PremiumSubscribeView(APIView):
     def post(self, request):
         user = request.user
         if user.role != User.ROLE_FREELANCER:
-            return Response({"detail": "Premium subscription is only available for freelancers."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Premium subscription is only available for freelancers."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         plan_type = request.data.get("plan_type") or "pro_monthly"
         now = timezone.now()

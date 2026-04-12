@@ -1,10 +1,15 @@
 """Account permissions."""
+
 from rest_framework.permissions import BasePermission
 
 
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view) -> bool:
-        return bool(request.user and request.user.is_authenticated and request.user.role == "admin")
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role == "admin"
+        )
 
 
 class IsRole(BasePermission):
@@ -12,4 +17,8 @@ class IsRole(BasePermission):
         self.role = role
 
     def has_permission(self, request, view) -> bool:
-        return bool(request.user and request.user.is_authenticated and request.user.role == self.role)
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role == self.role
+        )

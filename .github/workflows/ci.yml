@@ -59,7 +59,7 @@ jobs:
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install black flake8 isort pytest pytest-django psycopg[binary]
+          pip install black==26.3.1 flake8 isort pytest pytest-django psycopg[binary]
 
       - name: Formatting check (Black)
         run: |

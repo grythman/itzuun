@@ -16,11 +16,17 @@ from common.exceptions import DomainError
 class TestAuthentication(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(email="test@example.com", password="password123", role="client")
+        self.user = User.objects.create_user(
+            email="test@example.com", password="password123", role="client"
+        )
 
     def test_login_and_logout(self):
         # Test login
-        response = self.client.post("/api/v1/auth/login", {"email": "test@example.com", "password": "password123"}, format="json")
+        response = self.client.post(
+            "/api/v1/auth/login",
+            {"email": "test@example.com", "password": "password123"},
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data.get("authenticated"))
         self.assertIn("user", response.data)
@@ -34,7 +40,9 @@ class TestAuthentication(TestCase):
 class TestProjectCreation(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(email="client@example.com", password="password123", role="client")
+        self.user = User.objects.create_user(
+            email="client@example.com", password="password123", role="client"
+        )
         self.client.force_authenticate(user=self.user)
 
     def test_create_project(self):
@@ -60,9 +68,15 @@ class EscrowAbuseMatrixTests(TestCase):
             caches[cache_alias].clear()
 
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
-        self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
-        self.admin = User.objects.create_user(email="admin@test.com", role="admin", password="pass1234")
+        self.owner = User.objects.create_user(
+            email="owner@test.com", role="client", password="pass1234"
+        )
+        self.freelancer = User.objects.create_user(
+            email="freelancer@test.com", role="freelancer", password="pass1234"
+        )
+        self.admin = User.objects.create_user(
+            email="admin@test.com", role="admin", password="pass1234"
+        )
 
     def _build_project_in_progress(self, price=1000000):
         project = Project.objects.create(
@@ -87,7 +101,9 @@ class EscrowAbuseMatrixTests(TestCase):
         return project, proposal
 
     def _hold_escrow(self, project: Project, amount: int):
-        return Escrow.objects.create(project=project, amount=amount, status=Escrow.STATUS_HELD)
+        return Escrow.objects.create(
+            project=project, amount=amount, status=Escrow.STATUS_HELD
+        )
 
     def test_negative_fee_returns_400(self):
         self.client_api.force_authenticate(self.admin)
@@ -119,17 +135,27 @@ class EscrowAbuseMatrixTests(TestCase):
         self._hold_escrow(project, proposal.price)
 
         self.client_api.force_authenticate(self.freelancer)
-        response = self.client_api.post(f"/api/v1/projects/{project.id}/submit-result", format="json")
+        response = self.client_api.post(
+            f"/api/v1/projects/{project.id}/submit-result", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_double_confirm_completion_idempotent(self):
         project, proposal = self._build_project_in_progress(price=700000)
         self._hold_escrow(project, proposal.price)
         file_obj = ProjectFile.objects.create(
-            project=project, uploader=self.freelancer, file="dummy.txt", name="dummy.txt", size=1
+            project=project,
+            uploader=self.freelancer,
+            file="dummy.txt",
+            name="dummy.txt",
+            size=1,
         )
         ProjectDeliverable.objects.create(
-            project=project, file=file_obj, submitted_by=self.freelancer, description="done", checksum="abc123"
+            project=project,
+            file=file_obj,
+            submitted_by=self.freelancer,
+            description="done",
+            checksum="abc123",
         )
         project.status = Project.STATUS_AWAITING_REVIEW
         project.save(update_fields=["status"])
@@ -137,7 +163,7 @@ class EscrowAbuseMatrixTests(TestCase):
         ikey = str(uuid.uuid4())
 
         self.client_api.force_authenticate(self.owner)
-        
+
         first = self.client_api.post(
             f"/api/v1/projects/{project.id}/confirm-completion",
             format="json",
@@ -151,14 +177,14 @@ class EscrowAbuseMatrixTests(TestCase):
 
         self.assertEqual(first.status_code, status.HTTP_200_OK)
         self.assertEqual(second.status_code, status.HTTP_200_OK)
-        
+
         escrow = Escrow.objects.get(project=project)
         self.assertEqual(escrow.status, Escrow.STATUS_RELEASED)
 
     def test_dispute_then_confirm_completion_is_blocked(self):
         project, proposal = self._build_project_in_progress(price=450000)
         self._hold_escrow(project, proposal.price)
-        
+
         self.client_api.force_authenticate(self.owner)
         dispute_resp = self.client_api.post(
             f"/api/v1/projects/{project.id}/dispute",
@@ -166,7 +192,7 @@ class EscrowAbuseMatrixTests(TestCase):
             format="json",
         )
         self.assertEqual(dispute_resp.status_code, status.HTTP_201_CREATED)
-        
+
         project.refresh_from_db()
         self.assertEqual(project.status, Project.STATUS_DISPUTED)
 
@@ -175,7 +201,7 @@ class EscrowAbuseMatrixTests(TestCase):
             format="json",
             HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()),
         )
-        
+
         self.assertEqual(complete_resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_replay_deposit_request_is_idempotent(self):
@@ -198,7 +224,9 @@ class EscrowAbuseMatrixTests(TestCase):
         self.assertEqual(first.json(), second.json())
         escrow = Escrow.objects.get(project=project)
         self.assertEqual(escrow.amount, proposal.price)
-        self.assertEqual(escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).count(), 1)
+        self.assertEqual(
+            escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).count(), 1
+        )
 
 
 class CacheInvalidationSmokeTests(TestCase):
@@ -207,14 +235,20 @@ class CacheInvalidationSmokeTests(TestCase):
             caches[cache_alias].clear()
 
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner-cache@test.com", role="client", password="pass1234")
+        self.owner = User.objects.create_user(
+            email="owner-cache@test.com", role="client", password="pass1234"
+        )
         self.freelancer = User.objects.create_user(
             email="freelancer-cache@test.com", role="freelancer", password="pass1234"
         )
-        self.admin = User.objects.create_user(email="admin-cache@test.com", role="admin", password="pass1234")
+        self.admin = User.objects.create_user(
+            email="admin-cache@test.com", role="admin", password="pass1234"
+        )
 
     def test_admin_users_list_invalidation_after_verify(self):
-        target = User.objects.create_user(email="pending-cache@test.com", role="client", password="pass1234")
+        target = User.objects.create_user(
+            email="pending-cache@test.com", role="client", password="pass1234"
+        )
 
         self.client_api.force_authenticate(self.admin)
         first = self.client_api.get("/api/v1/admin/users", {"verified": "false"})
@@ -222,7 +256,11 @@ class CacheInvalidationSmokeTests(TestCase):
         first_ids = [item["id"] for item in first.json()["results"]]
         self.assertIn(target.id, first_ids)
 
-        verify = self.client_api.post(f"/api/v1/admin/users/{target.id}/verify", {"action": "approve"}, format="json")
+        verify = self.client_api.post(
+            f"/api/v1/admin/users/{target.id}/verify",
+            {"action": "approve"},
+            format="json",
+        )
         self.assertEqual(verify.status_code, status.HTTP_200_OK)
 
         second = self.client_api.get("/api/v1/admin/users", {"verified": "false"})
@@ -262,7 +300,9 @@ class CacheInvalidationSmokeTests(TestCase):
         self.assertEqual(first.status_code, status.HTTP_200_OK)
         self.assertEqual(first.json()["full_name"], "")
 
-        patch = self.client_api.patch("/api/v1/profiles/me", {"full_name": "Cache Updated"}, format="json")
+        patch = self.client_api.patch(
+            "/api/v1/profiles/me", {"full_name": "Cache Updated"}, format="json"
+        )
         self.assertEqual(patch.status_code, status.HTTP_200_OK)
 
         second = self.client_api.get("/api/v1/profiles/me")
@@ -291,8 +331,12 @@ class CacheInvalidationSmokeTests(TestCase):
         project.save(update_fields=["selected_proposal"])
 
         self.client_api.force_authenticate(self.owner)
-        summary_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
-        reviews_before = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews")
+        summary_before = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/rating-summary"
+        )
+        reviews_before = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/reviews"
+        )
         self.assertEqual(summary_before.status_code, status.HTTP_200_OK)
         self.assertEqual(reviews_before.status_code, status.HTTP_200_OK)
         self.assertEqual(summary_before.json()["total"], 0)
@@ -306,8 +350,12 @@ class CacheInvalidationSmokeTests(TestCase):
         )
         self.assertEqual(create.status_code, status.HTTP_201_CREATED)
 
-        summary_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
-        reviews_after = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/reviews")
+        summary_after = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/rating-summary"
+        )
+        reviews_after = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/reviews"
+        )
         self.assertEqual(summary_after.status_code, status.HTTP_200_OK)
         self.assertEqual(reviews_after.status_code, status.HTTP_200_OK)
         self.assertEqual(summary_after.json()["total"], 1)
@@ -318,8 +366,12 @@ class CacheInvalidationSmokeTests(TestCase):
 class ProjectPaymentEndpointsTests(TestCase):
     def setUp(self):
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner-pay@test.com", role="client", password="pass1234")
-        self.freelancer = User.objects.create_user(email="freelancer-pay@test.com", role="freelancer", password="pass1234")
+        self.owner = User.objects.create_user(
+            email="owner-pay@test.com", role="client", password="pass1234"
+        )
+        self.freelancer = User.objects.create_user(
+            email="freelancer-pay@test.com", role="freelancer", password="pass1234"
+        )
         self.project = Project.objects.create(
             owner=self.owner,
             title="Payment endpoint project",
@@ -352,7 +404,9 @@ class ProjectPaymentEndpointsTests(TestCase):
 
         mock_create_invoice.return_value = _Invoice()
 
-        response = self.client_api.post(f"/api/v1/payments/project/{self.project.id}/create", format="json")
+        response = self.client_api.post(
+            f"/api/v1/payments/project/{self.project.id}/create", format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["invoice_id"], "inv-123")
@@ -361,7 +415,9 @@ class ProjectPaymentEndpointsTests(TestCase):
 
     @patch("apps.payments.views.get_invoice_status")
     @patch("apps.payments.views.create_invoice")
-    def test_payment_status_marks_paid_and_holds_escrow(self, mock_create_invoice, mock_get_invoice_status):
+    def test_payment_status_marks_paid_and_holds_escrow(
+        self, mock_create_invoice, mock_get_invoice_status
+    ):
         class _Invoice:
             invoice_id = "inv-456"
             invoice_url = "https://qpay.test/inv-456"
@@ -376,10 +432,14 @@ class ProjectPaymentEndpointsTests(TestCase):
             "amount": 250000,
         }
 
-        create_resp = self.client_api.post(f"/api/v1/payments/project/{self.project.id}/create", format="json")
+        create_resp = self.client_api.post(
+            f"/api/v1/payments/project/{self.project.id}/create", format="json"
+        )
         self.assertEqual(create_resp.status_code, status.HTTP_201_CREATED)
 
-        status_resp = self.client_api.get(f"/api/v1/payments/project/{self.project.id}/status")
+        status_resp = self.client_api.get(
+            f"/api/v1/payments/project/{self.project.id}/status"
+        )
         self.assertEqual(status_resp.status_code, status.HTTP_200_OK)
         self.assertEqual(status_resp.json()["status"], Payment.STATUS_PAID)
 
@@ -391,17 +451,27 @@ class MvPHappyPathApiTests(TestCase):
     def setUp(self):
         for cache_alias in caches:
             caches[cache_alias].clear()
-            
+
         self.client_api = APIClient()
-        self.client_user = User.objects.create_user(email="client-e2e@test.com", role="client", password="pass1234")
-        self.freelancer = User.objects.create_user(email="freelancer-e2e@test.com", role="freelancer", password="pass1234")
-        self.admin = User.objects.create_user(email="admin-e2e@test.com", role="admin", password="pass1234")
+        self.client_user = User.objects.create_user(
+            email="client-e2e@test.com", role="client", password="pass1234"
+        )
+        self.freelancer = User.objects.create_user(
+            email="freelancer-e2e@test.com", role="freelancer", password="pass1234"
+        )
+        self.admin = User.objects.create_user(
+            email="admin-e2e@test.com", role="admin", password="pass1234"
+        )
 
     def test_e2e_happy_path_project_to_review(self):
         self.client_api.force_authenticate(self.admin)
-        verify_resp = self.client_api.post(f"/api/v1/admin/users/{self.freelancer.id}/verify", {"action": "approve"}, format="json")
+        verify_resp = self.client_api.post(
+            f"/api/v1/admin/users/{self.freelancer.id}/verify",
+            {"action": "approve"},
+            format="json",
+        )
         self.assertEqual(verify_resp.status_code, status.HTTP_200_OK)
-        
+
         self.freelancer.refresh_from_db()
 
         self.client_api.force_authenticate(self.client_user)
@@ -478,7 +548,9 @@ class MvPHappyPathApiTests(TestCase):
         )
         self.assertEqual(deliverable.status_code, status.HTTP_201_CREATED)
 
-        submit_result_resp = self.client_api.post(f"/api/v1/projects/{project.id}/submit-result", format="json")
+        submit_result_resp = self.client_api.post(
+            f"/api/v1/projects/{project.id}/submit-result", format="json"
+        )
         self.assertEqual(submit_result_resp.status_code, status.HTTP_200_OK)
 
         self.client_api.force_authenticate(self.client_user)
@@ -496,6 +568,8 @@ class MvPHappyPathApiTests(TestCase):
         )
         self.assertEqual(review_resp.status_code, status.HTTP_201_CREATED)
 
-        summary_resp = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
+        summary_resp = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/rating-summary"
+        )
         self.assertEqual(summary_resp.status_code, status.HTTP_200_OK)
         self.assertEqual(summary_resp.json()["total"], 1)

@@ -1,4 +1,5 @@
 """Project and proposal views."""
+
 from django.db.models import Q
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
@@ -9,7 +10,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.messaging.models import ProjectFile
-from common.cache_utils import bump_admin_resource_version, bump_project_version, project_detail_cache_key, project_list_cache_key
+from common.cache_utils import (
+    bump_admin_resource_version,
+    bump_project_version,
+    project_detail_cache_key,
+    project_list_cache_key,
+)
 
 from .models import Category, Project, ProjectDeliverable, Proposal
 from .permissions import IsClient, IsFreelancer
@@ -72,7 +78,9 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         if category_filter:
             queryset = queryset.filter(category=category_filter)
         if search:
-            queryset = queryset.filter(Q(title__icontains=search) | Q(description__icontains=search))
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(description__icontains=search)
+            )
         if skills:
             skill_terms = [item.strip() for item in skills.split(",") if item.strip()]
             for skill in skill_terms:
@@ -102,7 +110,9 @@ class ProjectListCreateView(generics.ListCreateAPIView):
 
 class ProjectDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = ProjectSerializer
-    queryset = Project.objects.select_related("owner", "selected_proposal__freelancer").prefetch_related("proposals")
+    queryset = Project.objects.select_related(
+        "owner", "selected_proposal__freelancer"
+    ).prefetch_related("proposals")
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -114,7 +124,9 @@ class ProjectDetailView(generics.RetrieveUpdateAPIView):
         if project.owner_id != request.user.id:
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
         if project.status != Project.STATUS_OPEN:
-            return Response({"detail": "Project is not open"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Project is not open"}, status=status.HTTP_400_BAD_REQUEST
+            )
         response = super().patch(request, *args, **kwargs)
         bump_project_version(project.id)
         bump_admin_resource_version("projects")
@@ -146,7 +158,9 @@ class ProjectSelectFreelancerView(APIView):
 
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id, owner=request.user)
-        proposal = get_object_or_404(Proposal, id=request.data.get("proposal_id"), project=project)
+        proposal = get_object_or_404(
+            Proposal, id=request.data.get("proposal_id"), project=project
+        )
         select_freelancer(project, proposal)
         return Response(ProjectSerializer(project).data)
 
@@ -160,7 +174,9 @@ class ProjectProposalListCreateView(generics.ListCreateAPIView):
         return super().get_permissions()
 
     def get_queryset(self):
-        return Proposal.objects.filter(project_id=self.kwargs["project_id"]).order_by("-created_at")
+        return Proposal.objects.filter(project_id=self.kwargs["project_id"]).order_by(
+            "-created_at"
+        )
 
     def list(self, request, *args, **kwargs):
         project = get_object_or_404(Project, id=kwargs["project_id"])
@@ -170,9 +186,13 @@ class ProjectProposalListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         if not self.request.user.is_verified:
-            raise ValidationError({"detail": "Only verified freelancers can submit proposals"})
+            raise ValidationError(
+                {"detail": "Only verified freelancers can submit proposals"}
+            )
 
-        month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_start = timezone.now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
         proposal_limit = _proposal_limit_for_user(self.request.user)
         monthly_count = Proposal.objects.filter(
             freelancer=self.request.user,
@@ -200,7 +220,9 @@ class ProposalMeListView(generics.ListAPIView):
     permission_classes = [IsFreelancer]
 
     def get_queryset(self):
-        return Proposal.objects.filter(freelancer=self.request.user).order_by("-created_at")
+        return Proposal.objects.filter(freelancer=self.request.user).order_by(
+            "-created_at"
+        )
 
 
 class ProposalDetailView(generics.UpdateAPIView):
@@ -213,7 +235,10 @@ class ProposalDetailView(generics.UpdateAPIView):
         if proposal.freelancer_id != request.user.id:
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
         if proposal.status != Proposal.STATUS_PENDING:
-            return Response({"detail": "Proposal is not pending"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Proposal is not pending"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         response = super().patch(request, *args, **kwargs)
         bump_project_version(proposal.project_id)
         bump_admin_resource_version("projects")
@@ -237,17 +262,29 @@ class ProjectDeliverableCreateView(APIView):
 
     def post(self, request, project_id):
         if not request.user.is_verified:
-            return Response({"detail": "Action denied. Account is not verified or is suspended."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Action denied. Account is not verified or is suspended."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=project_id)
-        selected_freelancer_id = getattr(getattr(project, "selected_proposal", None), "freelancer_id", None)
+        project = get_object_or_404(
+            Project.objects.select_related("selected_proposal"), id=project_id
+        )
+        selected_freelancer_id = getattr(
+            getattr(project, "selected_proposal", None), "freelancer_id", None
+        )
         if selected_freelancer_id != request.user.id:
-            return Response({"detail": "Only selected freelancer can submit deliverables"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Only selected freelancer can submit deliverables"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         file_id = request.data.get("file_id")
         if not file_id:
             raise ValidationError({"file_id": "This field is required"})
-        file_obj = get_object_or_404(ProjectFile, id=file_id, project=project, uploader=request.user)
+        file_obj = get_object_or_404(
+            ProjectFile, id=file_id, project=project, uploader=request.user
+        )
 
         serializer = ProjectDeliverableSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -260,7 +297,10 @@ class ProjectDeliverableCreateView(APIView):
         )
         bump_project_version(project.id)
         bump_admin_resource_version("projects")
-        return Response(ProjectDeliverableSerializer(deliverable).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ProjectDeliverableSerializer(deliverable).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ProjectDescriptionSuggestView(APIView):
@@ -277,7 +317,9 @@ class ProjectDescriptionSuggestView(APIView):
             timeline_days=data["timeline_days"],
             required_skills=data.get("required_skills", []),
         )
-        response = ProjectDescriptionSuggestResponseSerializer({"description": description})
+        response = ProjectDescriptionSuggestResponseSerializer(
+            {"description": description}
+        )
         return Response(response.data, status=status.HTTP_200_OK)
 
 
@@ -287,10 +329,16 @@ class ProjectSubmitResultView(APIView):
     def post(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
         if project.selected_proposal.freelancer != request.user:
-            return Response({"detail": "Only the selected freelancer can submit result."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Only the selected freelancer can submit result."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if not ProjectDeliverable.objects.filter(project=project).exists():
-            return Response({"detail": "Submit at least one deliverable first."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"detail": "Submit at least one deliverable first."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         project.status = Project.STATUS_AWAITING_REVIEW
         project.save(update_fields=["status"])
         bump_project_version(project.id)

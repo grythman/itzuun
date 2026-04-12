@@ -1,4 +1,5 @@
 """Admin panel API views."""
+
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -8,7 +9,13 @@ from rest_framework.views import APIView
 from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUser
 from apps.accounts.serializers import UserSerializer
-from apps.payments.models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
+from apps.payments.models import (
+    Dispute,
+    Escrow,
+    FinancialAuditLog,
+    LedgerEntry,
+    Payment,
+)
 from apps.payments.idempotency import execute_idempotent
 from apps.payments.serializers import (
     DisputeSerializer,
@@ -19,7 +26,12 @@ from apps.payments.serializers import (
 )
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectSerializer
-from common.cache_utils import admin_detail_cache_key, admin_list_cache_key, bump_admin_resource_version, bump_user_public_version
+from common.cache_utils import (
+    admin_detail_cache_key,
+    admin_list_cache_key,
+    bump_admin_resource_version,
+    bump_user_public_version,
+)
 from common.exceptions import DomainError
 from common.pagination import StandardResultsSetPagination
 from common.models import PlatformSetting
@@ -58,16 +70,25 @@ class AdminUserVerifyView(APIView):
     def post(self, request, user_id):
         action = request.data.get("action")
         # accept either `rejection_reason` (legacy) or `reason` (new)
-        rejection_reason = request.data.get("rejection_reason", "") or request.data.get("reason", "")
+        rejection_reason = request.data.get("rejection_reason", "") or request.data.get(
+            "reason", ""
+        )
 
         # Accept legacy and new action names: approve/reject/suspend and verify/unverify/suspend
         allowed = {"approve", "reject", "suspend", "verify", "unverify", "unsuspend"}
         if action not in allowed:
-            return Response({"detail": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         user = get_object_or_404(User, id=user_id)
         try:
-            verify_user(user, action=action, rejection_reason=rejection_reason, actor=request.user)
+            verify_user(
+                user,
+                action=action,
+                rejection_reason=rejection_reason,
+                actor=request.user,
+            )
         except DomainError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         bump_user_public_version(user.id)
@@ -81,14 +102,21 @@ class AdminUserUnsuspendView(APIView):
     def post(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         if request.user.id == user.id:
-            return Response({"detail": "Cannot unsuspend self"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Cannot unsuspend self"}, status=status.HTTP_403_FORBIDDEN
+            )
 
         reason = (request.data.get("reason", "") or "").strip()
         if len(reason) > 1000:
-            return Response({"detail": "reason must be <= 1000 chars"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "reason must be <= 1000 chars"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
-            verify_user(user, action="unsuspend", rejection_reason=reason, actor=request.user)
+            verify_user(
+                user, action="unsuspend", rejection_reason=reason, actor=request.user
+            )
         except DomainError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -125,7 +153,9 @@ class AdminEscrowListView(APIView):
             return Response(cached_payload)
 
         status_param = request.query_params.get("status")
-        queryset = Escrow.objects.select_related("project").all().order_by("-created_at")
+        queryset = (
+            Escrow.objects.select_related("project").all().order_by("-created_at")
+        )
         if status_param:
             queryset = queryset.filter(status=status_param)
         response = _paginated_response(request, queryset, EscrowSerializer, self)
@@ -143,7 +173,9 @@ class AdminPaymentListView(APIView):
             return Response(cached_payload)
 
         status_param = request.query_params.get("status")
-        queryset = Payment.objects.select_related("project").all().order_by("-created_at")
+        queryset = (
+            Payment.objects.select_related("project").all().order_by("-created_at")
+        )
         if status_param:
             queryset = queryset.filter(status=status_param)
         response = _paginated_response(request, queryset, PaymentSerializer, self)
@@ -161,7 +193,11 @@ class AdminDisputeListView(APIView):
             return Response(cached_payload)
 
         unresolved = request.query_params.get("unresolved")
-        queryset = Dispute.objects.select_related("project", "raised_by", "resolved_by").all().order_by("-created_at")
+        queryset = (
+            Dispute.objects.select_related("project", "raised_by", "resolved_by")
+            .all()
+            .order_by("-created_at")
+        )
         if unresolved is not None and unresolved.lower() == "true":
             queryset = queryset.filter(resolved_at__isnull=True)
         response = _paginated_response(request, queryset, DisputeSerializer, self)
@@ -190,11 +226,11 @@ class AdminDisputeResolveView(APIView):
             return DisputeSerializer(resolved).data, status.HTTP_200_OK
 
         result = execute_idempotent(request, _executor)
-        
+
         if isinstance(result, tuple):
             payload, status_code = result
             return Response(payload, status=status_code)
-            
+
         return result
 
 
@@ -207,13 +243,17 @@ class AdminLedgerListView(APIView):
         if cached_payload is not None:
             return Response(cached_payload)
 
-        queryset = LedgerEntry.objects.select_related("escrow__project").all().order_by("-created_at")
-        
+        queryset = (
+            LedgerEntry.objects.select_related("escrow__project")
+            .all()
+            .order_by("-created_at")
+        )
+
         # Optional filters
         entry_type = request.query_params.get("entry_type")
         if entry_type:
             queryset = queryset.filter(entry_type=entry_type)
-            
+
         project_id = request.query_params.get("project_id")
         if project_id:
             queryset = queryset.filter(escrow__project_id=project_id)
@@ -232,7 +272,11 @@ class AdminAuditLogListView(APIView):
         if cached_payload is not None:
             return Response(cached_payload)
 
-        queryset = FinancialAuditLog.objects.select_related("actor").all().order_by("-created_at")
+        queryset = (
+            FinancialAuditLog.objects.select_related("actor")
+            .all()
+            .order_by("-created_at")
+        )
 
         entity_type = request.query_params.get("entity_type")
         if entity_type:
@@ -246,7 +290,9 @@ class AdminAuditLogListView(APIView):
         if entity_id:
             queryset = queryset.filter(entity_id=entity_id)
 
-        response = _paginated_response(request, queryset, FinancialAuditLogSerializer, self)
+        response = _paginated_response(
+            request, queryset, FinancialAuditLogSerializer, self
+        )
         cache.set(cache_key, response.data, timeout=60)
         return response
 
@@ -257,16 +303,18 @@ class AdminCommissionUpdateView(APIView):
     def patch(self, request):
 
         def _executor():
-            setting = update_platform_fee(int(request.data.get("platform_fee_pct", 12)), actor=request.user)
+            setting = update_platform_fee(
+                int(request.data.get("platform_fee_pct", 12)), actor=request.user
+            )
             bump_admin_resource_version("settings")
             return {"platform_fee_pct": setting.platform_fee_pct}, status.HTTP_200_OK
 
         result = execute_idempotent(request, _executor)
-        
+
         if isinstance(result, tuple):
             payload, status_code = result
             return Response(payload, status=status_code)
-            
+
         return result
 
 

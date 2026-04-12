@@ -57,7 +57,9 @@ class Command(BaseCommand):
             if project.selected_proposal_id != proposal.id:
                 project.selected_proposal = proposal
                 project.status = Project.STATUS_IN_PROGRESS
-                project.save(update_fields=["selected_proposal", "status", "updated_at"])
+                project.save(
+                    update_fields=["selected_proposal", "status", "updated_at"]
+                )
 
             escrow, _ = Escrow.objects.get_or_create(
                 project=project,
@@ -75,8 +77,12 @@ class Command(BaseCommand):
                 if escrow.status != Escrow.STATUS_RELEASED:
                     escrow.status = Escrow.STATUS_RELEASED
                     escrow.save(update_fields=["status", "updated_at"])
-                self._ensure_ledger(escrow, LedgerEntry.TYPE_DEPOSIT, proposal.price, "Pilot deposit")
-                self._ensure_ledger(escrow, LedgerEntry.TYPE_RELEASE, proposal.price, "Pilot release")
+                self._ensure_ledger(
+                    escrow, LedgerEntry.TYPE_DEPOSIT, proposal.price, "Pilot deposit"
+                )
+                self._ensure_ledger(
+                    escrow, LedgerEntry.TYPE_RELEASE, proposal.price, "Pilot release"
+                )
             # Project 6 has resolved dispute.
             elif i == 6:
                 if project.status != Project.STATUS_CLOSED_REFUNDED:
@@ -85,8 +91,18 @@ class Command(BaseCommand):
                 if escrow.status != Escrow.STATUS_REFUNDED:
                     escrow.status = Escrow.STATUS_REFUNDED
                     escrow.save(update_fields=["status", "updated_at"])
-                self._ensure_ledger(escrow, LedgerEntry.TYPE_DEPOSIT, proposal.price, "Pilot disputed deposit")
-                self._ensure_ledger(escrow, LedgerEntry.TYPE_REFUND, proposal.price, "Pilot dispute refund")
+                self._ensure_ledger(
+                    escrow,
+                    LedgerEntry.TYPE_DEPOSIT,
+                    proposal.price,
+                    "Pilot disputed deposit",
+                )
+                self._ensure_ledger(
+                    escrow,
+                    LedgerEntry.TYPE_REFUND,
+                    proposal.price,
+                    "Pilot dispute refund",
+                )
                 dispute, _ = Dispute.objects.get_or_create(
                     project=project,
                     raised_by=owner,
@@ -107,7 +123,9 @@ class Command(BaseCommand):
                 if escrow.status != Escrow.STATUS_HELD:
                     escrow.status = Escrow.STATUS_HELD
                     escrow.save(update_fields=["status", "updated_at"])
-                self._ensure_ledger(escrow, LedgerEntry.TYPE_DEPOSIT, proposal.price, "Pilot deposit")
+                self._ensure_ledger(
+                    escrow, LedgerEntry.TYPE_DEPOSIT, proposal.price, "Pilot deposit"
+                )
 
             project_ids.append(project.id)
 
@@ -127,7 +145,10 @@ class Command(BaseCommand):
         email = f"pilot.client{idx:02d}@itzuun.mn"
         user, _ = User.objects.get_or_create(
             email=email,
-            defaults={"role": User.ROLE_CLIENT, "verification_status": User.VERIFICATION_VERIFIED},
+            defaults={
+                "role": User.ROLE_CLIENT,
+                "verification_status": User.VERIFICATION_VERIFIED,
+            },
         )
         user.role = User.ROLE_CLIENT
         user.verification_status = User.VERIFICATION_VERIFIED
@@ -139,7 +160,10 @@ class Command(BaseCommand):
         email = f"pilot.freelancer{idx:02d}@itzuun.mn"
         user, _ = User.objects.get_or_create(
             email=email,
-            defaults={"role": User.ROLE_FREELANCER, "verification_status": User.VERIFICATION_VERIFIED},
+            defaults={
+                "role": User.ROLE_FREELANCER,
+                "verification_status": User.VERIFICATION_VERIFIED,
+            },
         )
         user.role = User.ROLE_FREELANCER
         user.verification_status = User.VERIFICATION_VERIFIED
@@ -147,8 +171,12 @@ class Command(BaseCommand):
         user.save(update_fields=["role", "verification_status", "is_active"])
         return user
 
-    def _ensure_ledger(self, escrow: Escrow, entry_type: str, amount: int, note: str) -> None:
-        if not escrow.ledger_entries.filter(entry_type=entry_type, amount=amount).exists():
+    def _ensure_ledger(
+        self, escrow: Escrow, entry_type: str, amount: int, note: str
+    ) -> None:
+        if not escrow.ledger_entries.filter(
+            entry_type=entry_type, amount=amount
+        ).exists():
             LedgerEntry.objects.create(
                 escrow=escrow,
                 entry_type=entry_type,

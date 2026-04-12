@@ -9,7 +9,6 @@ from apps.accounts.models import User
 from apps.payments.models import Dispute, Escrow
 from apps.projects.models import Project
 
-
 REQUIRED_TOP_LEVEL_KEYS = {
     "window_days",
     "cohort_label",
@@ -70,7 +69,9 @@ class WeeklyKpiReportCommandTests(TestCase):
         kpis = payload["kpis"]
 
         self.assertIn("verified_freelancer_count", kpis)
-        self.assertEqual(kpis["verified_freelancers"], kpis["verified_freelancer_count"])
+        self.assertEqual(
+            kpis["verified_freelancers"], kpis["verified_freelancer_count"]
+        )
 
 
 class PilotReadinessReportCommandTests(TestCase):
@@ -87,17 +88,25 @@ class PilotReadinessReportCommandTests(TestCase):
         return json.loads(out.getvalue())
 
     def test_report_shows_not_ready_by_default(self):
-        payload = self._run_report(cohort_validation="/tmp/not_existing_validation.json")
+        payload = self._run_report(
+            cohort_validation="/tmp/not_existing_validation.json"
+        )
         self.assertFalse(payload["ready"])
         self.assertIn("projects_posted_20", payload["missing_gates"])
 
     def test_report_strict_raises_when_not_ready(self):
         with self.assertRaises(CommandError):
-            self._run_report(strict=True, cohort_validation="/tmp/not_existing_validation.json")
+            self._run_report(
+                strict=True, cohort_validation="/tmp/not_existing_validation.json"
+            )
 
     def test_report_ready_when_all_gates_satisfied(self):
-        owner = User.objects.create_user(email="pilot-owner@test.com", password="Pass12345", role="client")
-        freelancer = User.objects.create_user(email="pilot-freelancer@test.com", password="Pass12345", role="freelancer")
+        owner = User.objects.create_user(
+            email="pilot-owner@test.com", password="Pass12345", role="client"
+        )
+        freelancer = User.objects.create_user(
+            email="pilot-freelancer@test.com", password="Pass12345", role="freelancer"
+        )
         project = None
         for i in range(20):
             p = Project.objects.create(

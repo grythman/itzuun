@@ -4,16 +4,23 @@ from rest_framework import generics, permissions
 from .models import Profile
 from .serializers import ProfileSerializer
 
+
 class ProfileListView(generics.ListAPIView):
     """Lists all profiles."""
+
     serializer_class = ProfileSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = Profile.objects.select_related("user").all().annotate(
-            avg_rating=Coalesce(Avg("user__reviews_received__rating"), 0.0),
-            review_count=Count("user__reviews_received"),
-        ).order_by("-last_active")
+        queryset = (
+            Profile.objects.select_related("user")
+            .all()
+            .annotate(
+                avg_rating=Coalesce(Avg("user__reviews_received__rating"), 0.0),
+                review_count=Count("user__reviews_received"),
+            )
+            .order_by("-last_active")
+        )
 
         search = (self.request.query_params.get("search") or "").strip()
         skill = (self.request.query_params.get("skill") or "").strip()
@@ -38,19 +45,23 @@ class ProfileListView(generics.ListAPIView):
                 pass
         return queryset
 
+
 class ProfileDetailView(generics.RetrieveAPIView):
     """Retrieves a single profile by user ID."""
+
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.AllowAny]
-    lookup_field = 'user_id'
+    lookup_field = "user_id"
 
     def retrieve(self, request, *args, **kwargs):
         user_id = self.kwargs.get("user_id")
         return super().retrieve(request, *args, **kwargs)
 
+
 class ProfileMeView(generics.RetrieveUpdateAPIView):
     """Retrieves or updates the profile of the currently authenticated user."""
+
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]

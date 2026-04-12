@@ -12,9 +12,15 @@ class ReviewApiTests(TestCase):
     def setUp(self):
         cache.clear()
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
-        self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
-        self.outsider = User.objects.create_user(email="outsider@test.com", role="client", password="pass1234")
+        self.owner = User.objects.create_user(
+            email="owner@test.com", role="client", password="pass1234"
+        )
+        self.freelancer = User.objects.create_user(
+            email="freelancer@test.com", role="freelancer", password="pass1234"
+        )
+        self.outsider = User.objects.create_user(
+            email="outsider@test.com", role="client", password="pass1234"
+        )
 
         self.project = Project.objects.create(
             owner=self.owner,
@@ -122,16 +128,28 @@ class RatingSummaryApiTests(TestCase):
     def setUp(self):
         cache.clear()
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
-        self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
+        self.owner = User.objects.create_user(
+            email="owner@test.com", role="client", password="pass1234"
+        )
+        self.freelancer = User.objects.create_user(
+            email="freelancer@test.com", role="freelancer", password="pass1234"
+        )
 
     def _create_completed_project(self):
         project = Project.objects.create(
-            owner=self.owner, title="P", description="d", budget=100000,
-            timeline_days=10, category="web", status=Project.STATUS_COMPLETED,
+            owner=self.owner,
+            title="P",
+            description="d",
+            budget=100000,
+            timeline_days=10,
+            category="web",
+            status=Project.STATUS_COMPLETED,
         )
         proposal = Proposal.objects.create(
-            project=project, freelancer=self.freelancer, price=100000, timeline_days=10,
+            project=project,
+            freelancer=self.freelancer,
+            price=100000,
+            timeline_days=10,
         )
         project.selected_proposal = proposal
         project.save(update_fields=["selected_proposal"])
@@ -140,11 +158,17 @@ class RatingSummaryApiTests(TestCase):
     def test_rating_summary_returns_average_and_total(self):
         p1 = self._create_completed_project()
         p2 = self._create_completed_project()
-        Review.objects.create(project=p1, reviewer=self.owner, reviewee=self.freelancer, rating=5)
-        Review.objects.create(project=p2, reviewer=self.owner, reviewee=self.freelancer, rating=3)
+        Review.objects.create(
+            project=p1, reviewer=self.owner, reviewee=self.freelancer, rating=5
+        )
+        Review.objects.create(
+            project=p2, reviewer=self.owner, reviewee=self.freelancer, rating=3
+        )
 
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
+        response = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/rating-summary"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["total"], 2)
@@ -152,7 +176,9 @@ class RatingSummaryApiTests(TestCase):
 
     def test_rating_summary_no_reviews(self):
         self.client_api.force_authenticate(self.owner)
-        response = self.client_api.get(f"/api/v1/users/{self.freelancer.id}/rating-summary")
+        response = self.client_api.get(
+            f"/api/v1/users/{self.freelancer.id}/rating-summary"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data["total"], 0)

@@ -15,14 +15,27 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         admin, _ = User.objects.get_or_create(
             email="admin@itzuun.mn",
-            defaults={"role": User.ROLE_ADMIN, "is_staff": True, "is_superuser": True, "is_verified": True},
+            defaults={
+                "role": User.ROLE_ADMIN,
+                "is_staff": True,
+                "is_superuser": True,
+                "is_verified": True,
+            },
         )
         admin.role = User.ROLE_ADMIN
         admin.is_staff = True
         admin.is_superuser = True
         admin.is_verified = True
         admin.set_password("Pass1234!")
-        admin.save(update_fields=["role", "is_staff", "is_superuser", "is_verified", "password"])
+        admin.save(
+            update_fields=[
+                "role",
+                "is_staff",
+                "is_superuser",
+                "is_verified",
+                "password",
+            ]
+        )
 
         client, _ = User.objects.get_or_create(
             email="client@itzuun.mn",
@@ -130,14 +143,18 @@ class Command(BaseCommand):
             happy_escrow.amount = happy_proposal.price
             happy_escrow.status = Escrow.STATUS_RELEASED
             happy_escrow.save(update_fields=["amount", "status", "updated_at"])
-        if not happy_escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).exists():
+        if not happy_escrow.ledger_entries.filter(
+            entry_type=LedgerEntry.TYPE_DEPOSIT
+        ).exists():
             LedgerEntry.objects.create(
                 escrow=happy_escrow,
                 entry_type=LedgerEntry.TYPE_DEPOSIT,
                 amount=happy_proposal.price,
                 note="Seed deposit",
             )
-        if not happy_escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_FEE).exists():
+        if not happy_escrow.ledger_entries.filter(
+            entry_type=LedgerEntry.TYPE_FEE
+        ).exists():
             fee = int(happy_proposal.price * setting.platform_fee_pct / 100)
             LedgerEntry.objects.create(
                 escrow=happy_escrow,
@@ -145,7 +162,9 @@ class Command(BaseCommand):
                 amount=fee,
                 note="Seed platform fee",
             )
-        if not happy_escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_RELEASE).exists():
+        if not happy_escrow.ledger_entries.filter(
+            entry_type=LedgerEntry.TYPE_RELEASE
+        ).exists():
             fee = int(happy_proposal.price * setting.platform_fee_pct / 100)
             LedgerEntry.objects.create(
                 escrow=happy_escrow,
@@ -192,13 +211,18 @@ class Command(BaseCommand):
 
         disputed_escrow, _ = Escrow.objects.get_or_create(
             project=disputed_project,
-            defaults={"amount": disputed_proposal.price, "status": Escrow.STATUS_DISPUTED},
+            defaults={
+                "amount": disputed_proposal.price,
+                "status": Escrow.STATUS_DISPUTED,
+            },
         )
         if disputed_escrow.status != Escrow.STATUS_DISPUTED:
             disputed_escrow.amount = disputed_proposal.price
             disputed_escrow.status = Escrow.STATUS_DISPUTED
             disputed_escrow.save(update_fields=["amount", "status", "updated_at"])
-        if not disputed_escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).exists():
+        if not disputed_escrow.ledger_entries.filter(
+            entry_type=LedgerEntry.TYPE_DEPOSIT
+        ).exists():
             LedgerEntry.objects.create(
                 escrow=disputed_escrow,
                 entry_type=LedgerEntry.TYPE_DEPOSIT,

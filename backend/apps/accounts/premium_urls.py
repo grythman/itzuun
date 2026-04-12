@@ -1,8 +1,8 @@
 """Premium API routes."""
+
 from django.urls import re_path
 
 from .views import PremiumCancelView, PremiumMeView, PremiumSubscribeView
-
 
 urlpatterns = [
     re_path(r"^me/?$", PremiumMeView.as_view(), name="premium-me"),

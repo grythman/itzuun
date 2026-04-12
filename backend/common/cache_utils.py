@@ -1,9 +1,9 @@
 """Cache key and invalidation helpers for read scalability."""
+
 import hashlib
 import json
 
 from django.core.cache import cache
-
 
 PROJECT_VERSION_PREFIX = "project:version"
 USER_PUBLIC_VERSION_PREFIX = "user_public:version"
@@ -14,7 +14,9 @@ def _stable_query_fingerprint(query_params) -> str:
     normalized: dict[str, list[str]] = {}
     for key, values in query_params.lists():
         normalized[key] = sorted(values)
-    payload = json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    payload = json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -42,7 +44,9 @@ def rating_summary_cache_key(user_id: int) -> str:
 
 def user_reviews_cache_key(user_id: int, query_params) -> str:
     version = cache.get(f"{USER_PUBLIC_VERSION_PREFIX}:{user_id}") or 1
-    return f"reviews:list:{user_id}:v{version}:{_stable_query_fingerprint(query_params)}"
+    return (
+        f"reviews:list:{user_id}:v{version}:{_stable_query_fingerprint(query_params)}"
+    )
 
 
 def profile_cache_key(user_id: int) -> str:

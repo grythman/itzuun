@@ -30,7 +30,9 @@ class PasswordAuthApiTests(TestCase):
         self.assertTrue(User.objects.filter(email="new-user@test.com").exists())
 
     def test_login_authenticates_existing_user(self):
-        user = User.objects.create_user(email="login-user@test.com", password="Pass12345", role="client")
+        user = User.objects.create_user(
+            email="login-user@test.com", password="Pass12345", role="client"
+        )
 
         response = self.client_api.post(
             "/api/v1/auth/login",
@@ -48,7 +50,9 @@ class PasswordAuthApiTests(TestCase):
 class VerificationSubmitApiTests(TestCase):
     def setUp(self):
         self.client_api = APIClient()
-        self.user = User.objects.create_user(email="verify-me@test.com", password="Pass12345", role="freelancer")
+        self.user = User.objects.create_user(
+            email="verify-me@test.com", password="Pass12345", role="freelancer"
+        )
         self.client_api.force_authenticate(user=self.user)
 
     def test_submit_verification_sets_pending_and_normalizes_phone(self):
@@ -84,8 +88,12 @@ class VerificationSubmitApiTests(TestCase):
 
 class SetupPilotCohortCommandTests(TestCase):
     def test_command_generates_validation_report(self):
-        client = User.objects.create_user(email="pilot-client@test.com", password="Pass12345", role="client")
-        freelancer = User.objects.create_user(email="pilot-freelancer@test.com", password="Pass12345", role="freelancer")
+        client = User.objects.create_user(
+            email="pilot-client@test.com", password="Pass12345", role="client"
+        )
+        freelancer = User.objects.create_user(
+            email="pilot-freelancer@test.com", password="Pass12345", role="freelancer"
+        )
         project = Project.objects.create(
             owner=client,
             title="Pilot project",
@@ -130,10 +138,14 @@ class PremiumApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_freelancer_subscribe_and_cancel(self):
-        user = User.objects.create_user(email="pro-freelancer@test.com", password="Pass12345", role="freelancer")
+        user = User.objects.create_user(
+            email="pro-freelancer@test.com", password="Pass12345", role="freelancer"
+        )
         self.client_api.force_authenticate(user=user)
 
-        subscribe = self.client_api.post("/api/v1/premium/subscribe", {"plan_type": "pro_monthly"}, format="json")
+        subscribe = self.client_api.post(
+            "/api/v1/premium/subscribe", {"plan_type": "pro_monthly"}, format="json"
+        )
         self.assertEqual(subscribe.status_code, status.HTTP_200_OK)
         self.assertTrue(subscribe.json()["subscribed"])
 
@@ -157,8 +169,12 @@ class PremiumApiTests(TestCase):
         self.assertIsNone(user.premium_expiry)
 
     def test_client_cannot_subscribe_premium_freelancer_plan(self):
-        user = User.objects.create_user(email="pro-client@test.com", password="Pass12345", role="client")
+        user = User.objects.create_user(
+            email="pro-client@test.com", password="Pass12345", role="client"
+        )
         self.client_api.force_authenticate(user=user)
 
-        response = self.client_api.post("/api/v1/premium/subscribe", {"plan_type": "pro_monthly"}, format="json")
+        response = self.client_api.post(
+            "/api/v1/premium/subscribe", {"plan_type": "pro_monthly"}, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

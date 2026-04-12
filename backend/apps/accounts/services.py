@@ -1,4 +1,5 @@
 """Domain services for OTP and auth flows."""
+
 import logging
 import random
 import secrets

@@ -20,12 +20,17 @@ class AdminDashboardView(TemplateView):
 
     def _unauthorized_response(self, request):
         if self._expects_json(request):
-            return JsonResponse({"detail": "Authentication credentials were not provided."}, status=401)
+            return JsonResponse(
+                {"detail": "Authentication credentials were not provided."}, status=401
+            )
         return redirect("/")
 
     def _forbidden_response(self, request):
         if self._expects_json(request):
-            return JsonResponse({"detail": "You do not have permission to perform this action."}, status=403)
+            return JsonResponse(
+                {"detail": "You do not have permission to perform this action."},
+                status=403,
+            )
         return redirect("/")
 
     def get(self, request, *args, **kwargs):

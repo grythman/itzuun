@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -79,7 +79,7 @@ export default function FreelancerDashboardPage() {
   const pathname = usePathname();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
-  const withLocale = (href: string) => `/${locale}${href}`;
+  const withLocale = useCallback((href: string) => `/${locale}${href}`, [locale]);
   const me = useMe();
   const proposals = useMyProposals();
   const projects = useProjects(1);
@@ -213,20 +213,18 @@ export default function FreelancerDashboardPage() {
   const pendingProposals = myProposals.filter((item) => (item.status || "pending") === "pending").length;
   const earnings = activeProjects.reduce((acc, item) => acc + Number(item.budget || 0), 0);
 
-  const sortedProposals = useMemo(() => {
-    const rank = (status: string) => {
-      if (status === "pending") return 0;
-      if (status === "accepted") return 1;
-      if (status === "rejected") return 2;
-      if (status === "withdrawn") return 3;
-      return 4;
-    };
-    return [...myProposals].sort((a, b) => rank(a.status || "pending") - rank(b.status || "pending") || Number(a.id) - Number(b.id));
-  }, [myProposals]);
+  const rank = (status: string) => {
+    if (status === "pending") return 0;
+    if (status === "accepted") return 1;
+    if (status === "rejected") return 2;
+    if (status === "withdrawn") return 3;
+    return 4;
+  };
+  const sortedProposals = [...myProposals].sort((a, b) => rank(a.status || "pending") - rank(b.status || "pending") || Number(a.id) - Number(b.id));
 
   const inProgressProject = activeProjects.find((p) => p.status === "in_progress");
   const firstPendingProposal = sortedProposals.find((p) => (p.status || "pending") === "pending");
-  const projectById = useMemo(() => new Map(projects.data.results.map((project) => [project.id, project])), [projects.data.results]);
+  const projectById = new Map(projects.data.results.map((project) => [project.id, project]));
   const filteredProposals = sortedProposals.filter((proposal) => {
     const status = proposal.status || "pending";
     return proposalFilter === "all" ? true : status === proposalFilter;
@@ -235,75 +233,74 @@ export default function FreelancerDashboardPage() {
   const filteredActiveProjects = activeProjects.filter((project) => (activeFilter === "all" ? true : project.status === activeFilter));
   const submitProject = activeProjects.find((project) => project.id === submitTarget) || null;
 
-  const primaryAction = useMemo(() => {
-    if (me.data.verification_status === "suspended") {
-      return {
-        title: "Одоогийн гол зорилт: Бүртгэлийн асуудлаа шийдэх",
-        description: "Таны данс түр хаагдсан тул эхлээд support-т холбогдож дансаа сэргээ.",
-        actionLabel: "Support руу очих",
-        actionHref: withLocale("/support"),
-      };
-    }
-    if (me.data.verification_status !== "verified") {
-      return {
-        title: "Одоогийн гол зорилт: Баталгаажуулалтаа дуусгах",
-        description: "Verified болсноор илүү олон client таны саналыг хүлээн авах магадлал өснө.",
-        actionLabel: "Баталгаажуулалт илгээх",
-        actionHref: withLocale("/freelancer/profile"),
-      };
-    }
-    if (inProgressProject) {
-      return {
-        title: "Одоогийн гол зорилт: Ажлаа дуусгаад төлбөрөө авах",
-        description: `"${inProgressProject.title}" дээр үр дүнгээ илгээж client review руу оруул.`,
-        actionLabel: "Үр дүн илгээх",
-        actionProjectId: inProgressProject.id,
-      };
-    }
-    if (firstPendingProposal) {
-      return {
-        title: "Одоогийн гол зорилт: Pending саналаа хүчтэй болгох",
-        description: "Саналын үнэ, хугацаагаа шинэчилж ялгарал нэм.",
-        actionLabel: "Санал засах",
-        actionProposalId: firstPendingProposal.id,
-      };
-    }
-    return {
+  let primaryAction:
+    | { title: string; description: string; actionLabel: string; actionHref: string; actionProjectId?: never; actionProposalId?: never }
+    | { title: string; description: string; actionLabel: string; actionProjectId: number; actionHref?: never; actionProposalId?: never }
+    | { title: string; description: string; actionLabel: string; actionProposalId: number; actionHref?: never; actionProjectId?: never };
+
+  if (me.data.verification_status === "suspended") {
+    primaryAction = {
+      title: "Одоогийн гол зорилт: Бүртгэлийн асуудлаа шийдэх",
+      description: "Таны данс түр хаагдсан тул эхлээд support-т холбогдож дансаа сэргээ.",
+      actionLabel: "Support руу очих",
+      actionHref: withLocale("/support"),
+    };
+  } else if (me.data.verification_status !== "verified") {
+    primaryAction = {
+      title: "Одоогийн гол зорилт: Баталгаажуулалтаа дуусгах",
+      description: "Verified болсноор илүү олон client таны саналыг хүлээн авах магадлал өснө.",
+      actionLabel: "Баталгаажуулалт илгээх",
+      actionHref: withLocale("/freelancer/profile"),
+    };
+  } else if (inProgressProject) {
+    primaryAction = {
+      title: "Одоогийн гол зорилт: Ажлаа дуусгаад төлбөрөө авах",
+      description: `"${inProgressProject.title}" дээр үр дүнгээ илгээж client review руу оруул.`,
+      actionLabel: "Үр дүн илгээх",
+      actionProjectId: inProgressProject.id,
+    };
+  } else if (firstPendingProposal) {
+    primaryAction = {
+      title: "Одоогийн гол зорилт: Pending саналаа хүчтэй болгох",
+      description: "Саналын үнэ, хугацаагаа шинэчилж ялгарал нэм.",
+      actionLabel: "Санал засах",
+      actionProposalId: firstPendingProposal.id,
+    };
+  } else {
+    primaryAction = {
       title: "Одоогийн гол зорилт: Шинэ ажил олох",
       description: "Өнөөдөр дор хаяж 3 төсөлд санал илгээж pipeline-аа өсгө.",
       actionLabel: "Төсөл хайх",
       actionHref: withLocale("/projects"),
     };
-  }, [me.data.verification_status, inProgressProject, firstPendingProposal, withLocale]);
+  }
 
-  const verificationGuidance = useMemo(() => {
-    if (me.data.verification_status === "verified") return null;
-    if (me.data.verification_status === "pending") {
-      return {
-        tone: "warning" as const,
-        title: "Баталгаажуулалт хянагдаж байна",
-        text: "Түр хүлээгээд meanwhile профайлаа сайжруулж, төсөл хайж shortlist бэлд.",
-        cta: "Профайл нээх",
-        href: withLocale("/freelancer/profile"),
-      };
-    }
-    if (me.data.verification_status === "suspended") {
-      return {
-        tone: "danger" as const,
-        title: "Данс түр хаагдсан",
-        text: "Support-т тайлбар илгээж сэргээх хүсэлт гарга. Идэвхтэй ажлаа чат дээр үргэлжлүүлж болно.",
-        cta: "Support",
-        href: withLocale("/support"),
-      };
-    }
-    return {
-      tone: "info" as const,
+  let verificationGuidance: { tone: "warning" | "danger" | "info"; title: string; text: string; cta: string; href: string } | null = null;
+  if (me.data.verification_status === "pending") {
+    verificationGuidance = {
+      tone: "warning",
+      title: "Баталгаажуулалт хянагдаж байна",
+      text: "Түр хүлээгээд meanwhile профайлаа сайжруулж, төсөл хайж shortlist бэлд.",
+      cta: "Профайл нээх",
+      href: withLocale("/freelancer/profile"),
+    };
+  } else if (me.data.verification_status === "suspended") {
+    verificationGuidance = {
+      tone: "danger",
+      title: "Данс түр хаагдсан",
+      text: "Support-т тайлбар илгээж сэргээх хүсэлт гарга. Идэвхтэй ажлаа чат дээр үргэлжлүүлж болно.",
+      cta: "Support",
+      href: withLocale("/support"),
+    };
+  } else if (me.data.verification_status !== "verified") {
+    verificationGuidance = {
+      tone: "info",
       title: "Баталгаажуулалт шаардлагатай",
       text: "Санал илгээх боломжоо бүрэн нээхийн тулд verification хүсэлтээ одоо илгээ.",
       cta: "Verification эхлүүлэх",
       href: withLocale("/freelancer/profile"),
     };
-  }, [me.data.verification_status, withLocale]);
+  }
 
   const profileData = profile.data;
   let profileCompleteness = 0;

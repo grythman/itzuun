@@ -126,7 +126,7 @@ export default function ProjectPaymentPage() {
   const secondsLeft = useMemo(() => {
     if (!expiresAt) return 0;
     return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
-  }, [expiresAt, paymentStatusQuery.dataUpdatedAt]);
+  }, [expiresAt]);
 
   const paymentSteps = ["Invoice", "Escrow hold", "Completion"];
   const currentStep = statusValue === "paid" ? 1 : 0;

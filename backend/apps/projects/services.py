@@ -1,4 +1,5 @@
 """Project domain services."""
+
 from django.db import transaction
 
 from common.cache_utils import bump_admin_resource_version, bump_project_version
@@ -40,9 +41,19 @@ import os
 from google import genai
 from django.conf import settings
 
-def suggest_project_description(*, title: str, category: str, budget: int, timeline_days: int, required_skills: list[str]) -> str:
-    skills = ", ".join(required_skills) if required_skills else "relevant technical skills"
-    
+
+def suggest_project_description(
+    *,
+    title: str,
+    category: str,
+    budget: int,
+    timeline_days: int,
+    required_skills: list[str],
+) -> str:
+    skills = (
+        ", ".join(required_skills) if required_skills else "relevant technical skills"
+    )
+
     api_key = settings.GEMINI_API_KEY
     if not api_key:
         # Fallback if no API key is provided
@@ -52,9 +63,10 @@ def suggest_project_description(*, title: str, category: str, budget: int, timel
             f"Key requirements include {skills}, clear communication, and production-ready deliverables. "
             "Please include a concise implementation plan, milestone breakdown, and similar past work references in your proposal."
         )
-    
+
     try:
         from google import genai
+
         client = genai.Client(api_key=api_key)
         prompt = (
             f"Act as a professional IT project manager. Write a concise, professional project description for a freelance IT marketplace. "
@@ -62,15 +74,16 @@ def suggest_project_description(*, title: str, category: str, budget: int, timel
             f"Required skills: {skills}. Keep it under 150 words. Do not use markdown headers, just plain text with line breaks."
         )
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model="gemini-2.5-flash",
             contents=prompt,
         )
         if response.text:
             return response.text.strip()
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning("Gemini AI generation failed: %s", e)
-        
+
     # Fallback if generation fails
     return (
         f"We are looking for a {category} specialist to deliver '{title}'. "

@@ -9,7 +9,11 @@ from common.exceptions import DomainError
 from apps.payments.idempotency import execute_idempotent
 from apps.payments.models import Dispute, Escrow, Payment
 from apps.projects.permissions import IsProjectOwnerForPayment
-from apps.payments.serializers import EscrowSerializer, DisputeSerializer, PaymentSerializer
+from apps.payments.serializers import (
+    EscrowSerializer,
+    DisputeSerializer,
+    PaymentSerializer,
+)
 from apps.payments.services import (
     confirm_completion,
     create_dispute,
@@ -24,7 +28,10 @@ from apps.projects.models import Project
 
 def _ensure_project_owner_or_403(request, project: Project):
     if project.owner_id != request.user.id:
-        return Response({"detail": "You do not have permission to perform this action."}, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {"detail": "You do not have permission to perform this action."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
     return None
 
 
@@ -32,15 +39,22 @@ class ProjectPaymentCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsProjectOwnerForPayment]
 
     def post(self, request, project_id):
-        project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=project_id)
+        project = get_object_or_404(
+            Project.objects.select_related("selected_proposal"), id=project_id
+        )
         forbidden = _ensure_project_owner_or_403(request, project)
         if forbidden:
             return forbidden
 
         if not project.selected_proposal:
-            return Response({"error": "No selected proposal for this project."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "No selected proposal for this project."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        latest_payment = Payment.objects.filter(project=project).order_by("-created_at").first()
+        latest_payment = (
+            Payment.objects.filter(project=project).order_by("-created_at").first()
+        )
         if latest_payment and latest_payment.status == Payment.STATUS_PENDING:
             existing = latest_payment.raw_response or {}
             return Response(
@@ -56,10 +70,14 @@ class ProjectPaymentCreateView(APIView):
             )
 
         amount = project.selected_proposal.price
-        callback_url = settings.QPAY_CALLBACK_URL or request.build_absolute_uri("/api/v1/payments/webhook/")
+        callback_url = settings.QPAY_CALLBACK_URL or request.build_absolute_uri(
+            "/api/v1/payments/webhook/"
+        )
 
         try:
-            invoice = create_invoice(project=project, amount=amount, callback_url=callback_url)
+            invoice = create_invoice(
+                project=project, amount=amount, callback_url=callback_url
+            )
         except DomainError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -98,9 +116,14 @@ class ProjectPaymentStatusView(APIView):
         if forbidden:
             return forbidden
 
-        payment = Payment.objects.filter(project=project).order_by("-created_at").first()
+        payment = (
+            Payment.objects.filter(project=project).order_by("-created_at").first()
+        )
         if not payment:
-            return Response({"error": "Payment not found for this project."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Payment not found for this project."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         verification_payload = {}
         if payment.status == Payment.STATUS_PENDING:
@@ -110,7 +133,9 @@ class ProjectPaymentStatusView(APIView):
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             payment_flag = str(
-                verification_payload.get("payment_status") or verification_payload.get("status") or ""
+                verification_payload.get("payment_status")
+                or verification_payload.get("status")
+                or ""
             ).lower()
             if payment_flag in {"paid", "success", "succeeded"}:
                 paid_amount = int(verification_payload.get("amount") or payment.amount)
@@ -121,10 +146,16 @@ class ProjectPaymentStatusView(APIView):
                         verification_payload=verification_payload,
                     )
                 except DomainError as e:
-                    return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+                    )
                 payment.refresh_from_db()
             elif payment_flag in {"failed", "expired", "canceled", "cancelled"}:
-                mark_payment_failed(payment, reason=f"qpay_status:{payment_flag}", raw_payload=verification_payload)
+                mark_payment_failed(
+                    payment,
+                    reason=f"qpay_status:{payment_flag}",
+                    raw_payload=verification_payload,
+                )
                 payment.refresh_from_db()
 
         return Response(
@@ -145,7 +176,9 @@ class ProjectEscrowDepositView(APIView):
         project = get_object_or_404(Project, id=project_id)
 
         def _executor():
-            escrow = deposit_to_escrow(project, actor=request.user, amount=project.selected_proposal.price)
+            escrow = deposit_to_escrow(
+                project, actor=request.user, amount=project.selected_proposal.price
+            )
             return EscrowSerializer(escrow).data, status.HTTP_201_CREATED
 
         payload, status_code = execute_idempotent(request, _executor)
@@ -162,7 +195,9 @@ class EscrowAdminApproveView(APIView):
                 return EscrowSerializer(escrow).data, status.HTTP_200_OK
             if escrow.status != Escrow.STATUS_CREATED:
                 return (
-                    {"error": f"Escrow is not in created state. Current state: {escrow.status}"},
+                    {
+                        "error": f"Escrow is not in created state. Current state: {escrow.status}"
+                    },
                     status.HTTP_400_BAD_REQUEST,
                 )
             escrow.status = Escrow.STATUS_HELD
@@ -175,6 +210,7 @@ class EscrowAdminApproveView(APIView):
             return Response(payload, status=status_code)
         return result
 
+
 class ProjectConfirmCompletionView(APIView):
     permission_classes = [IsProjectOwnerForPayment]
 
@@ -183,19 +219,22 @@ class ProjectConfirmCompletionView(APIView):
 
         # 1. ХАМГИЙН ТҮРҮҮНД: Маргаан байгаа бол 400 буцаах
         from apps.payments.models import Dispute
+
         if Dispute.objects.filter(project=project, resolved_at__isnull=True).exists():
             return Response(
                 {"error": "Project has an unresolved dispute."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # 2. Idempotency логик руу орох (Дотор нь completed-ийг шалгахгүй)
         def _executor():
             from apps.payments.services import confirm_completion
+
             confirm_completion(project, approved_by=request.user)
             return {"status": "completed"}, status.HTTP_200_OK
 
         from apps.payments.idempotency import execute_idempotent
+
         payload, status_code = execute_idempotent(request, _executor)
         return Response(payload, status=status_code)
 
@@ -214,6 +253,8 @@ class ProjectDisputeView(APIView):
                 reason=serializer.validated_data.get("reason", ""),
                 evidence_files=serializer.validated_data.get("evidence_files", []),
             )
-            return Response(DisputeSerializer(dispute).data, status=status.HTTP_201_CREATED)
+            return Response(
+                DisputeSerializer(dispute).data, status=status.HTTP_201_CREATED
+            )
         except DomainError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

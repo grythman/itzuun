@@ -10,9 +10,15 @@ from apps.projects.models import Project, Proposal
 class ProjectMessageApiTests(TestCase):
     def setUp(self):
         self.client_api = APIClient()
-        self.owner = User.objects.create_user(email="owner@test.com", role="client", password="pass1234")
-        self.freelancer = User.objects.create_user(email="freelancer@test.com", role="freelancer", password="pass1234")
-        self.outsider = User.objects.create_user(email="outsider@test.com", role="freelancer", password="pass1234")
+        self.owner = User.objects.create_user(
+            email="owner@test.com", role="client", password="pass1234"
+        )
+        self.freelancer = User.objects.create_user(
+            email="freelancer@test.com", role="freelancer", password="pass1234"
+        )
+        self.outsider = User.objects.create_user(
+            email="outsider@test.com", role="freelancer", password="pass1234"
+        )
 
         self.project = Project.objects.create(
             owner=self.owner,
@@ -63,19 +69,27 @@ class ProjectMessageApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_owner_can_list_messages(self):
-        ProjectMessage.objects.create(project=self.project, sender=self.owner, text="msg 1")
-        ProjectMessage.objects.create(project=self.project, sender=self.freelancer, text="msg 2")
+        ProjectMessage.objects.create(
+            project=self.project, sender=self.owner, text="msg 1"
+        )
+        ProjectMessage.objects.create(
+            project=self.project, sender=self.freelancer, text="msg 2"
+        )
 
         self.client_api.force_authenticate(self.owner)
         response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
-        results = data["results"] if isinstance(data, dict) and "results" in data else data
+        results = (
+            data["results"] if isinstance(data, dict) and "results" in data else data
+        )
         self.assertEqual(len(results), 2)
 
     def test_outsider_cannot_list_messages(self):
-        ProjectMessage.objects.create(project=self.project, sender=self.owner, text="secret")
+        ProjectMessage.objects.create(
+            project=self.project, sender=self.owner, text="secret"
+        )
 
         self.client_api.force_authenticate(self.outsider)
         response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages")
@@ -87,13 +101,19 @@ class ProjectMessageApiTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_message_ordering_by_created(self):
-        msg1 = ProjectMessage.objects.create(project=self.project, sender=self.owner, text="first")
-        msg2 = ProjectMessage.objects.create(project=self.project, sender=self.freelancer, text="second")
+        msg1 = ProjectMessage.objects.create(
+            project=self.project, sender=self.owner, text="first"
+        )
+        msg2 = ProjectMessage.objects.create(
+            project=self.project, sender=self.freelancer, text="second"
+        )
 
         self.client_api.force_authenticate(self.owner)
         response = self.client_api.get(f"/api/v1/projects/{self.project.id}/messages")
         data = response.json()
-        results = data["results"] if isinstance(data, dict) and "results" in data else data
+        results = (
+            data["results"] if isinstance(data, dict) and "results" in data else data
+        )
 
         # Backend orders by -created_at (newest first)
         self.assertEqual(results[0]["text"], "second")

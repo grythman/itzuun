@@ -1,4 +1,5 @@
 """Escrow and payment domain services."""
+
 import hashlib
 import json
 from decimal import Decimal, ROUND_HALF_UP
@@ -14,13 +15,21 @@ from common.state_guards import guard_escrow_transition, guard_project_transitio
 from apps.projects.models import Project
 from apps.projects.models import ProjectDeliverable
 
-from apps.payments.models import Dispute, Escrow, FinancialAuditLog, LedgerEntry, Payment
+from apps.payments.models import (
+    Dispute,
+    Escrow,
+    FinancialAuditLog,
+    LedgerEntry,
+    Payment,
+)
 
 
 def calculate_commission(amount: int) -> tuple[int, int]:
     setting = PlatformSetting.get_solo()
     rate = Decimal(str(setting.platform_fee_pct)) / Decimal("100")
-    platform_fee = int((Decimal(amount) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    platform_fee = int(
+        (Decimal(amount) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    )
     freelancer_amount = amount - platform_fee
     if freelancer_amount < 0:
         raise DomainError("Commission calculation produced negative freelancer amount.")
@@ -31,10 +40,14 @@ def _lock_project(project: Project) -> Project:
     # FOR UPDATE-д select_related ашиглахгүй
     Project.objects.select_for_update().get(id=project.id)
     # Дараа нь хэрэгтэй датагаа энгийнээр татах
-    return Project.objects.select_related("escrow", "selected_proposal").get(id=project.id)
+    return Project.objects.select_related("escrow", "selected_proposal").get(
+        id=project.id
+    )
+
 
 def _lock_escrow(escrow: Escrow) -> Escrow:
     return Escrow.objects.select_for_update().get(id=escrow.id)
+
 
 def _serialize_escrow(escrow: Escrow) -> dict:
     return {
@@ -56,8 +69,15 @@ def _serialize_project(project: Project) -> dict:
 
 
 def _build_hash_chain(payload: dict) -> str:
-    previous = FinancialAuditLog.objects.order_by("-id").values_list("hash_chain", flat=True).first() or "GENESIS"
-    raw = f"{previous}:{json.dumps(payload, sort_keys=True, default=str)}".encode("utf-8")
+    previous = (
+        FinancialAuditLog.objects.order_by("-id")
+        .values_list("hash_chain", flat=True)
+        .first()
+        or "GENESIS"
+    )
+    raw = f"{previous}:{json.dumps(payload, sort_keys=True, default=str)}".encode(
+        "utf-8"
+    )
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -108,8 +128,13 @@ def deposit_to_escrow(project: Project, actor, amount: int | None = None) -> Esc
     if deposit_amount <= 0:
         raise DomainError("Deposit amount must be positive.")
 
-    escrow, created = Escrow.objects.select_for_update().get_or_create(project=project, defaults={"amount": 0})
-    if not created and escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).exists():
+    escrow, created = Escrow.objects.select_for_update().get_or_create(
+        project=project, defaults={"amount": 0}
+    )
+    if (
+        not created
+        and escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).exists()
+    ):
         raise DomainError("Escrow is already funded.")
     if escrow.status in {Escrow.STATUS_RELEASED, Escrow.STATUS_REFUNDED}:
         raise DomainError("Escrow is already closed.")
@@ -121,7 +146,15 @@ def deposit_to_escrow(project: Project, actor, amount: int | None = None) -> Esc
     if escrow.status != Escrow.STATUS_CREATED:
         guard_escrow_transition(escrow.status, Escrow.STATUS_CREATED)
     escrow.status = Escrow.STATUS_CREATED
-    escrow.save(update_fields=["amount", "platform_fee_amount", "freelancer_amount", "status", "updated_at"])
+    escrow.save(
+        update_fields=[
+            "amount",
+            "platform_fee_amount",
+            "freelancer_amount",
+            "status",
+            "updated_at",
+        ]
+    )
     LedgerEntry.objects.create(
         escrow=escrow,
         entry_type=LedgerEntry.TYPE_DEPOSIT,
@@ -168,8 +201,14 @@ def approve_escrow(escrow: Escrow, actor) -> Escrow:
 
 
 @transaction.atomic
-def mark_payment_paid_and_hold_escrow(*, invoice_id: str, paid_amount: int, verification_payload: dict | None = None) -> Payment:
-    payment = Payment.objects.select_for_update(of=("self",)).select_related("project").get(invoice_id=invoice_id)
+def mark_payment_paid_and_hold_escrow(
+    *, invoice_id: str, paid_amount: int, verification_payload: dict | None = None
+) -> Payment:
+    payment = (
+        Payment.objects.select_for_update(of=("self",))
+        .select_related("project")
+        .get(invoice_id=invoice_id)
+    )
     if payment.status == Payment.STATUS_PAID:
         return payment
 
@@ -220,7 +259,15 @@ def mark_payment_paid_and_hold_escrow(*, invoice_id: str, paid_amount: int, veri
     elif escrow.status != Escrow.STATUS_HELD:
         raise DomainError(f"Escrow cannot be moved to held from {escrow.status}")
 
-    escrow.save(update_fields=["amount", "platform_fee_amount", "freelancer_amount", "status", "updated_at"])
+    escrow.save(
+        update_fields=[
+            "amount",
+            "platform_fee_amount",
+            "freelancer_amount",
+            "status",
+            "updated_at",
+        ]
+    )
 
     if not escrow.ledger_entries.filter(entry_type=LedgerEntry.TYPE_DEPOSIT).exists():
         LedgerEntry.objects.create(
@@ -241,7 +288,10 @@ def mark_payment_paid_and_hold_escrow(*, invoice_id: str, paid_amount: int, veri
         entity_type=FinancialAuditLog.ENTITY_ESCROW,
         entity_id=escrow.id,
         before_state={"escrow": before_escrow, "project": before_project},
-        after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(project)},
+        after_state={
+            "escrow": _serialize_escrow(escrow),
+            "project": _serialize_project(project),
+        },
         reason="QPay webhook verified payment and moved escrow to held",
     )
     bump_project_version(project.id)
@@ -250,8 +300,11 @@ def mark_payment_paid_and_hold_escrow(*, invoice_id: str, paid_amount: int, veri
     bump_admin_resource_version("projects")
     return payment
 
+
 @transaction.atomic
-def mark_payment_failed(payment: Payment, reason: str, raw_payload: dict | None = None) -> Payment:
+def mark_payment_failed(
+    payment: Payment, reason: str, raw_payload: dict | None = None
+) -> Payment:
     payment = Payment.objects.select_for_update().get(id=payment.id)
     if payment.status == Payment.STATUS_PAID:
         raise DomainError("Cannot fail a paid payment.")
@@ -265,27 +318,38 @@ def mark_payment_failed(payment: Payment, reason: str, raw_payload: dict | None 
     bump_admin_resource_version("payments")
     return payment
 
+
 @transaction.atomic
 def expire_stale_pending_payments(*, ttl_minutes: int = 30) -> int:
     threshold = timezone.now() - timezone.timedelta(minutes=ttl_minutes)
-    stale = Payment.objects.select_for_update().filter(status=Payment.STATUS_PENDING, created_at__lt=threshold)
+    stale = Payment.objects.select_for_update().filter(
+        status=Payment.STATUS_PENDING, created_at__lt=threshold
+    )
     count = stale.count()
     if count > 0:
         stale.update(status=Payment.STATUS_FAILED)
         bump_admin_resource_version("payments")
     return count
 
+
 @transaction.atomic
 def submit_result(project: Project, submitter) -> Project:
     project = _lock_project(project)
-    if not project.selected_proposal or project.selected_proposal.freelancer_id != submitter.id:
+    if (
+        not project.selected_proposal
+        or project.selected_proposal.freelancer_id != submitter.id
+    ):
         raise DomainError("Only the selected freelancer can submit work.")
     if project.status != Project.STATUS_IN_PROGRESS:
         raise DomainError("Project is not in progress.")
     if not hasattr(project, "escrow") or project.escrow.status != Escrow.STATUS_HELD:
         raise DomainError("Escrow must be held before submitting work.")
-    if not ProjectDeliverable.objects.filter(project=project, submitted_by=submitter).exists():
-        raise DomainError("At least one deliverable is required before submitting result.")
+    if not ProjectDeliverable.objects.filter(
+        project=project, submitted_by=submitter
+    ).exists():
+        raise DomainError(
+            "At least one deliverable is required before submitting result."
+        )
 
     guard_project_transition(project.status, Project.STATUS_AWAITING_REVIEW)
     project.status = Project.STATUS_AWAITING_REVIEW
@@ -293,6 +357,7 @@ def submit_result(project: Project, submitter) -> Project:
     bump_project_version(project.id)
     bump_admin_resource_version("projects")
     return project
+
 
 @transaction.atomic
 def confirm_completion(project: Project, approved_by) -> Escrow:
@@ -318,7 +383,10 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     if pct < 0 or pct > settings.PLATFORM_FEE_MAX_PCT:
         raise DomainError("Platform fee policy is out of allowed bounds.")
 
-    is_fee_calculated = escrow.platform_fee_amount + escrow.freelancer_amount == escrow.amount and escrow.amount > 0
+    is_fee_calculated = (
+        escrow.platform_fee_amount + escrow.freelancer_amount == escrow.amount
+        and escrow.amount > 0
+    )
     if is_fee_calculated:
         platform_fee = escrow.platform_fee_amount
         release_amount = escrow.freelancer_amount
@@ -334,7 +402,9 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     if not is_fee_calculated:
         escrow.platform_fee_amount = platform_fee
         escrow.freelancer_amount = release_amount
-        escrow.save(update_fields=["platform_fee_amount", "freelancer_amount", "updated_at"])
+        escrow.save(
+            update_fields=["platform_fee_amount", "freelancer_amount", "updated_at"]
+        )
         escrow.refresh_from_db()
 
     LedgerEntry.objects.create(
@@ -354,7 +424,7 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     escrow.status = Escrow.STATUS_RELEASED
     guard_project_transition(project.status, Project.STATUS_COMPLETED)
     project.status = Project.STATUS_COMPLETED
-    
+
     escrow.save(update_fields=["status", "updated_at"])
     project.save(update_fields=["status", "updated_at"])
 
@@ -364,7 +434,10 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
         entity_type=FinancialAuditLog.ENTITY_ESCROW,
         entity_id=escrow.id,
         before_state={"escrow": before_escrow, "project": before_project},
-        after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(project)},
+        after_state={
+            "escrow": _serialize_escrow(escrow),
+            "project": _serialize_project(project),
+        },
         reason="Client confirmed completion and released escrow",
     )
     bump_project_version(project.id)
@@ -372,13 +445,24 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     bump_admin_resource_version("projects")
     return escrow
 
+
 @transaction.atomic
-def create_dispute(project: Project, raised_by, reason: str, evidence_files: list[int]) -> Dispute:
+def create_dispute(
+    project: Project, raised_by, reason: str, evidence_files: list[int]
+) -> Dispute:
     project = _lock_project(project)
-    if raised_by.id not in {project.owner_id, getattr(project.selected_proposal, "freelancer_id", None)}:
+    if raised_by.id not in {
+        project.owner_id,
+        getattr(project.selected_proposal, "freelancer_id", None),
+    }:
         raise DomainError("Only project participants can raise a dispute.")
-    if project.status not in {Project.STATUS_IN_PROGRESS, Project.STATUS_AWAITING_REVIEW}:
-        raise DomainError("Dispute can only be raised while work is in progress or under review.")
+    if project.status not in {
+        Project.STATUS_IN_PROGRESS,
+        Project.STATUS_AWAITING_REVIEW,
+    }:
+        raise DomainError(
+            "Dispute can only be raised while work is in progress or under review."
+        )
     if not hasattr(project, "escrow"):
         raise DomainError("Escrow not found for this project.")
 
@@ -387,10 +471,10 @@ def create_dispute(project: Project, raised_by, reason: str, evidence_files: lis
     before_project = _serialize_project(project)
     guard_escrow_transition(escrow.status, Escrow.STATUS_DISPUTED)
     escrow.status = Escrow.STATUS_DISPUTED
-    
+
     guard_project_transition(project.status, Project.STATUS_DISPUTED)
     project.status = Project.STATUS_DISPUTED
-    
+
     escrow.save(update_fields=["status", "updated_at"])
     project.save(update_fields=["status", "updated_at"])
 
@@ -406,7 +490,10 @@ def create_dispute(project: Project, raised_by, reason: str, evidence_files: lis
         entity_type=FinancialAuditLog.ENTITY_DISPUTE,
         entity_id=dispute.id,
         before_state={"escrow": before_escrow, "project": before_project},
-        after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(project)},
+        after_state={
+            "escrow": _serialize_escrow(escrow),
+            "project": _serialize_project(project),
+        },
         reason=reason,
     )
     bump_project_version(project.id)
@@ -415,9 +502,21 @@ def create_dispute(project: Project, raised_by, reason: str, evidence_files: lis
     bump_admin_resource_version("disputes")
     return dispute
 
+
 @transaction.atomic
-def resolve_dispute(dispute: Dispute, action: str, release_amount: int, refund_amount: int, note: str, resolver):
-    dispute = Dispute.objects.select_for_update(of=("self",)).select_related("project__escrow").get(id=dispute.id)
+def resolve_dispute(
+    dispute: Dispute,
+    action: str,
+    release_amount: int,
+    refund_amount: int,
+    note: str,
+    resolver,
+):
+    dispute = (
+        Dispute.objects.select_for_update(of=("self",))
+        .select_related("project__escrow")
+        .get(id=dispute.id)
+    )
     escrow = dispute.project.escrow
 
     if escrow.status != Escrow.STATUS_DISPUTED:
@@ -434,20 +533,28 @@ def resolve_dispute(dispute: Dispute, action: str, release_amount: int, refund_a
         raise DomainError("Release and refund must add up to escrow amount.")
 
     if action == "release":
-        LedgerEntry.objects.create(escrow=escrow, entry_type=LedgerEntry.TYPE_RELEASE, amount=release_amount)
+        LedgerEntry.objects.create(
+            escrow=escrow, entry_type=LedgerEntry.TYPE_RELEASE, amount=release_amount
+        )
         guard_escrow_transition(escrow.status, Escrow.STATUS_RELEASED)
         escrow.status = Escrow.STATUS_RELEASED
         guard_project_transition(dispute.project.status, Project.STATUS_COMPLETED)
         dispute.project.status = Project.STATUS_COMPLETED
     elif action == "refund":
-        LedgerEntry.objects.create(escrow=escrow, entry_type=LedgerEntry.TYPE_REFUND, amount=refund_amount)
+        LedgerEntry.objects.create(
+            escrow=escrow, entry_type=LedgerEntry.TYPE_REFUND, amount=refund_amount
+        )
         guard_escrow_transition(escrow.status, Escrow.STATUS_REFUNDED)
         escrow.status = Escrow.STATUS_REFUNDED
         guard_project_transition(dispute.project.status, Project.STATUS_CLOSED_REFUNDED)
         dispute.project.status = Project.STATUS_CLOSED_REFUNDED
     elif action == "split":
-        LedgerEntry.objects.create(escrow=escrow, entry_type=LedgerEntry.TYPE_RELEASE, amount=release_amount)
-        LedgerEntry.objects.create(escrow=escrow, entry_type=LedgerEntry.TYPE_REFUND, amount=refund_amount)
+        LedgerEntry.objects.create(
+            escrow=escrow, entry_type=LedgerEntry.TYPE_RELEASE, amount=release_amount
+        )
+        LedgerEntry.objects.create(
+            escrow=escrow, entry_type=LedgerEntry.TYPE_REFUND, amount=refund_amount
+        )
         guard_escrow_transition(escrow.status, Escrow.STATUS_RELEASED)
         escrow.status = Escrow.STATUS_RELEASED
         guard_project_transition(dispute.project.status, Project.STATUS_COMPLETED)
@@ -463,11 +570,18 @@ def resolve_dispute(dispute: Dispute, action: str, release_amount: int, refund_a
     dispute.save(update_fields=["resolved_by", "resolved_at", "note"])
     _log_financial_event(
         actor=resolver,
-        action_type=FinancialAuditLog.ACTION_REFUND if action == "refund" else FinancialAuditLog.ACTION_RELEASE,
+        action_type=(
+            FinancialAuditLog.ACTION_REFUND
+            if action == "refund"
+            else FinancialAuditLog.ACTION_RELEASE
+        ),
         entity_type=FinancialAuditLog.ENTITY_DISPUTE,
         entity_id=dispute.id,
         before_state={"escrow": before_escrow, "project": before_project},
-        after_state={"escrow": _serialize_escrow(escrow), "project": _serialize_project(dispute.project)},
+        after_state={
+            "escrow": _serialize_escrow(escrow),
+            "project": _serialize_project(dispute.project),
+        },
         reason=note,
     )
     bump_project_version(dispute.project_id)

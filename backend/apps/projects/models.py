@@ -1,4 +1,5 @@
 """Project and proposal models."""
+
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
@@ -33,17 +34,27 @@ class Project(models.Model):
         (STATUS_DISPUTED, "Disputed"),
     )
 
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="projects")
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="projects"
+    )
     title = models.CharField(max_length=255)
     description = models.TextField()
     budget = models.PositiveIntegerField()
     timeline_days = models.PositiveIntegerField()
     category = models.CharField(max_length=64)
-    category_obj = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
+    category_obj = models.ForeignKey(
+        Category, null=True, blank=True, on_delete=models.SET_NULL
+    )
     required_skills = models.JSONField(default=list, blank=True)
-    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_OPEN)
+    status = models.CharField(
+        max_length=32, choices=STATUS_CHOICES, default=STATUS_OPEN
+    )
     selected_proposal = models.ForeignKey(
-        "Proposal", null=True, blank=True, on_delete=models.SET_NULL, related_name="selected_for"
+        "Proposal",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="selected_for",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -51,20 +62,27 @@ class Project(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=Q(status__in=[
-                    "open",
-                    "in_progress",
-                    "awaiting_client_review",
-                    "completed",
-                    "closed_refunded",
-                    "disputed",
-                ]),
+                check=Q(
+                    status__in=[
+                        "open",
+                        "in_progress",
+                        "awaiting_client_review",
+                        "completed",
+                        "closed_refunded",
+                        "disputed",
+                    ]
+                ),
                 name="ck_project_valid_status",
             ),
         ]
         indexes = [
-            models.Index(fields=["status", "category", "-created_at"], name="idx_project_status_cat_created"),
-            models.Index(fields=["status", "-created_at"], name="idx_project_status_created"),
+            models.Index(
+                fields=["status", "category", "-created_at"],
+                name="idx_project_status_cat_created",
+            ),
+            models.Index(
+                fields=["status", "-created_at"], name="idx_project_status_created"
+            ),
             models.Index(fields=["-created_at"], name="idx_project_created"),
         ]
 
@@ -82,33 +100,50 @@ class Proposal(models.Model):
         (STATUS_REJECTED, "Rejected"),
     )
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="proposals")
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="proposals"
+    )
     freelancer = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="proposals"
     )
     price = models.PositiveIntegerField()
     timeline_days = models.PositiveIntegerField()
     message = models.TextField(blank=True)
-    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    status = models.CharField(
+        max_length=32, choices=STATUS_CHOICES, default=STATUS_PENDING
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["project", "freelancer"], name="uq_proposal_project_freelancer"),
+            models.UniqueConstraint(
+                fields=["project", "freelancer"], name="uq_proposal_project_freelancer"
+            ),
         ]
         indexes = [
-            models.Index(fields=["project", "status", "-created_at"], name="idx_prop_proj_status_created"),
+            models.Index(
+                fields=["project", "status", "-created_at"],
+                name="idx_prop_proj_status_created",
+            ),
             models.Index(fields=["project", "status"], name="idx_prop_project_status"),
-            models.Index(fields=["freelancer", "status"], name="idx_prop_freelancer_status"),
+            models.Index(
+                fields=["freelancer", "status"], name="idx_prop_freelancer_status"
+            ),
             models.Index(fields=["-created_at"], name="idx_prop_created"),
         ]
 
 
 class ProjectDeliverable(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="deliverables")
-    file = models.ForeignKey("messaging.ProjectFile", on_delete=models.CASCADE, related_name="deliverables")
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="deliverables"
+    )
+    file = models.ForeignKey(
+        "messaging.ProjectFile", on_delete=models.CASCADE, related_name="deliverables"
+    )
     submitted_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="submitted_deliverables"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="submitted_deliverables",
     )
     description = models.TextField(blank=True)
     checksum = models.CharField(max_length=128)
@@ -116,8 +151,12 @@ class ProjectDeliverable(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["project", "file"], name="uq_deliverable_project_file"),
+            models.UniqueConstraint(
+                fields=["project", "file"], name="uq_deliverable_project_file"
+            ),
         ]
         indexes = [
-            models.Index(fields=["project", "-submitted_at"], name="idx_deliv_proj_subm"),
+            models.Index(
+                fields=["project", "-submitted_at"], name="idx_deliv_proj_subm"
+            ),
         ]

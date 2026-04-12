@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 interface LogoProps {
   variant?: "horizontal" | "vertical" | "icon";
@@ -41,14 +42,13 @@ export function Logo({
   const defaultHeight = variant === "icon" ? 40 : variant === "vertical" ? 120 : 48;
 
   const content = (
-    <img
+    <Image
       src={src}
       alt="ITZuun Logo"
       width={width || defaultWidth}
       height={height || defaultHeight}
       className={`h-auto ${className}`}
-      loading="eager"
-      decoding="async"
+      priority
     />
   );
 

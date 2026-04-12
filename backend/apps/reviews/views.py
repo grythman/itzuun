@@ -1,4 +1,5 @@
 """Review views."""
+
 from django.db.models import Avg, Count
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
@@ -7,7 +8,11 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.cache_utils import bump_user_public_version, rating_summary_cache_key, user_reviews_cache_key
+from common.cache_utils import (
+    bump_user_public_version,
+    rating_summary_cache_key,
+    user_reviews_cache_key,
+)
 from apps.projects.models import Project
 
 from .models import Review
@@ -19,9 +24,14 @@ class ProjectReviewCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        project = get_object_or_404(Project.objects.select_related("selected_proposal"), id=self.kwargs["project_id"])
+        project = get_object_or_404(
+            Project.objects.select_related("selected_proposal"),
+            id=self.kwargs["project_id"],
+        )
         if project.status != Project.STATUS_COMPLETED:
-            raise ValidationError({"detail": "Reviews can only be left after project completion."})
+            raise ValidationError(
+                {"detail": "Reviews can only be left after project completion."}
+            )
 
         # Only owner and selected freelancer may review each other
         selected = getattr(project, "selected_proposal", None)
@@ -36,7 +46,9 @@ class ProjectReviewCreateView(generics.CreateAPIView):
             raise ValidationError({"detail": "You already reviewed this project."})
 
         reviewee_id = freelancer_id if is_owner else project.owner_id
-        serializer.save(project=project, reviewer=self.request.user, reviewee_id=reviewee_id)
+        serializer.save(
+            project=project, reviewer=self.request.user, reviewee_id=reviewee_id
+        )
         bump_user_public_version(reviewee_id)
 
 
@@ -45,7 +57,9 @@ class UserReviewsListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Review.objects.filter(reviewee_id=self.kwargs["user_id"]).order_by("-created_at")
+        return Review.objects.filter(reviewee_id=self.kwargs["user_id"]).order_by(
+            "-created_at"
+        )
 
     def list(self, request, *args, **kwargs):
         user_id = kwargs["user_id"]

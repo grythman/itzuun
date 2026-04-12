@@ -1,8 +1,16 @@
 """Auth and user URL routes."""
+
 from django.urls import re_path
 from .views import (
-    CookieTokenRefreshView, GoogleAuthView, LoginView, LogoutView, 
-    MeView, RegisterView, RequestOtpView, VerificationSubmitView, VerifyOtpView
+    CookieTokenRefreshView,
+    GoogleAuthView,
+    LoginView,
+    LogoutView,
+    MeView,
+    RegisterView,
+    RequestOtpView,
+    VerificationSubmitView,
+    VerifyOtpView,
 )
 
 # re_path ашиглан төгсгөлийн / тэмдэгтийг сонголттой (optional) болгов
@@ -16,5 +24,9 @@ urlpatterns = [
     re_path(r"^refresh/?$", CookieTokenRefreshView.as_view(), name="token-refresh"),
     re_path(r"^logout/?$", LogoutView.as_view(), name="logout"),
     re_path(r"^me/?$", MeView.as_view(), name="me"),
-    re_path(r"^me/verification/?$", VerificationSubmitView.as_view(), name="submit-verification"),
+    re_path(
+        r"^me/verification/?$",
+        VerificationSubmitView.as_view(),
+        name="submit-verification",
+    ),
 ]

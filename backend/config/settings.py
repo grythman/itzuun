@@ -1,4 +1,5 @@
 """Minimal Django settings scaffold for API-first development."""
+
 import os
 import sys
 import dj_database_url
@@ -16,17 +17,21 @@ except ImportError:  # pragma: no cover - optional dependency in local envs
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+
 def _split_env(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
+
 # Detect if we're running tests
-TESTING = 'test' in sys.argv
+TESTING = "test" in sys.argv
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev")
 DEBUG = TESTING or os.getenv("DJANGO_DEBUG", "0") == "1"
 
 ALLOWED_HOSTS = _split_env(os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"))
-CSRF_TRUSTED_ORIGINS = _split_env(os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1"))
+CSRF_TRUSTED_ORIGINS = _split_env(
+    os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost,http://127.0.0.1")
+)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 INSTALLED_APPS = [
@@ -144,7 +149,9 @@ else:
 # ==============================================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -152,8 +159,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 LANGUAGES = [
-    ('en', 'English'),
-    ('mn', 'Mongolian'),
+    ("en", "English"),
+    ("mn", "Mongolian"),
 ]
 
 TIME_ZONE = "Asia/Ulaanbaatar"
@@ -166,7 +173,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # ---------- Email ----------
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
@@ -302,7 +311,9 @@ LOGGING = {
 }
 
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
-SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "development" if DEBUG else "production")
+SENTRY_ENVIRONMENT = os.getenv(
+    "SENTRY_ENVIRONMENT", "development" if DEBUG else "production"
+)
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
 
 if SENTRY_DSN and sentry_sdk and DjangoIntegration:

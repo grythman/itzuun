@@ -17,12 +17,26 @@ class Command(BaseCommand):
     help = "Validate and bootstrap pilot cohort (clients, freelancers, projects) from args or JSON input."
 
     def add_arguments(self, parser):
-        parser.add_argument("--clients", default="", help="Comma-separated client emails")
-        parser.add_argument("--freelancers", default="", help="Comma-separated freelancer emails")
-        parser.add_argument("--projects", default="", help="Comma-separated project IDs")
-        parser.add_argument("--input-json", default="", help="Path to JSON payload with clients/freelancers/projects")
-        parser.add_argument("--output", default="", help="Optional path to write validation report JSON")
-        parser.add_argument("--strict", action="store_true", help="Fail if any listed record is missing")
+        parser.add_argument(
+            "--clients", default="", help="Comma-separated client emails"
+        )
+        parser.add_argument(
+            "--freelancers", default="", help="Comma-separated freelancer emails"
+        )
+        parser.add_argument(
+            "--projects", default="", help="Comma-separated project IDs"
+        )
+        parser.add_argument(
+            "--input-json",
+            default="",
+            help="Path to JSON payload with clients/freelancers/projects",
+        )
+        parser.add_argument(
+            "--output", default="", help="Optional path to write validation report JSON"
+        )
+        parser.add_argument(
+            "--strict", action="store_true", help="Fail if any listed record is missing"
+        )
 
     def handle(self, *args, **options):
         clients = _parse_csv(options["clients"])
@@ -40,7 +54,9 @@ class Command(BaseCommand):
         report = self._build_report(clients, freelancers, project_ids)
 
         if options.get("strict") and report["summary"]["missing_total"] > 0:
-            raise CommandError("Pilot cohort validation failed in strict mode: missing records found")
+            raise CommandError(
+                "Pilot cohort validation failed in strict mode: missing records found"
+            )
 
         output_path = options.get("output") or ""
         if output_path:
@@ -71,18 +87,32 @@ class Command(BaseCommand):
                 raise CommandError(f"Invalid project id: {item}") from exc
         return project_ids
 
-    def _build_report(self, clients: list[str], freelancers: list[str], project_ids: list[int]) -> dict:
+    def _build_report(
+        self, clients: list[str], freelancers: list[str], project_ids: list[int]
+    ) -> dict:
         existing_clients = set(
-            User.objects.filter(email__in=clients, role=User.ROLE_CLIENT).values_list("email", flat=True)
+            User.objects.filter(email__in=clients, role=User.ROLE_CLIENT).values_list(
+                "email", flat=True
+            )
         )
         existing_freelancers = set(
-            User.objects.filter(email__in=freelancers, role=User.ROLE_FREELANCER).values_list("email", flat=True)
+            User.objects.filter(
+                email__in=freelancers, role=User.ROLE_FREELANCER
+            ).values_list("email", flat=True)
         )
-        existing_projects = set(Project.objects.filter(id__in=project_ids).values_list("id", flat=True))
+        existing_projects = set(
+            Project.objects.filter(id__in=project_ids).values_list("id", flat=True)
+        )
 
-        missing_clients = sorted([email for email in clients if email not in existing_clients])
-        missing_freelancers = sorted([email for email in freelancers if email not in existing_freelancers])
-        missing_projects = sorted([pid for pid in project_ids if pid not in existing_projects])
+        missing_clients = sorted(
+            [email for email in clients if email not in existing_clients]
+        )
+        missing_freelancers = sorted(
+            [email for email in freelancers if email not in existing_freelancers]
+        )
+        missing_projects = sorted(
+            [pid for pid in project_ids if pid not in existing_projects]
+        )
 
         return {
             "phase": "Launch Readiness",
@@ -106,6 +136,8 @@ class Command(BaseCommand):
                 "client_total": len(clients),
                 "freelancer_total": len(freelancers),
                 "project_total": len(project_ids),
-                "missing_total": len(missing_clients) + len(missing_freelancers) + len(missing_projects),
+                "missing_total": len(missing_clients)
+                + len(missing_freelancers)
+                + len(missing_projects),
             },
         }

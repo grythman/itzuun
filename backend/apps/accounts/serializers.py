@@ -1,4 +1,5 @@
 """Serializers for authentication and user profile."""
+
 from datetime import timedelta
 import re
 
@@ -11,7 +12,6 @@ from rest_framework import serializers
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
 from .models import EmailOTP, User
 from .services import create_email_otp, verify_google_credential
-
 
 OTP_MAX_ATTEMPTS = 5
 OTP_LOCKOUT_MINUTES = 15
@@ -82,7 +82,9 @@ class VerifyOtpSerializer(serializers.Serializer):
 
 class GoogleAuthSerializer(serializers.Serializer):
     credential = serializers.CharField()
-    role = serializers.ChoiceField(choices=[User.ROLE_CLIENT, User.ROLE_FREELANCER], required=False)
+    role = serializers.ChoiceField(
+        choices=[User.ROLE_CLIENT, User.ROLE_FREELANCER], required=False
+    )
 
     def validate(self, attrs):
         payload = verify_google_credential(attrs["credential"])
@@ -122,13 +124,27 @@ class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "email", "role", "is_verified", "created_at",
-            "verification_status", "verification_type", "phone", "rejection_reason",
-            "is_premium", "premium_expiry", "premium_plan_type"
+            "id",
+            "email",
+            "role",
+            "is_verified",
+            "created_at",
+            "verification_status",
+            "verification_type",
+            "phone",
+            "rejection_reason",
+            "is_premium",
+            "premium_expiry",
+            "premium_plan_type",
         ]
         read_only_fields = [
-            "verification_status", "verification_type", "phone", "rejection_reason",
-            "is_premium", "premium_expiry", "premium_plan_type"
+            "verification_status",
+            "verification_type",
+            "phone",
+            "rejection_reason",
+            "is_premium",
+            "premium_expiry",
+            "premium_plan_type",
         ]
 
 
@@ -143,7 +159,9 @@ class VerificationSubmitSerializer(serializers.Serializer):
         else:
             digits = cleaned
         if not re.fullmatch(r"\d{8,15}", digits):
-            raise serializers.ValidationError("Phone must contain 8-15 digits (optionally starting with +).")
+            raise serializers.ValidationError(
+                "Phone must contain 8-15 digits (optionally starting with +)."
+            )
         normalized = f"+{digits}" if value.strip().startswith("+") else digits
         return normalized
 
@@ -152,7 +170,9 @@ class VerificationSubmitSerializer(serializers.Serializer):
         if user.verification_status == User.VERIFICATION_PENDING:
             raise serializers.ValidationError("Verification is already under review.")
         if user.verification_status == User.VERIFICATION_SUSPENDED:
-            raise serializers.ValidationError("Account is suspended. Contact support before re-submitting verification.")
+            raise serializers.ValidationError(
+                "Account is suspended. Contact support before re-submitting verification."
+            )
         return attrs
 
     def create(self, validated_data):
@@ -162,7 +182,15 @@ class VerificationSubmitSerializer(serializers.Serializer):
         user.verification_status = User.VERIFICATION_PENDING
         user.rejection_reason = ""
         user.is_verified = False
-        user.save(update_fields=["verification_type", "phone", "verification_status", "rejection_reason", "is_verified"])
+        user.save(
+            update_fields=[
+                "verification_type",
+                "phone",
+                "verification_status",
+                "rejection_reason",
+                "is_verified",
+            ]
+        )
         bump_admin_resource_version("users")
         bump_user_public_version(user.id)
         return user
@@ -172,16 +200,28 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "email", "role", "is_verified", "created_at",
-            "verification_status", "verification_type", "phone", "rejection_reason", "is_active",
-            "is_premium", "premium_expiry", "premium_plan_type"
+            "id",
+            "email",
+            "role",
+            "is_verified",
+            "created_at",
+            "verification_status",
+            "verification_type",
+            "phone",
+            "rejection_reason",
+            "is_active",
+            "is_premium",
+            "premium_expiry",
+            "premium_plan_type",
         ]
 
 
 class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, min_length=8, max_length=128)
-    role = serializers.ChoiceField(choices=[User.ROLE_CLIENT, User.ROLE_FREELANCER], required=False)
+    role = serializers.ChoiceField(
+        choices=[User.ROLE_CLIENT, User.ROLE_FREELANCER], required=False
+    )
 
     def validate_email(self, value):
         normalized = User.objects.normalize_email(value)
