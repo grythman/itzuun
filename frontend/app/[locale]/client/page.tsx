@@ -59,6 +59,29 @@ function initials(label: string): string {
   return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("");
 }
 
+function DashboardIcon({ name, className = "h-5 w-5" }: { name: "folder" | "add" | "doc" | "payments" | "settings" | "search" | "notifications"; className?: string }) {
+  const common = { className, "aria-hidden": true };
+  if (name === "folder") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M10 4 12 6h7a2 2 0 0 1 2 2v8.5A3.5 3.5 0 0 1 17.5 20h-11A3.5 3.5 0 0 1 3 16.5V7a3 3 0 0 1 3-3h4Z"/></svg>;
+  }
+  if (name === "add") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-6 14h-2v-4H7v-2h4V7h2v4h4v2h-4v4Z"/></svg>;
+  }
+  if (name === "doc") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 1.5V7h3.5L13 3.5ZM8 11h8v1.5H8V11Zm0 3h8v1.5H8V14Zm0 3h5v1.5H8V17Z"/></svg>;
+  }
+  if (name === "payments") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2H3V6Zm0 4h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm11 3a1 1 0 1 0 0 2h3a1 1 0 1 0 0-2h-3Z"/></svg>;
+  }
+  if (name === "settings") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="m19.4 13 .1-1-.1-1 2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-1.7-1L15 2h-6l-.3 2.9a7.5 7.5 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6-.1 1 .1 1-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 1.7 1L9 22h6l.3-2.9a7.5 7.5 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"/></svg>;
+  }
+  if (name === "search") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="m21 20-5.6-5.6a7 7 0 1 0-1 1L20 21l1-1ZM5 10a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"/></svg>;
+  }
+  return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z"/></svg>;
+}
+
 function statusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string; escrowLabel: string } {
   if (status === "in_progress") {
     return { label: "Escrow Held", tone: "success", nextStep: "Гүйцэтгэлийг хянаад шаардлагатай үед маргаан нээ.", escrowLabel: "Мөнгө найдвартай түгжээтэй байна." };
@@ -257,23 +280,23 @@ export default function ClientDashboardPage() {
 
             <nav className="flex-1 space-y-1 px-1">
               <Link href={withLocale("/client")} className="flex items-center gap-3 rounded-lg bg-white px-4 py-3 text-[13px] font-medium text-[#031636] shadow-[0_4px_12px_rgba(3,22,54,0.08)]">
-                <span>📁</span>
+                <DashboardIcon name="folder" className="h-[18px] w-[18px]" />
                 Active Projects
               </Link>
               <Link href={withLocale("/projects/new")} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[13px] font-medium text-slate-500 transition hover:translate-x-1 hover:bg-slate-200/60">
-                <span>＋</span>
+                <DashboardIcon name="add" className="h-[18px] w-[18px]" />
                 Post a Project
               </Link>
               <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[13px] font-medium text-slate-500 transition hover:translate-x-1 hover:bg-slate-200/60">
-                <span>▣</span>
+                <DashboardIcon name="doc" className="h-[18px] w-[18px]" />
                 Proposals
               </button>
               <button type="button" onClick={() => (inProgressProject ? router.push(withLocale(`/projects/${inProgressProject.id}/payment`)) : null)} className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[13px] font-medium text-slate-500 transition hover:translate-x-1 hover:bg-slate-200/60">
-                <span>₮</span>
+                <DashboardIcon name="payments" className="h-[18px] w-[18px]" />
                 Payments & Escrow
               </button>
               <Link href={withLocale("/client/profile")} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[13px] font-medium text-slate-500 transition hover:translate-x-1 hover:bg-slate-200/60">
-                <span>⚙</span>
+                <DashboardIcon name="settings" className="h-[18px] w-[18px]" />
                 Settings
               </Link>
             </nav>
@@ -291,7 +314,9 @@ export default function ClientDashboardPage() {
           <div className="min-w-0 space-y-6">
             <header className="sticky top-16 z-20 flex flex-col gap-4 rounded-[24px] border border-slate-200/70 bg-slate-50/80 px-5 py-4 shadow-[0_20px_50px_rgba(3,22,54,0.04)] backdrop-blur-md md:flex-row md:items-center md:justify-between">
               <div className="relative max-w-md flex-1">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <DashboardIcon name="search" className="h-[18px] w-[18px]" />
+                </span>
                 <input
                   className="h-11 w-full rounded-full border-none bg-[#eceef0] pl-10 pr-4 text-sm text-slate-700 focus:ring-2 focus:ring-[#031636]/15"
                   placeholder="Төсөл, freelancer, escrow хайх..."
@@ -301,7 +326,9 @@ export default function ClientDashboardPage() {
               </div>
               <div className="flex items-center gap-4 self-end md:self-auto">
                 <button className="text-sm font-medium text-slate-500 transition-colors hover:text-[#13696a]">MN/EN</button>
-                <button className="text-slate-500 transition-colors hover:text-[#13696a]" aria-label="Notifications">🔔</button>
+                <button className="text-slate-500 transition-colors hover:text-[#13696a]" aria-label="Notifications">
+                  <DashboardIcon name="notifications" className="h-[18px] w-[18px]" />
+                </button>
                 <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
                   <div className="text-right">
                     <p className="text-sm font-bold text-[#031636]">{clientName}</p>
@@ -327,7 +354,7 @@ export default function ClientDashboardPage() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#13696a] px-5 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
-                  <span>⌕</span>
+                  <DashboardIcon name="search" className="h-[18px] w-[18px]" />
                   Freelancers хайх
                 </Link>
               </div>
@@ -463,7 +490,12 @@ export default function ClientDashboardPage() {
                             <tr key={project.id} className="transition-colors hover:bg-slate-50/60">
                               <td className="px-6 py-5">
                                 <p className="mb-1 text-sm font-bold text-[#031636]">{project.title}</p>
-                                <p className="text-[11px] text-slate-400">Дараагийн алхам: {meta.nextStep}</p>
+                                <div className="space-y-1">
+                                  <p className="text-[11px] text-slate-400">Дараагийн алхам: {meta.nextStep}</p>
+                                  <p className="text-[11px] text-slate-500">
+                                    {project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр
+                                  </p>
+                                </div>
                               </td>
                               <td className="px-6 py-5">
                                 <p className="text-xs font-semibold text-slate-700">{formatMnt(Number(project.budget || 0))}</p>
@@ -509,19 +541,46 @@ export default function ClientDashboardPage() {
                       const meta = statusMeta(project.status);
                       const progress = projectProgress(project.status);
                       return (
-                        <li key={project.id} className="rounded-2xl border border-slate-200 bg-[#fbfcfd] p-4">
+                        <li key={project.id} className="rounded-[1.5rem] border border-slate-200 bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                           <div className="flex items-start justify-between gap-3">
                             <p className="font-semibold text-[#031636]">{project.title}</p>
                             <StatusPill label={projectStatusLabel(project.status)} tone={meta.tone} />
                           </div>
-                          <p className="mt-2 text-xs text-slate-500">Төсөв: {formatMnt(Number(project.budget || 0))}</p>
+                          <div className="mt-2 grid gap-1 text-xs text-slate-500">
+                            <p>Төсөв: {formatMnt(Number(project.budget || 0))}</p>
+                            <p>{project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр</p>
+                          </div>
                           <div className="mt-3 flex items-center gap-3">
                             <div className="h-1.5 flex-1 rounded-full bg-[#e0e3e5]">
                               <div className="h-full rounded-full bg-[#031636]" style={{ width: `${progress}%` }} />
                             </div>
                             <span className="text-[10px] font-bold text-[#031636]">{progress}%</span>
                           </div>
-                          <p className="mt-3 text-xs text-slate-600">Дараагийн алхам: {meta.nextStep}</p>
+                          <div className="mt-3 rounded-xl bg-[#f1f4f7] px-3 py-2">
+                            <p className="text-[11px] font-semibold text-[#1f4d76]">Дараагийн алхам</p>
+                            <p className="mt-1 text-xs text-slate-600">{meta.nextStep}</p>
+                          </div>
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {project.status === "open" ? (
+                              <button className="min-h-11 rounded-xl bg-[#031636] px-3 text-xs font-bold text-[#d8e2ff]" onClick={() => focusProposalSection(project.id)}>
+                                Санал харах
+                              </button>
+                            ) : project.status === "awaiting_client_review" ? (
+                              <button className="min-h-11 rounded-xl bg-[#13696a] px-3 text-xs font-bold text-white" onClick={() => setReleaseTarget(project.id)}>
+                                Release хийх
+                              </button>
+                            ) : (
+                              <button className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-[#031636]" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
+                                Дэлгэрэнгүй
+                              </button>
+                            )}
+                            <button
+                              className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-[#1e4f78]"
+                              onClick={() => (["in_progress", "awaiting_client_review"].includes(project.status) ? setDisputeTarget(project.id) : router.push(withLocale(`/projects/${project.id}/payment`)))}
+                            >
+                              {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан" : "Escrow"}
+                            </button>
+                          </div>
                         </li>
                       );
                     })}

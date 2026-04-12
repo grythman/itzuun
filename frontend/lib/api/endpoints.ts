@@ -51,40 +51,40 @@ export function toArray<T>(obj: T[] | PaginatedResponse<T> | null | undefined): 
 
 export const authApi = {
   login: async (credentials: any) => {
-    const res = await apiClient.post("/accounts/auth/login/", credentials);
+    const res = await apiClient.post("/auth/login/", credentials);
     return res.data;
   },
   register: async (data: any) => {
-    const res = await apiClient.post("/accounts/auth/register/", data);
+    const res = await apiClient.post("/auth/register/", data);
     return res.data;
   },
   google: async (payload: { credential: string; role?: "client" | "freelancer" }) => {
-    const res = await apiClient.post("/accounts/auth/google/", payload);
+    const res = await apiClient.post("/auth/google/", payload);
     return res.data;
   },
   logout: async () => {
-    const res = await apiClient.post("/accounts/auth/logout/");
+    const res = await apiClient.post("/auth/logout/");
     return res.data;
   },
   requestOtp: async (email: string) => {
-    const res = await apiClient.post("/accounts/auth/request-otp/", { email });
+    const res = await apiClient.post("/auth/request-otp/", { email });
     return res.data;
   },
   verifyOtp: async (email: string, otp: string, otp_token?: string) => {
-    const res = await apiClient.post("/accounts/auth/verify-otp/", { email, otp, otp_token });
+    const res = await apiClient.post("/auth/verify-otp/", { email, otp, otp_token });
     return res.data;
   },
   resendOtp: async (data: any) => {
-    const res = await apiClient.post("/accounts/auth/resend-otp/", data);
+    const res = await apiClient.post("/auth/resend-otp/", data);
     return res.data;
   },
   me: async (skipCache: boolean = false): Promise<AuthUser> => {
     const params = skipCache ? { refresh: Date.now() } : {};
-    const res = await apiClient.get<AuthUser>("/accounts/users/me/", { params });
+    const res = await apiClient.get<AuthUser>("/auth/me/", { params });
     return res.data;
   },
   submitVerification: async (data: any) => {
-    const res = await apiClient.post("/accounts/users/me/verification/", data);
+    const res = await apiClient.post("/users/me/verification/", data);
     return res.data;
   }
 };
