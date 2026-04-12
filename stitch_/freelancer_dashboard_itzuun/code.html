@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        h1, h2, h3, .headline {
+            font-family: 'Manrope', sans-serif;
+        }
+        .asymmetric-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+        }
+        @media (max-width: 1024px) {
+            .asymmetric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "outline-variant": "#c5c6cf",
+                        "surface-tint": "#4e5e82",
+                        "on-surface": "#191c1e",
+                        "secondary-container": "#a2eded",
+                        "error": "#ba1a1a",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "outline": "#75777f",
+                        "surface-dim": "#d8dadc",
+                        "on-background": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary-container": "#5290ff",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary": "#031636",
+                        "surface-bright": "#f7f9fb",
+                        "secondary": "#13696a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed": "#071b3b",
+                        "inverse-primary": "#b6c6f0",
+                        "on-tertiary-fixed": "#001a42",
+                        "tertiary": "#001639",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#1a6d6e",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b6c6f0",
+                        "secondary-fixed-dim": "#89d3d4",
+                        "secondary-fixed": "#a5eff0",
+                        "on-secondary-fixed-variant": "#004f50",
+                        "surface-variant": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-container": "#002960",
+                        "on-surface-variant": "#44474e",
+                        "primary-container": "#1a2b4c",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "on-primary-fixed-variant": "#364669",
+                        "background": "#f7f9fb",
+                        "on-secondary-fixed": "#002020",
+                        "on-primary-container": "#8293ba",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "tertiary-fixed": "#d8e2ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Sidebar (SideNavBar) -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#eceef0] hidden md:flex flex-col py-6 px-4 space-y-2 border-r border-transparent">
+<div class="mb-10 px-4">
+<span class="text-lg font-black text-primary">ITZuun</span>
+</div>
+<div class="flex items-center space-x-3 px-4 mb-8">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Professional headshot of a young male software developer with a friendly expression in a modern office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh3xu_b-T2MwT358fxKsXEwephBCzA2LHK6ywGoySZrVyF4SjvEiFnVpljqWC3yCvrJlj7nGjRHyPQi7fLSR5h7YFlINek4ZVZR-yKAbQV4cSOEHifnexG7BjZSPQNdsxQv2qq0G-2VlkBzC5CC0lbG79cCjmsS_dU0FNIpW2ECUAxMSUJny9Jmo1Kxzw-XYDdh0Det7jNQRR4GNwIgH5E_s1XXJnu2yoLSj02sE7QfbgvrDEJ3BdQ_C2TPWyH3Bh84l8F_Tci3Ts"/>
+</div>
+<div>
+<p class="text-xs text-slate-500 font-medium">Сайн байна уу?</p>
+<p class="text-sm font-bold text-primary">Г. Тэмүүлэн</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active Tab: Хянах самбар -->
+<a class="flex items-center space-x-3 px-4 py-3 bg-white text-primary font-bold rounded-lg shadow-[0_4px_12px_rgba(3,22,54,0.04)] scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-sm">Хянах самбар</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-white/50 hover:translate-x-1 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">work</span>
+<span class="text-sm">Миний төслүүд</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-white/50 hover:translate-x-1 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-sm">Ажил хайх</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-white/50 hover:translate-x-1 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm">Санхүү</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-white/50 hover:translate-x-1 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Тохиргоо</span>
+</a>
+</nav>
+<div class="pt-4 border-t border-slate-200">
+<a class="flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-white/50 hover:translate-x-1 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm">Тусламж</span>
+</a>
+<div class="mt-4 px-4">
+<button class="w-full bg-primary text-white py-3 rounded-xl font-semibold text-sm shadow-lg shadow-primary/20">Төсөл эхлүүлэх</button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="md:ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-8 h-16 bg-surface z-10 sticky top-0">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-surface-container border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-secondary/20" placeholder="Ажил хайх..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6 ml-8">
+<div class="hidden lg:flex space-x-6">
+<a class="text-primary border-b-2 border-secondary pb-1 font-medium text-sm" href="#">Ажил хайх</a>
+<a class="text-slate-500 hover:text-secondary transition-colors text-sm font-medium" href="#">Миний төслүүд</a>
+</div>
+<div class="flex items-center space-x-4 border-l border-slate-200 pl-6">
+<button class="relative text-slate-600 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+<button class="text-slate-600 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</button>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto">
+<!-- Greeting & Summary -->
+<section class="mb-10">
+<h1 class="text-3xl font-extrabold text-primary tracking-tight mb-2">Өдрийн мэнд, Тэмүүлэн 👋</h1>
+<p class="text-on-surface-variant font-medium">Өнөөдөр танд 2 шинэ мессеж, 1 төслийн санал ирсэн байна.</p>
+</section>
+<!-- Financial Overview Cards -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_4px_20px_rgba(3,22,54,0.03)] border-b-4 border-primary">
+<div class="flex justify-between items-start mb-4">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Нийт орлого</span>
+<span class="material-symbols-outlined text-primary/40">payments</span>
+</div>
+<div class="flex items-baseline space-x-1">
+<span class="text-3xl font-extrabold text-primary">₮12,450,000</span>
+</div>
+<p class="text-[10px] text-secondary mt-2 font-bold flex items-center">
+<span class="material-symbols-outlined text-xs mr-1">trending_up</span> +12% Өмнөх сараас
+                    </p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_4px_20px_rgba(3,22,54,0.03)] border-b-4 border-secondary">
+<div class="flex justify-between items-start mb-4">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Хүлээгдэж буй төлбөр</span>
+<span class="material-symbols-outlined text-secondary/40">hourglass_empty</span>
+</div>
+<div class="flex items-baseline space-x-1">
+<span class="text-3xl font-extrabold text-primary">₮2,800,000</span>
+</div>
+<p class="text-[10px] text-slate-400 mt-2 font-medium">3 төслийн санхүүжилт</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_4px_20px_rgba(3,22,54,0.03)] border-b-4 border-outline-variant">
+<div class="flex justify-between items-start mb-4">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-wider">Боломжтой үлдэгдэл</span>
+<span class="material-symbols-outlined text-primary/40">account_balance</span>
+</div>
+<div class="flex items-baseline space-x-1">
+<span class="text-3xl font-extrabold text-primary">₮4,120,500</span>
+</div>
+<button class="mt-4 w-full py-2 bg-secondary/10 text-secondary text-xs font-bold rounded-lg hover:bg-secondary/20 transition-all">Татан авах</button>
+</div>
+</section>
+<div class="asymmetric-grid">
+<!-- Left Column: Active Projects -->
+<div class="space-y-8">
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_30px_rgba(3,22,54,0.02)]">
+<div class="p-6 flex justify-between items-center border-b border-surface-container">
+<h2 class="text-lg font-extrabold text-primary">Идэвхтэй төслүүд</h2>
+<button class="text-xs font-bold text-secondary hover:underline">Бүгдийг үзэх</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-high">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-primary uppercase tracking-wider">Төслийн нэр</th>
+<th class="px-6 py-4 text-xs font-bold text-primary uppercase tracking-wider">Захиалагч</th>
+<th class="px-6 py-4 text-xs font-bold text-primary uppercase tracking-wider">Дуусах хугацаа</th>
+<th class="px-6 py-4 text-xs font-bold text-primary uppercase tracking-wider">Явц</th>
+<th class="px-6 py-4 text-xs font-bold text-primary uppercase tracking-wider">Төлөв</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-5">
+<p class="text-sm font-bold text-primary">Fintech App UI Design</p>
+<p class="text-[10px] text-slate-400">Mobile Application</p>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">Unitel LLC</td>
+<td class="px-6 py-5 text-sm text-slate-500">2024.06.15</td>
+<td class="px-6 py-5">
+<div class="w-24 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[75%]"></div>
+</div>
+<span class="text-[10px] font-bold text-primary mt-1 block">75%</span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full uppercase">Working</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-5">
+<p class="text-sm font-bold text-primary">ERP System Development</p>
+<p class="text-[10px] text-slate-400">Web Backend</p>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">MCS Group</td>
+<td class="px-6 py-5 text-sm text-slate-500">2024.07.01</td>
+<td class="px-6 py-5">
+<div class="w-24 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[30%]"></div>
+</div>
+<span class="text-[10px] font-bold text-primary mt-1 block">30%</span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 bg-primary-container text-on-primary-container text-[10px] font-bold rounded-full uppercase">Review</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-6 py-5">
+<p class="text-sm font-bold text-primary">E-Commerce Website</p>
+<p class="text-[10px] text-slate-400">Frontend React</p>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface">Tavan Bogd</td>
+<td class="px-6 py-5 text-sm text-slate-500">2024.05.28</td>
+<td class="px-6 py-5">
+<div class="w-24 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+<span class="text-[10px] font-bold text-primary mt-1 block">100%</span>
+</td>
+<td class="px-6 py-5">
+<span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase">Payment</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Job Recommendations -->
+<div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-lg font-extrabold text-primary">Танд тохирох шинэ төслүүд</h2>
+<button class="bg-primary text-white px-5 py-2 rounded-lg text-xs font-bold shadow-md hover:scale-105 transition-all">Ажил хайх</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:border-secondary/20 transition-all group">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[10px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded">High Budget</span>
+<span class="text-[10px] text-slate-400">2 цагийн өмнө</span>
+</div>
+<h3 class="font-bold text-primary group-hover:text-secondary transition-colors mb-2">Banking API Integration</h3>
+<p class="text-xs text-on-surface-variant line-clamp-2 mb-4 leading-relaxed">Монгол банкны шинэчилсэн API-г одоо байгаа системтэй холбох туршлагатай Node.js хөгжүүлэгч хайж байна.</p>
+<div class="flex justify-between items-center">
+<span class="text-sm font-extrabold text-primary">₮4,500,000 - ₮6,000,000</span>
+<button class="material-symbols-outlined text-slate-400 hover:text-primary">bookmark</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-transparent hover:border-secondary/20 transition-all group">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[10px] font-bold text-primary bg-primary-container text-on-primary-container px-2 py-0.5 rounded">Urgent</span>
+<span class="text-[10px] text-slate-400">5 цагийн өмнө</span>
+</div>
+<h3 class="font-bold text-primary group-hover:text-secondary transition-colors mb-2">Real Estate Landing Page</h3>
+<p class="text-xs text-on-surface-variant line-clamp-2 mb-4 leading-relaxed">Борлуулалтын вэб сайтыг Next.js болон Tailwind CSS ашиглан 7 хоногийн дотор гүйцэтгэх.</p>
+<div class="flex justify-between items-center">
+<span class="text-sm font-extrabold text-primary">₮1,200,000</span>
+<button class="material-symbols-outlined text-slate-400 hover:text-primary">bookmark</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Profile Widget & Analytics -->
+<aside class="space-y-6">
+<div class="bg-white p-6 rounded-2xl shadow-[0_4px_30px_rgba(3,22,54,0.03)] border-t-8 border-primary relative overflow-hidden">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl"></div>
+<h2 class="text-sm font-extrabold text-primary mb-6">Профайлын гүйцэтгэл</h2>
+<div class="relative w-32 h-32 mx-auto mb-6">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="54.6" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-black text-primary">85%</span>
+<span class="text-[8px] font-bold text-slate-400 uppercase">Дууссан</span>
+</div>
+</div>
+<ul class="space-y-3 mb-6">
+<li class="flex items-center text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-green-500 text-sm mr-2" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                Портфолио нэмсэн
+                            </li>
+<li class="flex items-center text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-green-500 text-sm mr-2" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                И-мэйл баталгаажсан
+                            </li>
+<li class="flex items-center text-xs font-medium text-slate-400">
+<span class="material-symbols-outlined text-slate-300 text-sm mr-2">circle</span>
+                                Утас баталгаажуулах
+                            </li>
+</ul>
+<div class="bg-surface p-4 rounded-xl flex justify-between items-center">
+<div>
+<p class="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Үнэлгээ</p>
+<div class="flex items-center mt-1">
+<span class="text-lg font-black text-primary mr-2">4.9</span>
+<div class="flex text-yellow-400">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">12 сэтгэгдэл</span>
+</div>
+</div>
+<div class="bg-primary-container p-6 rounded-2xl text-white relative overflow-hidden group">
+<div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+<h3 class="text-sm font-bold mb-2 relative z-10">ITZuun Premium</h3>
+<p class="text-xs text-on-primary-container mb-6 relative z-10">Төслүүдэд түрүүлж санал өгөх болон шимтгэлийн хөнгөлөлт эдлээрэй.</p>
+<button class="w-full bg-white text-primary py-2 rounded-lg text-xs font-bold hover:bg-secondary hover:text-white transition-all relative z-10">Шинэчлэх</button>
+</div>
+<div class="p-6 bg-surface-container-low rounded-2xl">
+<h3 class="text-xs font-bold text-primary uppercase mb-4 tracking-wider">Сүүлийн үеийн гүйлгээ</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-green-600 text-sm">north_east</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-primary">Unitel Payment</p>
+<p class="text-[9px] text-slate-400">Өчигдөр 14:20</p>
+</div>
+</div>
+<span class="text-xs font-bold text-green-600">+₮1.5M</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-red-600 text-sm">south_west</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-primary">Хадгаламж руу</p>
+<p class="text-[9px] text-slate-400">5 сарын 10</p>
+</div>
+</div>
+<span class="text-xs font-bold text-red-600">-₮3.0M</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation for Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center h-16 px-4 z-50">
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold">Нүүр</span>
+</button>
+<button class="flex flex-col items-center text-slate-400">
+<span class="material-symbols-outlined">work</span>
+<span class="text-[10px] font-medium">Төслүүд</span>
+</button>
+<button class="flex flex-col items-center text-slate-400">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-medium">Хайлт</span>
+</button>
+<button class="flex flex-col items-center text-slate-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Профайл</span>
+</button>
+</nav>
+</body></html>

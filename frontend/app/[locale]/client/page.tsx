@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
@@ -198,6 +198,13 @@ export default function ClientDashboardPage() {
 
   const releaseProject = myProjects.find((p) => p.id === releaseTarget) || null;
   const disputeProject = myProjects.find((p) => p.id === disputeTarget) || null;
+  const proposalInbox = sortedProposalItems.slice(0, 3);
+
+  useEffect(() => {
+    if (!activeProjectId && openProject) {
+      setActiveProjectId(openProject.id);
+    }
+  }, [activeProjectId, openProject]);
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
@@ -374,6 +381,23 @@ export default function ClientDashboardPage() {
             <div ref={proposalSectionRef} className="anim-rise anim-delay-3 rounded-2xl border border-[#dae4ef] bg-white p-6 shadow-card">
               <h2 className="mb-1 font-headline text-2xl font-bold text-[#10243f]">Санал харьцуулалт</h2>
               <p className="mb-3 text-[13px] text-[#4f6782]">1-2 товшилтоор freelancer сонгох урсгал.</p>
+              {activeProject ? (
+                <div className="mb-4 rounded-xl border border-[#dbe6f2] bg-[#f5f9ff] p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#1f4d76]">Сонгосон төсөл: {activeProject.title}</p>
+                      <p className="text-[11px] text-[#4f6782]">Саналын inbox-оос шууд freelancer сонгох боломжтой.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-11 items-center rounded-xl border border-[#bfd3e6] bg-white px-4 text-[13px] font-semibold text-[#1e4f78]"
+                      onClick={() => router.push(withLocale(`/projects/${activeProject.id}`))}
+                    >
+                      Дэлгэрэнгүй рүү
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {!activeProjectId ? (
                 <EmptyState
                   label="Эхлээд нэг төсөл сонгоно уу."
@@ -419,8 +443,32 @@ export default function ClientDashboardPage() {
                   }
                 />
               ) : (
-                <ul className="space-y-2">
-                  {sortedProposalItems.map((proposal, idx) => (
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-[#d9e5f1] bg-[#f9fcff] p-3">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#3a6287]">Шинэ саналууд (Inbox)</p>
+                    <ul className="mt-2 space-y-2">
+                      {proposalInbox.map((proposal, idx) => (
+                        <li key={`inbox-${proposal.id}`} className="flex items-center justify-between gap-2 rounded-lg border border-[#e1e9f2] bg-white px-3 py-2">
+                          <div>
+                            <p className="text-[13px] font-semibold text-[#17304e]">Freelancer #{proposalFreelancerLabel(proposal.freelancer)}</p>
+                            <p className="text-[11px] text-[#5a728d]">
+                              {formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} өдөр
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-3 text-[12px] font-semibold text-white"
+                            onClick={() => selectMutation.mutate({ projectId: activeProjectId, proposalId: proposal.id })}
+                            disabled={selectMutation.isPending}
+                          >
+                            {idx === 0 ? "Top санал сонгох" : "Сонгох"}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <ul className="space-y-2">
+                    {sortedProposalItems.map((proposal, idx) => (
                     <li key={proposal.id} className="rounded-xl border border-[#dce6ef] bg-[#f9fcff] p-3 text-[13px]">
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -438,8 +486,9 @@ export default function ClientDashboardPage() {
                         </ActionButton>
                       </div>
                     </li>
-                  ))}
-                </ul>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           </div>

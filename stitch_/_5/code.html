@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ITZuun - Нэвтрэх</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f2f4f6",
+                    "on-tertiary-container": "#5290ff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-background": "#191c1e",
+                    "surface-container": "#eceef0",
+                    "surface": "#f7f9fb",
+                    "background": "#f7f9fb",
+                    "secondary-fixed-dim": "#89d3d4",
+                    "secondary-fixed": "#a5eff0",
+                    "outline-variant": "#c5c6cf",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#001a42",
+                    "inverse-surface": "#2d3133",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed": "#002020",
+                    "on-secondary-container": "#1a6d6e",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#b6c6f0",
+                    "on-tertiary-fixed-variant": "#004395",
+                    "tertiary-container": "#002960",
+                    "primary": "#031636",
+                    "on-error": "#ffffff",
+                    "outline": "#75777f",
+                    "tertiary": "#001639",
+                    "surface-variant": "#e0e3e5",
+                    "on-surface-variant": "#44474e",
+                    "secondary": "#13696a",
+                    "on-primary-fixed-variant": "#364669",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#004f50",
+                    "primary-container": "#1a2b4c",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#d8e2ff",
+                    "tertiary-fixed": "#d8e2ff",
+                    "surface-bright": "#f7f9fb",
+                    "inverse-primary": "#b6c6f0",
+                    "error": "#ba1a1a",
+                    "secondary-container": "#a2eded",
+                    "tertiary-fixed-dim": "#adc6ff",
+                    "surface-dim": "#d8dadc",
+                    "surface-tint": "#4e5e82",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-surface": "#191c1e",
+                    "on-primary-container": "#8293ba",
+                    "on-primary-fixed": "#071b3b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope", "sans-serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; line-height: 1.1; }
+        .mn-text { line-height: 1.1; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<main class="flex-grow flex items-center justify-center lg:p-0">
+<div class="w-full max-w-7xl mx-auto flex min-h-[870px] overflow-hidden lg:rounded-xl bg-surface-container-lowest shadow-[0_20px_50px_rgba(3,22,54,0.06)]">
+<!-- Visual Brand Section (Left) -->
+<div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary">
+<img alt="Professional office space" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" data-alt="Modern architectural office interior with large windows, minimalist furniture, and soft morning sunlight casting elegant shadows on polished concrete floor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsBZ6rm3MFZOSQGIoPrVAKmKNeK0QVRbLFDSxLdYleeg4WHVk2yoVCrgISFCt-UUncpZIZ85qTUFVwSgblSo3FSSKvza4IrIjdAy1IfN6HBh-EU2NYZWDEIl2JMk_pnEQs0ashs9g-3pxMrCsZ4dWI9SFIcmhfmz9ym_jFLk7Vbkv4ArfYO-nKEmltJtRvtadTGQfTea2jvbAMK27A5YR1zjD3Ja9U20X0k0IyCHDpxc6orKWSeXD4oBjZBeN-w5BIo6__HicJU7A"/>
+<div class="relative z-10 p-16 flex flex-col justify-between w-full">
+<div>
+<div class="text-3xl font-extrabold tracking-tight text-white mb-2">ITZuun</div>
+<div class="w-12 h-1 bg-secondary rounded-full"></div>
+</div>
+<div class="max-w-md">
+<h2 class="text-white text-4xl font-bold mb-6 mn-text">Мэргэжлийн түвшинд төслөө удирдах шинэ боломж.</h2>
+<p class="text-primary-fixed opacity-80 text-lg mn-text">Дэлхийн жишигт нийцсэн технологийн шийдлүүдийг Монгол инженерүүдээс.</p>
+</div>
+<div class="flex gap-4">
+<div class="p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 flex-1">
+<span class="material-symbols-outlined text-secondary-fixed mb-2" data-icon="verified_user">verified_user</span>
+<div class="text-white font-semibold text-sm mn-text">Аюулгүй Гүйлгээ</div>
+</div>
+<div class="p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 flex-1">
+<span class="material-symbols-outlined text-secondary-fixed mb-2" data-icon="architecture">architecture</span>
+<div class="text-white font-semibold text-sm mn-text">Шилдэг Архитектур</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Login Form Section (Right) -->
+<div class="w-full lg:w-1/2 flex flex-col justify-center px-8 py-12 md:px-16 lg:px-24 bg-surface-container-lowest">
+<div class="max-w-md w-full mx-auto">
+<!-- Mobile Logo -->
+<div class="lg:hidden mb-12">
+<div class="text-2xl font-bold tracking-tight text-primary">ITZuun</div>
+</div>
+<div class="mb-10">
+<h1 class="text-3xl font-extrabold text-primary mb-3 mn-text">Нэвтрэх</h1>
+<p class="text-on-surface-variant mn-text">Тавтай морил. Системд нэвтэрч ажлаа үргэлжлүүлнэ үү.</p>
+</div>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-surface-variant mn-text" for="email">Имэйл хаяг</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="mail">mail</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface" id="email" placeholder="example@itzuun.mn" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="block text-sm font-semibold text-on-surface-variant mn-text" for="password">Нууц үг</label>
+<a class="text-xs font-medium text-secondary hover:underline mn-text" href="#">Нууц үг мартсан?</a>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+<input class="w-full pl-12 pr-12 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-on-surface" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface" type="button">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex items-center">
+<input class="w-5 h-5 rounded text-primary border-outline-variant focus:ring-primary transition-all cursor-pointer" id="remember" type="checkbox"/>
+<label class="ml-3 text-sm text-on-surface-variant cursor-pointer mn-text" for="remember">Намайг санах</label>
+</div>
+<button class="w-full py-4 bg-gradient-to-br from-primary to-primary-container text-primary-fixed font-bold rounded-xl shadow-lg hover:opacity-90 active:scale-[0.98] transition-all mn-text" type="submit">
+                            Нэвтрэх
+                        </button>
+</form>
+<div class="relative my-10">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/30"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-4 bg-surface-container-lowest text-outline mn-text">Эсвэл дараах хаягаар нэвтрэх</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 py-3 px-4 bg-surface-container border border-outline-variant/20 rounded-xl hover:bg-surface-container-high transition-colors group active:scale-[0.98]">
+<img alt="Google" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzAXgeBysS2Ej3DMW7biEP4OZ9vpQv8LQ_LhLAWtfVl57yfkr2NMgXUDebZXDy5ytovY1i3JLc02GRwDH5CNHWyeleDQj-MY6KVxlad964TlYMFknoZ0y5bPD8Q-xlrwWU4DFcJtS3oumnDURs_S1z3xBPmKmsLrP6Xf3ZYxJnajF9sJeSdo_Rd2VDyGupqZAH7aG-kgx9fgCKU76IKljgqO1R0EDNwvhj6Mo0LoMAfDzJIB6-XQkSVyDShP6B3jpEXMbGx-xnTGc"/>
+<span class="text-sm font-semibold text-on-surface group-hover:text-primary">Google</span>
+</button>
+<button class="flex items-center justify-center gap-3 py-3 px-4 bg-surface-container border border-outline-variant/20 rounded-xl hover:bg-surface-container-high transition-colors group active:scale-[0.98]">
+<img alt="LinkedIn" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNEnPGsvM4jJs8pw8s8AiWm190xi-loHpXPjny-mHTO9qdY8ifr7gIb1cbxGdgUDglJoJGBJ_l8dBDuOn2_hoxeyC_SRiaUB6p4wkbNPcClWknTgeamAldXbw_hbp-bclrLC3Q-sz1nv8-J0UBEBuQNxjDyZVvVSy9-WOYg81R6VkWwaeS1xrQwNYTfB9Up0qBlQMv7CeI4I83vQ-BkoJrm9z2f1AdExreLSLCNB8uNcZFBE3DVc8XmoXvxV4TXkV_ck9_M4ALA3k"/>
+<span class="text-sm font-semibold text-on-surface group-hover:text-primary">LinkedIn</span>
+</button>
+</div>
+<div class="mt-10 text-center">
+<p class="text-on-surface-variant mn-text">
+                            Бүртгэлгүй юу? 
+                            <a class="ml-1 text-primary font-bold hover:underline" href="#">Бүртгүүлэх</a>
+</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-surface-container w-full">
+<div class="flex flex-col md:flex-row justify-between items-center px-8 py-12 w-full max-w-7xl mx-auto">
+<div class="mb-6 md:mb-0">
+<div class="text-lg font-black text-primary">ITZuun</div>
+<p class="text-xs text-on-surface-variant mt-1 mn-text">© 2024 ITZuun. Бүх эрх хуулиар хамгаалагдсан.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-6 md:gap-10">
+<a class="text-sm font-medium text-on-surface-variant hover:underline decoration-secondary mn-text" href="#">Бидний тухай</a>
+<a class="text-sm font-medium text-on-surface-variant hover:underline decoration-secondary mn-text" href="#">Үйлчилгээний нөхцөл</a>
+<a class="text-sm font-medium text-on-surface-variant hover:underline decoration-secondary mn-text" href="#">Нууцлалын бодлого</a>
+<a class="text-sm font-medium text-on-surface-variant hover:underline decoration-secondary mn-text" href="#">Тусламж</a>
+</div>
+</div>
+</footer>
+</body></html>

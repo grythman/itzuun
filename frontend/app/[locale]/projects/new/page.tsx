@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
-import { AppCard, StepProgress, TrustPanel } from "@/components/ui-kit";
+import { AppCard, FlowRail, StepProgress, TrustPanel } from "@/components/ui-kit";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useCategories, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
@@ -29,6 +29,11 @@ export default function NewProjectPage() {
   const [skillsInput, setSkillsInput] = useState("");
   const [step, setStep] = useState(0);
   const steps = [t("step1"), t("step2"), t("step3")];
+  const stepLabels = [
+    { title: t("step1"), subtitle: "Төслийн суурь мэдээлэл" },
+    { title: t("step2"), subtitle: "Төсөв ба хугацааны хязгаар" },
+    { title: t("step3"), subtitle: "Тайлбар, шалгалт, нийтлэл" },
+  ];
 
   const categories = useCategories();
   const categoryOptions = Array.isArray(categories.data) ? categories.data : [];
@@ -95,7 +100,20 @@ export default function NewProjectPage() {
         <StepProgress steps={steps} currentStep={step} />
       </div>
 
-      <form className="anim-rise anim-delay-2 grid gap-6 lg:grid-cols-[1.6fr_0.9fr]" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
+      <form className="anim-rise anim-delay-2 grid gap-6 xl:grid-cols-[0.7fr_1.6fr_0.9fr]" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
+        <aside className="hidden xl:block">
+          <div className="space-y-4">
+            <FlowRail title="Project flow" steps={stepLabels} currentStep={step} />
+            <button
+              type="button"
+              className="w-full rounded-xl border border-[#d2ccef] bg-white px-3 py-2 text-[12px] font-semibold text-[#4d3cb1]"
+              onClick={() => toast("success", "Draft хадгалах flow дараагийн алхамд идэвхжинэ.")}
+            >
+              Draft хадгалах (demo)
+            </button>
+          </div>
+        </aside>
+
         <div className="space-y-4">
           {step === 0 ? (
             <AppCard className="space-y-5 border-none bg-white shadow-[0_12px_30px_rgba(30,26,68,0.08)]">

@@ -114,6 +114,44 @@ export function StepProgress({ steps, currentStep }: { steps: string[]; currentS
   );
 }
 
+export function FlowRail({
+  title = "Flow",
+  steps,
+  currentStep,
+}: {
+  title?: string;
+  steps: Array<{ title: string; subtitle?: string }>;
+  currentStep: number;
+}) {
+  return (
+    <div className="sticky top-24 space-y-4 rounded-2xl border border-[#d9d5ed] bg-[#f7f8ff] p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f50b8]">{title}</p>
+      <ul className="space-y-2">
+        {steps.map((item, index) => {
+          const tone = index === currentStep ? "active" : index < currentStep ? "done" : "todo";
+          return (
+            <li
+              key={`${item.title}-${index}`}
+              className={`rounded-xl border px-3 py-3 ${
+                tone === "active"
+                  ? "border-[#a99bdf] bg-white"
+                  : tone === "done"
+                    ? "border-[#d6d2ee] bg-[#f2efff]"
+                    : "border-[#ebe8f7] bg-transparent"
+              }`}
+            >
+              <p className={`text-[12px] font-semibold ${tone === "active" ? "text-[#35247f]" : "text-surface-700"}`}>
+                {index + 1}. {item.title}
+              </p>
+              {item.subtitle ? <p className="mt-0.5 text-[11px] text-surface-500">{item.subtitle}</p> : null}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function ChatBubble({ mine, text, time, fileName, fileUrl }: { mine: boolean; text: string; time?: string; fileName?: string; fileUrl?: string }) {
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>

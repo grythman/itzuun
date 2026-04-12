@@ -231,6 +231,7 @@ export default function FreelancerDashboardPage() {
     const status = proposal.status || "pending";
     return proposalFilter === "all" ? true : status === proposalFilter;
   });
+  const opportunityInbox = sortedProposals.filter((proposal) => (proposal.status || "pending") === "pending").slice(0, 3);
   const filteredActiveProjects = activeProjects.filter((project) => (activeFilter === "all" ? true : project.status === activeFilter));
   const submitProject = activeProjects.find((project) => project.id === submitTarget) || null;
 
@@ -433,6 +434,31 @@ export default function FreelancerDashboardPage() {
                   Төсөл хайх
                 </Link>
               </div>
+              {opportunityInbox.length ? (
+                <div className="mb-3 rounded-xl border border-[#d9e5f1] bg-[#f8fbff] p-3">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#375f84]">Opportunity inbox</p>
+                  <ul className="mt-2 space-y-2">
+                    {opportunityInbox.map((proposal) => {
+                      const project = projectById.get(Number(proposal.project));
+                      return (
+                        <li key={`opp-${proposal.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#e1e9f2] bg-white px-3 py-2">
+                          <div>
+                            <p className="text-[13px] font-semibold text-[#17304e]">{project?.title || `Төсөл #${proposal.project}`}</p>
+                            <p className="text-[11px] text-[#5a728d]">{formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} {t("days")}</p>
+                          </div>
+                          <button
+                            type="button"
+                            className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-3 text-[12px] font-semibold text-white"
+                            onClick={() => openEditModal(proposal)}
+                          >
+                            Санал сайжруулах
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : null}
               <div className="mb-3 flex flex-wrap gap-2">
                 {[
                   { key: "all", label: "Бүгд" },

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ITZuun - Төсөл нийтлэх</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "surface-container": "#eceef0",
+                        "on-secondary-container": "#1a6d6e",
+                        "surface-bright": "#f7f9fb",
+                        "outline": "#75777f",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-primary-fixed-variant": "#364669",
+                        "background": "#f7f9fb",
+                        "secondary": "#13696a",
+                        "on-tertiary-fixed": "#001a42",
+                        "primary-container": "#1a2b4c",
+                        "surface-variant": "#e0e3e5",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#4e5e82",
+                        "secondary-fixed-dim": "#89d3d4",
+                        "outline-variant": "#c5c6cf",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-container-low": "#f2f4f6",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#5290ff",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b6c6f0",
+                        "on-background": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "tertiary": "#001639",
+                        "secondary-fixed": "#a5eff0",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#44474e",
+                        "primary-fixed": "#d8e2ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; line-height: 1.1; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .mn-text { line-height: 1.2; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<div class="flex min-h-screen">
+<!-- SideNavBar (from JSON component) -->
+<aside class="hidden md:flex flex-col gap-4 p-6 border-r border-slate-200/15 bg-[#eceef0] dark:bg-slate-800/50 h-screen w-72 left-0 top-0 sticky">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<div>
+<h2 class="text-lg font-bold text-[#031636] dark:text-white leading-none">Post a Project</h2>
+<p class="text-xs text-slate-500 mt-1">Step 2 of 4</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<!-- Project Basics -->
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 p-3 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all cursor-pointer rounded-lg">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+<span class="text-sm font-semibold">Project Basics</span>
+</div>
+<!-- Description & Skills (ACTIVE) -->
+<div class="flex items-center gap-3 bg-[#ffffff] dark:bg-slate-700 text-[#031636] dark:text-white rounded-lg p-3 shadow-[0_20px_50px_rgba(3,22,54,0.06)] active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="edit_note" style="font-variation-settings: 'FILL' 1;">edit_note</span>
+<span class="text-sm font-semibold">Description &amp; Skills</span>
+</div>
+<!-- Budget & Timeline -->
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 p-3 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all cursor-pointer rounded-lg">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-sm font-semibold">Budget &amp; Timeline</span>
+</div>
+<!-- Preview & Post -->
+<div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 p-3 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all cursor-pointer rounded-lg">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="text-sm font-semibold">Preview &amp; Post</span>
+</div>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/15">
+<button class="w-full py-3 px-4 text-sm font-bold text-[#031636] dark:text-white bg-white/40 hover:bg-white rounded-xl transition-all">
+                    Save Draft
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar (Simplified for focused flow) -->
+<header class="flex justify-between items-center w-full px-8 h-16 bg-[#f7f9fb] dark:bg-slate-900 sticky top-0 z-20 backdrop-blur-md">
+<div class="text-2xl font-black tracking-tight text-[#031636] dark:text-white">ITZuun</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a professional man in a clean studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWsJ0E5mfNcrRnk3nCbjjKJpiQB7WwFu868xIZ_qrknZTS8zDXr1oze3Y0FJDT_a3aHV_2GUiL7NdxE-UCFVg5n-FuSyoDwZmTMZ4OhH3pri4a2EQrGQfSfuXLpqlZXyEBJJtAK1Q-H38sL1RkgfRSN16Km2Wgf5ik8oPk5uTJINb_7dN7H0399OjqaJoA903o-qiKMQ8JuS6j5POsg81HzTpubLHVXacy55zCsDF5JGVED2nxTHO_U96xEZNtAwl8mJU6FOfNWTE"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="p-8 md:p-12 max-w-4xl mx-auto w-full">
+<!-- Header Section -->
+<div class="mb-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container/30 text-secondary mb-4">
+<span class="text-xs font-bold tracking-widest uppercase">Алхам 02</span>
+</div>
+<h1 class="text-4xl font-extrabold text-primary mb-4 mn-text">Төслийн дэлгэрэнгүй ба ур чадвар</h1>
+<p class="text-on-surface-variant max-w-2xl mn-text">Төслийнхөө зорилго, гүйцэтгэх ажил болон шаардлагатай мэргэжлийн ур чадваруудыг тодорхой оруулснаар хамгийн тохиромжтой мэргэжилтэнг олоход тусална.</p>
+</div>
+<!-- Form Section -->
+<div class="flex flex-col gap-10">
+<!-- Description -->
+<section class="group">
+<label class="block text-lg font-bold text-primary mb-4 mn-text flex items-center gap-2">
+                            Төслийн тайлбар
+                            <span class="text-error text-sm">*</span>
+</label>
+<div class="bg-surface-container-lowest rounded-xl p-1 shadow-[0_4px_20px_rgba(3,22,54,0.03)] focus-within:shadow-[0_20px_50px_rgba(3,22,54,0.06)] transition-all">
+<div class="flex items-center gap-2 px-4 py-2 border-b border-surface-container overflow-x-auto">
+<button class="p-1.5 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm" data-icon="format_bold">format_bold</span></button>
+<button class="p-1.5 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm" data-icon="format_italic">format_italic</span></button>
+<button class="p-1.5 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm" data-icon="format_list_bulleted">format_list_bulleted</span></button>
+<button class="p-1.5 hover:bg-surface-container rounded"><span class="material-symbols-outlined text-sm" data-icon="link">link</span></button>
+</div>
+<textarea class="w-full min-h-[240px] p-6 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline/40 mn-text resize-none" placeholder="Төслийнхөө талаар аль болох тодорхой бичнэ үү..."></textarea>
+</div>
+</section>
+<!-- Skills -->
+<section>
+<label class="block text-lg font-bold text-primary mb-4 mn-text">Шаардлагатай ур чадварууд</label>
+<div class="bg-surface-container-lowest rounded-xl p-4 shadow-[0_4px_20px_rgba(3,22,54,0.03)]">
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="inline-flex items-center gap-2 bg-primary-container text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+                                    React.js
+                                    <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-xs" data-icon="close">close</span></button>
+</span>
+<span class="inline-flex items-center gap-2 bg-primary-container text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+                                    UI/UX Design
+                                    <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-xs" data-icon="close">close</span></button>
+</span>
+<span class="inline-flex items-center gap-2 bg-surface-container text-primary px-3 py-1.5 rounded-lg text-sm font-medium">
+                                    Node.js
+                                    <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-xs" data-icon="close">close</span></button>
+</span>
+</div>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary-container mn-text" placeholder="Ур чадвар хайх (жишээ нь: Python, Figma...)" type="text"/>
+</div>
+</div>
+</section>
+<!-- Attachments -->
+<section>
+<label class="block text-lg font-bold text-primary mb-4 mn-text">Хавсралт файлууд</label>
+<div class="border-2 border-dashed border-outline-variant rounded-2xl p-10 flex flex-col items-center justify-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<p class="text-primary font-bold mb-1 mn-text">Файл чирч оруулна уу</p>
+<p class="text-on-surface-variant text-sm mn-text">Эсвэл <span class="text-primary-container underline font-semibold">компьютероосоо сонгох</span></p>
+<p class="mt-4 text-[11px] text-outline uppercase tracking-wider">Макс хэмжээ: 25MB • PDF, DOCX, ZIP</p>
+</div>
+<!-- File List Placeholder -->
+<div class="mt-4 flex flex-col gap-2">
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest rounded-lg border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="description">description</span>
+<span class="text-sm font-medium">project_brief_v1.pdf</span>
+</div>
+<button class="text-error hover:bg-error/10 p-1 rounded transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Navigation Buttons -->
+<div class="mt-16 pt-8 border-t border-outline-variant/20 flex items-center justify-between">
+<button class="flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-primary hover:bg-surface-container-high transition-all active:scale-95 mn-text">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+                        Буцах
+                    </button>
+<button class="flex items-center gap-2 px-10 py-4 rounded-xl font-bold text-white bg-gradient-to-br from-[#031636] to-[#1a2b4c] shadow-lg hover:shadow-primary/20 hover:translate-y-[-2px] transition-all active:scale-95 mn-text">
+                        Дараагийн алхам
+                        <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Footer Spacer -->
+<footer class="h-20 w-full"></footer>
+</main>
+</div>
+</body></html>
