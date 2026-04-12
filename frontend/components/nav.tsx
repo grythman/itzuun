@@ -36,6 +36,7 @@ export function Nav() {
   const withLocale = (href: string) => `/${activeLocale}${href}`;
   const switchLocalePath = (locale: "mn" | "en") => `/${locale}${normalizePath}`;
   const pathForChecks = normalizePath || "/";
+  const isAuthRoute = pathForChecks === "/auth" || pathForChecks.startsWith("/auth/");
   const needsSessionCheck = ["/client", "/freelancer", "/admin"].some((prefix) => pathForChecks.startsWith(prefix));
   const me = useMe({ enabled: needsSessionCheck, retryOnAuth: needsSessionCheck });
   const user = me.data;
@@ -68,6 +69,10 @@ export function Nav() {
     ...link,
     href: withLocale(link.href),
   }));
+
+  if (isAuthRoute) {
+    return null;
+  }
 
   return (
     <header className="z-30 border-b border-[#e7e8f1] bg-[#f5f6fb]/95">

@@ -378,10 +378,10 @@ function AuthCard() {
 
     window.google.accounts.id.renderButton(buttonContainer, {
       theme: "outline",
-      size: "large",
+      size: "medium",
       shape: "rectangular",
       text: activeTab === "register" ? "signup_with" : "signin_with",
-      width: 360,
+      width: 156,
     });
   }, [activeTab, googleClientId, googleMutation, googleScriptReady, registerForm, toast]);
 
@@ -624,7 +624,7 @@ function AuthCard() {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-surface-200 bg-white px-2 py-2">
-                  <div className="flex min-h-[40px] items-center justify-center" ref={googleButtonRef} />
+                  <div className="flex min-h-[40px] items-center justify-center overflow-hidden" ref={googleButtonRef} />
                 </div>
                 <button
                   type="button"
