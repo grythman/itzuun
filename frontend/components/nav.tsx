@@ -38,6 +38,7 @@ export function Nav() {
   const withLocale = (href: string) => `/${activeLocale}${href}`;
   const switchLocalePath = (locale: "mn" | "en") => `/${locale}${normalizePath}`;
   const pathForChecks = normalizePath || "/";
+  const isHomeRoute = pathForChecks === "/";
   const isAuthRoute = pathForChecks === "/auth" || pathForChecks.startsWith("/auth/");
   const needsSessionCheck = ["/client", "/freelancer", "/admin"].some((prefix) => pathForChecks.startsWith(prefix));
   const me = useMe({ enabled: needsSessionCheck, retryOnAuth: needsSessionCheck });
@@ -77,17 +78,20 @@ export function Nav() {
   }
 
   return (
-    <header className="z-30 border-b border-[#e7e8f1] bg-[#f5f6fb]/95">
-      <nav className="app-frame flex items-center justify-between gap-4 py-3" aria-label="Main">
-        <div className="flex items-center gap-6">
+    <header className={`z-30 ${isHomeRoute ? "bg-white/92 backdrop-blur-sm" : "border-b border-[#e7e8f1] bg-[#f5f6fb]/95"}`}>
+      <nav
+        className={`app-frame flex items-center justify-between gap-4 ${isHomeRoute ? "py-5" : "py-3"}`}
+        aria-label="Main"
+      >
+        <div className={`flex items-center ${isHomeRoute ? "gap-8 xl:gap-10" : "gap-6"}`}>
           <Logo 
             variant="horizontal" 
             theme="light" 
             href={withLocale("/")} 
-            className="w-[140px]" 
+            className={isHomeRoute ? "w-[128px]" : "w-[140px]"} 
           />
 
-          <div className="hidden items-center gap-0.5 md:flex">
+          <div className={`hidden items-center md:flex ${isHomeRoute ? "gap-2" : "gap-0.5"}`}>
             {resolvedNavLinks.map((link) => {
               const active =
                 normalizedPathname === link.href ||
@@ -96,8 +100,14 @@ export function Nav() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-medium transition-all ${
-                    active ? "bg-brand-100 text-brand-700" : "text-surface-600 hover:bg-surface-100 hover:text-surface-900"
+                  className={`inline-flex items-center gap-2 rounded-lg transition-all ${
+                    isHomeRoute
+                      ? active
+                        ? "bg-[#eef2ff] px-3.5 py-2 text-[14px] font-semibold text-[#3557a1]"
+                        : "px-3.5 py-2 text-[14px] font-medium text-surface-500 hover:bg-[#f7f9fb] hover:text-surface-900"
+                      : active
+                        ? "bg-brand-100 px-3 py-1.5 text-[14px] font-medium text-brand-700"
+                        : "px-3 py-1.5 text-[14px] font-medium text-surface-600 hover:bg-surface-100 hover:text-surface-900"
                   }`}
                 >
                   {link.icon === "projects" ? (
@@ -125,7 +135,7 @@ export function Nav() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className={`flex items-center ${isHomeRoute ? "gap-3" : "gap-2"}`}>
           {/* Mobile hamburger */}
           <button
             type="button"
@@ -164,10 +174,20 @@ export function Nav() {
               <Link href={switchLocalePath("mn")} className="font-semibold text-[14px] text-slate-400 hover:text-slate-800">MN</Link>
               <span className="text-slate-300">|</span>
               <Link href={switchLocalePath("en")} className="font-semibold text-[14px] text-slate-400 hover:text-slate-800">EN</Link>
-              <Link href={`${withLocale("/auth")}?tab=signin`} className="ml-2 rounded-lg px-3 py-1.5 text-[14px] font-medium text-surface-600 hover:bg-surface-100">
+              <Link
+                href={`${withLocale("/auth")}?tab=signin`}
+                className={`ml-2 rounded-lg text-[14px] font-medium text-surface-600 hover:bg-surface-100 ${
+                  isHomeRoute ? "px-3.5 py-2" : "px-3 py-1.5"
+                }`}
+              >
                 {t("login")}
               </Link>
-              <Link href={`${withLocale("/auth")}?tab=register`} className="rounded-full primary-gradient px-6 py-2 text-[14px] font-semibold text-white shadow-card hover:opacity-95 transition-colors">
+              <Link
+                href={`${withLocale("/auth")}?tab=register`}
+                className={`rounded-full primary-gradient text-[14px] font-semibold text-white shadow-card hover:opacity-95 transition-colors ${
+                  isHomeRoute ? "px-6 py-2.5" : "px-6 py-2"
+                }`}
+              >
                 {t("postProject")}
               </Link>
             </>
