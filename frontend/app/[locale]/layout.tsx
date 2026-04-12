@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import "../globals.css";
 import { Nav } from "@/components/nav";
 import { Providers } from "@/components/providers";
 import { ToastCenter } from "@/components/toast-center";
@@ -32,16 +31,12 @@ export default async function RootLayout({
 }) {
   const messages = await getMessages({ locale });
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider messages={messages} locale={locale}>
-          <Providers>
-            <Nav />
-            <main className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">{children}</main>
-            <ToastCenter />
-          </Providers>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages} locale={locale}>
+      <Providers>
+        <Nav />
+        <main className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">{children}</main>
+        <ToastCenter />
+      </Providers>
+    </NextIntlClientProvider>
   );
 }

@@ -27,11 +27,13 @@ export function Nav() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const safePathname = pathname || "/";
-  const pathParts = safePathname.split("/").filter(Boolean);
+  const normalizedPathname =
+    safePathname.replace(/^\/proxy\/\d+(?=\/|$)/, "") || "/";
+  const pathParts = normalizedPathname.split("/").filter(Boolean);
   const activeLocale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withoutLocale = pathParts[0] === "en" || pathParts[0] === "mn"
     ? `/${pathParts.slice(1).join("/")}`
-    : safePathname;
+    : normalizedPathname;
   const normalizePath = withoutLocale === "/" ? "" : withoutLocale;
   const withLocale = (href: string) => `/${activeLocale}${href}`;
   const switchLocalePath = (locale: "mn" | "en") => `/${locale}${normalizePath}`;
@@ -87,7 +89,9 @@ export function Nav() {
 
           <div className="hidden items-center gap-0.5 md:flex">
             {resolvedNavLinks.map((link) => {
-              const active = safePathname === link.href || safePathname.startsWith(link.href + "/");
+              const active =
+                normalizedPathname === link.href ||
+                normalizedPathname.startsWith(link.href + "/");
               return (
                 <Link
                   key={link.href}
@@ -176,7 +180,9 @@ export function Nav() {
         <div className="border-t border-surface-100 bg-white px-4 py-3 md:hidden">
           <div className="space-y-0.5">
             {resolvedNavLinks.map((link) => {
-              const active = safePathname === link.href || safePathname.startsWith(link.href + "/");
+              const active =
+                normalizedPathname === link.href ||
+                normalizedPathname.startsWith(link.href + "/");
               return (
                 <Link
                   key={link.href}

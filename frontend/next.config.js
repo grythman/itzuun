@@ -1,5 +1,7 @@
 const createNextIntlPlugin = require('next-intl/plugin');
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
+const devAssetPrefix =
+  process.env.NODE_ENV !== "production" ? process.env.NEXT_DEV_ASSET_PREFIX || "" : "";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -7,6 +9,7 @@ const nextConfig = {
   // Хэрэв /proxy/3000 дээр ажиллуулах шаардлагатай бол зөвхөн nginx/proxy дээр шийднэ.
 
   reactStrictMode: true,
+  assetPrefix: devAssetPrefix || undefined,
   output: "standalone",
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
