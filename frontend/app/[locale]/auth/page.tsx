@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Script from "next/script";
+import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -85,10 +86,76 @@ async function waitForAuthenticatedUser(
       queryClient.setQueryData(["auth", "me"], user);
       return user;
     }
-    await new Promise((resolve) => setTimeout(resolve, 200 + i * 150));
+    await new Promise((resolve) => setTimeout(resolve, 220 + i * 150));
   }
 
   return null;
+}
+
+function AuthVisual({ activeTab }: { activeTab: AuthTab }) {
+  const isRegister = activeTab === "register";
+
+  return (
+    <aside className="relative hidden min-h-[760px] overflow-hidden rounded-l-2xl bg-[#041a44] px-8 py-10 text-white lg:flex lg:w-[46%] lg:flex-col lg:justify-between">
+      <img
+        alt=""
+        src={
+          isRegister
+            ? "https://lh3.googleusercontent.com/aida-public/AB6AXuCe0W8Kp4Oq9Qsmj1BpdfSSbprFkT8ILW8qPyCgkqcz_qNIOornqpTvFoB-crKiPrn24aKRSZlGdIJUeekpJYniiOOc1AEmNMUjtS0rmydYlgvruqm2oZZjwXe0Q9bS0CNiNTtBW9SbRFCvoBTdEQICkNlVr-cyW76wZVBUAqJycO0IgydqfBzQqFgxnY-HBbgYkKe7gsf8-drahgFztJ-m2N1ncxWnAXH28yM0cbEPCUf8jEiAYxL0w4moEj2NMz-zjoKxi5ZZF_Y"
+            : "https://lh3.googleusercontent.com/aida-public/AB6AXuBsBZ6rm3MFZOSQGIoPrVAKmKNeK0QVRbLFDSxLdYleeg4WHVk2yoVCrgISFCt-UUncpZIZ85qTUFVwSgblSo3FSSKvza4IrIjdAy1IfN6HBh-EU2NYZWDEIl2JMk_pnEQs0ashs9g-3pxMrCsZ4dWI9SFIcmhfmz9ym_jFLk7Vbkv4ArfYO-nKEmltJtRvtadTGQfTea2jvbAMK27A5YR1zjD3Ja9U20X0k0IyCHDpxc6orKWSeXD4oBjZBeN-w5BIo6__HicJU7A"
+        }
+        className="absolute inset-0 h-full w-full object-cover opacity-45"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#021334]/80 to-[#02102f]/95" />
+
+      <div className="relative z-10">
+        <p className="text-4xl font-black tracking-tight">ITZuun</p>
+        {!isRegister ? <div className="mt-2 h-1 w-12 rounded-full bg-cyan-400" /> : null}
+      </div>
+
+      <div className="relative z-10 max-w-md space-y-5">
+        {isRegister ? (
+          <>
+            <h2 className="font-headline text-5xl font-extrabold leading-tight tracking-tight">
+              Монголын шилдэг
+              <br />
+              авьяастнуудын
+              <br />
+              нэгдэл
+            </h2>
+            <p className="text-lg leading-8 text-blue-100/85">
+              Бид төслийн удирдлага, санхүүгийн аюулгүй байдал болон мэргэжлийн
+              фрилансерүүдийг нэг дор цогцлоосон платформ юм.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="font-headline text-5xl font-extrabold leading-tight tracking-tight">
+              Мэргэжлийн түвшинд
+              <br />
+              төслөө удирдах шинэ
+              <br />
+              боломж.
+            </h2>
+            <p className="text-lg leading-8 text-blue-100/85">
+              Дэлхийн жишигт нийцсэн технологийн шийдлүүдийг Монгол инженерүүдээс.
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="relative z-10">
+        {isRegister ? (
+          <p className="text-sm text-blue-100/80">350+ Мэргэжилтнүүд нэгдсэн</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 text-sm font-semibold">
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">Аюулгүй Гүйлгээ</div>
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3">Шилдэг Архитектур</div>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
 }
 
 function AuthCard() {
@@ -97,10 +164,16 @@ function AuthCard() {
   const pathname = usePathname();
   const router = useRouter();
   const me = useMe();
+
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = useCallback((href: string) => `/${locale}${href}`, [locale]);
-  const initialTab = useMemo<AuthTab>(() => (searchParams.get("tab") === "register" ? "register" : "signin"), [searchParams]);
+
+  const initialTab = useMemo<AuthTab>(
+    () => (searchParams.get("tab") === "register" ? "register" : "signin"),
+    [searchParams],
+  );
+
   const expectedRole = searchParams.get("role");
   const nextPath = searchParams.get("next");
 
@@ -110,6 +183,10 @@ function AuthCard() {
   const [authStage, setAuthStage] = useState<AuthStage>("idle");
   const [authMessage, setAuthMessage] = useState<string>("");
   const [authError, setAuthError] = useState<string>("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -120,6 +197,7 @@ function AuthCard() {
     setAuthError("");
     setAuthStage("establishing");
     setAuthMessage("Амжилттай нэвтэрлээ. Session бэлдэж байна...");
+
     const user = await waitForAuthenticatedUser(queryClient, payload?.user ?? payload, 8);
     if (!user?.role) {
       setAuthStage("idle");
@@ -290,22 +368,23 @@ function AuthCard() {
     window.google.accounts.id.renderButton(buttonContainer, {
       theme: "outline",
       size: "large",
-      shape: "pill",
+      shape: "rectangular",
       text: activeTab === "register" ? "signup_with" : "signin_with",
-      width: 380,
+      width: 360,
     });
   }, [activeTab, googleClientId, googleMutation, googleScriptReady, registerForm, toast]);
 
+  const isRegister = activeTab === "register";
+
   if (authStage !== "idle") {
     return (
-      <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[460px] rounded-3xl bg-white/90 p-6 shadow-hero sm:p-8">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">{t("badge")}</p>
-          <h1 className="mt-3 text-center font-headline text-2xl font-extrabold tracking-tight text-surface-900">{authMessage}</h1>
-          <p className="mt-2 text-center text-[13px] text-surface-600">Хэрэв удааширвал session шалгах товчийг дарна уу.</p>
-          <div className="mt-5 flex justify-center">
+      <main className="mx-auto flex min-h-[86vh] w-full max-w-6xl items-center justify-center px-4 py-8">
+        <section className="w-full max-w-[480px] rounded-2xl bg-white p-8 shadow-hero">
+          <h1 className="text-center font-headline text-3xl font-extrabold text-[#031636]">{authMessage}</h1>
+          <p className="mt-3 text-center text-sm text-surface-600">Хэрэв удааширвал session шалгах товчийг дарна уу.</p>
+          <div className="mt-6 flex justify-center">
             <ActionButton
-              className="min-h-11 rounded-xl px-4 text-[13px] font-semibold"
+              className="min-h-11 rounded-xl bg-[#031636] px-5 py-3 text-white"
               onClick={async () => {
                 const user = await waitForAuthenticatedUser(queryClient, undefined, 4);
                 if (!user?.role) {
@@ -319,181 +398,289 @@ function AuthCard() {
               Session дахин шалгах
             </ActionButton>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
     );
   }
 
   return (
-    <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[460px] rounded-3xl bg-white/90 p-6 shadow-hero sm:p-8">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">{t("badge")}</p>
-        <h1 className="mt-3 text-center font-headline text-4xl font-extrabold tracking-tight text-surface-900">{t("title")}</h1>
-        <p className="mt-1.5 text-center text-[13px] text-surface-600">{t("subtitle")}</p>
+    <main className="mx-auto w-full max-w-[1280px] px-4 py-4 lg:py-8">
+      <section className="overflow-hidden rounded-2xl border border-surface-200/80 bg-white shadow-hero lg:flex">
+        <AuthVisual activeTab={activeTab} />
 
-        <div className="mt-3 rounded-xl border border-surface-200/70 bg-surface-50 p-3 text-[12px] text-surface-700">
-          <p className="font-semibold">Яагаад ITZuun?</p>
-          <ul className="mt-1 space-y-1">
-            <li>• Escrow хамгаалалттай төлбөр</li>
-            <li>• Role-д таарсан самбар руу автоматаар чиглүүлнэ</li>
-            <li>• Нэвтрэлтийн асуудал гарвал support руу шууд холбогдоно</li>
-          </ul>
-        </div>
+        <div className="w-full bg-[#f6f7fb] px-6 py-8 sm:px-10 lg:w-[54%] lg:px-14 lg:py-12">
+          <div className="mx-auto w-full max-w-[430px]">
+            <div className="mb-8 lg:hidden">
+              <p className="text-3xl font-black tracking-tight text-[#031636]">ITZuun</p>
+            </div>
 
-        {expectedRole ? (
-          <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-            <p className="text-[12px] text-amber-800">Сонгосон эрх: <strong>{expectedRole}</strong></p>
-            <StatusPill label="Role check" tone="warning" />
-          </div>
-        ) : null}
+            <header className="mb-8">
+              <h1 className="font-headline text-4xl font-extrabold tracking-tight text-[#031636]">
+                {isRegister ? "Бүртгүүлэх" : "Нэвтрэх"}
+              </h1>
+              <p className="mt-2 text-[15px] text-surface-600">
+                {isRegister ? "Таны үүрэг юу вэ?" : "Тавтай морил. Системд нэвтэрч ажлаа үргэлжлүүлнэ үү."}
+              </p>
+            </header>
 
-        {authError ? (
-          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-[12px] text-red-700">
-            <p className="font-semibold">Алдаа</p>
-            <p className="mt-1">{authError}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <button className="min-h-11 rounded-lg bg-white px-3 text-[12px] font-semibold" onClick={() => setAuthError("")}>Ойлголоо</button>
-              <a href={withLocale("/support")} className="inline-flex min-h-11 items-center rounded-lg bg-white px-3 text-[12px] font-semibold">Support</a>
-              {expectedRole ? (
-                <button className="min-h-11 rounded-lg bg-white px-3 text-[12px] font-semibold" onClick={logoutAndReset}>Role солих</button>
+            {expectedRole ? (
+              <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                <p className="text-xs text-amber-800">Сонгосон эрх: <strong>{expectedRole}</strong></p>
+                <StatusPill label="Role check" tone="warning" />
+              </div>
+            ) : null}
+
+            {authError ? (
+              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                <p className="font-semibold">Алдаа</p>
+                <p className="mt-1">{authError}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button className="min-h-11 rounded-lg bg-white px-3 text-xs font-semibold" onClick={() => setAuthError("")}>Ойлголоо</button>
+                  <Link href={withLocale("/support")} className="inline-flex min-h-11 items-center rounded-lg bg-white px-3 text-xs font-semibold">Support</Link>
+                  {expectedRole ? (
+                    <button className="min-h-11 rounded-lg bg-white px-3 text-xs font-semibold" onClick={logoutAndReset}>Role солих</button>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {isRegister ? (
+              <form
+                className="space-y-5"
+                onSubmit={registerForm.handleSubmit((values) => {
+                  if (!acceptedTerms) {
+                    setAuthError("Үйлчилгээний нөхцөл болон нууцлалын бодлогыг зөвшөөрнө үү.");
+                    return;
+                  }
+                  registerMutation.mutate(values);
+                })}
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => registerForm.setValue("role", "client")}
+                    className={`rounded-xl border-2 px-4 py-5 text-center ${
+                      registerForm.watch("role") === "client"
+                        ? "border-[#1f8c99] bg-[#eef8fa]"
+                        : "border-transparent bg-white"
+                    }`}
+                  >
+                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-100 text-lg">💼</div>
+                    <p className="font-semibold text-surface-800">Захиалагч</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => registerForm.setValue("role", "freelancer")}
+                    className={`rounded-xl border-2 px-4 py-5 text-center ${
+                      registerForm.watch("role") === "freelancer"
+                        ? "border-[#1f8c99] bg-[#eef8fa]"
+                        : "border-transparent bg-white"
+                    }`}
+                  >
+                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-100 text-lg">🖥️</div>
+                    <p className="font-semibold text-surface-800">Фрилансер</p>
+                  </button>
+                </div>
+
+                <label className="block text-sm font-semibold text-surface-700">
+                  Овог нэр
+                  <input className="mt-2 rounded-xl bg-white" type="text" placeholder="Жишээ: Бат-Эрдэнэ" autoComplete="name" />
+                </label>
+
+                <label className="block text-sm font-semibold text-surface-700">
+                  {t("email")}
+                  <input className="mt-2 rounded-xl bg-white" type="email" placeholder="email@domain.mn" autoComplete="email" {...registerForm.register("email")} />
+                </label>
+                {registerForm.formState.errors.email ? <p className="-mt-3 text-xs text-red-600">{registerForm.formState.errors.email.message}</p> : null}
+
+                <label className="block text-sm font-semibold text-surface-700">
+                  {t("password")}
+                  <div className="relative mt-2">
+                    <input
+                      className="rounded-xl bg-white pr-12"
+                      type={showRegisterPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      {...registerForm.register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegisterPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-lg px-2 text-xs text-surface-600"
+                    >
+                      {showRegisterPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </label>
+                {registerForm.formState.errors.password ? <p className="-mt-3 text-xs text-red-600">{registerForm.formState.errors.password.message}</p> : null}
+
+                <label className="flex items-start gap-3 text-sm text-surface-700">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5 rounded border-surface-300"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  />
+                  <span>
+                    Би ITZuun-ий <Link href={withLocale("/terms")} className="font-semibold text-[#1f8c99]">Үйлчилгээний нөхцөл</Link> болон{" "}
+                    <Link href={withLocale("/privacy")} className="font-semibold text-[#1f8c99]">Нууцлалын бодлогыг</Link> зөвшөөрч байна.
+                  </span>
+                </label>
+
+                <ActionButton
+                  className="w-full min-h-12 rounded-xl bg-[#031636] py-3 text-base font-semibold text-white"
+                  type="submit"
+                  loading={registerMutation.isPending}
+                >
+                  {t("register")}
+                </ActionButton>
+              </form>
+            ) : (
+              <form className="space-y-5" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
+                <label className="block text-sm font-semibold text-surface-700">
+                  {t("email")}
+                  <input className="mt-2 rounded-xl bg-white" type="email" placeholder="example@itzuun.mn" autoComplete="email" {...loginForm.register("email")} />
+                </label>
+                {loginForm.formState.errors.email ? <p className="-mt-3 text-xs text-red-600">{loginForm.formState.errors.email.message}</p> : null}
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="text-sm font-semibold text-surface-700">{t("password")}</label>
+                    <Link href={withLocale("/support")} className="text-xs font-semibold text-[#1f8c99]">Нууц үг мартсан?</Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      className="rounded-xl bg-white pr-12"
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      {...loginForm.register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-lg px-2 text-xs text-surface-600"
+                    >
+                      {showLoginPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
+                {loginForm.formState.errors.password ? <p className="-mt-3 text-xs text-red-600">{loginForm.formState.errors.password.message}</p> : null}
+
+                <label className="flex items-center gap-2 text-sm text-surface-700">
+                  <input type="checkbox" className="h-5 w-5 rounded border-surface-300" />
+                  Намайг санах
+                </label>
+
+                <ActionButton
+                  className="w-full min-h-12 rounded-xl bg-[#031636] py-3 text-base font-semibold text-white"
+                  type="submit"
+                  loading={loginMutation.isPending}
+                >
+                  {t("signIn")}
+                </ActionButton>
+              </form>
+            )}
+
+            <div className="my-7 flex items-center gap-3">
+              <div className="h-px flex-1 bg-surface-300" />
+              <p className="text-xs font-semibold uppercase tracking-wider text-surface-500">эсвэл</p>
+              <div className="h-px flex-1 bg-surface-300" />
+            </div>
+
+            <div className="space-y-3">
+              {googleClientId ? (
+                <div className="flex justify-center rounded-xl bg-white p-2">
+                  <div ref={googleButtonRef} className="min-h-[44px]" />
+                </div>
               ) : null}
+              <button
+                type="button"
+                onClick={() => setShowPasswordless((prev) => !prev)}
+                className="w-full rounded-xl border border-surface-300 bg-white py-3 text-sm font-semibold text-surface-700"
+              >
+                {t("useOtp")}
+              </button>
+            </div>
+
+            {showPasswordless ? (
+              <div className="mt-4 space-y-4 rounded-xl bg-white p-4">
+                <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
+                  <p className="text-sm font-semibold text-surface-800">{t("otpStep1")}</p>
+                  <label className="block text-xs font-medium text-surface-600">
+                    {t("email")}
+                    <input className="mt-1 rounded-lg bg-surface-50" type="email" {...requestForm.register("email")} />
+                  </label>
+                  {requestForm.formState.errors.email ? <p className="text-xs text-red-600">{requestForm.formState.errors.email.message}</p> : null}
+                  <ActionButton className="w-full min-h-11 rounded-xl bg-[#031636] text-white" type="submit" loading={requestMutation.isPending}>{t("requestOtp")}</ActionButton>
+                </form>
+
+                <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
+                  <p className="text-sm font-semibold text-surface-800">{t("otpStep2")}</p>
+                  <label className="block text-xs font-medium text-surface-600">
+                    {t("email")}
+                    <input className="mt-1 rounded-lg bg-surface-50" type="email" {...verifyForm.register("email")} />
+                  </label>
+                  <label className="block text-xs font-medium text-surface-600">
+                    {t("otpToken")}
+                    <input className="mt-1 rounded-lg bg-surface-50" {...verifyForm.register("otp_token")} />
+                  </label>
+                  <label className="block text-xs font-medium text-surface-600">
+                    {t("otp")}
+                    <input className="mt-1 rounded-lg bg-surface-50" {...verifyForm.register("otp")} />
+                  </label>
+                  {(verifyForm.formState.errors.email || verifyForm.formState.errors.otp_token || verifyForm.formState.errors.otp) ? (
+                    <p className="text-xs text-red-600">
+                      {verifyForm.formState.errors.email?.message || verifyForm.formState.errors.otp_token?.message || verifyForm.formState.errors.otp?.message}
+                    </p>
+                  ) : null}
+                  <ActionButton className="w-full min-h-11 rounded-xl bg-[#031636] text-white" type="submit" loading={verifyMutation.isPending}>{t("verifyOtp")}</ActionButton>
+                </form>
+              </div>
+            ) : null}
+
+            <div className="mt-9 text-center text-sm text-surface-600">
+              {isRegister ? (
+                <>
+                  Аль хэдийн бүртгэлтэй юу?{" "}
+                  <button type="button" className="font-bold text-[#031636]" onClick={() => setActiveTab("signin")}>Нэвтрэх</button>
+                </>
+              ) : (
+                <>
+                  Бүртгэлгүй юу?{" "}
+                  <button type="button" className="font-bold text-[#031636]" onClick={() => setActiveTab("register")}>Бүртгүүлэх</button>
+                </>
+              )}
             </div>
           </div>
-        ) : null}
-
-        <div className="mt-6 grid grid-cols-2 rounded-full bg-surface-100 p-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("signin")}
-            className={activeTab === "signin" ? "rounded-full bg-white text-surface-900 shadow-card font-medium" : "text-surface-500 hover:text-surface-700"}
-          >
-            {t("signIn")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("register")}
-            className={activeTab === "register" ? "rounded-full bg-white text-surface-900 shadow-card font-medium" : "text-surface-500 hover:text-surface-700"}
-          >
-            {t("register")}
-          </button>
         </div>
+      </section>
 
-        {googleClientId ? (
-          <div className="mt-5 space-y-3">
-            <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-surface-400">{t("passwordlessGoogle")}</p>
-            <div className="flex justify-center">
-              <div ref={googleButtonRef} className="min-h-[44px]" />
-            </div>
-          </div>
-        ) : null}
-
-        {activeTab === "signin" ? (
-          <form className="mt-6 space-y-4" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
-            <label className="block text-[13px] font-medium text-surface-700">
-              {t("email")}
-              <input className="mt-1.5" type="email" placeholder="name@example.com" {...loginForm.register("email")} />
-            </label>
-            {loginForm.formState.errors.email ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.email.message}</p> : null}
-
-            <label className="block text-[13px] font-medium text-surface-700">
-              {t("password")}
-              <input className="mt-1.5" type="password" placeholder="••••••••" {...loginForm.register("password")} />
-            </label>
-            {loginForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{loginForm.formState.errors.password.message}</p> : null}
-
-            <ActionButton className="w-full min-h-11 primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={loginMutation.isPending}>
-              {t("signIn")}
-            </ActionButton>
-          </form>
-        ) : (
-          <form className="mt-6 space-y-4" onSubmit={registerForm.handleSubmit((values) => registerMutation.mutate(values))}>
-            <label className="block text-[13px] font-medium text-surface-700">
-              {t("email")}
-              <input className="mt-1.5" type="email" placeholder="name@example.com" {...registerForm.register("email")} />
-            </label>
-            {registerForm.formState.errors.email ? <p className="-mt-2 text-[11px] text-red-600">{registerForm.formState.errors.email.message}</p> : null}
-
-            <label className="block text-[13px] font-medium text-surface-700">
-              {t("password")}
-              <input className="mt-1.5" type="password" placeholder={t("passwordPlaceholder")} {...registerForm.register("password")} />
-            </label>
-            {registerForm.formState.errors.password ? <p className="-mt-2 text-[11px] text-red-600">{registerForm.formState.errors.password.message}</p> : null}
-
-            <label className="block text-[13px] font-medium text-surface-700">
-              {t("role")}
-              <select className="mt-1.5" {...registerForm.register("role")}>
-                <option value="client">{t("roleClient")}</option>
-                <option value="freelancer">{t("roleFreelancer")}</option>
-              </select>
-            </label>
-
-            <ActionButton className="w-full min-h-11 primary-gradient py-3 text-sm font-semibold text-white" type="submit" loading={registerMutation.isPending}>
-              {t("createAccount")}
-            </ActionButton>
-          </form>
-        )}
-
-        <button type="button" onClick={() => setShowPasswordless((prev) => !prev)} className="mt-5 w-full text-center text-[13px] font-medium text-brand-600 hover:text-brand-700">
-          {t("useOtp")}
-        </button>
-
-        {showPasswordless ? (
-          <div className="mt-4 space-y-4 rounded-2xl bg-surface-100 p-4">
-            <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
-              <p className="text-[13px] font-semibold text-surface-800">{t("otpStep1")}</p>
-              <label className="block text-[13px] font-medium text-surface-600">
-                {t("email")}
-                <input className="mt-1" type="email" {...requestForm.register("email")} />
-              </label>
-              {requestForm.formState.errors.email ? <p className="text-[11px] text-red-600">{requestForm.formState.errors.email.message}</p> : null}
-              <ActionButton className="w-full min-h-11 primary-gradient text-white" type="submit" loading={requestMutation.isPending}>{t("requestOtp")}</ActionButton>
-            </form>
-
-            <form className="space-y-3" onSubmit={verifyForm.handleSubmit((values) => verifyMutation.mutate(values))}>
-              <p className="text-[13px] font-semibold text-surface-800">{t("otpStep2")}</p>
-              <label className="block text-[13px] font-medium text-surface-600">
-                {t("email")}
-                <input className="mt-1" type="email" {...verifyForm.register("email")} />
-              </label>
-              <label className="block text-[13px] font-medium text-surface-600">
-                {t("otpToken")}
-                <input className="mt-1" {...verifyForm.register("otp_token")} />
-              </label>
-              <label className="block text-[13px] font-medium text-surface-600">
-                {t("otp")}
-                <input className="mt-1" {...verifyForm.register("otp")} />
-              </label>
-              {(verifyForm.formState.errors.email || verifyForm.formState.errors.otp_token || verifyForm.formState.errors.otp) ? (
-                <p className="text-[11px] text-red-600">
-                  {verifyForm.formState.errors.email?.message || verifyForm.formState.errors.otp_token?.message || verifyForm.formState.errors.otp?.message}
-                </p>
-              ) : null}
-              <ActionButton className="w-full min-h-11 primary-gradient text-white" type="submit" loading={verifyMutation.isPending}>{t("verifyOtp")}</ActionButton>
-            </form>
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex items-center justify-between text-[11px] text-surface-500">
-          <span>Secure auth • Privacy first</span>
-          <a href={withLocale("/support")} className="font-semibold text-brand-600">Support</a>
+      <footer className="mt-4 flex flex-col gap-3 rounded-xl bg-surface-200/70 px-6 py-4 text-sm text-surface-600 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-wrap gap-6">
+          <Link href={withLocale("/about")}>Бидний тухай</Link>
+          <Link href={withLocale("/support")}>Тусламж</Link>
+          <Link href={withLocale("/privacy")}>Нууцлалын бодлого</Link>
         </div>
-      </div>
-    </section>
+        <p>© 2024 ITZuun. Бүх эрх хуулиар хамгаалагдсан.</p>
+      </footer>
+    </main>
   );
 }
 
 export default function AuthPage() {
   const t = useTranslations("Auth");
+
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       <Suspense
         fallback={
-          <section className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
-            <div className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-8 shadow-hero">
-              <p className="text-center text-[13px] text-surface-500">{t("loading")}</p>
-            </div>
-          </section>
+          <main className="mx-auto flex min-h-[80vh] w-full max-w-6xl items-center justify-center px-4 py-12">
+            <section className="w-full max-w-[440px] rounded-2xl border border-surface-200/60 bg-white p-8 shadow-hero">
+              <p className="text-center text-sm text-surface-500">{t("loading")}</p>
+            </section>
+          </main>
         }
       >
         <AuthCard />
