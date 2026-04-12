@@ -729,18 +729,9 @@ function AuthCard() {
                   )}
                 </button>
               </div>
-              {isRegister ? null : (
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordless((prev) => !prev)}
-                  className="w-full rounded-xl border border-surface-300 bg-white py-3 text-sm font-semibold text-surface-700"
-                >
-                  {t("useOtp")}
-                </button>
-              )}
             </div>
 
-            {showPasswordless ? (
+            {isRegister && showPasswordless ? (
               <div className="mt-4 space-y-4 rounded-xl bg-white p-4">
                 <form className="space-y-3" onSubmit={requestForm.handleSubmit((values) => requestMutation.mutate(values))}>
                   <p className="text-sm font-semibold text-surface-800">{t("otpStep1")}</p>
