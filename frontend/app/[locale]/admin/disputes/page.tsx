@@ -142,19 +142,19 @@ export default function AdminDisputesPage() {
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
-      <section className="space-y-5">
+      <section className="mx-auto max-w-7xl space-y-6 px-4">
         <h1 className="font-headline text-3xl font-extrabold text-surface-900">{t("title")}</h1>
 
         <AppCard>
-          <h2 className="mb-3 text-sm font-semibold text-surface-800">{t("unresolvedTitle")}</h2>
+          <h2 className="mb-4 text-sm font-semibold text-surface-800">{t("unresolvedTitle")}</h2>
           {!disputes.length ? (
             <EmptyState label={t("empty")} />
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {disputes.slice(0, 20).map((item) => {
                 const state = getState(item.id);
                 return (
-                  <li key={item.id} className="space-y-3 rounded-xl border border-surface-200/60 p-4 text-[13px]">
+                  <li key={item.id} className="space-y-4 rounded-xl border border-surface-200/60 p-5 text-[13px]">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="font-semibold text-surface-900">{t("dispute")} #{item.id}</p>
                       <StatusPill label={item.resolved_at ? t("resolved") : t("open")} tone={item.resolved_at ? "success" : "warning"} />
@@ -163,9 +163,9 @@ export default function AdminDisputesPage() {
                     <p className="text-surface-600">{t("escrowAmount")}: {Number(item.escrow_amount || 0)}</p>
                     <p className="text-surface-600">{t("reason")}: {item.reason || "-"}</p>
 
-                    <div className="grid gap-2 md:grid-cols-4">
+                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
                       <select
-                        className="rounded-lg border border-surface-300 bg-white px-3 py-2"
+                        className="rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm"
                         value={state.action}
                         onChange={(e) => patchState(item.id, { action: e.target.value as "release" | "refund" | "split" })}
                       >
@@ -175,7 +175,7 @@ export default function AdminDisputesPage() {
                       </select>
 
                       <input
-                        className="rounded-lg border border-surface-300 bg-white px-3 py-2"
+                        className="rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm"
                         type="number"
                         min={0}
                         disabled={state.action !== "split"}
@@ -185,7 +185,7 @@ export default function AdminDisputesPage() {
                       />
 
                       <input
-                        className="rounded-lg border border-surface-300 bg-white px-3 py-2"
+                        className="rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm"
                         type="number"
                         min={0}
                         disabled={state.action !== "split"}
@@ -195,7 +195,7 @@ export default function AdminDisputesPage() {
                       />
 
                       <ActionButton
-                        className="rounded-lg px-3 py-2 text-sm"
+                        className="rounded-lg px-4 py-2 text-sm whitespace-nowrap"
                         loading={resolveMutation.isPending}
                         onClick={() => submitResolve(item)}
                       >
@@ -204,8 +204,8 @@ export default function AdminDisputesPage() {
                     </div>
 
                     <textarea
-                      className="w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-[13px]"
-                      rows={2}
+                      className="w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-[13px] col-span-1 sm:col-span-2 lg:col-span-5"
+                      rows={3}
                       value={state.note}
                       onChange={(e) => patchState(item.id, { note: e.target.value })}
                       placeholder={t("notePlaceholder")}
@@ -218,11 +218,11 @@ export default function AdminDisputesPage() {
         </AppCard>
 
         <AppCard>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-surface-800">{t("recentAuditTitle")}</h2>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <select
-                className="rounded-lg border border-surface-300 bg-white px-2 py-1.5 text-xs"
+                className="rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-xs"
                 value={auditAction}
                 onChange={(e) => setAuditAction(e.target.value)}
               >
@@ -233,7 +233,7 @@ export default function AdminDisputesPage() {
               </select>
               <input
                 type="date"
-                className="rounded-lg border border-surface-300 bg-white px-2 py-1.5 text-xs"
+                className="rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-xs"
                 value={auditDate}
                 onChange={(e) => setAuditDate(e.target.value)}
               />
@@ -242,7 +242,7 @@ export default function AdminDisputesPage() {
           {!audits.length ? (
             <EmptyState label={t("auditEmpty")} />
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3 max-h-80 overflow-y-auto">
               {audits.slice(0, 10).map((log) => (
                 <li key={log.id} className="rounded-lg border border-surface-200/60 p-3 text-[12px] text-surface-600">
                   <p className="font-semibold text-surface-900">{log.action_type} / {log.entity_type} #{log.entity_id}</p>

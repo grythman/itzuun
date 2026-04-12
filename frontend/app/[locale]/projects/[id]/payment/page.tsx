@@ -144,15 +144,15 @@ export default function ProjectPaymentPage() {
   const canCreateInvoice = !paymentData || statusValue === "failed" || secondsLeft === 0;
 
   return (
-    <section className="mx-auto max-w-4xl space-y-4 pb-20">
+    <section className="mx-auto max-w-6xl space-y-5 px-4 pb-20">
       <AppCard>
         <h1 className="text-2xl font-semibold">Escrow Payment</h1>
         <p className="mt-1 text-[13px] text-surface-500">Төлбөрөө аюулгүй escrow-д байршуулж, эрсдэлгүй гүйцэтгэл эхлүүл.</p>
         <div className="mt-3"><StepProgress steps={paymentSteps} currentStep={currentStep} /></div>
       </AppCard>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <AppCard className="space-y-3">
+      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        <AppCard className="space-y-3 xl:col-span-1">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Төлбөрийн задаргаа</p>
           <CompareTable
             rows={[
@@ -164,7 +164,7 @@ export default function ProjectPaymentPage() {
           <p className="text-[12px] text-surface-600">Давхар төлбөрөөс сэргийлэхийн тулд нэг invoice-г нэг удаа төлнө.</p>
         </AppCard>
 
-        <AppCard className="space-y-3">
+        <AppCard className="space-y-3 xl:col-span-1">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-surface-500">Escrow state</p>
           <div className="flex items-center gap-2">
             <EscrowStatusBadge status={escrowState} />

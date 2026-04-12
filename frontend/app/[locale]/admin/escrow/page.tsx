@@ -87,23 +87,25 @@ export default function AdminEscrowPage() {
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
-      <section className="space-y-5">
+      <section className="mx-auto max-w-7xl space-y-6 px-4">
         <h1 className="font-headline text-3xl font-extrabold text-surface-900">{t("title")}</h1>
 
-        <AppCard>
-          <h2 className="mb-3 text-sm font-semibold text-surface-800">{t("pendingApprovalTitle")}</h2>
-          {!records.length ? (
-            <EmptyState label={t("empty")} />
-          ) : (
-            <ul className="space-y-2">
-              {records.slice(0, 20).map((item) => (
-                <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                  <div className="space-y-1">
-                    <p className="font-semibold text-surface-900">{t("escrow")} #{item.id}</p>
-                    <p className="text-surface-600">{t("project")}: #{item.project}</p>
-                    <p className="text-surface-600">{t("amount")}: {item.amount}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
+        <div className="grid gap-6 lg:grid-cols-5 xl:grid-cols-3 2xl:grid-cols-2">
+          <div className="lg:col-span-3 xl:col-span-2 2xl:col-span-1">
+            <AppCard className="h-full">
+              <h2 className="mb-4 text-sm font-semibold text-surface-800">{t("pendingApprovalTitle")}</h2>
+              {!records.length ? (
+                <EmptyState label={t("empty")} />
+              ) : (
+                <ul className="space-y-3">
+                  {records.slice(0, 20).map((item) => (
+                    <li key={item.id} className="flex flex-col items-start justify-between gap-4 rounded-xl border border-surface-200/60 p-4 text-[13px] sm:flex-row sm:items-center">
+                    <div className="space-y-2">
+                      <p className="font-semibold text-surface-900">{t("escrow")} #{item.id}</p>
+                      <p className="text-surface-600">{t("project")}: #{item.project}</p>
+                      <p className="text-surface-600 font-mono">{t("amount")}: {item.amount}</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
                     <StatusPill label={item.status} tone={item.status === "created" ? "warning" : "info"} />
                     {item.status === "created" && (
                       <ActionButton
@@ -115,48 +117,51 @@ export default function AdminEscrowPage() {
                       </ActionButton>
                     )}
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </AppCard>
-
-        <AppCard>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-surface-800">{t("recentAuditTitle")}</h2>
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                className="rounded-lg border border-surface-300 bg-white px-2 py-1.5 text-xs"
-                value={auditAction}
-                onChange={(e) => setAuditAction(e.target.value)}
-              >
-                <option value="">{t("auditActionAll")}</option>
-                <option value="approve">{t("auditActionApprove")}</option>
-                <option value="deposit">{t("auditActionDeposit")}</option>
-                <option value="release">{t("auditActionRelease")}</option>
-                <option value="refund">{t("auditActionRefund")}</option>
-              </select>
-              <input
-                type="date"
-                className="rounded-lg border border-surface-300 bg-white px-2 py-1.5 text-xs"
-                value={auditDate}
-                onChange={(e) => setAuditDate(e.target.value)}
-              />
-            </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AppCard>
           </div>
-          {!audits.length ? (
-            <EmptyState label={t("auditEmpty")} />
-          ) : (
-            <ul className="space-y-2">
-              {audits.slice(0, 10).map((log) => (
-                <li key={log.id} className="rounded-lg border border-surface-200/60 p-3 text-[12px] text-surface-600">
-                  <p className="font-semibold text-surface-900">{log.action_type} / {log.entity_type} #{log.entity_id}</p>
-                  <p>{log.reason || "-"}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </AppCard>
+          <div className="lg:col-span-2 2xl:col-span-1">
+            <AppCard className="h-full">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold text-surface-800">{t("recentAuditTitle")}</h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    className="rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-xs"
+                    value={auditAction}
+                    onChange={(e) => setAuditAction(e.target.value)}
+                  >
+                    <option value="">{t("auditActionAll")}</option>
+                    <option value="approve">{t("auditActionApprove")}</option>
+                    <option value="deposit">{t("auditActionDeposit")}</option>
+                    <option value="release">{t("auditActionRelease")}</option>
+                    <option value="refund">{t("auditActionRefund")}</option>
+                  </select>
+                  <input
+                    type="date"
+                    className="rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-xs"
+                    value={auditDate}
+                    onChange={(e) => setAuditDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              {!audits.length ? (
+                <EmptyState label={t("auditEmpty")} />
+              ) : (
+                <ul className="space-y-3 max-h-96 overflow-y-auto">
+                  {audits.slice(0, 15).map((log) => (
+                    <li key={log.id} className="rounded-lg border border-surface-200/60 p-3 text-[12px] text-surface-600">
+                      <p className="font-semibold text-surface-900">{log.action_type} / {log.entity_type} #{log.entity_id}</p>
+                      <p className="truncate">{log.reason || "-"}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AppCard>
+          </div>
+        </div>
       </section>
     </RoleGuard>
   );
