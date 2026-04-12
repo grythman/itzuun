@@ -6,9 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { EmptyState, ErrorState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, AppCard, ConfirmationDialog, DashboardBottomBar, StatusPill } from "@/components/ui-kit";
+import { ConfirmationDialog, StatusPill } from "@/components/ui-kit";
 import { VerificationBanner } from "@/components/verification-banner";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useProjectProposals, useProjects } from "@/lib/hooks";
@@ -209,20 +209,7 @@ export default function ClientDashboardPage() {
   const activeProject = myProjects.find((project) => project.id === activeProjectId) || null;
 
   const profileData = profile.data;
-  let profileCompleteness = 0;
-  if (profileData) {
-    let filled = 0;
-    if (profileData.full_name) filled++;
-    if (profileData.bio) filled++;
-    if (profileData.skills?.length > 0) filled++;
-    if (profileData.hourly_rate > 0) filled++;
-    profileCompleteness = Math.round((filled / 4) * 100);
-  }
-
-  const activeCount = myProjects.filter((p) => p.status === "in_progress").length;
-  const openCount = myProjects.filter((p) => p.status === "open").length;
   const totalEscrow = myProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
-  const completedCount = myProjects.filter((p) => p.status === "completed").length;
   const awaitingReview = myProjects.find((project) => project.status === "awaiting_client_review");
   const inProgressProject = myProjects.find((project) => project.status === "in_progress");
   const securedEscrow = myProjects
@@ -232,18 +219,6 @@ export default function ClientDashboardPage() {
     .filter((project) => project.status === "open")
     .reduce((sum, project) => sum + Number(project.budget || 0), 0);
   const clientName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Client";
-
-  let urgencyText = "Одоо хийх ажил: Шинэ төсөл оруулж ажил эхлүүлэх.";
-  if (awaitingReview) urgencyText = "Одоо хийх ажил: Completion баталгаажуулж escrow release хийх.";
-  else if (openProject) urgencyText = "Одоо хийх ажил: Саналуудыг харьцуулж freelancer сонгох.";
-  else if (inProgressProject) urgencyText = "Одоо хийх ажил: Гүйцэтгэлийг хянаж эрсдэл гарвал маргаан нээх.";
-
-  const freshestUpdate = myProjects.reduce<string | undefined>((latest, project) => {
-    const candidate = (project as { updated_at?: string; created_at?: string }).updated_at || (project as { updated_at?: string; created_at?: string }).created_at;
-    if (!candidate) return latest;
-    if (!latest) return candidate;
-    return new Date(candidate).getTime() > new Date(latest).getTime() ? candidate : latest;
-  }, undefined);
 
   const sortedProposalItems = [...proposalItems].sort((a, b) => {
     const aScore = Number(a.price || 0) + Math.max(1, Number(a.timeline_days || 1)) * 1000;
@@ -258,27 +233,27 @@ export default function ClientDashboardPage() {
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
-      <section className="space-y-6 pb-24">
-        <div className="grid gap-6 xl:grid-cols-[272px_minmax(0,1fr)]">
-          <aside className="hidden xl:flex xl:min-h-[calc(100vh-7rem)] xl:flex-col xl:rounded-[28px] xl:bg-slate-100 xl:p-6 xl:sticky xl:top-24">
+      <section className="pb-24 xl:pb-10">
+        <div className="grid gap-6 xl:grid-cols-[288px_minmax(0,1fr)] 2xl:grid-cols-[288px_minmax(0,1fr)]">
+          <aside className="hidden xl:sticky xl:top-0 xl:flex xl:h-screen xl:flex-col xl:gap-2 xl:rounded-none xl:bg-slate-100 xl:px-0 xl:py-6">
             <div className="mb-8">
-              <div className="mb-6 flex items-center gap-3">
+              <div className="mb-6 flex items-center gap-3 px-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#031636] text-sm font-bold text-white">IZ</div>
                 <div>
                   <h2 className="font-headline text-lg font-bold leading-none text-[#031636]">Project Console</h2>
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Client Tier</span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Enterprise Tier</span>
                 </div>
               </div>
               <Link
                 href={withLocale("/projects/new")}
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#031636] px-4 text-sm font-bold text-[#d8e2ff] shadow-lg shadow-[#031636]/20 transition-opacity hover:opacity-90"
+                className="mx-6 flex min-h-12 w-auto items-center justify-center gap-2 rounded-xl bg-[#031636] px-4 text-sm font-bold text-[#d8e2ff] shadow-lg shadow-[#031636]/20 transition-opacity hover:opacity-90"
               >
-                <span className="text-lg">+</span>
+                <DashboardIcon name="add" className="h-[18px] w-[18px]" />
                 Create New Brief
               </Link>
             </div>
 
-            <nav className="flex-1 space-y-1 px-1">
+            <nav className="flex-1 space-y-1 px-4">
               <Link href={withLocale("/client")} className="flex items-center gap-3 rounded-lg bg-white px-4 py-3 text-[13px] font-medium text-[#031636] shadow-[0_4px_12px_rgba(3,22,54,0.08)]">
                 <DashboardIcon name="folder" className="h-[18px] w-[18px]" />
                 Active Projects
@@ -301,7 +276,7 @@ export default function ClientDashboardPage() {
               </Link>
             </nav>
 
-            <div className="mt-6 rounded-xl bg-[#eef2f6] p-4">
+            <div className="mx-6 mt-6 rounded-xl bg-[#eef2f6] p-4">
               <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1a2b4c]">Тусламж хэрэгтэй юу?</p>
               <p className="mb-3 text-xs text-slate-600">Манай зөвлөхүүдтэй шууд холбогдоно уу.</p>
               <Link href={withLocale("/support")} className="inline-flex items-center gap-1 text-xs font-bold text-[#031636]">
@@ -311,8 +286,8 @@ export default function ClientDashboardPage() {
             </div>
           </aside>
 
-          <div className="min-w-0 space-y-6">
-            <header className="sticky top-16 z-20 flex flex-col gap-4 rounded-[24px] border border-slate-200/70 bg-slate-50/80 px-5 py-4 shadow-[0_20px_50px_rgba(3,22,54,0.04)] backdrop-blur-md md:flex-row md:items-center md:justify-between">
+          <main className="min-w-0 overflow-x-hidden bg-[#f7f9fb]">
+            <header className="sticky top-0 z-20 flex flex-col gap-4 rounded-none bg-slate-50/80 px-5 py-4 shadow-[0_20px_50px_rgba(3,22,54,0.04)] backdrop-blur-md md:flex-row md:items-center md:justify-between md:px-8">
               <div className="relative max-w-md flex-1">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                   <DashboardIcon name="search" className="h-[18px] w-[18px]" />
@@ -341,26 +316,27 @@ export default function ClientDashboardPage() {
               </div>
             </header>
 
-            {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
+            <div className="mx-auto w-full max-w-[1440px] space-y-10 px-4 py-6 md:px-8 md:py-8 2xl:max-w-[1600px]">
+              {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
 
-            <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <h1 className="font-headline text-3xl font-extrabold tracking-tight text-[#031636] md:text-4xl">
-                  Өдрийн мэнд, {clientName} 👋
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                  Таны төслүүдийн явц болон санхүүгийн тойм энд байна. Бүх үйл ажиллагаа escrow хамгаалалттай явагдаж байна.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#13696a] px-5 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
-                  <DashboardIcon name="search" className="h-[18px] w-[18px]" />
-                  Freelancers хайх
-                </Link>
-              </div>
-            </section>
+              <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h1 className="font-headline text-3xl font-extrabold tracking-tight text-[#031636] md:text-4xl">
+                    Өдрийн мэнд, {clientName} 👋
+                  </h1>
+                  <p className="mt-2 max-w-lg text-sm text-slate-500">
+                    Таны төслүүдийн явц болон санхүүгийн тойм энд байна. Бүх үйл ажиллагаа Эскроу хамгаалалттай явагдаж байна.
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <Link href={withLocale("/projects")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#13696a] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
+                    <DashboardIcon name="search" className="h-[18px] w-[18px]" />
+                    Freelancers хайх
+                  </Link>
+                </div>
+              </section>
 
-            <section className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
+              <section className="grid gap-6 md:grid-cols-3">
               <div className="grid gap-6 rounded-[2rem] bg-[#031636] p-8 text-white shadow-2xl md:grid-cols-3">
                 <div className="flex flex-col justify-between">
                   <div>
@@ -382,7 +358,7 @@ export default function ClientDashboardPage() {
                     <h3 className="font-headline text-3xl font-bold">{formatMnt(pendingEscrow)}</h3>
                   </div>
                   <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="mt-4 w-fit text-[10px] font-bold text-[#a5eff0] underline underline-offset-4">
-                    Саналууд харах
+                    Нэхэмжлэх харах
                   </button>
                 </div>
               </div>
@@ -417,34 +393,9 @@ export default function ClientDashboardPage() {
                   Бүх саналыг үзэх
                 </button>
               </div>
-            </section>
+              </section>
 
-            <section className="grid gap-4 md:grid-cols-4">
-              <AppCard className="rounded-[1.5rem] border-[#d8e3ee] bg-white shadow-none">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4a6785]">{t("activeProjectsLabel")}</p>
-                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{activeCount}</p>
-                <p className="mt-1 text-xs text-[#5a728d]">Одоо гүйцэтгэл явж буй төслүүд</p>
-              </AppCard>
-              <AppCard className="rounded-[1.5rem] border-[#d8e3ee] bg-white shadow-none">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4a6785]">{t("openBidsLabel")}</p>
-                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{openCount}</p>
-                <p className="mt-1 text-xs text-[#5a728d]">Freelancer сонгох хүлээгдэж байна</p>
-              </AppCard>
-              <AppCard className="rounded-[1.5rem] border-[#d8e3ee] bg-white shadow-none">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4a6785]">Completed</p>
-                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{completedCount}</p>
-                <p className="mt-1 text-xs text-[#5a728d]">Амжилттай дууссан төслүүд</p>
-              </AppCard>
-              <AppCard className="rounded-[1.5rem] border-[#d8e3ee] bg-white shadow-none">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4a6785]">Profile Ready</p>
-                <p className="mt-2 text-2xl font-extrabold text-[#132945]">{profileCompleteness}%</p>
-                <div className="mt-2 h-1.5 w-full rounded-full bg-[#dbe5ef]">
-                  <div className="h-1.5 rounded-full bg-[#031636]" style={{ width: `${profileCompleteness}%` }} />
-                </div>
-              </AppCard>
-            </section>
-
-            <section className="rounded-[2rem] bg-white shadow-sm">
+              <section>
               <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="font-headline text-2xl font-bold text-[#031636]">Идэвхтэй төслүүд</h2>
@@ -455,6 +406,7 @@ export default function ClientDashboardPage() {
                 </Link>
               </div>
 
+              <div className="overflow-hidden rounded-[2rem] bg-white shadow-sm">
               {!myProjects.length ? (
                 <div className="p-6">
                   <EmptyState
@@ -587,125 +539,63 @@ export default function ClientDashboardPage() {
                   </ul>
                 </>
               )}
+              </div>
             </section>
 
-            <div ref={proposalSectionRef} className="rounded-[2rem] border border-[#dae4ef] bg-white p-6 shadow-card">
-              <h2 className="mb-1 font-headline text-2xl font-bold text-[#10243f]">Санал харьцуулалт</h2>
-              <p className="mb-3 text-[13px] text-[#4f6782]">1-2 товшилтоор freelancer сонгох урсгал.</p>
-              {activeProject ? (
-                <div className="mb-4 rounded-xl border border-[#dbe6f2] bg-[#f5f9ff] p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="text-[12px] font-semibold text-[#1f4d76]">Сонгосон төсөл: {activeProject.title}</p>
-                      <p className="text-[11px] text-[#4f6782]">Саналын inbox-оос шууд freelancer сонгох боломжтой.</p>
-                    </div>
-                    <button
-                      type="button"
-                      className="inline-flex min-h-11 items-center rounded-xl border border-[#bfd3e6] bg-white px-4 text-[13px] font-semibold text-[#1e4f78]"
-                      onClick={() => router.push(withLocale(`/projects/${activeProject.id}`))}
-                    >
-                      Дэлгэрэнгүй рүү
-                    </button>
-                  </div>
+            <section ref={proposalSectionRef} className="grid grid-cols-1 gap-6 md:grid-cols-4">
+              <Link
+                href={withLocale("/projects/new")}
+                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-[#13696a] p-8 text-white transition-transform hover:scale-[1.02] md:col-span-1"
+              >
+                <span className="text-4xl">⊕</span>
+                <div>
+                  <h4 className="font-headline text-xl font-bold">Шинэ төсөл үүсгэх</h4>
+                  <p className="mt-2 text-xs text-white/75">Brief-ээ оруулаад шилдэг мэргэжилтнүүдийг уриарай.</p>
                 </div>
-              ) : null}
-              {!activeProjectId ? (
-                <EmptyState
-                  label="Эхлээд нэг төсөл сонгоно уу."
-                  action={
-                    openProject ? (
-                      <button className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 text-[13px] font-semibold text-white" onClick={() => focusProposalSection(openProject.id)}>
-                        Нээлттэй төслийн санал харах
-                      </button>
-                    ) : (
-                      <Link href={withLocale("/projects/new")} className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 text-[13px] font-semibold text-white">
-                        Төсөл оруулах
-                      </Link>
-                    )
-                  }
-                />
-              ) : proposals.isLoading ? (
-                <div className="space-y-2">
-                  <div className="h-16 animate-pulse rounded-xl border border-[#dce6ef] bg-[#f3f8fd]" />
-                  <div className="h-16 animate-pulse rounded-xl border border-[#dce6ef] bg-[#f3f8fd]" />
-                  <div className="h-16 animate-pulse rounded-xl border border-[#dce6ef] bg-[#f3f8fd]" />
-                </div>
-              ) : proposals.isError ? (
-                <ErrorState
-                  label="Санал ачааллахад алдаа гарлаа."
-                  action={
-                    <div className="flex gap-2">
-                      <button className="inline-flex min-h-11 items-center rounded-xl bg-white px-4 text-[13px] font-semibold text-red-700" onClick={() => proposals.refetch()}>
-                        Дахин оролдох
-                      </button>
-                      <button className="inline-flex min-h-11 items-center rounded-xl bg-white px-4 text-[13px] font-semibold text-red-700" onClick={retryAll}>
-                        Dashboard сэргээх
-                      </button>
-                    </div>
-                  }
-                />
-              ) : !proposalItems.length ? (
-                <EmptyState
-                  label="Одоогоор санал ирээгүй байна."
-                  action={
-                    <button className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-4 text-[13px] font-semibold text-white" onClick={() => proposals.refetch()}>
-                      Сэргээж шалгах
-                    </button>
-                  }
-                />
-              ) : (
-                <div className="space-y-3">
-                  <div className="rounded-xl border border-[#d9e5f1] bg-[#f9fcff] p-3">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#3a6287]">Шинэ саналууд (Inbox)</p>
-                    <ul className="mt-2 space-y-2">
-                      {proposalInbox.map((proposal, idx) => (
-                        <li key={`inbox-${proposal.id}`} className="flex items-center justify-between gap-2 rounded-lg border border-[#e1e9f2] bg-white px-3 py-2">
-                          <div>
-                            <p className="text-[13px] font-semibold text-[#17304e]">Freelancer #{proposalFreelancerLabel(proposal.freelancer)}</p>
-                            <p className="text-[11px] text-[#5a728d]">
-                              {formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} өдөр
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            className="inline-flex min-h-11 items-center rounded-xl bg-[#17618f] px-3 text-[12px] font-semibold text-white"
-                            onClick={() => selectMutation.mutate({ projectId: activeProjectId, proposalId: proposal.id })}
-                            disabled={selectMutation.isPending}
-                          >
-                            {idx === 0 ? "Top санал сонгох" : "Сонгох"}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <ul className="space-y-2">
-                    {sortedProposalItems.map((proposal, idx) => (
-                    <li key={proposal.id} className="rounded-xl border border-[#dce6ef] bg-[#f9fcff] p-3 text-[13px]">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-[#17304e]">Freelancer #{proposalFreelancerLabel(proposal.freelancer)}</p>
-                          <p className="text-[#4f6782]">Үнэ: {formatMnt(Number(proposal.price || 0))}</p>
-                          <p className="text-[#4f6782]">Хугацаа: {proposal.timeline_days} өдөр</p>
-                          {idx === 0 ? <p className="mt-1 inline-flex rounded-full bg-[#e7f7ef] px-2 py-0.5 text-[11px] font-semibold text-[#186a44]">Best value</p> : null}
-                        </div>
-                        <ActionButton
-                          className="min-h-11 rounded-xl px-4 text-[13px] font-semibold"
-                          loading={selectMutation.isPending}
-                          onClick={() => selectMutation.mutate({ projectId: activeProjectId, proposalId: proposal.id })}
-                        >
-                          Сонгох
-                        </ActionButton>
-                      </div>
-                    </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+              </Link>
 
-        <DashboardBottomBar role="client" />
+              <Link
+                href={withLocale("/projects")}
+                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-[#e6e8ea] p-8 transition-transform hover:scale-[1.02] md:col-span-1"
+              >
+                <DashboardIcon name="search" className="h-10 w-10 text-[#031636]" />
+                <div>
+                  <h4 className="font-headline text-xl font-bold text-[#031636]">Мэргэжилтэн хайх</h4>
+                  <p className="mt-2 text-xs text-slate-500">Freelancers жагсаалтаас шүүлтүүр ашиглан хайх.</p>
+                </div>
+              </Link>
+
+              <div className="relative overflow-hidden rounded-[2rem] bg-white p-8 shadow-sm md:col-span-2">
+                <div className="relative z-10">
+                  <div className="flex items-center gap-8">
+                    <div className="flex-1">
+                      <h4 className="font-headline text-xl font-bold text-[#031636]">Escrow Protected 🛡️</h4>
+                      <p className="mb-4 mt-2 text-xs text-slate-500">
+                        Таны бүх төлбөр тооцоо аюулгүй байдлын үүднээс Эскроу системээр дамжина. Ажил 100% баталгаажсаны дараа төлбөрийг чөлөөлөх боломжтой.
+                      </p>
+                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/projects")} className="border-b-2 border-[#13696a] pb-1 text-xs font-bold text-[#13696a]">
+                        Дэлгэрэнгүй унших
+                      </Link>
+                    </div>
+                    <div className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-full bg-slate-50 lg:flex">
+                      <span className="text-5xl text-[#13696a]">🛡</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <footer className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 bg-white/50 px-2 py-6 md:flex-row">
+              <p className="text-[11px] font-medium text-slate-400">© 2024 ITZuun Professional Marketplace. All rights reserved.</p>
+              <div className="flex gap-6">
+                <Link className="text-[11px] font-bold text-slate-500 hover:text-[#031636]" href={withLocale("/privacy")}>Нууцлалын бодлого</Link>
+                <Link className="text-[11px] font-bold text-slate-500 hover:text-[#031636]" href={withLocale("/terms")}>Үйлчилгээний нөхцөл</Link>
+                <Link className="text-[11px] font-bold text-slate-500 hover:text-[#031636]" href={withLocale("/support")}>Тусламж</Link>
+              </div>
+            </footer>
+            </div>
+          </main>
+        </div>
 
         <ConfirmationDialog
           open={releaseTarget !== null}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import { Nav } from "@/components/nav";
+import { AppShell } from "@/components/app-shell";
 import { Providers } from "@/components/providers";
 import { ToastCenter } from "@/components/toast-center";
 import { locales } from '../../i18n';
@@ -33,8 +33,7 @@ export default async function RootLayout({
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
       <Providers>
-        <Nav />
-        <main className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">{children}</main>
+        <AppShell>{children}</AppShell>
         <ToastCenter />
       </Providers>
     </NextIntlClientProvider>

@@ -78,7 +78,7 @@ export function Nav() {
 
   return (
     <header className="z-30 border-b border-[#e7e8f1] bg-[#f5f6fb]/95">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3" aria-label="Main">
+      <nav className="app-frame flex items-center justify-between gap-4 py-3" aria-label="Main">
         <div className="flex items-center gap-6">
           <Logo 
             variant="horizontal" 
