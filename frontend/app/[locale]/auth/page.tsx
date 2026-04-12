@@ -188,7 +188,8 @@ function AuthCard() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const googleButtonRef = useRef<HTMLDivElement | null>(null);
+  const googleInitializedRef = useRef(false);
+  const activeTabRef = useRef<AuthTab>(initialTab);
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   const queryClient = useQueryClient();
@@ -241,6 +242,10 @@ function AuthCard() {
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
 
   useEffect(() => {
     if (!googleClientId) return;
@@ -355,11 +360,7 @@ function AuthCard() {
   };
 
   useEffect(() => {
-    if (!googleClientId || !googleScriptReady || !googleButtonRef.current || !window.google) return;
-
-    const buttonContainer = googleButtonRef.current;
-    buttonContainer.innerHTML = "";
-
+    if (!googleClientId || !googleScriptReady || !window.google || googleInitializedRef.current) return;
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: ({ credential }) => {
@@ -371,19 +372,22 @@ function AuthCard() {
         }
         googleMutation.mutate({
           credential,
-          role: activeTab === "register" ? registerForm.getValues("role") : undefined,
+          role: activeTabRef.current === "register" ? registerForm.getValues("role") : undefined,
         });
       },
     });
-
-    window.google.accounts.id.renderButton(buttonContainer, {
-      theme: "outline",
-      size: "medium",
-      shape: "rectangular",
-      text: activeTab === "register" ? "signup_with" : "signin_with",
-      width: 156,
-    });
+    googleInitializedRef.current = true;
   }, [activeTab, googleClientId, googleMutation, googleScriptReady, registerForm, toast]);
+
+  const triggerGoogleAuth = useCallback(() => {
+    if (!googleScriptReady || !window.google) {
+      const msg = "Google нэвтрэлт одоогоор бэлэн биш байна. Дахин оролдоно уу.";
+      setAuthError(msg);
+      toast("error", msg);
+      return;
+    }
+    window.google.accounts.id.prompt();
+  }, [googleScriptReady, toast]);
 
   const isRegister = activeTab === "register";
 
@@ -623,9 +627,16 @@ function AuthCard() {
 
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-surface-200 bg-white px-2 py-2">
-                  <div className="flex min-h-[40px] items-center justify-center overflow-hidden" ref={googleButtonRef} />
-                </div>
+                <button
+                  type="button"
+                  onClick={triggerGoogleAuth}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-surface-200 bg-white py-3 text-sm font-semibold text-surface-700"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                    <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.8-5.4 3.8a6 6 0 1 1 0-12c2.2 0 3.7.9 4.6 1.7l3.1-3A10.7 10.7 0 1 0 22.7 12c0-.7-.1-1.2-.2-1.8H12Z"/>
+                  </svg>
+                  Google
+                </button>
                 <button
                   type="button"
                   className="rounded-xl border border-surface-200 bg-white py-3 text-sm font-semibold text-surface-700"
