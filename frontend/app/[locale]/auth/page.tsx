@@ -96,15 +96,16 @@ function AuthVisual({ activeTab }: { activeTab: AuthTab }) {
   const isRegister = activeTab === "register";
 
   return (
-    <aside className="relative hidden min-h-[760px] overflow-hidden rounded-l-2xl bg-[#041a44] px-8 py-10 text-white lg:flex lg:w-[46%] lg:flex-col lg:justify-between">
-      <img
-        alt=""
-        src={
-          isRegister
-            ? "https://lh3.googleusercontent.com/aida-public/AB6AXuCe0W8Kp4Oq9Qsmj1BpdfSSbprFkT8ILW8qPyCgkqcz_qNIOornqpTvFoB-crKiPrn24aKRSZlGdIJUeekpJYniiOOc1AEmNMUjtS0rmydYlgvruqm2oZZjwXe0Q9bS0CNiNTtBW9SbRFCvoBTdEQICkNlVr-cyW76wZVBUAqJycO0IgydqfBzQqFgxnY-HBbgYkKe7gsf8-drahgFztJ-m2N1ncxWnAXH28yM0cbEPCUf8jEiAYxL0w4moEj2NMz-zjoKxi5ZZF_Y"
-            : "https://lh3.googleusercontent.com/aida-public/AB6AXuBsBZ6rm3MFZOSQGIoPrVAKmKNeK0QVRbLFDSxLdYleeg4WHVk2yoVCrgISFCt-UUncpZIZ85qTUFVwSgblSo3FSSKvza4IrIjdAy1IfN6HBh-EU2NYZWDEIl2JMk_pnEQs0ashs9g-3pxMrCsZ4dWI9SFIcmhfmz9ym_jFLk7Vbkv4ArfYO-nKEmltJtRvtadTGQfTea2jvbAMK27A5YR1zjD3Ja9U20X0k0IyCHDpxc6orKWSeXD4oBjZBeN-w5BIo6__HicJU7A"
-        }
-        className="absolute inset-0 h-full w-full object-cover opacity-45"
+    <aside className="relative hidden min-h-[760px] overflow-hidden bg-[#041a44] px-8 py-10 text-white lg:flex lg:w-[46%] lg:flex-col lg:justify-between">
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-45"
+        style={{
+          backgroundImage: `url(${
+            isRegister
+              ? "https://lh3.googleusercontent.com/aida-public/AB6AXuCe0W8Kp4Oq9Qsmj1BpdfSSbprFkT8ILW8qPyCgkqcz_qNIOornqpTvFoB-crKiPrn24aKRSZlGdIJUeekpJYniiOOc1AEmNMUjtS0rmydYlgvruqm2oZZjwXe0Q9bS0CNiNTtBW9SbRFCvoBTdEQICkNlVr-cyW76wZVBUAqJycO0IgydqfBzQqFgxnY-HBbgYkKe7gsf8-drahgFztJ-m2N1ncxWnAXH28yM0cbEPCUf8jEiAYxL0w4moEj2NMz-zjoKxi5ZZF_Y"
+              : "https://lh3.googleusercontent.com/aida-public/AB6AXuBsBZ6rm3MFZOSQGIoPrVAKmKNeK0QVRbLFDSxLdYleeg4WHVk2yoVCrgISFCt-UUncpZIZ85qTUFVwSgblSo3FSSKvza4IrIjdAy1IfN6HBh-EU2NYZWDEIl2JMk_pnEQs0ashs9g-3pxMrCsZ4dWI9SFIcmhfmz9ym_jFLk7Vbkv4ArfYO-nKEmltJtRvtadTGQfTea2jvbAMK27A5YR1zjD3Ja9U20X0k0IyCHDpxc6orKWSeXD4oBjZBeN-w5BIo6__HicJU7A"
+          })`,
+        }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#021334]/80 to-[#02102f]/95" />
 
@@ -192,6 +193,16 @@ function AuthCard() {
 
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
+
+  const setTab = useCallback(
+    (tab: AuthTab) => {
+      setActiveTab(tab);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", tab);
+      router.replace(`${withLocale("/auth")}?${params.toString()}`);
+    },
+    [router, searchParams, withLocale],
+  );
 
   const handleSuccessfulAuth = async (payload?: any) => {
     setAuthError("");
@@ -404,11 +415,11 @@ function AuthCard() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1280px] px-4 py-4 lg:py-8">
-      <section className="overflow-hidden rounded-2xl border border-surface-200/80 bg-white shadow-hero lg:flex">
+    <main className="mx-auto w-full max-w-[1280px] px-0 py-0 lg:px-4 lg:py-2">
+      <section className="min-h-[860px] overflow-hidden border border-surface-200/80 bg-white shadow-hero lg:flex lg:rounded-xl">
         <AuthVisual activeTab={activeTab} />
 
-        <div className="w-full bg-[#f6f7fb] px-6 py-8 sm:px-10 lg:w-[54%] lg:px-14 lg:py-12">
+        <div className="w-full bg-[#f2f4f6] px-6 py-8 sm:px-10 lg:w-[54%] lg:px-14 lg:py-12">
           <div className="mx-auto w-full max-w-[430px]">
             <div className="mb-8 lg:hidden">
               <p className="text-3xl font-black tracking-tight text-[#031636]">ITZuun</p>
@@ -459,37 +470,45 @@ function AuthCard() {
                   <button
                     type="button"
                     onClick={() => registerForm.setValue("role", "client")}
-                    className={`rounded-xl border-2 px-4 py-5 text-center ${
+                    className={`rounded-xl border-2 px-4 py-6 text-center transition-all ${
                       registerForm.watch("role") === "client"
                         ? "border-[#1f8c99] bg-[#eef8fa]"
                         : "border-transparent bg-white"
                     }`}
                   >
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-100 text-lg">💼</div>
+                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-100 text-surface-600">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2h3a2 2 0 0 1 2 2v3H4V8a2 2 0 0 1 2-2h3Zm2 0h2V5h-2v1Zm9 7H4v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6Z" />
+                      </svg>
+                    </div>
                     <p className="font-semibold text-surface-800">Захиалагч</p>
                   </button>
                   <button
                     type="button"
                     onClick={() => registerForm.setValue("role", "freelancer")}
-                    className={`rounded-xl border-2 px-4 py-5 text-center ${
+                    className={`rounded-xl border-2 px-4 py-6 text-center transition-all ${
                       registerForm.watch("role") === "freelancer"
                         ? "border-[#1f8c99] bg-[#eef8fa]"
                         : "border-transparent bg-white"
                     }`}
                   >
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-100 text-lg">🖥️</div>
+                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-100 text-surface-600">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                        <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Zm4.7 4.3a1 1 0 0 0-1.4 1.4l1.3 1.3-1.3 1.3a1 1 0 1 0 1.4 1.4l2-2a1 1 0 0 0 0-1.4l-2-2ZM11 15a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-6Z" />
+                      </svg>
+                    </div>
                     <p className="font-semibold text-surface-800">Фрилансер</p>
                   </button>
                 </div>
 
                 <label className="block text-sm font-semibold text-surface-700">
                   Овог нэр
-                  <input className="mt-2 rounded-xl bg-white" type="text" placeholder="Жишээ: Бат-Эрдэнэ" autoComplete="name" />
+                  <input className="mt-2 rounded-xl border-0 bg-white px-4 py-3.5" type="text" placeholder="Жишээ: Бат-Эрдэнэ" autoComplete="name" />
                 </label>
 
                 <label className="block text-sm font-semibold text-surface-700">
                   {t("email")}
-                  <input className="mt-2 rounded-xl bg-white" type="email" placeholder="email@domain.mn" autoComplete="email" {...registerForm.register("email")} />
+                  <input className="mt-2 rounded-xl border-0 bg-white px-4 py-3.5" type="email" placeholder="email@domain.mn" autoComplete="email" {...registerForm.register("email")} />
                 </label>
                 {registerForm.formState.errors.email ? <p className="-mt-3 text-xs text-red-600">{registerForm.formState.errors.email.message}</p> : null}
 
@@ -497,7 +516,7 @@ function AuthCard() {
                   {t("password")}
                   <div className="relative mt-2">
                     <input
-                      className="rounded-xl bg-white pr-12"
+                      className="rounded-xl border-0 bg-white px-4 py-3.5 pr-12"
                       type={showRegisterPassword ? "text" : "password"}
                       placeholder="••••••••"
                       autoComplete="new-password"
@@ -506,9 +525,9 @@ function AuthCard() {
                     <button
                       type="button"
                       onClick={() => setShowRegisterPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-lg px-2 text-xs text-surface-600"
+                      className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-surface-600"
                     >
-                      {showRegisterPassword ? "Hide" : "Show"}
+                      {showRegisterPassword ? "🙈" : "👁️"}
                     </button>
                   </div>
                 </label>
@@ -539,7 +558,14 @@ function AuthCard() {
               <form className="space-y-5" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
                 <label className="block text-sm font-semibold text-surface-700">
                   {t("email")}
-                  <input className="mt-2 rounded-xl bg-white" type="email" placeholder="example@itzuun.mn" autoComplete="email" {...loginForm.register("email")} />
+                  <div className="relative mt-2">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-surface-500">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                        <path d="M4 6a2 2 0 0 0-2 2v.35l10 5.71L22 8.35V8a2 2 0 0 0-2-2H4Zm18 4.65-9.5 5.43a1 1 0 0 1-1 0L2 10.65V16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5.35Z" />
+                      </svg>
+                    </span>
+                    <input className="rounded-xl border-0 bg-white px-11 py-3.5" type="email" placeholder="example@itzuun.mn" autoComplete="email" {...loginForm.register("email")} />
+                  </div>
                 </label>
                 {loginForm.formState.errors.email ? <p className="-mt-3 text-xs text-red-600">{loginForm.formState.errors.email.message}</p> : null}
 
@@ -549,8 +575,13 @@ function AuthCard() {
                     <Link href={withLocale("/support")} className="text-xs font-semibold text-[#1f8c99]">Нууц үг мартсан?</Link>
                   </div>
                   <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-surface-500">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                        <path d="M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V6Z" />
+                      </svg>
+                    </span>
                     <input
-                      className="rounded-xl bg-white pr-12"
+                      className="rounded-xl border-0 bg-white px-11 py-3.5 pr-12"
                       type={showLoginPassword ? "text" : "password"}
                       placeholder="••••••••"
                       autoComplete="current-password"
@@ -559,9 +590,9 @@ function AuthCard() {
                     <button
                       type="button"
                       onClick={() => setShowLoginPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 h-8 -translate-y-1/2 rounded-lg px-2 text-xs text-surface-600"
+                      className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-surface-600"
                     >
-                      {showLoginPassword ? "Hide" : "Show"}
+                      {showLoginPassword ? "🙈" : "👁️"}
                     </button>
                   </div>
                 </div>
@@ -584,23 +615,34 @@ function AuthCard() {
 
             <div className="my-7 flex items-center gap-3">
               <div className="h-px flex-1 bg-surface-300" />
-              <p className="text-xs font-semibold uppercase tracking-wider text-surface-500">эсвэл</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-surface-500">
+                {isRegister ? "эсвэл" : "Эсвэл дараах хаягаар нэвтрэх"}
+              </p>
               <div className="h-px flex-1 bg-surface-300" />
             </div>
 
             <div className="space-y-3">
-              {googleClientId ? (
-                <div className="flex justify-center rounded-xl bg-white p-2">
-                  <div ref={googleButtonRef} className="min-h-[44px]" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-surface-200 bg-white px-2 py-2">
+                  <div className="flex min-h-[40px] items-center justify-center" ref={googleButtonRef} />
                 </div>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setShowPasswordless((prev) => !prev)}
-                className="w-full rounded-xl border border-surface-300 bg-white py-3 text-sm font-semibold text-surface-700"
-              >
-                {t("useOtp")}
-              </button>
+                <button
+                  type="button"
+                  className="rounded-xl border border-surface-200 bg-white py-3 text-sm font-semibold text-surface-700"
+                  onClick={() => setShowPasswordless((prev) => !prev)}
+                >
+                  {isRegister ? "Facebook" : "LinkedIn"}
+                </button>
+              </div>
+              {googleClientId ? null : (
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordless((prev) => !prev)}
+                  className="w-full rounded-xl border border-surface-300 bg-white py-3 text-sm font-semibold text-surface-700"
+                >
+                  {t("useOtp")}
+                </button>
+              )}
             </div>
 
             {showPasswordless ? (
@@ -643,12 +685,12 @@ function AuthCard() {
               {isRegister ? (
                 <>
                   Аль хэдийн бүртгэлтэй юу?{" "}
-                  <button type="button" className="font-bold text-[#031636]" onClick={() => setActiveTab("signin")}>Нэвтрэх</button>
+                  <button type="button" className="font-bold text-[#031636]" onClick={() => setTab("signin")}>Нэвтрэх</button>
                 </>
               ) : (
                 <>
                   Бүртгэлгүй юу?{" "}
-                  <button type="button" className="font-bold text-[#031636]" onClick={() => setActiveTab("register")}>Бүртгүүлэх</button>
+                  <button type="button" className="font-bold text-[#031636]" onClick={() => setTab("register")}>Бүртгүүлэх</button>
                 </>
               )}
             </div>
@@ -656,13 +698,17 @@ function AuthCard() {
         </div>
       </section>
 
-      <footer className="mt-4 flex flex-col gap-3 rounded-xl bg-surface-200/70 px-6 py-4 text-sm text-surface-600 md:flex-row md:items-center md:justify-between">
+      <footer className="mt-0 flex flex-col gap-4 bg-[#eceef0] px-6 py-5 text-sm text-surface-600 md:flex-row md:items-center md:justify-between lg:rounded-b-xl">
+        <div className="flex items-center gap-2">
+          <span className="font-black text-[#031636]">ITZuun</span>
+          <span className="text-xs">© 2024 ITZuun. Бүх эрх хуулиар хамгаалагдсан.</span>
+        </div>
         <div className="flex flex-wrap gap-6">
           <Link href={withLocale("/about")}>Бидний тухай</Link>
-          <Link href={withLocale("/support")}>Тусламж</Link>
+          <Link href={withLocale("/terms")}>Үйлчилгээний нөхцөл</Link>
           <Link href={withLocale("/privacy")}>Нууцлалын бодлого</Link>
+          <Link href={withLocale("/support")}>Тусламж</Link>
         </div>
-        <p>© 2024 ITZuun. Бүх эрх хуулиар хамгаалагдсан.</p>
       </footer>
     </main>
   );
