@@ -49,12 +49,12 @@ function FilterIcon({ type }: { type: "category" | "project" | "budget" | "exper
 }
 
 function statusTone(status?: string) {
-  if (status === "open") return "bg-[#dff5f0] text-[#157173]";
-  if (status === "in_progress") return "bg-[#eef2ff] text-[#3557a1]";
-  if (status === "awaiting_client_review") return "bg-[#fff5d8] text-[#a16c00]";
-  if (status === "completed") return "bg-[#e9f6eb] text-[#238043]";
-  if (status === "disputed") return "bg-[#ffe5e2] text-[#ba1a1a]";
-  return "bg-[#eef1f4] text-surface-600";
+  if (status === "open") return "bg-secondary-fixed text-secondary";
+  if (status === "in_progress") return "bg-primary-fixed text-primary";
+  if (status === "awaiting_client_review") return "bg-yellow-50 text-yellow-700";
+  if (status === "completed") return "bg-green-50 text-green-700";
+  if (status === "disputed") return "bg-red-50 text-red-700";
+  return "bg-surface-container text-surface-500";
 }
 
 export default function ProjectsPage() {
@@ -177,7 +177,7 @@ export default function ProjectsPage() {
         <button
           type="button"
           onClick={() => setMobileFiltersOpen((v) => !v)}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#071a3f] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_12px_30px_rgba(3,22,54,0.18)]"
+          className="inline-flex items-center gap-2 rounded-2xl primary-gradient px-5 py-3 text-[11px] font-black uppercase tracking-widest text-primary-fixed shadow-ambient font-headline"
         >
           <FilterIcon type="category" />
           {mobileFiltersOpen ? t("hideFilters") : t("showFilters")}
@@ -185,44 +185,38 @@ export default function ProjectsPage() {
       </div>
 
       <aside
-        className={`${mobileFiltersOpen ? "block" : "hidden"} h-fit rounded-[26px] bg-[#f7f9fb] p-5 shadow-[0_20px_50px_rgba(3,22,54,0.05)] xl:sticky xl:top-24 xl:block xl:rounded-[30px] xl:p-6`}
+        className={`${mobileFiltersOpen ? "block" : "hidden"} h-fit rounded-[2.5rem] bg-surface-container-low p-6 shadow-sm xl:sticky xl:top-24 xl:block xl:p-8`}
       >
         <div>
-          <p className="text-[22px] font-bold tracking-[-0.03em] text-[#031636]">{t("filtersTitle")}</p>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">
+          <p className="font-headline text-[28px] font-black tracking-tighter text-primary">{t("filtersTitle")}</p>
+          <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
             {t("filtersSubtitle")}
           </p>
         </div>
 
-        <div className="mt-8 space-y-8">
+        <div className="mt-10 space-y-10">
           <div>
-            <div className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-surface-500">
+            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
               <FilterIcon type="category" />
               {t("filterCategory")}
             </div>
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 text-[14px] text-surface-700">
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
                 <input
                   type="radio"
                   checked={categoryFilter === ""}
-                  onChange={() => {
-                    setCategoryFilter("");
-                    setPage(1);
-                  }}
-                  className="h-4 w-4 border-[#c5c6cf] text-[#157173] focus:ring-[#157173]"
+                  onChange={() => { setCategoryFilter(""); setPage(1); }}
+                  className="h-4 w-4 text-secondary focus:ring-secondary"
                 />
                 {t("allCategories")}
               </label>
               {categoryList.slice(0, 4).map((cat) => (
-                <label key={cat.id} className="flex items-center gap-3 text-[14px] text-surface-700">
+                <label key={cat.id} className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
                   <input
                     type="radio"
                     checked={categoryFilter === cat.slug}
-                    onChange={() => {
-                      setCategoryFilter(cat.slug || "");
-                      setPage(1);
-                    }}
-                    className="h-4 w-4 border-[#c5c6cf] text-[#157173] focus:ring-[#157173]"
+                    onChange={() => { setCategoryFilter(cat.slug || ""); setPage(1); }}
+                    className="h-4 w-4 text-secondary focus:ring-secondary"
                   />
                   {formatCategoryName(cat)}
                 </label>
@@ -231,32 +225,26 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <div className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-surface-500">
+            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
               <FilterIcon type="project" />
               {t("filterProjectType")}
             </div>
-            <div className="space-y-3">
-              <label className="flex items-center gap-3 text-[14px] text-surface-700">
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
                 <input
                   type="radio"
                   checked={statusFilter === "open" || statusFilter === ""}
-                  onChange={() => {
-                    setStatusFilter("open");
-                    setPage(1);
-                  }}
-                  className="h-4 w-4 border-[#c5c6cf] text-[#157173] focus:ring-[#157173]"
+                  onChange={() => { setStatusFilter("open"); setPage(1); }}
+                  className="h-4 w-4 text-secondary focus:ring-secondary"
                 />
                 {t("open")}
               </label>
-              <label className="flex items-center gap-3 text-[14px] text-surface-700">
+              <label className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
                 <input
                   type="radio"
                   checked={statusFilter === "in_progress"}
-                  onChange={() => {
-                    setStatusFilter("in_progress");
-                    setPage(1);
-                  }}
-                  className="h-4 w-4 border-[#c5c6cf] text-[#157173] focus:ring-[#157173]"
+                  onChange={() => { setStatusFilter("in_progress"); setPage(1); }}
+                  className="h-4 w-4 text-secondary focus:ring-secondary"
                 />
                 {t("inProgress")}
               </label>
@@ -264,19 +252,19 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <div className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-surface-500">
+            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
               <FilterIcon type="budget" />
               {t("filterBudget")}
             </div>
-            <div className="rounded-[18px] bg-white px-4 py-4 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.18)]">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-surface-container-lowest p-5 shadow-sm">
+              <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
                   min={0}
                   value={budgetMin}
                   onChange={(e) => setBudgetMin(e.target.value)}
                   placeholder={t("budgetMin")}
-                  className="w-full rounded-xl bg-[#f7f9fb] px-3 py-2 text-[12px] text-surface-700 outline-none shadow-[inset_0_0_0_1px_rgba(197,198,207,0.2)]"
+                  className="w-full rounded-xl bg-surface-container-low px-3 py-2.5 text-[12px] font-bold text-primary outline-none"
                 />
                 <input
                   type="number"
@@ -284,10 +272,10 @@ export default function ProjectsPage() {
                   value={budgetMax}
                   onChange={(e) => setBudgetMax(e.target.value)}
                   placeholder={t("budgetMax")}
-                  className="w-full rounded-xl bg-[#f7f9fb] px-3 py-2 text-[12px] text-surface-700 outline-none shadow-[inset_0_0_0_1px_rgba(197,198,207,0.2)]"
+                  className="w-full rounded-xl bg-surface-container-low px-3 py-2.5 text-[12px] font-bold text-primary outline-none"
                 />
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-surface-400">
+              <div className="mt-4 flex items-center justify-between text-[10px] font-black tracking-widest text-surface-400 font-headline">
                 <span>₮500K</span>
                 <span>₮50M+</span>
               </div>
@@ -295,7 +283,7 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <div className="mb-4 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-surface-500">
+            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
               <FilterIcon type="experience" />
               {t("filterExperience")}
             </div>
@@ -308,14 +296,11 @@ export default function ProjectsPage() {
                 <button
                   key={level.key}
                   type="button"
-                  onClick={() => {
-                    setExperienceFilter(level.key);
-                    setPage(1);
-                  }}
-                  className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${
+                  onClick={() => { setExperienceFilter(level.key); setPage(1); }}
+                  className={`rounded-2xl px-4 py-2 text-[11px] font-black font-headline uppercase tracking-widest transition-all ${
                     level.key === experienceFilter
-                      ? "bg-[#dff5f0] text-[#157173]"
-                      : "bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)]"
+                      ? "bg-secondary-fixed text-secondary"
+                      : "bg-surface-container-lowest text-surface-500 shadow-sm hover:bg-white"
                   }`}
                 >
                   {level.label}
@@ -323,14 +308,11 @@ export default function ProjectsPage() {
               ))}
               <button
                 type="button"
-                onClick={() => {
-                  setExperienceFilter("");
-                  setPage(1);
-                }}
-                className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${
+                onClick={() => { setExperienceFilter(""); setPage(1); }}
+                className={`rounded-2xl px-4 py-2 text-[11px] font-black font-headline uppercase tracking-widest transition-all ${
                   experienceFilter === ""
-                    ? "bg-[#eef1f4] text-surface-700"
-                    : "bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)]"
+                    ? "bg-surface-container text-on-surface"
+                    : "bg-surface-container-lowest text-surface-500 shadow-sm hover:bg-white"
                 }`}
               >
                 {t("allExperience")}
@@ -340,12 +322,8 @@ export default function ProjectsPage() {
 
           <button
             type="button"
-            onClick={() => {
-              setPage(1);
-              setSearch(searchInput);
-              setMobileFiltersOpen(false);
-            }}
-            className="w-full rounded-2xl bg-[#071a3f] px-5 py-4 text-[14px] font-semibold text-white shadow-[0_16px_36px_rgba(3,22,54,0.18)]"
+            onClick={() => { setPage(1); setSearch(searchInput); setMobileFiltersOpen(false); }}
+            className="w-full rounded-2xl primary-gradient px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-primary-fixed shadow-ambient hover:shadow-sm active:scale-95 transition-all font-headline"
           >
             {t("applyFilters")}
           </button>
@@ -353,26 +331,25 @@ export default function ProjectsPage() {
       </aside>
 
       <div className="space-y-4 md:space-y-6">
-        <div className="rounded-[24px] bg-[#f7f9fb] p-3 shadow-[0_20px_50px_rgba(3,22,54,0.05)] md:rounded-[30px] md:p-5">
+        <div className="rounded-[2.5rem] bg-surface-container-low p-4 shadow-sm md:p-6">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <form onSubmit={handleSearch} className="relative flex-1">
-              <SearchIcon />
+              <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-surface-400">
+                <SearchIcon />
+              </div>
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-[16px] bg-white py-3.5 pl-12 pr-4 text-[14px] text-[#031636] shadow-[inset_0_0_0_1px_rgba(197,198,207,0.18)] outline-none placeholder:text-surface-400 md:rounded-[18px] md:py-4"
+                className="w-full rounded-2xl bg-surface-container-lowest py-4 pl-14 pr-4 text-[14px] font-medium text-primary shadow-sm outline-none placeholder:text-surface-300 focus:shadow-ambient"
               />
-              <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-surface-400">
-                <SearchIcon />
-              </div>
             </form>
 
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 href={withLocale("/projects/new")}
-                className="rounded-2xl bg-[#071a3f] px-5 py-3 text-[14px] font-semibold text-white shadow-[0_14px_30px_rgba(3,22,54,0.16)]"
+                className="rounded-2xl primary-gradient px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5 active:scale-95 font-headline"
               >
                 {t("create")}
               </Link>
@@ -382,17 +359,17 @@ export default function ProjectsPage() {
 
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="font-headline text-[34px] font-extrabold tracking-[-0.05em] text-[#031636] md:text-[42px]">
+            <h1 className="font-headline text-[38px] font-black tracking-tighter text-primary md:text-[48px]">
               {t("title")}
             </h1>
-            <p className="mt-2 text-[15px] text-surface-500">
+            <p className="mt-2 text-[15px] font-medium text-surface-400">
               {t("resultsCount", { count: totalCount })}
             </p>
           </div>
 
-          <div className="flex items-center gap-3 rounded-[18px] bg-[#f7f9fb] px-4 py-3 text-[13px] shadow-[0_18px_40px_rgba(3,22,54,0.05)]">
-            <span className="font-semibold uppercase tracking-[0.12em] text-surface-400">{t("sortBy")}</span>
-            <div className="font-semibold text-[#031636]">{t("sortNewest")}</div>
+          <div className="flex items-center gap-3 rounded-2xl bg-surface-container-low px-5 py-3 text-[11px] shadow-sm">
+            <span className="font-black uppercase tracking-widest text-surface-400 font-headline">{t("sortBy")}</span>
+            <div className="font-black text-primary font-headline">{t("sortNewest")}</div>
           </div>
         </div>
 
@@ -417,64 +394,64 @@ export default function ProjectsPage() {
                 return (
                   <li
                     key={project.id}
-                    className="rounded-[22px] bg-white p-4 shadow-[0_20px_50px_rgba(3,22,54,0.06)] md:rounded-[28px] md:p-7"
+                    className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-ambient md:p-8"
                   >
-                    <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px] md:items-start md:gap-6">
+                    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_200px] md:items-start md:gap-8">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-[#dff5f0] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#157173]">
+                          <span className="rounded-xl bg-secondary-fixed px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-secondary font-headline">
                             {categoryName}
                           </span>
-                          <span className="text-[12px] text-surface-400">{t("postedRecently")}</span>
+                          <span className="text-[12px] font-medium text-surface-400">{t("postedRecently")}</span>
                         </div>
 
-                        <h2 className="mt-3 font-headline text-[24px] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#031636] md:text-[28px]">
+                        <h2 className="mt-4 font-headline text-[26px] font-black leading-tight tracking-tighter text-primary md:text-[30px]">
                           {project.title}
                         </h2>
 
-                        <p className="mt-3 max-w-[70ch] line-clamp-2 text-[15px] leading-7 text-surface-600">
+                        <p className="mt-4 max-w-[70ch] line-clamp-2 text-[15px] font-medium leading-relaxed text-surface-500">
                           {project.description}
                         </p>
 
-                        <div className="mt-4 flex flex-wrap gap-2 md:mt-5">
+                        <div className="mt-5 flex flex-wrap gap-2 md:mt-6">
                           {realSkills.map((tag) => (
                             <span
                               key={tag}
-                              className="rounded-xl bg-[#f7f9fb] px-3 py-1.5 text-[12px] font-medium text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.15)]"
+                              className="rounded-xl bg-surface-container-low px-3 py-1.5 text-[12px] font-bold text-surface-400 font-headline"
                             >
                               {tag}
                             </span>
                           ))}
                           {realSkills.length === 0 && (
-                            <span className="rounded-xl bg-[#f7f9fb] px-3 py-1.5 text-[12px] font-medium text-surface-400 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.15)]">
+                            <span className="rounded-xl bg-surface-container-low px-3 py-1.5 text-[12px] font-bold text-surface-400 font-headline">
                               {t("noSkillTags")}
                             </span>
                           )}
                         </div>
 
                         <div className="mt-5 flex flex-wrap items-center gap-3">
-                          <div className="rounded-full bg-[#f7f9fb] px-3 py-2 text-[12px] font-medium text-surface-600 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.15)]">
+                          <div className="rounded-2xl bg-surface-container-low px-4 py-2 text-[12px] font-bold text-surface-500 font-headline">
                             {t("timeline")}: {project.timeline_days} {t("days")}
                           </div>
-                          <div className={`rounded-full px-3 py-2 text-[12px] font-semibold capitalize ${statusTone(project.status)}`}>
+                          <div className={`rounded-2xl px-4 py-2 text-[12px] font-black capitalize font-headline ${statusTone(project.status)}`}>
                             {(project.status || "").replace(/_/g, " ")}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex h-full flex-col justify-between gap-4 md:items-end md:gap-5">
+                      <div className="flex h-full flex-col justify-between gap-5 md:items-end">
                         <div className="text-left md:text-right">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-surface-400">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
                             {t("budget")}
                           </p>
-                          <p className="mt-1.5 font-headline text-[24px] font-extrabold leading-[1.1] tracking-[-0.04em] text-[#157173] md:mt-2 md:text-[28px]">
+                          <p className="mt-2 font-headline text-[26px] font-black leading-none tracking-tighter text-secondary md:text-[30px]">
                             {formatPrice(project)}
                           </p>
                         </div>
 
                         <Link
                           href={withLocale(`/projects/${project.id}`)}
-                          className="inline-flex items-center justify-center rounded-2xl bg-[#157173] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_16px_36px_rgba(21,113,115,0.18)] transition hover:opacity-95 md:px-6 md:py-3 md:text-[14px]"
+                          className="inline-flex items-center justify-center rounded-2xl bg-secondary px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-white shadow-sm transition-all hover:shadow-ambient hover:-translate-y-0.5 active:scale-95 md:px-7 font-headline"
                         >
                           {t("applyNow")}
                         </Link>
@@ -485,12 +462,12 @@ export default function ProjectsPage() {
               })}
             </ul>
 
-            <div className="flex items-center justify-center gap-2 pt-4">
+            <div className="flex items-center justify-center gap-2 pt-6">
               <button
                 type="button"
                 disabled={!hasPrev}
                 onClick={() => setPage((p) => p - 1)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)] disabled:opacity-40"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-lowest text-surface-500 shadow-sm disabled:opacity-30 hover:shadow-ambient transition-all"
               >
                 ‹
               </button>
@@ -500,10 +477,10 @@ export default function ProjectsPage() {
                     key={`${value}-${index}`}
                     type="button"
                     onClick={() => setPage(value)}
-                    className={`flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-[13px] font-semibold ${
+                    className={`flex h-11 min-w-11 items-center justify-center rounded-2xl px-3 text-[13px] font-black font-headline transition-all ${
                       page === value
-                        ? "bg-[#071a3f] text-white"
-                        : "bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)]"
+                        ? "primary-gradient text-primary-fixed shadow-ambient"
+                        : "bg-surface-container-lowest text-surface-500 shadow-sm hover:bg-white"
                     }`}
                   >
                     {value}
@@ -518,7 +495,7 @@ export default function ProjectsPage() {
                 type="button"
                 disabled={!hasNext}
                 onClick={() => setPage((p) => p + 1)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)] disabled:opacity-40"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-lowest text-surface-500 shadow-sm disabled:opacity-30 hover:shadow-ambient transition-all"
               >
                 ›
               </button>
