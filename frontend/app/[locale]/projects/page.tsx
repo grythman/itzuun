@@ -3,506 +3,394 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { useCategories, useProjects } from "@/lib/hooks";
 
-function SearchIcon() {
+// ── helpers ──────────────────────────────────────────────
+function fmnt(v: number) {
+  return `₮${new Intl.NumberFormat("mn-MN").format(v)}`;
+}
+function ago(dateStr?: string) {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const h = Math.floor(diff / 3_600_000);
+  if (h < 1) return "Саяхан";
+  if (h < 24) return `${h} цагийн өмнө`;
+  const d = Math.floor(h / 24);
+  return `${d} өдрийн өмнө`;
+}
+function skills(v: unknown): string[] {
+  if (Array.isArray(v)) return v.map(String).filter(Boolean);
+  if (typeof v === "string") return v.split(",").map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+
+// ── icons ─────────────────────────────────────────────────
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+    <circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" />
+  </svg>
+);
+const ChevronIcon = ({ down }: { down?: boolean }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`h-3.5 w-3.5 transition-transform ${down ? "rotate-180" : ""}`}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+// ── FilterSection ─────────────────────────────────────────
+function FilterSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  const [open, setOpen] = useState(true);
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-      <circle cx="11" cy="11" r="6" />
-      <path d="m20 20-4-4" />
-    </svg>
+    <div className="space-y-3">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-secondary">{icon}</span>
+          <span className="font-headline text-[9px] font-black uppercase tracking-[0.25em] text-surface-400">{title}</span>
+        </div>
+        <ChevronIcon down={open} />
+      </button>
+      {open && <div className="space-y-2">{children}</div>}
+    </div>
   );
 }
 
-function FilterIcon({ type }: { type: "category" | "project" | "budget" | "experience" }) {
-  if (type === "category") {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-        <path d="M4 6h7v5H4zM13 6h7v5h-7zM4 13h7v5H4zM13 13h7v5h-7z" />
-      </svg>
-    );
-  }
-  if (type === "project") {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-        <path d="M4 7h16M7 4v6m10-6v6M5 10h14v10H5z" />
-      </svg>
-    );
-  }
-  if (type === "budget") {
-    return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-        <path d="M4 7h16v10H4z" />
-        <path d="M8 12h8" />
-      </svg>
-    );
-  }
+// ── ProjectCard ───────────────────────────────────────────
+function ProjectCard({ project, locale }: { project: any; locale: string }) {
+  const budget = Number(project.budget || 0);
+  const isHourly = project.project_type === "hourly";
+  const tags = skills(project.required_skills).slice(0, 4);
+  const clientName = project.client_name || project.owner_name || `Client #${project.owner}`;
+  const clientRating = project.owner_rating ?? project.client_rating ?? 4.8;
+  const clientVerified = project.owner_verified ?? project.client_verified ?? false;
+  const postedAt = project.created_at || project.posted_at;
+
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-      <path d="M12 3v18M6 8h12M8 16h8" />
-    </svg>
+    <Link href={`/${locale}/projects/${project.id}`} className="group block rounded-[2rem] bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient hover:-translate-y-0.5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        {/* Left */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={`inline-flex rounded-xl px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] font-headline ${isHourly ? "bg-[#e8f4f4] text-secondary" : "bg-secondary-fixed text-secondary"}`}>
+              {isHourly ? "Hourly" : "Fixed Price"}
+            </span>
+            {postedAt && <span className="text-[12px] font-medium text-surface-400">{ago(postedAt)}</span>}
+          </div>
+          <h2 className="mt-4 font-headline text-[22px] font-black leading-tight tracking-tight text-primary group-hover:text-secondary transition-colors">
+            {project.title}
+          </h2>
+          <p className="mt-3 line-clamp-2 text-[14px] font-medium leading-relaxed text-surface-400">
+            {project.description}
+          </p>
+          {tags.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {tags.map((t) => (
+                <span key={t} className="rounded-xl bg-surface-container-low px-3 py-1.5 text-[11px] font-bold text-surface-500 font-headline">
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right — budget */}
+        <div className="shrink-0 text-right">
+          <p className="font-headline text-[9px] font-black uppercase tracking-[0.2em] text-surface-400">
+            {isHourly ? "Үнэлгээ" : "Төсөв"}
+          </p>
+          {isHourly ? (
+            <p className="mt-1 font-headline text-[22px] font-black text-secondary">{fmnt(budget)}<span className="text-[13px] font-bold opacity-60"> / цаг</span></p>
+          ) : (
+            <p className="mt-1 font-headline text-[20px] font-black leading-tight text-secondary">
+              {fmnt(Math.round(budget * 0.8))} —<br />{fmnt(budget)}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary font-headline text-[13px] font-black text-primary-fixed">
+            {clientVerified
+              ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4 text-secondary bg-secondary-fixed rounded-lg"><path d="M20 6 9 17l-5-5" /></svg>
+              : <span>{String(clientName)[0]?.toUpperCase()}</span>}
+          </div>
+          <div>
+            <p className="font-headline text-[12px] font-black text-primary">{clientName}</p>
+            <div className="flex items-center gap-1">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3 text-amber-400"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+              <span className="text-[11px] font-bold text-surface-400">({clientRating.toFixed(1)})</span>
+            </div>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-2xl primary-gradient px-6 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-primary-fixed font-headline shadow-sm transition-all group-hover:shadow-ambient">
+          Apply Now →
+        </span>
+      </div>
+    </Link>
   );
 }
 
-function statusTone(status?: string) {
-  if (status === "open") return "bg-secondary-fixed text-secondary";
-  if (status === "in_progress") return "bg-primary-fixed text-primary";
-  if (status === "awaiting_client_review") return "bg-yellow-50 text-yellow-700";
-  if (status === "completed") return "bg-green-50 text-green-700";
-  if (status === "disputed") return "bg-red-50 text-red-700";
-  return "bg-surface-container text-surface-500";
-}
-
+// ── PAGE ──────────────────────────────────────────────────
 export default function ProjectsPage() {
-  const t = useTranslations("Projects");
-  const pathname = usePathname();
+  const t = useTranslations();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
-  const withLocale = (href: string) => `/${locale}${href}`;
 
-  const [page, setPage] = useState(() => Math.max(1, Number(searchParams.get("page") || "1") || 1));
-  const [search, setSearch] = useState(() => searchParams.get("search") || "");
-  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") || "");
-  const [statusFilter, setStatusFilter] = useState(() => searchParams.get("status") || "");
-  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get("category") || "");
-  const [skillsFilter, setSkillsFilter] = useState(() => searchParams.get("skills") || "");
-  const [budgetMin, setBudgetMin] = useState(() => searchParams.get("budget_min") || "");
-  const [budgetMax, setBudgetMax] = useState(() => searchParams.get("budget_max") || "");
-  const [experienceFilter, setExperienceFilter] = useState(
-    () => searchParams.get("experience") || "",
-  );
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  // Params
+  const page = Number(searchParams.get("page") || "1");
+  const search = searchParams.get("search") || "";
+  const categorySlug = searchParams.get("category") || "";
+  const projectType = searchParams.get("project_type") || "";
+  const budgetMax = searchParams.get("budget_max") || "";
+  const expLevel = searchParams.get("experience_level") || "";
+  const sortBy = searchParams.get("ordering") || "-created_at";
+
+  // Local state for immediate UI
+  const [searchInput, setSearchInput] = useState(search);
+  const [budgetSlider, setBudgetSlider] = useState(Number(budgetMax) || 750_000);
 
   const categories = useCategories();
-  const categoryList = Array.isArray(categories.data) ? categories.data : [];
-
-  const filters = {
-    ...(statusFilter && { status: statusFilter }),
-    ...(categoryFilter && { category: categoryFilter }),
-    ...(search && { search }),
-    ...(skillsFilter && { skills: skillsFilter }),
-    ...(budgetMin && { budget_min: budgetMin }),
-    ...(budgetMax && { budget_max: budgetMax }),
-    ...(experienceFilter && { experience: experienceFilter }),
-  };
-
-  const projects = useProjects(page, Object.keys(filters).length ? filters : undefined);
-  const items = projects.data?.results || [];
-  const totalCount = projects.data?.count || 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / 10));
-  const hasNext = !!projects.data?.next;
-  const hasPrev = page > 1;
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (page > 1) params.set("page", String(page));
-    if (search) params.set("search", search);
-    if (statusFilter) params.set("status", statusFilter);
-    if (categoryFilter) params.set("category", categoryFilter);
-    if (skillsFilter) params.set("skills", skillsFilter);
-    if (budgetMin) params.set("budget_min", budgetMin);
-    if (budgetMax) params.set("budget_max", budgetMax);
-    if (experienceFilter) params.set("experience", experienceFilter);
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [
+  const { data, isLoading, isError } = useProjects({
     page,
-    search,
-    statusFilter,
-    categoryFilter,
-    skillsFilter,
-    budgetMin,
-    budgetMax,
-    experienceFilter,
-    pathname,
-    router,
-  ]);
+    search: search || undefined,
+    category: categorySlug || undefined,
+    project_type: projectType || undefined,
+    budget_max: budgetMax ? Number(budgetMax) : undefined,
+    experience_level: expLevel || undefined,
+    ordering: sortBy,
+  });
 
-  const visiblePages = useMemo(() => {
-    const values: Array<number | string> = [];
-    const start = Math.max(1, page - 1);
-    const end = Math.min(totalPages, page + 2);
-    if (start > 1) values.push(1);
-    if (start > 2) values.push("...");
-    for (let p = start; p <= end; p += 1) values.push(p);
-    if (end < totalPages - 1) values.push("...");
-    if (end < totalPages) values.push(totalPages);
-    return values;
-  }, [page, totalPages]);
+  const projects = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+  const total = data?.count ?? projects.length;
+  const totalPages = Math.max(1, Math.ceil(total / 10));
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    setSearch(searchInput);
-    setPage(1);
+  function push(updates: Record<string, string | number | undefined>) {
+    const p = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v === undefined || v === "") p.delete(k);
+      else p.set(k, String(v));
+    });
+    p.delete("page");
+    router.push(`${pathname}?${p.toString()}`);
   }
 
-  function formatCategoryName(cat: any) {
-    return locale === "en"
-      ? cat.name_en || cat.name_mn || cat.name
-      : cat.name_mn || cat.name_en || cat.name;
-  }
+  useEffect(() => { setSearchInput(search); }, [search]);
 
-  function formatPrice(project: any) {
-    const budget = Number(project.budget || 0);
-    const floor = Math.round(budget * 0.8);
-    return `₮${floor.toLocaleString()} - ₮${budget.toLocaleString()}`;
-  }
+  const expLevels = ["entry", "intermediate", "expert"];
 
-  function normalizeSkills(value: unknown): string[] {
-    if (Array.isArray(value)) {
-      return value
-        .map((item) => String(item || "").trim())
-        .filter(Boolean)
-        .slice(0, 4);
-    }
-    if (typeof value === "string") {
-      return value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 4);
-    }
-    return [];
-  }
-
+  // ── RENDER ────────────────────────────────────────────
   return (
-    <section className="space-y-4 xl:grid xl:grid-cols-[286px_minmax(0,1fr)] xl:gap-6 xl:space-y-0">
-      <div className="xl:hidden">
+    <div className="flex min-h-screen gap-8 pb-24 lg:gap-12">
+
+      {/* ── SIDEBAR ── */}
+      <aside className="hidden w-56 shrink-0 space-y-7 lg:block">
+        <div>
+          <p className="font-headline text-[11px] font-black uppercase tracking-[0.25em] text-primary">Filters</p>
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-surface-400">Refine your search</p>
+        </div>
+
+        {/* Category */}
+        <FilterSection title="Category" icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+            <rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="8" rx="1" />
+            <rect x="3" y="13" width="8" height="8" rx="1" /><rect x="13" y="13" width="8" height="8" rx="1" />
+          </svg>
+        }>
+          {(Array.isArray(categories.data) ? categories.data : []).map((cat: any) => {
+            const name = cat.name_mn || cat.name_en || cat.name || cat.slug;
+            const slug = cat.slug || String(cat.id);
+            const active = categorySlug === slug;
+            return (
+              <label key={slug} className="flex cursor-pointer items-center gap-2.5">
+                <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${active ? "bg-secondary" : "bg-surface-container-low border border-surface-200"}`}
+                  onClick={() => push({ category: active ? "" : slug })}>
+                  {active && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className="h-2.5 w-2.5"><path d="M20 6 9 17l-5-5" /></svg>}
+                </span>
+                <span className={`text-[13px] font-medium leading-none ${active ? "font-bold text-primary" : "text-surface-500"}`}>{name}</span>
+              </label>
+            );
+          })}
+        </FilterSection>
+
+        {/* Project Type */}
+        <FilterSection title="Project Type" icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+            <path d="M4 7h16M7 4v6m10-6v6M5 10h14v10H5z" />
+          </svg>
+        }>
+          {[{ val: "fixed", label: "Fixed Price" }, { val: "hourly", label: "Hourly Rate" }].map(({ val, label }) => (
+            <label key={val} className="flex cursor-pointer items-center gap-2.5">
+              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${projectType === val ? "border-secondary bg-secondary" : "border-surface-300 bg-transparent"}`}
+                onClick={() => push({ project_type: projectType === val ? "" : val })}>
+                {projectType === val && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className={`text-[13px] font-medium ${projectType === val ? "font-bold text-primary" : "text-surface-500"}`}>{label}</span>
+            </label>
+          ))}
+        </FilterSection>
+
+        {/* Budget */}
+        <FilterSection title="Budget Range" icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+        }>
+          <input
+            type="range" min={100_000} max={10_000_000} step={100_000}
+            value={budgetSlider}
+            onChange={(e) => setBudgetSlider(Number(e.target.value))}
+            onMouseUp={() => push({ budget_max: budgetSlider })}
+            onTouchEnd={() => push({ budget_max: budgetSlider })}
+            className="w-full accent-secondary"
+          />
+          <div className="flex justify-between text-[10px] font-bold text-surface-400 font-headline">
+            <span>₮500k</span>
+            <span className="text-secondary">{fmnt(budgetSlider)}</span>
+            <span>₮750m+</span>
+          </div>
+        </FilterSection>
+
+        {/* Experience */}
+        <FilterSection title="Experience Level" icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+            <path d="M12 3v18M6 8h12M8 16h8" />
+          </svg>
+        }>
+          <div className="flex flex-wrap gap-1.5">
+            {expLevels.map((lv) => {
+              const active = expLevel === lv;
+              const label = lv === "entry" ? "Entry" : lv === "intermediate" ? "Intermediate" : "Expert";
+              return (
+                <button key={lv} type="button"
+                  onClick={() => push({ experience_level: active ? "" : lv })}
+                  className={`rounded-xl px-3 py-1.5 text-[11px] font-black font-headline transition-all ${active ? "primary-gradient text-primary-fixed shadow-ambient" : "bg-surface-container-low text-surface-500 hover:bg-surface-container"}`}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </FilterSection>
+
         <button
           type="button"
-          onClick={() => setMobileFiltersOpen((v) => !v)}
-          className="inline-flex items-center gap-2 rounded-2xl primary-gradient px-5 py-3 text-[11px] font-black uppercase tracking-widest text-primary-fixed shadow-ambient font-headline"
+          onClick={() => router.push(pathname)}
+          className="w-full rounded-2xl primary-gradient py-4 text-[11px] font-black uppercase tracking-[0.2em] text-primary-fixed shadow-ambient font-headline transition-all hover:shadow-lg"
         >
-          <FilterIcon type="category" />
-          {mobileFiltersOpen ? t("hideFilters") : t("showFilters")}
+          Apply Filters
         </button>
-      </div>
-
-      <aside
-        className={`${mobileFiltersOpen ? "block" : "hidden"} h-fit rounded-[2.5rem] bg-surface-container-low p-6 shadow-sm xl:sticky xl:top-24 xl:block xl:p-8`}
-      >
-        <div>
-          <p className="font-headline text-[28px] font-black tracking-tighter text-primary">{t("filtersTitle")}</p>
-          <p className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
-            {t("filtersSubtitle")}
-          </p>
-        </div>
-
-        <div className="mt-10 space-y-10">
-          <div>
-            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
-              <FilterIcon type="category" />
-              {t("filterCategory")}
-            </div>
-            <div className="space-y-4">
-              <label className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
-                <input
-                  type="radio"
-                  checked={categoryFilter === ""}
-                  onChange={() => { setCategoryFilter(""); setPage(1); }}
-                  className="h-4 w-4 text-secondary focus:ring-secondary"
-                />
-                {t("allCategories")}
-              </label>
-              {categoryList.slice(0, 4).map((cat) => (
-                <label key={cat.id} className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
-                  <input
-                    type="radio"
-                    checked={categoryFilter === cat.slug}
-                    onChange={() => { setCategoryFilter(cat.slug || ""); setPage(1); }}
-                    className="h-4 w-4 text-secondary focus:ring-secondary"
-                  />
-                  {formatCategoryName(cat)}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
-              <FilterIcon type="project" />
-              {t("filterProjectType")}
-            </div>
-            <div className="space-y-4">
-              <label className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
-                <input
-                  type="radio"
-                  checked={statusFilter === "open" || statusFilter === ""}
-                  onChange={() => { setStatusFilter("open"); setPage(1); }}
-                  className="h-4 w-4 text-secondary focus:ring-secondary"
-                />
-                {t("open")}
-              </label>
-              <label className="flex items-center gap-3 text-[14px] font-medium text-surface-600">
-                <input
-                  type="radio"
-                  checked={statusFilter === "in_progress"}
-                  onChange={() => { setStatusFilter("in_progress"); setPage(1); }}
-                  className="h-4 w-4 text-secondary focus:ring-secondary"
-                />
-                {t("inProgress")}
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
-              <FilterIcon type="budget" />
-              {t("filterBudget")}
-            </div>
-            <div className="rounded-2xl bg-surface-container-lowest p-5 shadow-sm">
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  min={0}
-                  value={budgetMin}
-                  onChange={(e) => setBudgetMin(e.target.value)}
-                  placeholder={t("budgetMin")}
-                  className="w-full rounded-xl bg-surface-container-low px-3 py-2.5 text-[12px] font-bold text-primary outline-none"
-                />
-                <input
-                  type="number"
-                  min={0}
-                  value={budgetMax}
-                  onChange={(e) => setBudgetMax(e.target.value)}
-                  placeholder={t("budgetMax")}
-                  className="w-full rounded-xl bg-surface-container-low px-3 py-2.5 text-[12px] font-bold text-primary outline-none"
-                />
-              </div>
-              <div className="mt-4 flex items-center justify-between text-[10px] font-black tracking-widest text-surface-400 font-headline">
-                <span>₮500K</span>
-                <span>₮50M+</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
-              <FilterIcon type="experience" />
-              {t("filterExperience")}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { key: "entry", label: t("experienceEntry") },
-                { key: "intermediate", label: t("experienceIntermediate") },
-                { key: "expert", label: t("experienceExpert") },
-              ].map((level) => (
-                <button
-                  key={level.key}
-                  type="button"
-                  onClick={() => { setExperienceFilter(level.key); setPage(1); }}
-                  className={`rounded-2xl px-4 py-2 text-[11px] font-black font-headline uppercase tracking-widest transition-all ${
-                    level.key === experienceFilter
-                      ? "bg-secondary-fixed text-secondary"
-                      : "bg-surface-container-lowest text-surface-500 shadow-sm hover:bg-white"
-                  }`}
-                >
-                  {level.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => { setExperienceFilter(""); setPage(1); }}
-                className={`rounded-2xl px-4 py-2 text-[11px] font-black font-headline uppercase tracking-widest transition-all ${
-                  experienceFilter === ""
-                    ? "bg-surface-container text-on-surface"
-                    : "bg-surface-container-lowest text-surface-500 shadow-sm hover:bg-white"
-                }`}
-              >
-                {t("allExperience")}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => { setPage(1); setSearch(searchInput); setMobileFiltersOpen(false); }}
-            className="w-full rounded-2xl primary-gradient px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-primary-fixed shadow-ambient hover:shadow-sm active:scale-95 transition-all font-headline"
-          >
-            {t("applyFilters")}
-          </button>
-        </div>
       </aside>
 
-      <div className="space-y-4 md:space-y-6">
-        <div className="rounded-[2.5rem] bg-surface-container-low p-4 shadow-sm md:p-6">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <form onSubmit={handleSearch} className="relative flex-1">
-              <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-surface-400">
-                <SearchIcon />
+      {/* ── MAIN ── */}
+      <main className="flex-1 min-w-0 space-y-8">
+
+        {/* Header */}
+        <div>
+          <h1 className="font-headline text-[36px] font-black tracking-tighter text-primary">Ажил хайх</h1>
+          {!isLoading && <p className="mt-2 text-[14px] font-medium text-surface-400">Нийт <span className="font-black text-primary">{total.toLocaleString()}</span> төсөл олдлоо</p>}
+        </div>
+
+        {/* Search + Sort */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-surface-400">
+              <SearchIcon />
+            </div>
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && push({ search: searchInput })}
+              placeholder="Төсөл хайх..."
+              className="w-full rounded-2xl bg-surface-container-lowest py-4 pl-12 pr-5 text-[14px] font-medium text-primary outline-none shadow-sm placeholder:text-surface-300 focus:shadow-ambient"
+            />
+          </div>
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => push({ ordering: e.target.value })}
+              className="appearance-none rounded-2xl bg-surface-container-lowest py-4 pl-5 pr-10 text-[13px] font-bold text-primary outline-none shadow-sm focus:shadow-ambient"
+            >
+              <option value="-created_at">Newest</option>
+              <option value="created_at">Oldest</option>
+              <option value="budget">Budget ↑</option>
+              <option value="-budget">Budget ↓</option>
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+              <ChevronIcon />
+            </div>
+          </div>
+        </div>
+
+        {/* Cards */}
+        {isLoading && <LoadingState label="Төслүүд ачааллаж байна..." />}
+        {isError && <ErrorState label="Алдаа гарлаа." />}
+        {!isLoading && !isError && (
+          projects.length === 0
+            ? <EmptyState label="Тохирох төсөл олдсонгүй." />
+            : (
+              <div className="space-y-5">
+                {projects.map((p: any) => <ProjectCard key={p.id} project={p} locale={locale} />)}
               </div>
-              <input
-                type="text"
-                placeholder={t("searchPlaceholder")}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-2xl bg-surface-container-lowest py-4 pl-14 pr-4 text-[14px] font-medium text-primary shadow-sm outline-none placeholder:text-surface-300 focus:shadow-ambient"
-              />
-            </form>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                href={withLocale("/projects/new")}
-                className="rounded-2xl primary-gradient px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5 active:scale-95 font-headline"
-              >
-                {t("create")}
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="font-headline text-[38px] font-black tracking-tighter text-primary md:text-[48px]">
-              {t("title")}
-            </h1>
-            <p className="mt-2 text-[15px] font-medium text-surface-400">
-              {t("resultsCount", { count: totalCount })}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 rounded-2xl bg-surface-container-low px-5 py-3 text-[11px] shadow-sm">
-            <span className="font-black uppercase tracking-widest text-surface-400 font-headline">{t("sortBy")}</span>
-            <div className="font-black text-primary font-headline">{t("sortNewest")}</div>
-          </div>
-        </div>
-
-        {projects.isLoading ? (
-          <LoadingState label={t("loading")} />
-        ) : projects.isError ? (
-          <ErrorState label={t("loadError")} />
-        ) : !items.length ? (
-          <EmptyState label={t("empty")} />
-        ) : (
-          <>
-            <ul className="space-y-4 md:space-y-5">
-              {items.map((project) => {
-                const categoryName = project.category_obj
-                  ? locale === "en"
-                    ? project.category_obj.name_en || project.category_obj.name_mn || project.category_obj.name
-                    : project.category_obj.name_mn || project.category_obj.name_en || project.category_obj.name
-                  : project.category;
-
-                const realSkills = normalizeSkills(project.required_skills);
-
-                return (
-                  <li
-                    key={project.id}
-                    className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-ambient md:p-8"
-                  >
-                    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_200px] md:items-start md:gap-8">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-xl bg-secondary-fixed px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-secondary font-headline">
-                            {categoryName}
-                          </span>
-                          <span className="text-[12px] font-medium text-surface-400">{t("postedRecently")}</span>
-                        </div>
-
-                        <h2 className="mt-4 font-headline text-[26px] font-black leading-tight tracking-tighter text-primary md:text-[30px]">
-                          {project.title}
-                        </h2>
-
-                        <p className="mt-4 max-w-[70ch] line-clamp-2 text-[15px] font-medium leading-relaxed text-surface-500">
-                          {project.description}
-                        </p>
-
-                        <div className="mt-5 flex flex-wrap gap-2 md:mt-6">
-                          {realSkills.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-xl bg-surface-container-low px-3 py-1.5 text-[12px] font-bold text-surface-400 font-headline"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {realSkills.length === 0 && (
-                            <span className="rounded-xl bg-surface-container-low px-3 py-1.5 text-[12px] font-bold text-surface-400 font-headline">
-                              {t("noSkillTags")}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="mt-5 flex flex-wrap items-center gap-3">
-                          <div className="rounded-2xl bg-surface-container-low px-4 py-2 text-[12px] font-bold text-surface-500 font-headline">
-                            {t("timeline")}: {project.timeline_days} {t("days")}
-                          </div>
-                          <div className={`rounded-2xl px-4 py-2 text-[12px] font-black capitalize font-headline ${statusTone(project.status)}`}>
-                            {(project.status || "").replace(/_/g, " ")}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex h-full flex-col justify-between gap-5 md:items-end">
-                        <div className="text-left md:text-right">
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
-                            {t("budget")}
-                          </p>
-                          <p className="mt-2 font-headline text-[26px] font-black leading-none tracking-tighter text-secondary md:text-[30px]">
-                            {formatPrice(project)}
-                          </p>
-                        </div>
-
-                        <Link
-                          href={withLocale(`/projects/${project.id}`)}
-                          className="inline-flex items-center justify-center rounded-2xl bg-secondary px-6 py-3.5 text-[11px] font-black uppercase tracking-widest text-white shadow-sm transition-all hover:shadow-ambient hover:-translate-y-0.5 active:scale-95 md:px-7 font-headline"
-                        >
-                          {t("applyNow")}
-                        </Link>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-
-            <div className="flex items-center justify-center gap-2 pt-6">
-              <button
-                type="button"
-                disabled={!hasPrev}
-                onClick={() => setPage((p) => p - 1)}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-lowest text-surface-500 shadow-sm disabled:opacity-30 hover:shadow-ambient transition-all"
-              >
-                ‹
-              </button>
-              {visiblePages.map((value, index) =>
-                typeof value === "number" ? (
-                  <button
-                    key={`${value}-${index}`}
-                    type="button"
-                    onClick={() => setPage(value)}
-                    className={`flex h-11 min-w-11 items-center justify-center rounded-2xl px-3 text-[13px] font-black font-headline transition-all ${
-                      page === value
-                        ? "primary-gradient text-primary-fixed shadow-ambient"
-                        : "bg-surface-container-lowest text-surface-500 shadow-sm hover:bg-white"
-                    }`}
-                  >
-                    {value}
-                  </button>
-                ) : (
-                  <span key={`${value}-${index}`} className="px-2 text-surface-400">
-                    {value}
-                  </span>
-                ),
-              )}
-              <button
-                type="button"
-                disabled={!hasNext}
-                onClick={() => setPage((p) => p + 1)}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-lowest text-surface-500 shadow-sm disabled:opacity-30 hover:shadow-ambient transition-all"
-              >
-                ›
-              </button>
-            </div>
-          </>
+            )
         )}
-      </div>
-    </section>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 pt-4">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => push({ page: page - 1 })}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:shadow-ambient disabled:opacity-30 font-headline font-black text-surface-400"
+            >
+              ‹
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let p2 = i + 1;
+              if (totalPages > 5) {
+                const mid = Math.min(Math.max(page, 3), totalPages - 2);
+                p2 = mid - 2 + i;
+              }
+              return (
+                <button
+                  key={p2}
+                  type="button"
+                  onClick={() => push({ page: p2 })}
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl text-[13px] font-black font-headline transition-all ${p2 === page ? "primary-gradient text-primary-fixed shadow-ambient" : "bg-surface-container-lowest text-surface-400 shadow-sm hover:shadow-ambient"}`}
+                >
+                  {p2}
+                </button>
+              );
+            })}
+
+            {totalPages > 5 && page < totalPages - 2 && (
+              <>
+                <span className="text-surface-400">…</span>
+                <button type="button" onClick={() => push({ page: totalPages })} className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest text-[13px] font-black font-headline text-surface-400 shadow-sm hover:shadow-ambient">
+                  {totalPages}
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => push({ page: page + 1 })}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:shadow-ambient disabled:opacity-30 font-headline font-black text-surface-400"
+            >
+              ›
+            </button>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
