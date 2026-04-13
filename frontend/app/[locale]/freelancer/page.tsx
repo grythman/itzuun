@@ -63,7 +63,8 @@ function DashboardIcon({
     | "wallet"
     | "trend"
     | "hourglass"
-    | "bank";
+    | "bank"
+    | "star";
   className?: string;
 }) {
   const common = { className, "aria-hidden": true };
@@ -96,6 +97,9 @@ function DashboardIcon({
   }
   if (name === "hourglass") {
     return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M6 2v6a6 6 0 0 0 3 5 6 6 0 0 0-3 5v4h12v-4a6 6 0 0 0-3-5 6 6 0 0 0 3-5V2H6Zm10 16v2H8v-2a4 4 0 0 1 2.2-3.6L12 13.5l1.8.9A4 4 0 0 1 16 18ZM12 10.5 10.2 9.6A4 4 0 0 1 8 6V4h8v2a4 4 0 0 1-2.2 3.6L12 10.5Z"/></svg>;
+  }
+  if (name === "star") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="m12 17.3-5.3 3 1.4-6-4.6-4 6.1-.5L12 4l2.4 5.8 6.1.5-4.6 4 1.4 6-5.3-3Z"/></svg>;
   }
   return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M3 5h18v2H3V5Zm2 4h14v10H5V9Zm5 2v6h2v-6h-2Z"/></svg>;
 }

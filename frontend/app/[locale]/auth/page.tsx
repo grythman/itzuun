@@ -46,6 +46,7 @@ declare global {
               width?: number;
             },
           ) => void;
+          prompt: () => void;
         };
       };
     };
