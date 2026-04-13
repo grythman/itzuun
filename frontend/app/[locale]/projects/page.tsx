@@ -72,6 +72,12 @@ export default function ProjectsPage() {
   const [statusFilter, setStatusFilter] = useState(() => searchParams.get("status") || "");
   const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get("category") || "");
   const [skillsFilter, setSkillsFilter] = useState(() => searchParams.get("skills") || "");
+  const [budgetMin, setBudgetMin] = useState(() => searchParams.get("budget_min") || "");
+  const [budgetMax, setBudgetMax] = useState(() => searchParams.get("budget_max") || "");
+  const [experienceFilter, setExperienceFilter] = useState(
+    () => searchParams.get("experience") || "",
+  );
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const categories = useCategories();
   const categoryList = Array.isArray(categories.data) ? categories.data : [];
@@ -81,6 +87,9 @@ export default function ProjectsPage() {
     ...(categoryFilter && { category: categoryFilter }),
     ...(search && { search }),
     ...(skillsFilter && { skills: skillsFilter }),
+    ...(budgetMin && { budget_min: budgetMin }),
+    ...(budgetMax && { budget_max: budgetMax }),
+    ...(experienceFilter && { experience: experienceFilter }),
   };
 
   const projects = useProjects(page, Object.keys(filters).length ? filters : undefined);
@@ -97,9 +106,23 @@ export default function ProjectsPage() {
     if (statusFilter) params.set("status", statusFilter);
     if (categoryFilter) params.set("category", categoryFilter);
     if (skillsFilter) params.set("skills", skillsFilter);
+    if (budgetMin) params.set("budget_min", budgetMin);
+    if (budgetMax) params.set("budget_max", budgetMax);
+    if (experienceFilter) params.set("experience", experienceFilter);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [page, search, statusFilter, categoryFilter, skillsFilter, pathname, router]);
+  }, [
+    page,
+    search,
+    statusFilter,
+    categoryFilter,
+    skillsFilter,
+    budgetMin,
+    budgetMax,
+    experienceFilter,
+    pathname,
+    router,
+  ]);
 
   const visiblePages = useMemo(() => {
     const values: Array<number | string> = [];
@@ -131,9 +154,39 @@ export default function ProjectsPage() {
     return `₮${floor.toLocaleString()} - ₮${budget.toLocaleString()}`;
   }
 
+  function normalizeSkills(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => String(item || "").trim())
+        .filter(Boolean)
+        .slice(0, 4);
+    }
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 4);
+    }
+    return [];
+  }
+
   return (
-    <section className="grid gap-6 xl:grid-cols-[286px_minmax(0,1fr)]">
-      <aside className="h-fit rounded-[30px] bg-[#f7f9fb] p-6 shadow-[0_20px_50px_rgba(3,22,54,0.05)] xl:sticky xl:top-24">
+    <section className="space-y-4 xl:grid xl:grid-cols-[286px_minmax(0,1fr)] xl:gap-6 xl:space-y-0">
+      <div className="xl:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileFiltersOpen((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-2xl bg-[#071a3f] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_12px_30px_rgba(3,22,54,0.18)]"
+        >
+          <FilterIcon type="category" />
+          {mobileFiltersOpen ? t("hideFilters") : t("showFilters")}
+        </button>
+      </div>
+
+      <aside
+        className={`${mobileFiltersOpen ? "block" : "hidden"} h-fit rounded-[26px] bg-[#f7f9fb] p-5 shadow-[0_20px_50px_rgba(3,22,54,0.05)] xl:sticky xl:top-24 xl:block xl:rounded-[30px] xl:p-6`}
+      >
         <div>
           <p className="text-[22px] font-bold tracking-[-0.03em] text-[#031636]">{t("filtersTitle")}</p>
           <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">
@@ -216,8 +269,23 @@ export default function ProjectsPage() {
               {t("filterBudget")}
             </div>
             <div className="rounded-[18px] bg-white px-4 py-4 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.18)]">
-              <div className="h-2 rounded-full bg-[#e7edf1]">
-                <div className="ml-[38%] h-2 w-[26%] rounded-full bg-[#157173]" />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  value={budgetMin}
+                  onChange={(e) => setBudgetMin(e.target.value)}
+                  placeholder={t("budgetMin")}
+                  className="w-full rounded-xl bg-[#f7f9fb] px-3 py-2 text-[12px] text-surface-700 outline-none shadow-[inset_0_0_0_1px_rgba(197,198,207,0.2)]"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={budgetMax}
+                  onChange={(e) => setBudgetMax(e.target.value)}
+                  placeholder={t("budgetMax")}
+                  className="w-full rounded-xl bg-[#f7f9fb] px-3 py-2 text-[12px] text-surface-700 outline-none shadow-[inset_0_0_0_1px_rgba(197,198,207,0.2)]"
+                />
               </div>
               <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-surface-400">
                 <span>₮500K</span>
@@ -240,8 +308,12 @@ export default function ProjectsPage() {
                 <button
                   key={level.key}
                   type="button"
+                  onClick={() => {
+                    setExperienceFilter(level.key);
+                    setPage(1);
+                  }}
                   className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${
-                    level.key === "intermediate"
+                    level.key === experienceFilter
                       ? "bg-[#dff5f0] text-[#157173]"
                       : "bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)]"
                   }`}
@@ -249,6 +321,20 @@ export default function ProjectsPage() {
                   {level.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setExperienceFilter("");
+                  setPage(1);
+                }}
+                className={`rounded-full px-3 py-1.5 text-[12px] font-semibold ${
+                  experienceFilter === ""
+                    ? "bg-[#eef1f4] text-surface-700"
+                    : "bg-white text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.22)]"
+                }`}
+              >
+                {t("allExperience")}
+              </button>
             </div>
           </div>
 
@@ -257,6 +343,7 @@ export default function ProjectsPage() {
             onClick={() => {
               setPage(1);
               setSearch(searchInput);
+              setMobileFiltersOpen(false);
             }}
             className="w-full rounded-2xl bg-[#071a3f] px-5 py-4 text-[14px] font-semibold text-white shadow-[0_16px_36px_rgba(3,22,54,0.18)]"
           >
@@ -265,8 +352,8 @@ export default function ProjectsPage() {
         </div>
       </aside>
 
-      <div className="space-y-6">
-        <div className="rounded-[30px] bg-[#f7f9fb] p-4 shadow-[0_20px_50px_rgba(3,22,54,0.05)] md:p-5">
+      <div className="space-y-4 md:space-y-6">
+        <div className="rounded-[24px] bg-[#f7f9fb] p-3 shadow-[0_20px_50px_rgba(3,22,54,0.05)] md:rounded-[30px] md:p-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <form onSubmit={handleSearch} className="relative flex-1">
               <SearchIcon />
@@ -275,7 +362,7 @@ export default function ProjectsPage() {
                 placeholder={t("searchPlaceholder")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full rounded-[18px] bg-white py-4 pl-12 pr-4 text-[14px] text-[#031636] shadow-[inset_0_0_0_1px_rgba(197,198,207,0.18)] outline-none placeholder:text-surface-400"
+                className="w-full rounded-[16px] bg-white py-3.5 pl-12 pr-4 text-[14px] text-[#031636] shadow-[inset_0_0_0_1px_rgba(197,198,207,0.18)] outline-none placeholder:text-surface-400 md:rounded-[18px] md:py-4"
               />
               <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-surface-400">
                 <SearchIcon />
@@ -295,7 +382,7 @@ export default function ProjectsPage() {
 
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="font-headline text-[42px] font-extrabold tracking-[-0.05em] text-[#031636]">
+            <h1 className="font-headline text-[34px] font-extrabold tracking-[-0.05em] text-[#031636] md:text-[42px]">
               {t("title")}
             </h1>
             <p className="mt-2 text-[15px] text-surface-500">
@@ -317,7 +404,7 @@ export default function ProjectsPage() {
           <EmptyState label={t("empty")} />
         ) : (
           <>
-            <ul className="space-y-5">
+            <ul className="space-y-4 md:space-y-5">
               {items.map((project) => {
                 const categoryName = project.category_obj
                   ? locale === "en"
@@ -325,12 +412,14 @@ export default function ProjectsPage() {
                     : project.category_obj.name_mn || project.category_obj.name_en || project.category_obj.name
                   : project.category;
 
+                const realSkills = normalizeSkills(project.required_skills);
+
                 return (
                   <li
                     key={project.id}
-                    className="rounded-[28px] bg-white p-5 shadow-[0_20px_50px_rgba(3,22,54,0.06)] md:p-7"
+                    className="rounded-[22px] bg-white p-4 shadow-[0_20px_50px_rgba(3,22,54,0.06)] md:rounded-[28px] md:p-7"
                   >
-                    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_220px] md:items-start">
+                    <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_220px] md:items-start md:gap-6">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-full bg-[#dff5f0] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#157173]">
@@ -339,7 +428,7 @@ export default function ProjectsPage() {
                           <span className="text-[12px] text-surface-400">{t("postedRecently")}</span>
                         </div>
 
-                        <h2 className="mt-3 font-headline text-[28px] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#031636]">
+                        <h2 className="mt-3 font-headline text-[24px] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#031636] md:text-[28px]">
                           {project.title}
                         </h2>
 
@@ -347,11 +436,8 @@ export default function ProjectsPage() {
                           {project.description}
                         </p>
 
-                        <div className="mt-5 flex flex-wrap gap-2">
-                          {(String(project.description || "")
-                            .split(/[\s,]+/)
-                            .filter(Boolean)
-                            .slice(0, 3)).map((tag) => (
+                        <div className="mt-4 flex flex-wrap gap-2 md:mt-5">
+                          {realSkills.map((tag) => (
                             <span
                               key={tag}
                               className="rounded-xl bg-[#f7f9fb] px-3 py-1.5 text-[12px] font-medium text-surface-500 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.15)]"
@@ -359,6 +445,11 @@ export default function ProjectsPage() {
                               {tag}
                             </span>
                           ))}
+                          {realSkills.length === 0 && (
+                            <span className="rounded-xl bg-[#f7f9fb] px-3 py-1.5 text-[12px] font-medium text-surface-400 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.15)]">
+                              {t("noSkillTags")}
+                            </span>
+                          )}
                         </div>
 
                         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -371,19 +462,19 @@ export default function ProjectsPage() {
                         </div>
                       </div>
 
-                      <div className="flex h-full flex-col justify-between gap-5 md:items-end">
+                      <div className="flex h-full flex-col justify-between gap-4 md:items-end md:gap-5">
                         <div className="text-left md:text-right">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-surface-400">
                             {t("budget")}
                           </p>
-                          <p className="mt-2 font-headline text-[28px] font-extrabold leading-[1.1] tracking-[-0.04em] text-[#157173]">
+                          <p className="mt-1.5 font-headline text-[24px] font-extrabold leading-[1.1] tracking-[-0.04em] text-[#157173] md:mt-2 md:text-[28px]">
                             {formatPrice(project)}
                           </p>
                         </div>
 
                         <Link
                           href={withLocale(`/projects/${project.id}`)}
-                          className="inline-flex items-center justify-center rounded-2xl bg-[#157173] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_16px_36px_rgba(21,113,115,0.18)] transition hover:opacity-95"
+                          className="inline-flex items-center justify-center rounded-2xl bg-[#157173] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_16px_36px_rgba(21,113,115,0.18)] transition hover:opacity-95 md:px-6 md:py-3 md:text-[14px]"
                         >
                           {t("applyNow")}
                         </Link>

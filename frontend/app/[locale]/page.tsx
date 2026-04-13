@@ -13,11 +13,11 @@ function StatCard({
   label: string;
 }) {
   return (
-    <article className="rounded-[28px] bg-white px-6 py-7 shadow-[0_20px_50px_rgba(3,22,54,0.06)]">
-      <div className="font-headline text-[34px] font-extrabold leading-none tracking-[-0.04em] text-[#031636] md:text-[42px]">
+    <article className="rounded-[2.5rem] bg-surface-container-low px-8 py-10 shadow-sm transition-all hover:shadow-ambient">
+      <div className="font-headline text-[42px] font-black leading-none tracking-tighter text-primary md:text-[52px]">
         {value}
       </div>
-      <p className="mt-3 text-[14px] leading-6 text-surface-600">{label}</p>
+      <p className="mt-4 text-[13px] font-bold uppercase tracking-widest text-surface-400 font-headline">{label}</p>
     </article>
   );
 }
@@ -33,23 +33,23 @@ function CategoryCard({
 }) {
   const toneClass =
     tone === "navy"
-      ? "bg-[#071a3f] text-white"
+      ? "primary-gradient text-primary-fixed"
       : tone === "teal"
-        ? "bg-[#157173] text-white"
-        : "bg-white text-[#031636]";
+        ? "bg-secondary text-white"
+        : "bg-surface-container-lowest text-primary";
 
   return (
     <article
-      className={`flex h-full min-h-[236px] flex-col rounded-[30px] p-7 shadow-[0_20px_50px_rgba(3,22,54,0.06)] xl:p-8 ${toneClass}`}
+      className={`flex h-full min-h-[260px] flex-col rounded-[2.5rem] p-8 shadow-sm transition-all hover:shadow-ambient xl:p-10 ${toneClass}`}
     >
       <p
-        className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
-          tone === "light" ? "text-surface-400" : "text-white/60"
+        className={`text-[10px] font-black uppercase tracking-[0.2em] font-headline ${
+          tone === "light" ? "text-surface-400" : "opacity-60"
         }`}
       >
         {eyebrow}
       </p>
-      <h3 className="mt-auto max-w-[12ch] pt-12 font-headline text-[24px] font-extrabold leading-[1.06] tracking-[-0.04em] xl:text-[26px]">
+      <h3 className="mt-auto max-w-[12ch] pt-12 font-headline text-[28px] font-black leading-[1.1] tracking-tighter xl:text-[32px]">
         {title}
       </h3>
     </article>
@@ -66,14 +66,14 @@ function StepCard({
   text: string;
 }) {
   return (
-    <article className="rounded-[28px] bg-white/6 p-6 backdrop-blur-sm">
-      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0f2555] text-[13px] font-bold text-[#89d3d4]">
+    <article className="rounded-[2.5rem] bg-white/5 p-8 backdrop-blur-md shadow-sm border border-white/5 transition-all hover:bg-white/10">
+      <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-fixed text-[13px] font-black text-secondary shadow-sm font-headline">
         {index}
       </div>
-      <h3 className="mt-6 font-headline text-[22px] font-bold tracking-[-0.03em] text-white">
+      <h3 className="mt-8 font-headline text-[24px] font-black tracking-tighter text-white">
         {title}
       </h3>
-      <p className="mt-3 max-w-[34ch] text-[15px] leading-7 text-[#b8c3d8]">{text}</p>
+      <p className="mt-4 max-w-[34ch] text-[15px] font-medium leading-relaxed text-surface-200">{text}</p>
     </article>
   );
 }
@@ -118,16 +118,16 @@ export default function HomePage() {
             <p className="mt-6 max-w-[54ch] text-[16px] leading-8 text-surface-600 md:text-[18px]">
               {t("landingSubtitle")}
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap gap-5">
               <Link
                 href={withLocale("/projects")}
-                className="rounded-full bg-[#071a3f] px-7 py-3 text-[14px] font-semibold text-white shadow-[0_16px_36px_rgba(3,22,54,0.18)] transition hover:opacity-95"
+                className="rounded-2xl primary-gradient px-10 py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-1 active:scale-95 font-headline"
               >
                 {t("landingPrimaryCta")}
               </Link>
               <Link
                 href={withLocale("/projects/new")}
-                className="rounded-full bg-white px-7 py-3 text-[14px] font-semibold text-[#031636] shadow-[0_16px_36px_rgba(3,22,54,0.08)] transition hover:bg-surface-100"
+                className="rounded-2xl bg-surface-container-lowest px-10 py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-primary shadow-sm transition-all hover:bg-white hover:shadow-ambient active:scale-95 font-headline"
               >
                 {t("landingSecondaryCta")}
               </Link>
@@ -135,37 +135,34 @@ export default function HomePage() {
           </div>
 
           <div className="relative mx-auto w-full max-w-[620px]">
-            <div className="relative min-h-[440px] overflow-hidden rounded-[42px] bg-[#081a3a] shadow-[0_28px_70px_rgba(3,22,54,0.16)] md:min-h-[560px] xl:min-h-[640px]">
+            <div className="relative min-h-[440px] overflow-hidden rounded-[3rem] bg-primary shadow-ambient md:min-h-[560px] xl:min-h-[640px]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(178,213,255,0.32),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.06)_0%,rgba(7,26,63,0.16)_42%,rgba(3,10,25,0.78)_100%),linear-gradient(135deg,#111926_0%,#0a1424_42%,#071a3f_100%)]" />
-              <div className="absolute inset-x-[8%] top-[8%] bottom-[10%] rounded-[34px] border border-white/6 bg-white/[0.02]" />
-              <div className="absolute inset-y-[10%] left-[19%] w-[2px] bg-white/10" />
-              <div className="absolute inset-y-[10%] left-[40%] w-[2px] bg-white/10" />
-              <div className="absolute inset-y-[10%] left-[59%] w-[2px] bg-white/8" />
-              <div className="absolute inset-y-[10%] left-[76%] w-[2px] bg-white/7" />
-              <div className="absolute inset-x-[10%] top-[17%] h-[2px] bg-white/9" />
-              <div className="absolute inset-x-[10%] top-[39%] h-[2px] bg-white/8" />
-              <div className="absolute inset-x-[10%] top-[64%] h-[2px] bg-white/7" />
-              <div className="absolute bottom-[12%] left-[15%] h-[58%] w-[14%] rounded-[10px] bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.04))]" />
-              <div className="absolute bottom-[12%] left-[34%] h-[70%] w-[14%] rounded-[10px] bg-[linear-gradient(180deg,rgba(255,255,255,0.24),rgba(255,255,255,0.05))]" />
-              <div className="absolute bottom-[12%] left-[54%] h-[76%] w-[13%] rounded-[10px] bg-[linear-gradient(180deg,rgba(255,255,255,0.3),rgba(255,255,255,0.05))]" />
-              <div className="absolute bottom-[12%] right-[16%] h-[52%] w-[14%] rounded-[10px] bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.04))]" />
-              <div className="absolute bottom-[12%] left-[13%] right-[13%] h-[16%] bg-[linear-gradient(180deg,rgba(122,174,255,0.14),rgba(255,255,255,0.02))] blur-[1px]" />
-              <div className="absolute inset-x-0 bottom-0 h-[30%] bg-[linear-gradient(180deg,transparent,rgba(3,10,25,0.92))]" />
+              <div className="absolute inset-x-[8%] top-[8%] bottom-[10%] rounded-[2.5rem] border border-white/5 bg-white/[0.01]" />
+              <div className="absolute inset-y-[10%] left-[19%] w-[1px] bg-white/5" />
+              <div className="absolute inset-y-[10%] left-[40%] w-[1px] bg-white/5" />
+              <div className="absolute inset-y-[10%] left-[59%] w-[1px] bg-white/5" />
+              <div className="absolute inset-x-[10%] top-[17%] h-[1px] bg-white/5" />
+              <div className="absolute inset-x-[10%] top-[39%] h-[1px] bg-white/5" />
+              <div className="absolute bottom-[12%] left-[15%] h-[58%] w-[14%] rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.02))]" />
+              <div className="absolute bottom-[12%] left-[34%] h-[70%] w-[14%] rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.04))]" />
+              <div className="absolute bottom-[12%] left-[54%] h-[76%] w-[13%] rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.04))]" />
+              <div className="absolute bottom-[12%] right-[16%] h-[52%] w-[14%] rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.02))]" />
+              <div className="absolute inset-x-0 bottom-0 h-[40%] bg-[linear-gradient(180deg,transparent,rgba(3,10,25,0.95))]" />
             </div>
 
-            <div className="absolute -bottom-5 left-6 right-6 rounded-[26px] bg-white/90 p-4 shadow-[0_22px_46px_rgba(3,22,54,0.12)] backdrop-blur-md md:left-8 md:right-auto md:w-[288px] md:p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">
+            <div className="absolute -bottom-6 left-6 right-6 rounded-[2.5rem] bg-surface-container-lowest/90 p-6 shadow-ambient backdrop-blur-xl md:left-8 md:right-auto md:w-[320px]">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
                 {t("floatingCardEyebrow")}
               </p>
-              <div className="mt-3 flex items-center justify-between">
+              <div className="mt-4 flex items-center justify-between">
                 <div>
-                  <p className="font-headline text-[28px] font-extrabold leading-none tracking-[-0.05em] text-[#031636]">
+                  <p className="font-headline text-[32px] font-black leading-none tracking-tighter text-primary">
                     ₮12.4M
                   </p>
-                  <p className="mt-1 text-[13px] text-surface-500">{t("floatingCardText")}</p>
+                  <p className="mt-2 text-[13px] font-medium text-surface-500">{t("floatingCardText")}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#dff5f0] text-[#13696a]">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] bg-secondary-fixed text-secondary shadow-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-6 w-6">
                     <path d="M5 12h14" />
                     <path d="m13 5 7 7-7 7" />
                   </svg>
@@ -182,20 +179,23 @@ export default function HomePage() {
         ))}
       </div>
 
-      <section className="space-y-6">
-        <div className="flex items-end justify-between gap-6">
+      <section className="space-y-8">
+        <div className="flex items-end justify-between gap-6 px-4">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-surface-400">{t("categorySectionEyebrow")}</p>
-            <h2 className="mt-2 font-headline text-[34px] font-extrabold tracking-[-0.05em] text-[#031636] md:text-[48px]">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">{t("categorySectionEyebrow")}</p>
+            <h2 className="mt-4 font-headline text-[38px] font-black tracking-tighter text-primary md:text-[54px] leading-none">
               {t("categorySectionTitle")}
             </h2>
           </div>
-          <Link href={withLocale("/projects")} className="hidden text-[14px] font-semibold text-[#3557a1] hover:underline md:inline-flex">
+          <Link href={withLocale("/projects")} className="hidden items-center gap-2 text-[11px] font-black uppercase tracking-[.18em] text-primary transition-all hover:opacity-70 md:inline-flex font-headline">
             {t("categorySectionLink")}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-4 w-4">
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
           </Link>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1.16fr_0.84fr_0.84fr] xl:grid-rows-[236px_236px] xl:gap-6">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-[1.16fr_0.84fr_0.84fr] xl:grid-rows-[260px_260px] xl:gap-8">
           <div className="xl:row-span-2">
             <CategoryCard {...categories[0]} />
           </div>
@@ -207,17 +207,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[40px] bg-[#071a3f] px-5 py-10 text-white shadow-[0_24px_60px_rgba(3,22,54,0.14)] md:px-10 md:py-14 xl:px-16 xl:py-16">
-        <div className="grid gap-8 xl:grid-cols-[0.9fr_1.1fr] xl:gap-12">
-          <div className="max-w-[560px]">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#89d3d4]">{t("processEyebrow")}</p>
-            <h2 className="mt-3 font-headline text-[34px] font-extrabold tracking-[-0.05em] md:text-[48px]">
+      <section className="relative overflow-hidden rounded-[3rem] bg-primary px-8 py-16 text-white md:px-16 md:py-24">
+        <div className="absolute left-0 top-0 h-full w-full opacity-20 [background-image:radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]" />
+        <div className="relative grid gap-12 xl:grid-cols-[0.8fr_1.2fr] xl:gap-20">
+          <div className="max-w-[480px]">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-secondary font-headline">{t("processEyebrow")}</p>
+            <h2 className="mt-6 font-headline text-[38px] font-black tracking-tighter md:text-[54px] leading-tight text-white">
               {t("processTitle")}
             </h2>
-            <p className="mt-4 text-[16px] leading-8 text-[#b8c3d8]">{t("processSubtitle")}</p>
+            <p className="mt-6 text-[16px] font-medium leading-relaxed text-surface-300">{t("processSubtitle")}</p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3 md:gap-5">
+          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
             {steps.map((step) => (
               <StepCard key={step.index} {...step} />
             ))}
@@ -225,106 +226,105 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid items-center gap-8 rounded-[40px] bg-white px-5 py-8 shadow-[0_20px_50px_rgba(3,22,54,0.06)] md:px-10 md:py-12 xl:grid-cols-[0.94fr_1.06fr] xl:gap-12 xl:px-16 xl:py-16">
+      <section className="grid items-center gap-12 rounded-[3rem] bg-surface-container-low px-8 py-16 border border-outline-variant/5 md:px-16 md:py-24 xl:grid-cols-[0.9fr_1.1fr] xl:gap-20">
         <div className="max-w-[560px]">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-surface-400">{t("trustEyebrow")}</p>
-          <h2 className="mt-3 font-headline text-[34px] font-extrabold tracking-[-0.05em] text-[#031636] md:text-[46px]">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">{t("trustEyebrow")}</p>
+          <h2 className="mt-6 font-headline text-[38px] font-black tracking-tighter text-primary md:text-[54px] leading-tight">
             {t("trustTitle")}
           </h2>
-          <p className="mt-4 text-[16px] leading-8 text-surface-600">{t("trustSubtitle")}</p>
+          <p className="mt-6 text-[16px] font-medium leading-relaxed text-surface-500">{t("trustSubtitle")}</p>
 
-          <div className="mt-8 space-y-4">
+          <div className="mt-10 space-y-5">
             {[t("trustPoint1"), t("trustPoint2"), t("trustPoint3")].map((point) => (
-              <div key={point} className="flex items-start gap-3 rounded-[22px] bg-[#f7f9fb] px-4 py-4">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#dff5f0] text-[#13696a]">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+              <div key={point} className="flex items-start gap-4 rounded-3xl bg-surface-container-lowest p-5 shadow-sm transition-all hover:shadow-ambient">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary-fixed text-secondary shadow-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-5 w-5">
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
                 </div>
-                <p className="text-[15px] leading-7 text-[#031636]">{point}</p>
+                <p className="text-[15px] font-bold leading-relaxed text-primary font-headline py-1.5">{point}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative min-h-[300px] overflow-hidden rounded-[34px] bg-[linear-gradient(135deg,#123865_0%,#0a1937_38%,#071a3f_100%)] shadow-[0_22px_52px_rgba(3,22,54,0.12)] md:min-h-[420px]">
+        <div className="relative min-h-[300px] overflow-hidden rounded-[3rem] primary-gradient shadow-ambient md:min-h-[480px]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(137,211,212,0.28),_transparent_32%)]" />
-          <div className="absolute bottom-10 left-10 right-10 top-10 rounded-[28px] bg-white/5 backdrop-blur-sm" />
-          <div className="absolute bottom-[22%] left-[12%] h-[42%] w-[26%] rounded-[20px] bg-white/10" />
-          <div className="absolute bottom-[14%] left-[42%] h-[56%] w-[22%] rounded-[20px] bg-white/12" />
-          <div className="absolute bottom-[18%] right-[10%] h-[34%] w-[18%] rounded-[20px] bg-white/10" />
-          <div className="absolute inset-x-[18%] bottom-[20%] h-[3px] bg-[#89d3d4]/80" />
-          <div className="absolute inset-x-[22%] bottom-[28%] h-[3px] bg-white/25" />
+          <div className="absolute bottom-10 left-10 right-10 top-10 rounded-[2rem] border border-white/5 bg-white/[0.02] backdrop-blur-md" />
+          <div className="absolute inset-x-[18%] bottom-[20%] h-[3px] rounded-full bg-secondary/60 shadow-[0_0_20px_rgba(137,211,212,0.4)]" />
+          <div className="absolute inset-x-[22%] bottom-[32%] h-[3px] rounded-full bg-white/20" />
         </div>
-      </section>
-
-      <section className="rounded-[40px] bg-[#f7f9fb] px-5 py-10 text-center md:px-10 md:py-14 xl:px-16 xl:py-16">
-        <h2 className="mx-auto max-w-[18ch] font-headline text-[34px] font-extrabold tracking-[-0.05em] text-[#031636] md:text-[48px]">
+      <section className="rounded-[3rem] bg-surface-container-low px-8 py-16 text-center md:px-16 md:py-24 shadow-sm border border-outline-variant/5">
+        <h2 className="mx-auto max-w-[18ch] font-headline text-[38px] font-black tracking-tighter text-primary md:text-[54px] leading-tight">
           {t("finalTitle")}
         </h2>
-        <p className="mx-auto mt-4 max-w-[56ch] text-[16px] leading-8 text-surface-600">{t("finalSubtitle")}</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
+        <p className="mx-auto mt-6 max-w-[56ch] text-[16px] font-medium leading-relaxed text-surface-500">{t("finalSubtitle")}</p>
+        <div className="mt-10 flex flex-wrap justify-center gap-5">
           <Link
             href={withLocale("/projects/new")}
-            className="rounded-full bg-[#071a3f] px-8 py-3 text-[14px] font-semibold text-white shadow-[0_16px_36px_rgba(3,22,54,0.18)] transition hover:opacity-95"
+            className="rounded-2xl primary-gradient px-12 py-5 text-[11px] font-black uppercase tracking-[0.25em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-1 active:scale-95 font-headline"
           >
             {t("finalPrimaryCta")}
           </Link>
         </div>
       </section>
 
-      <footer className="rounded-[36px] bg-white px-5 py-8 shadow-[0_20px_50px_rgba(3,22,54,0.04)] md:px-10 xl:px-16">
-        <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_0.9fr] xl:items-start">
-          <div className="max-w-[320px]">
-            <Logo variant="horizontal" theme="light" href={withLocale("/")} className="w-[132px]" />
-            <p className="mt-4 text-[14px] leading-7 text-surface-500">{t("footerIntro")}</p>
+      <footer className="rounded-[3rem] bg-surface-container-lowest px-8 py-12 shadow-sm border border-outline-variant/5 md:px-12 xl:px-16">
+        <div className="grid gap-12 xl:grid-cols-[1.4fr_0.8fr_0.8fr_1fr] xl:items-start">
+          <div className="max-w-[360px]">
+            <Logo variant="horizontal" theme="light" href={withLocale("/")} className="w-[140px]" />
+            <p className="mt-6 text-[14px] font-medium leading-relaxed text-surface-400">{t("footerIntro")}</p>
           </div>
 
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">{t("footerCol1")}</p>
-            <div className="mt-4 space-y-3 text-[14px] text-surface-600">
-              <Link href={withLocale("/projects")} className="block hover:text-[#031636]">{t("footerLinkBrowse")}</Link>
-              <Link href={withLocale("/freelancers")} className="block hover:text-[#031636]">{t("footerLinkTalent")}</Link>
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-3 xl:col-span-2 xl:grid-cols-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary font-headline">{t("footerCol1")}</p>
+              <div className="mt-6 space-y-4 text-[13px] font-bold text-surface-500 font-headline uppercase tracking-widest leading-none">
+                <Link href={withLocale("/projects")} className="block hover:text-primary transition-colors">{t("footerLinkBrowse")}</Link>
+                <Link href={withLocale("/freelancers")} className="block hover:text-primary transition-colors">{t("footerLinkTalent")}</Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary font-headline">{t("footerCol2")}</p>
+              <div className="mt-6 space-y-4 text-[13px] font-bold text-surface-500 font-headline uppercase tracking-widest leading-none">
+                <Link href={withLocale("/about")} className="block hover:text-primary transition-colors">{t("footerLinkAbout")}</Link>
+                <Link href={withLocale("/support")} className="block hover:text-primary transition-colors">{t("footerLinkSupport")}</Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary font-headline">{t("footerCol3")}</p>
+              <div className="mt-6 space-y-4 text-[13px] font-bold text-surface-500 font-headline uppercase tracking-widest leading-none">
+                <Link href={withLocale("/privacy")} className="block hover:text-primary transition-colors">{t("footerLinkPrivacy")}</Link>
+                <Link href={withLocale("/terms")} className="block hover:text-primary transition-colors">{t("footerLinkTerms")}</Link>
+              </div>
             </div>
           </div>
 
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">{t("footerCol2")}</p>
-            <div className="mt-4 space-y-3 text-[14px] text-surface-600">
-              <Link href={withLocale("/about")} className="block hover:text-[#031636]">{t("footerLinkAbout")}</Link>
-              <Link href={withLocale("/support")} className="block hover:text-[#031636]">{t("footerLinkSupport")}</Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">{t("footerCol3")}</p>
-            <div className="mt-4 space-y-3 text-[14px] text-surface-600">
-              <Link href={withLocale("/privacy")} className="block hover:text-[#031636]">{t("footerLinkPrivacy")}</Link>
-              <Link href={withLocale("/terms")} className="block hover:text-[#031636]">{t("footerLinkTerms")}</Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-surface-400">{t("footerCol4")}</p>
-            <div className="mt-4 flex items-center gap-2 rounded-full bg-[#f7f9fb] p-2 shadow-[inset_0_0_0_1px_rgba(197,198,207,0.2)]">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary font-headline">{t("footerCol4")}</p>
+            <div className="mt-6 flex items-center gap-3 rounded-2xl bg-surface-container-low p-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border border-outline-variant/10">
               <input
                 type="email"
                 placeholder={t("footerInput")}
-                className="w-full bg-transparent px-3 py-2 text-[14px] text-[#031636] outline-none placeholder:text-surface-400"
+                className="w-full bg-transparent px-4 py-2.5 text-[14px] font-medium text-primary outline-none placeholder:text-surface-300"
               />
-              <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[#071a3f] text-white">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-                  <path d="M5 12h14" />
-                  <path d="m13 5 7 7-7 7" />
+              <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl primary-gradient text-primary-fixed shadow-sm transition-all hover:shadow-ambient active:scale-95">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5">
+                  <path d="M5 12h14M13 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 border-t border-[#eef1f4] pt-5 text-[13px] text-surface-400 md:flex-row md:items-center md:justify-between">
+        <div className="mt-12 flex flex-col gap-6 border-t border-outline-variant/10 pt-8 text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline md:flex-row md:items-center md:justify-between">
           <p>{t("footerCopyright")}</p>
-          <p>{t("footerLocale")}</p>
+          <div className="flex gap-8">
+            <p>{t("footerLocale")}</p>
+            <p className="text-secondary opacity-60">Architectural Curator v1.0</p>
+          </div>
         </div>
       </footer>
     </section>

@@ -67,10 +67,19 @@ class ProjectListFilterTests(TestCase):
             owner=self.owner,
             title="Django API",
             description="Need backend",
-            budget=150000,
-            timeline_days=8,
+            budget=1500000,
+            timeline_days=24,
             category="backend",
             required_skills=["django", "postgresql"],
+        )
+        Project.objects.create(
+            owner=self.owner,
+            title="Enterprise migration",
+            description="Long-running modernization",
+            budget=9000000,
+            timeline_days=70,
+            category="infra",
+            required_skills=["kubernetes", "postgresql"],
         )
 
     def test_list_filters_by_required_skills(self):
@@ -79,6 +88,27 @@ class ProjectListFilterTests(TestCase):
         rows = response.json()["results"]
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["title"], "React dashboard")
+
+    def test_list_filters_by_budget_range(self):
+        response = self.client_api.get(
+            "/api/v1/projects", {"budget_min": "1000000", "budget_max": "2000000"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rows = response.json()["results"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["title"], "Django API")
+
+    def test_list_filters_by_experience_proxy(self):
+        response_entry = self.client_api.get("/api/v1/projects", {"experience": "entry"})
+        self.assertEqual(response_entry.status_code, status.HTTP_200_OK)
+        titles_entry = {item["title"] for item in response_entry.json()["results"]}
+        self.assertIn("React dashboard", titles_entry)
+        self.assertNotIn("Django API", titles_entry)
+
+        response_expert = self.client_api.get("/api/v1/projects", {"experience": "expert"})
+        self.assertEqual(response_expert.status_code, status.HTTP_200_OK)
+        titles_expert = {item["title"] for item in response_expert.json()["results"]}
+        self.assertIn("Enterprise migration", titles_expert)
 
 
 class ProposalLimitTests(TestCase):

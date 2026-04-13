@@ -4,7 +4,8 @@ import Link from "next/link";
 import { ReactNode } from "react";
 
 export function AppCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${className}`}>{children}</div>;
+  // No borders, background surface-container-lowest, ambient shadow on hover
+  return <div className={`rounded-2xl bg-surface-container-lowest p-5 transition-all duration-300 hover:shadow-ambient ${className}`}>{children}</div>;
 }
 
 export function MetricCard({
@@ -22,8 +23,8 @@ export function MetricCard({
 }) {
   return (
     <AppCard className={className}>
-      <p className="text-[11px] uppercase tracking-widest text-surface-500">{label}</p>
-      <p className={`mt-1 text-2xl font-extrabold text-surface-900 ${valueClassName}`}>{value}</p>
+      <p className="text-[11px] uppercase tracking-widest text-surface-500 font-headline">{label}</p>
+      <p className={`mt-1 text-2xl font-extrabold text-on-surface font-headline ${valueClassName}`}>{value}</p>
       {hint ? <p className="mt-1 text-xs text-surface-500">{hint}</p> : null}
     </AppCard>
   );
@@ -32,7 +33,7 @@ export function MetricCard({
 export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="space-y-1">
-      <h2 className="text-lg font-semibold tracking-tight text-surface-900">{title}</h2>
+      <h2 className="text-lg font-semibold tracking-tight text-on-surface font-headline">{title}</h2>
       {subtitle ? <p className="text-[13px] text-surface-500">{subtitle}</p> : null}
     </div>
   );
@@ -40,16 +41,17 @@ export function SectionTitle({ title, subtitle }: { title: string; subtitle?: st
 
 export function EscrowStatusBadge({ status }: { status: string }) {
   const classes: Record<string, string> = {
-    created: "bg-accent-100 text-accent-700",
-    pending_admin: "bg-accent-100 text-accent-700",
-    held: "bg-emerald-50 text-emerald-700",
-    released: "bg-brand-50 text-brand-700",
+    created: "bg-surface-container-low text-secondary",
+    pending_admin: "bg-surface-container-low text-secondary",
+    held: "bg-secondary text-white shadow-sm",
+    released: "bg-surface-container-high text-surface-600",
     disputed: "bg-red-50 text-red-700",
-    refunded: "bg-surface-100 text-surface-600",
+    refunded: "bg-surface-container-low text-surface-400",
   };
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${classes[status] || "bg-surface-100 text-surface-600"}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider font-headline ${classes[status] || "bg-surface-container-low text-surface-500"}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60" />
       Escrow: {status}
     </span>
   );
@@ -66,17 +68,20 @@ export function VerifiedBadge({
   const isVerified = normalized ? normalized === "verified" : !!verified;
   const isPending = normalized === "pending";
   const isSuspended = normalized === "suspended";
-  const label = isVerified ? "✓ Verified" : isPending ? "Pending Review" : isSuspended ? "Suspended" : "Unverified";
+  const label = isVerified ? "Verified" : isPending ? "Pending Review" : isSuspended ? "Suspended" : "Unverified";
   const tone = isVerified
-    ? "bg-emerald-50 text-emerald-700"
+    ? "bg-secondary/10 text-secondary"
     : isPending
-      ? "bg-blue-50 text-blue-700"
+      ? "bg-primary/5 text-primary"
       : isSuspended
         ? "bg-red-50 text-red-700"
-        : "bg-surface-100 text-surface-500";
+        : "bg-surface-container-low text-surface-400";
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${tone}`}>{label}</span>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest font-headline ${tone}`}>
+      {isVerified && <span className="text-[10px]">✦</span>}
+      {label}
+    </span>
   );
 }
 
@@ -132,15 +137,15 @@ export function FlowRail({
           return (
             <li
               key={`${item.title}-${index}`}
-              className={`rounded-xl border px-3 py-3 ${
+              className={`rounded-xl px-3 py-3 ${
                 tone === "active"
-                  ? "border-[#a99bdf] bg-white"
+                  ? "bg-surface-container-lowest shadow-ambient border-none"
                   : tone === "done"
-                    ? "border-[#d6d2ee] bg-[#f2efff]"
-                    : "border-[#ebe8f7] bg-transparent"
+                    ? "bg-primary-fixed/20 border-none"
+                    : "bg-transparent border-none border-l-2 border-outline-variant/15"
               }`}
             >
-              <p className={`text-[12px] font-semibold ${tone === "active" ? "text-[#35247f]" : "text-surface-700"}`}>
+              <p className={`text-[12px] font-semibold ${tone === "active" ? "text-primary" : "text-surface-700 font-headline"}`}>
                 {index + 1}. {item.title}
               </p>
               {item.subtitle ? <p className="mt-0.5 text-[11px] text-surface-500">{item.subtitle}</p> : null}
@@ -265,13 +270,13 @@ export function DashboardBottomBar({ role = "client" }: { role?: "client" | "fre
 
 export function CompareTable({ rows }: { rows: Array<{ label: string; value: string | number }> }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-surface-200/60">
+    <div className="overflow-x-auto rounded-xl bg-surface-container-low shadow-sm">
       <table className="min-w-full text-[13px]">
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.label} className="border-b border-surface-100 last:border-none">
-              <td className="bg-surface-50 px-3 py-2 font-medium text-surface-600">{row.label}</td>
-              <td className="px-3 py-2 text-surface-900">{row.value}</td>
+          {rows.map((row, index) => (
+            <tr key={row.label} className={index % 2 === 0 ? "bg-surface-container-lowest" : "bg-surface-container-low"}>
+              <td className="px-4 py-3 font-medium text-surface-500 font-headline uppercase text-[11px] tracking-wider">{row.label}</td>
+              <td className="px-4 py-3 text-on-surface font-medium">{row.value}</td>
             </tr>
           ))}
         </tbody>
@@ -288,13 +293,13 @@ export function StatusPill({
   tone?: "neutral" | "success" | "warning" | "danger" | "info";
 }) {
   const toneClass: Record<string, string> = {
-    neutral: "bg-surface-100 text-surface-600",
-    success: "bg-emerald-50 text-emerald-700",
-    warning: "bg-accent-50 text-accent-700",
+    neutral: "bg-surface-container-low text-surface-500",
+    success: "bg-secondary/10 text-secondary",
+    warning: "bg-accent-100 text-accent-700",
     danger: "bg-red-50 text-red-700",
-    info: "bg-brand-50 text-brand-700",
+    info: "bg-primary/5 text-primary",
   };
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${toneClass[tone]}`}>{label}</span>;
+  return <span className={`inline-flex rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] font-headline ${toneClass[tone]}`}>{label}</span>;
 }
 
 export function ActionButton({
@@ -303,24 +308,42 @@ export function ActionButton({
   disabled,
   tone = "primary",
   className = "",
+  variant = "filled",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
-  tone?: "primary" | "success" | "warning" | "danger";
+  tone?: "primary" | "success" | "warning" | "danger" | "secondary";
+  variant?: "filled" | "outline" | "ghost";
 }) {
   const toneClass: Record<string, string> = {
-    primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm",
-    success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm",
-    warning: "bg-accent-600 text-white hover:bg-accent-700 shadow-sm",
-    danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
+    primary: "primary-gradient text-primary-fixed shadow-ambient",
+    secondary: "bg-secondary text-white",
+    success: "bg-emerald-600 text-white",
+    warning: "bg-accent-600 text-white",
+    danger: "bg-red-600 text-white",
   };
+
+  const variantStyles = variant === "outline" 
+    ? "bg-transparent border border-outline-variant/30 text-on-surface hover:bg-surface-container-low"
+    : variant === "ghost"
+    ? "bg-transparent text-primary hover:bg-surface-container-low"
+    : toneClass[tone] || toneClass.primary;
+
   return (
     <button
       {...props}
       disabled={disabled || loading}
-      className={`${toneClass[tone]} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 font-headline disabled:cursor-not-allowed disabled:opacity-60 ${variantStyles} ${className}`}
     >
-      {loading ? "Processing..." : children}
+      {loading ? (
+        <span className="flex items-center gap-2">
+          <svg className="h-4 w-4 animate-spin text-current" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          {children}
+        </span>
+      ) : children}
     </button>
   );
 }
@@ -338,11 +361,11 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-surface-200/60 bg-white p-5 shadow-modal">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/70 p-4 backdrop-blur-md">
+      <div className="w-full max-w-md rounded-2xl bg-surface-container-lowest p-5 shadow-ambient">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-semibold tracking-tight text-surface-900">{title}</h3>
-          <button className="rounded-lg bg-surface-100 px-2 py-1 text-[11px] font-medium text-surface-500 hover:bg-surface-200" onClick={onClose}>
+          <h3 className="text-lg font-semibold tracking-tight text-on-surface font-headline">{title}</h3>
+          <button className="rounded-md bg-surface-container-low px-2 py-1 text-[11px] font-medium text-surface-500 hover:bg-outline-variant/20" onClick={onClose}>
             Close
           </button>
         </div>

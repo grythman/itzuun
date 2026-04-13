@@ -73,6 +73,9 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         category_filter = self.request.query_params.get("category")
         search = self.request.query_params.get("search")
         skills = self.request.query_params.get("skills")
+        budget_min_raw = self.request.query_params.get("budget_min")
+        budget_max_raw = self.request.query_params.get("budget_max")
+        experience = self.request.query_params.get("experience")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         if category_filter:
@@ -85,6 +88,29 @@ class ProjectListCreateView(generics.ListCreateAPIView):
             skill_terms = [item.strip() for item in skills.split(",") if item.strip()]
             for skill in skill_terms:
                 queryset = queryset.filter(required_skills__icontains=skill)
+
+        try:
+            budget_min = int(budget_min_raw) if budget_min_raw else None
+        except (TypeError, ValueError):
+            budget_min = None
+        try:
+            budget_max = int(budget_max_raw) if budget_max_raw else None
+        except (TypeError, ValueError):
+            budget_max = None
+
+        if budget_min is not None:
+            queryset = queryset.filter(budget__gte=max(0, budget_min))
+        if budget_max is not None:
+            queryset = queryset.filter(budget__lte=max(0, budget_max))
+
+        # The project model has no explicit experience field; use timeline as a stable proxy.
+        if experience == "entry":
+            queryset = queryset.filter(timeline_days__lte=14)
+        elif experience == "intermediate":
+            queryset = queryset.filter(timeline_days__gt=14, timeline_days__lte=45)
+        elif experience == "expert":
+            queryset = queryset.filter(timeline_days__gt=45)
+
         return queryset
 
     def get_permissions(self):

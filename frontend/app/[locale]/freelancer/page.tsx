@@ -295,73 +295,73 @@ export default function FreelancerDashboardPage() {
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
       <section aria-label="Freelancer dashboard" className="pb-24 xl:pb-10">
         <div className="grid gap-0 xl:grid-cols-[256px_minmax(0,1fr)]">
-          <aside className="hidden xl:flex xl:h-screen xl:flex-col xl:space-y-2 xl:bg-[#eceef0] xl:px-4 xl:py-6">
+          <aside className="hidden xl:flex xl:h-screen xl:flex-col xl:space-y-2 xl:bg-surface-container-low xl:px-4 xl:py-6">
             <div className="mb-10 px-4">
-              <span className="text-lg font-black text-[#031636]">ITZuun</span>
+              <span className="text-xl font-black text-primary font-headline tracking-tight">ITZuun</span>
             </div>
             <div className="mb-8 flex items-center space-x-3 px-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e0e3e5] text-xs font-bold text-[#031636]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-fixed text-xs font-bold text-primary shadow-sm">
                 {freelancerName.slice(0, 1).toUpperCase()}
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Сайн байна уу?</p>
-                <p className="text-sm font-bold text-[#031636]">{freelancerName}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-surface-500 font-headline">Сайн байна уу?</p>
+                <p className="text-sm font-bold text-on-surface font-headline">{freelancerName}</p>
               </div>
             </div>
             <nav className="flex-1 space-y-1">
-              <Link href={withLocale("/freelancer")} className="flex scale-95 items-center space-x-3 rounded-lg bg-white px-4 py-3 font-bold text-[#031636] shadow-[0_4px_12px_rgba(3,22,54,0.04)]">
+              <Link href={withLocale("/freelancer")} className="flex items-center space-x-3 rounded-lg bg-surface-container-lowest px-4 py-3 font-bold text-primary shadow-sm hover:shadow-ambient transition-all">
                 <DashboardIcon name="dashboard" className="h-5 w-5" />
-                <span className="text-sm">Хянах самбар</span>
+                <span className="text-sm font-headline">Хянах самбар</span>
               </Link>
-              <Link href={withLocale("/freelancer/proposals")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition-all hover:translate-x-1 hover:bg-white/50">
+              <Link href={withLocale("/freelancer/proposals")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
                 <DashboardIcon name="work" className="h-5 w-5" />
-                <span className="text-sm">Миний төслүүд</span>
+                <span className="text-sm font-headline">Миний төслүүд</span>
               </Link>
-              <Link href={withLocale("/projects")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition-all hover:translate-x-1 hover:bg-white/50">
+              <Link href={withLocale("/projects")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
                 <DashboardIcon name="search" className="h-5 w-5" />
-                <span className="text-sm">Ажил хайх</span>
+                <span className="text-sm font-headline">Ажил хайх</span>
               </Link>
-              <Link href={withLocale("/notifications")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition-all hover:translate-x-1 hover:bg-white/50">
+              <Link href={withLocale("/notifications")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
                 <DashboardIcon name="payments" className="h-5 w-5" />
-                <span className="text-sm">Санхүү</span>
+                <span className="text-sm font-headline">Санхүү</span>
               </Link>
-              <Link href={withLocale("/freelancer/profile")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition-all hover:translate-x-1 hover:bg-white/50">
+              <Link href={withLocale("/freelancer/profile")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
                 <DashboardIcon name="settings" className="h-5 w-5" />
-                <span className="text-sm">Тохиргоо</span>
+                <span className="text-sm font-headline">Тохиргоо</span>
               </Link>
             </nav>
-            <div className="border-t border-slate-200 pt-4">
-              <Link href={withLocale("/support")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-slate-600 transition-all hover:translate-x-1 hover:bg-white/50">
+            <div className="border-t border-outline-variant/10 pt-4">
+              <Link href={withLocale("/support")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-500 transition-all hover:translate-x-1">
                 <DashboardIcon name="help" className="h-5 w-5" />
-                <span className="text-sm">Тусламж</span>
+                <span className="text-sm font-headline">Тусламж</span>
               </Link>
               <div className="mt-4 px-4">
-                <Link href={withLocale("/projects")} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#031636] px-4 text-sm font-semibold text-white shadow-lg shadow-[#031636]/20">
+                <Link href={withLocale("/projects")} className="flex min-h-12 w-full items-center justify-center rounded-xl primary-gradient px-4 text-sm font-bold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">
                   Төсөл эхлүүлэх
                 </Link>
               </div>
             </div>
           </aside>
 
-          <main className="min-w-0 bg-[#f7f9fb]">
-            <header className="sticky top-0 z-10 flex h-auto flex-col justify-between gap-4 bg-[#f7f9fb] px-4 py-4 md:flex-row md:items-center md:px-8 xl:h-16">
+          <main className="min-w-0 bg-surface">
+            <header className="sticky top-0 z-10 flex h-auto flex-col justify-between gap-4 bg-surface/80 px-4 py-4 backdrop-blur-md md:flex-row md:items-center md:px-8 xl:h-16">
               <div className="flex max-w-xl flex-1 items-center">
                 <div className="relative w-full">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400">
                     <DashboardIcon name="search" className="h-4 w-4" />
                   </span>
-                  <input className="w-full rounded-full border-none bg-[#eceef0] py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#13696a]/20" placeholder="Ажил хайх..." type="text" />
+                  <input className="w-full rounded-full border-none bg-surface-container-low py-2 pl-10 pr-4 text-sm text-on-surface focus:ring-0 focus:bg-surface-container-lowest focus:shadow-ambient transition-all" placeholder="Ажил хайх..." type="text" />
                 </div>
               </div>
               <div className="ml-0 flex items-center space-x-6 md:ml-8">
                 <div className="hidden space-x-6 lg:flex">
-                  <Link href={withLocale("/projects")} className="border-b-2 border-[#13696a] pb-1 text-sm font-medium text-[#031636]">Ажил хайх</Link>
-                  <Link href={withLocale("/freelancer/proposals")} className="text-sm font-medium text-slate-500 transition-colors hover:text-[#13696a]">Миний төслүүд</Link>
+                  <Link href={withLocale("/projects")} className="border-b-2 border-secondary pb-1 text-sm font-bold text-primary font-headline">Ажил хайх</Link>
+                  <Link href={withLocale("/freelancer/proposals")} className="text-sm font-medium text-surface-500 transition-colors hover:text-secondary font-headline">Миний төслүүд</Link>
                 </div>
-                <div className="flex items-center space-x-4 border-l border-slate-200 pl-6">
-                  <button className="relative text-slate-600 transition-colors hover:text-[#031636]"><DashboardIcon name="notifications" className="h-5 w-5" /><span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-[#f7f9fb] bg-red-500" /></button>
-                  <button className="text-slate-600 transition-colors hover:text-[#031636]"><DashboardIcon name="chat" className="h-5 w-5" /></button>
-                  <button className="text-slate-600 transition-colors hover:text-[#031636]"><DashboardIcon name="wallet" className="h-5 w-5" /></button>
+                <div className="flex items-center space-x-4 border-l border-outline-variant/30 pl-6">
+                  <button className="relative text-surface-500 transition-colors hover:text-primary"><DashboardIcon name="notifications" className="h-5 w-5" /><span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-surface bg-red-500" /></button>
+                  <button className="text-surface-500 transition-colors hover:text-primary"><DashboardIcon name="chat" className="h-5 w-5" /></button>
+                  <button className="text-surface-500 transition-colors hover:text-primary"><DashboardIcon name="wallet" className="h-5 w-5" /></button>
                 </div>
               </div>
             </header>
@@ -380,77 +380,73 @@ export default function FreelancerDashboardPage() {
               </section>
 
               <section className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-                <div className="rounded-xl border-b-4 border-[#031636] bg-white p-6 shadow-[0_4px_20px_rgba(3,22,54,0.03)]">
-                  <div className="mb-4 flex items-start justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Нийт орлого</span>
-                    <DashboardIcon name="payments" className="h-5 w-5 text-[#031636]/40" />
+                <div className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient">
+                  <div className="mb-6 flex items-start justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 font-headline">Нийт орлого</span>
+                    <div className="rounded-xl bg-surface-container-low p-2 text-primary">
+                      <DashboardIcon name="payments" className="h-5 w-5 opacity-40" />
+                    </div>
                   </div>
-                  <span className="text-3xl font-extrabold text-[#031636]">{formatMnt(earnings)}</span>
-                  <p className="mt-2 flex items-center text-[10px] font-bold text-[#13696a]"><DashboardIcon name="trend" className="mr-1 h-3 w-3" /> +12% Өмнөх сараас</p>
+                  <span className="text-4xl font-extrabold text-on-surface font-headline tracking-tight">{formatMnt(earnings)}</span>
+                  <p className="mt-4 flex items-center text-[11px] font-bold text-secondary font-headline"><DashboardIcon name="trend" className="mr-1.5 h-3.5 w-3.5" /> +12% Өмнөх сараас</p>
                 </div>
-                <div className="rounded-xl border-b-4 border-[#13696a] bg-white p-6 shadow-[0_4px_20px_rgba(3,22,54,0.03)]">
-                  <div className="mb-4 flex items-start justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Хүлээгдэж буй төлбөр</span>
-                    <DashboardIcon name="hourglass" className="h-5 w-5 text-[#13696a]/40" />
-                  </div>
-                  <span className="text-3xl font-extrabold text-[#031636]">{formatMnt(pendingPayout)}</span>
-                  <p className="mt-2 text-[10px] font-medium text-slate-400">{activeProjects.length} төслийн санхүүжилт</p>
-                </div>
-                <div className="rounded-xl border-b-4 border-[#c5c6cf] bg-white p-6 shadow-[0_4px_20px_rgba(3,22,54,0.03)]">
-                  <div className="mb-4 flex items-start justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Боломжтой үлдэгдэл</span>
-                    <DashboardIcon name="bank" className="h-5 w-5 text-[#031636]/40" />
-                  </div>
-                  <span className="text-3xl font-extrabold text-[#031636]">{formatMnt(availableBalance)}</span>
-                  <button className="mt-4 w-full rounded-lg bg-[#13696a]/10 py-2 text-xs font-bold text-[#13696a] transition-all hover:bg-[#13696a]/20">Татан авах</button>
-                </div>
-              </section>
 
-              <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
-                <div className="space-y-8">
-                  <div className="overflow-hidden rounded-2xl bg-white shadow-[0_4px_30px_rgba(3,22,54,0.02)]">
-                    <div className="flex items-center justify-between border-b border-[#eceef0] p-6">
-                      <h2 className="text-lg font-extrabold text-[#031636]">Идэвхтэй төслүүд</h2>
-                      <button type="button" onClick={() => setActiveFilter("all")} className="text-xs font-bold text-[#13696a] hover:underline">Бүгдийг үзэх</button>
+                <div className="primary-gradient rounded-3xl p-8 text-white shadow-ambient transition-all hover:-translate-y-1">
+                  <div className="mb-6 flex items-start justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/60 font-headline">Хүлээгдэж буй</span>
+                    <div className="rounded-xl bg-white/10 p-2">
+                      <DashboardIcon name="hourglass" className="h-5 w-5 opacity-60" />
+                    </div>
+                  </div>
+                  <span className="text-4xl font-extrabold text-white font-headline tracking-tight">{formatMnt(pendingPayout)}</span>
+                  <p className="mt-4 text-[11px] font-bold text-white/50 font-headline tracking-wide uppercase">{activeProjects.length} төслийн санхүүжилт</p>
+                </div>
+
+                <div className="rounded-3xl bg-surface-container-low p-8 transition-all hover:bg-surface-container-lowest hover:shadow-ambient">
+                  <div className="mb-6 flex items-start justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 font-headline">Ү                  <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
+                    <div className="flex items-center justify-between border-b border-outline-variant/10 p-8">
+                      <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">Идэвхтэй төслүүд</h2>
+                      <button type="button" onClick={() => setActiveFilter("all")} className="text-[11px] font-bold uppercase tracking-widest text-secondary hover:underline font-headline">Бүгдийг үзэх</button>
                     </div>
                     {!filteredActiveProjects.length ? (
-                      <div className="p-6">
+                      <div className="p-8">
                         <EmptyState
                           label={activeFilter === "all" ? t("noActive") : "Энэ төлөвт идэвхтэй ажил алга."}
-                          action={<Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 text-[13px] font-semibold text-white">{t("browseProjects")}</Link>}
+                          action={<Link href={withLocale("/projects")} className="inline-flex min-h-12 items-center rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient">{t("browseProjects")}</Link>}
                         />
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                          <thead className="bg-[#e6e8ea]">
+                          <thead className="bg-surface-container-low/50">
                             <tr>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#031636]">Төслийн нэр</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#031636]">Захиалагч</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#031636]">Дуусах хугацаа</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#031636]">Явц</th>
-                              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#031636]">Төлөв</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Төслийн нэр</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Захиалагч</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Дуусах хугацаа</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Явц</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Төлөв</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#f2f4f6]">
+                          <tbody className="divide-y divide-outline-variant/5">
                             {filteredActiveProjects.map((project) => {
                               const meta = projectStatusMeta(project.status);
                               const progress = project.status === "awaiting_client_review" ? 100 : project.status === "in_progress" ? 75 : 30;
                               return (
-                                <tr key={project.id} className="transition-colors hover:bg-[#f2f4f6]/30">
-                                  <td className="px-6 py-5">
-                                    <p className="text-sm font-bold text-[#031636]">{project.title}</p>
-                                    <p className="text-[10px] text-slate-400">{project.category || "General project"}</p>
+                                <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30">
+                                  <td className="px-8 py-6">
+                                    <p className="text-sm font-bold text-on-surface font-headline">{project.title}</p>
+                                    <p className="text-[11px] font-bold text-surface-400 font-headline mt-0.5">{project.category || "General project"}</p>
                                   </td>
-                                  <td className="px-6 py-5 text-sm font-medium text-[#191c1e]">Client #{project.owner}</td>
-                                  <td className="px-6 py-5 text-sm text-slate-500">{project.timeline_days ? `${project.timeline_days} хоног` : "Тодорхойгүй"}</td>
-                                  <td className="px-6 py-5">
-                                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-[#e0e3e5]">
-                                      <div className="h-full bg-gradient-to-r from-[#031636] to-[#13696a]" style={{ width: `${progress}%` }} />
+                                  <td className="px-8 py-6 text-sm font-bold text-on-surface font-headline italic opacity-80">Client #{project.owner}</td>
+                                  <td className="px-8 py-6 text-sm text-surface-500 font-medium">{project.timeline_days ? `${project.timeline_days} хоног` : "Тодорхойгүй"}</td>
+                                  <td className="px-8 py-6">
+                                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-container-low">
+                                      <div className="h-full primary-gradient" style={{ width: `${progress}%` }} />
                                     </div>
-                                    <span className="mt-1 block text-[10px] font-bold text-[#031636]">{progress}%</span>
+                                    <span className="mt-1.5 block text-[10px] font-bold text-primary font-headline uppercase tracking-widest">{progress}% САНАЛ</span>
                                   </td>
-                                  <td className="px-6 py-5">
+                                  <td className="px-8 py-6">
                                     <StatusPill label={meta.label} tone={meta.tone} />
                                   </td>
                                 </tr>
@@ -463,27 +459,27 @@ export default function FreelancerDashboardPage() {
                   </div>
 
                   <div>
-                    <div className="mb-6 flex items-center justify-between">
-                      <h2 className="text-lg font-extrabold text-[#031636]">Танд тохирох шинэ төслүүд</h2>
-                      <Link href={withLocale("/projects")} className="rounded-lg bg-[#031636] px-5 py-2 text-xs font-bold text-white shadow-md transition-all hover:scale-105">Ажил хайх</Link>
+                    <div className="mb-8 flex items-center justify-between">
+                      <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">Танд тохирох шинэ төслүүд</h2>
+                      <Link href={withLocale("/projects")} className="rounded-xl bg-primary px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">Ажил хайх</Link>
                     </div>
                     {filteredRecommendations.length ? (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {filteredRecommendations.map((proposal, index) => {
                           const project = projectById.get(Number(proposal.project));
                           return (
-                            <div key={proposal.id} className="group rounded-xl border border-transparent bg-white p-5 transition-all hover:border-[#13696a]/20">
-                              <div className="mb-3 flex items-start justify-between">
-                                <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${index === 0 ? "bg-[#13696a]/10 text-[#13696a]" : "bg-[#1a2b4c] text-[#d8e2ff]"}`}>
+                            <div key={proposal.id} className="group rounded-3xl bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-ambient">
+                              <div className="mb-4 flex items-start justify-between">
+                                <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-headline ${index === 0 ? "bg-secondary text-white" : "bg-primary-fixed text-primary"}`}>
                                   {index === 0 ? "High Budget" : "Urgent"}
                                 </span>
-                                <span className="text-[10px] text-slate-400">{proposalAgeLabel(proposal.created_at)}</span>
+                                <span className="text-[10px] font-bold text-surface-400 font-headline uppercase tracking-widest">{proposalAgeLabel(proposal.created_at)}</span>
                               </div>
-                              <h3 className="mb-2 font-bold text-[#031636] transition-colors group-hover:text-[#13696a]">{project?.title || `Төсөл #${proposal.project}`}</h3>
-                              <p className="mb-4 line-clamp-2 text-xs leading-relaxed text-[#44474e]">{project?.description || proposal.message || "Саналд тохирох төсөл."}</p>
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-extrabold text-[#031636]">{formatMnt(Number(proposal.price || 0))}</span>
-                                <button type="button" className="text-slate-400 hover:text-[#031636]" onClick={() => openEditModal(proposal)}>✎</button>
+                              <h3 className="mb-3 text-lg font-bold text-on-surface transition-colors group-hover:text-primary font-headline">{project?.title || `Төсөл #${proposal.project}`}</h3>
+                              <p className="mb-6 line-clamp-2 text-xs leading-relaxed text-surface-500">{project?.description || proposal.message || "Саналд тохирох төсөл."}</p>
+                              <div className="flex items-center justify-between border-t border-outline-variant/10 pt-4">
+                                <span className="text-lg font-black text-primary font-headline tracking-tighter">{formatMnt(Number(proposal.price || 0))}</span>
+                                <button type="button" className="text-surface-400 hover:text-primary transition-colors transition-transform hover:scale-110" onClick={() => openEditModal(proposal)}>✎</button>
                               </div>
                             </div>
                           );
@@ -492,50 +488,51 @@ export default function FreelancerDashboardPage() {
                     ) : (
                       <EmptyState
                         label={t("noProposals")}
-                        action={<Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 text-[13px] font-semibold text-white">{t("browseProjects")}</Link>}
+                        action={<Link href={withLocale("/projects")} className="inline-flex min-h-12 items-center rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient">{t("browseProjects")}</Link>}
                       />
                     )}
                   </div>
                 </div>
 
-                <aside className="space-y-6">
-                  <div className="relative overflow-hidden rounded-2xl border-t-8 border-[#031636] bg-white p-6 shadow-[0_4px_30px_rgba(3,22,54,0.03)]">
-                    <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-[#031636]/5 blur-2xl" />
-                    <h2 className="mb-6 text-sm font-extrabold text-[#031636]">Профайлын гүйцэтгэл</h2>
-                    <div className="relative mx-auto mb-6 h-32 w-32">
+                  <aside className="space-y-6">
+                  <div className="relative overflow-hidden rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient">
+                    <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
+                    <h2 className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-surface-500 font-headline">Профайлын гүйцэтгэл</h2>
+                    <div className="relative mx-auto mb-8 h-40 w-40">
                       <svg className="h-full w-full -rotate-90">
-                        <circle className="text-[#eceef0]" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" strokeWidth="8" />
+                        <circle className="text-surface-container-low" cx="80" cy="80" fill="transparent" r="74" stroke="currentColor" strokeWidth="10" />
                         <circle
-                          className="text-[#13696a]"
-                          cx="64"
-                          cy="64"
+                          className="text-secondary"
+                          cx="80"
+                          cy="80"
                           fill="transparent"
-                          r="58"
+                          r="74"
                           stroke="currentColor"
-                          strokeWidth="8"
-                          strokeDasharray="364.4"
-                          strokeDashoffset={364.4 - (364.4 * profileCompleteness) / 100}
+                          strokeWidth="10"
+                          strokeLinecap="round"
+                          strokeDasharray="464.9"
+                          strokeDashoffset={464.9 - (464.9 * profileCompleteness) / 100}
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-black text-[#031636]">{profileCompleteness}%</span>
-                        <span className="text-[8px] font-bold uppercase text-slate-400">Дууссан</span>
+                        <span className="text-3xl font-black text-primary font-headline">{profileCompleteness}%</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-surface-400 font-headline mt-1">Дууссан</span>
                       </div>
                     </div>
-                    <ul className="mb-6 space-y-3">
-                      <li className="flex items-center text-xs font-medium text-[#44474e]"><span className="mr-2 text-sm text-green-500">●</span> Портфолио нэмсэн</li>
-                      <li className="flex items-center text-xs font-medium text-[#44474e]"><span className="mr-2 text-sm text-green-500">●</span> И-мэйл баталгаажсан</li>
-                      <li className="flex items-center text-xs font-medium text-slate-400"><span className="mr-2 text-sm text-slate-300">○</span> Утас баталгаажуулах</li>
+                    <ul className="mb-8 space-y-4">
+                      <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> Портфолио нэмсэн</li>
+                      <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> И-мэйл баталгаажсан</li>
+                      <li className="flex items-center text-[13px] font-medium text-surface-400 font-headline italic opacity-60"><span className="mr-3 text-surface-container">○</span> Утас баталгаажуулах</li>
                     </ul>
-                    <div className="flex items-center justify-between rounded-xl bg-[#f7f9fb] p-4">
+                    <div className="flex items-center justify-between rounded-2xl bg-surface-container-low p-6">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-tighter text-slate-500">Үнэлгээ</p>
-                        <div className="mt-1 flex items-center">
-                          <span className="mr-2 text-lg font-black text-[#031636]">{(rating.data?.average ?? 0).toFixed(1)}</span>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-surface-500 font-headline">Үнэлгээ</p>
+                        <div className="mt-2 flex items-center">
+                          <span className="mr-3 text-2xl font-black text-primary font-headline">{(rating.data?.average ?? 0).toFixed(1)}</span>
                           <RatingStars value={rating.data?.average ?? 0} />
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400">{rating.data?.total ?? 0} сэтгэгдэл</span>
+                      <span className="text-[10px] font-bold text-surface-400 font-headline uppercase tracking-widest">{rating.data?.total ?? 0} сэтгэгдэл</span>
                     </div>
                   </div>
 

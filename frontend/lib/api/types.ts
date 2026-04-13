@@ -39,6 +39,7 @@ export interface ProjectDto {
   timeline_days: number;
   category: string;
   category_obj?: CategoryDto | null;
+  required_skills?: string[];
   status: string;
   selected_proposal?: number | null;
   [key: string]: unknown;

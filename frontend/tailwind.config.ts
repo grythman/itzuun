@@ -9,6 +9,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        primary: {
+          DEFAULT: "#031636",
+          container: "#1a2b4c",
+          fixed: "#d8e2ff",
+        },
+        secondary: {
+          DEFAULT: "#13696a",
+        },
+        surface: {
+          DEFAULT: "#f7f9fb",
+          variant: "#e1e3e5",
+          container: {
+            lowest: "#ffffff",
+            low: "#eceef0",
+            DEFAULT: "#e3e5e8",
+            high: "#d7d9dd",
+            highest: "#ceced2",
+          },
+        },
+        "on-surface": "#191c1e",
+        "outline-variant": "#c5c6cf",
+        
         brand: {
           50: "#f3f0ff",
           100: "#e6deff",
@@ -21,19 +43,6 @@ const config: Config = {
           800: "#311480",
           900: "#240d5f",
           950: "#1c0062",
-        },
-        surface: {
-          0: "#ffffff",
-          50: "#f8f9ff",
-          100: "#f2f3f9",
-          200: "#eceef3",
-          300: "#e1e2e8",
-          400: "#c9c4d7",
-          500: "#797586",
-          600: "#5d617d",
-          700: "#484554",
-          800: "#2e3135",
-          900: "#191c20",
         },
         accent: {
           50: "#eaf7ff",
@@ -58,6 +67,7 @@ const config: Config = {
         body: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       boxShadow: {
+        ambient: "0 20px 50px rgba(3, 22, 54, 0.06)",
         card: "0 10px 30px -24px rgb(25 28 32 / 0.22)",
         "card-hover": "0 20px 40px -26px rgb(25 28 32 / 0.28)",
         modal: "0 30px 70px -30px rgb(25 28 32 / 0.35)",
@@ -66,6 +76,9 @@ const config: Config = {
       borderRadius: {
         "2.5xl": "1.25rem",
       },
+      backgroundImage: {
+        'primary-gradient': 'linear-gradient(135deg, #031636 0%, #1a2b4c 100%)',
+      }
     },
   },
   plugins: [],

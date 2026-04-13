@@ -220,18 +220,18 @@ export default function NewProjectPage() {
   }
 
   return (
-    <section className="min-h-screen bg-[#f7f9fb] text-[#191c1e]">
-      <header className="sticky top-0 z-40 border-b border-slate-200/50 bg-white/80 backdrop-blur-md">
+    <section className="min-h-screen bg-surface text-on-surface">
+      <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-[1680px] items-center justify-between px-4 md:px-8 2xl:px-10">
-          <div className="text-xl font-black tracking-tight text-[#031636]">ITZuun</div>
+          <div className="text-xl font-black tracking-tighter text-primary font-headline italic">ITZuun</div>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={saveDraft} className="hidden rounded-xl px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 md:inline-flex">
+            <button type="button" onClick={saveDraft} className="hidden rounded-xl px-4 py-2 text-sm font-bold text-surface-500 transition-all hover:bg-surface-container-lowest md:inline-flex font-headline">
               Save as Draft
             </button>
             <button
               type="button"
               onClick={form.handleSubmit((values) => mutation.mutate(values))}
-              className="rounded-xl bg-[#031636] px-5 py-2.5 text-sm font-bold text-[#d8e2ff] shadow-[0_12px_24px_rgba(3,22,54,0.18)] transition-all active:scale-95"
+              className="rounded-xl primary-gradient px-6 py-2.5 text-sm font-bold text-primary-fixed shadow-ambient transition-all active:scale-95 font-headline"
               disabled={mutation.isPending}
             >
               {mutation.isPending ? t("saving") : t("publish")}
@@ -241,15 +241,15 @@ export default function NewProjectPage() {
       </header>
 
       <div className="mx-auto flex w-full max-w-[1680px]">
-        <aside className="sticky top-16 hidden h-[calc(100vh-64px)] w-72 flex-col bg-[#eceef0] px-6 py-8 xl:flex 2xl:w-80 2xl:px-8">
+        <aside className="sticky top-16 hidden h-[calc(100vh-64px)] w-72 flex-col bg-surface-container-low px-6 py-8 xl:flex 2xl:w-80 2xl:px-8">
           <div className="mb-10">
             <div className="mb-2 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
-                <DashboardIcon name={currentStep.icon} className="h-5 w-5 text-[#031636]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest shadow-sm">
+                <DashboardIcon name={currentStep.icon} className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-black leading-none text-[#031636]">New Project</h2>
-                <p className="text-[14px] text-slate-500">Step {step + 1} of {steps.length}</p>
+                <h2 className="text-lg font-black leading-none text-primary font-headline">New Project</h2>
+                <p className="text-[14px] font-bold text-surface-400 font-headline uppercase tracking-widest mt-1.5 leading-none">Step {step + 1} / {steps.length}</p>
               </div>
             </div>
           </div>
@@ -265,11 +265,11 @@ export default function NewProjectPage() {
                   onClick={() => setStep(index)}
                   className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-all ${
                     active
-                      ? "bg-white font-bold text-[#031636] shadow-[0_12px_28px_rgba(3,22,54,0.08)]"
-                      : "text-slate-500 hover:translate-x-1 hover:text-[#031636]"
+                      ? "bg-surface-container-lowest font-bold text-primary shadow-sm"
+                      : "text-surface-500 hover:translate-x-1 hover:text-primary"
                   }`}
                 >
-                  <DashboardIcon name={item.icon} className={`h-5 w-5 ${done ? "text-[#13696a]" : active ? "text-[#031636]" : "text-slate-400"}`} />
+                  <DashboardIcon name={item.icon} className={`h-5 w-5 ${done ? "text-secondary" : active ? "text-primary" : "text-surface-300"}`} />
                   <span className="font-headline text-sm tracking-tight">{item.title}</span>
                 </button>
               );
@@ -277,16 +277,17 @@ export default function NewProjectPage() {
           </nav>
 
           <div className="mt-auto space-y-4">
-            <div className="rounded-2xl bg-[#1a2b4c] p-5 text-white">
-              <div className="flex items-center gap-3">
-                <DashboardIcon name="support" className="h-6 w-6 text-[#a5eff0]" />
+            <div className="relative overflow-hidden rounded-2xl bg-primary-fixed p-6 text-primary shadow-sm">
+              <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/5 blur-2xl" />
+              <div className="flex items-start gap-4">
+                <DashboardIcon name="support" className="mt-1 h-5 w-5 opacity-40" />
                 <div>
-                  <p className="text-sm font-bold">Need Help?</p>
-                  <p className="mt-1 text-xs text-[#c7d2e6]">Төсвөө зөв тодорхойлох, scope-оо цэгцлэхэд тусална.</p>
+                  <p className="text-sm font-bold font-headline">Need Help?</p>
+                  <p className="mt-2 text-[11px] font-medium leading-relaxed opacity-70">Төсвөө зөв тодорхойлох, scope-оо цэгцлэхэд тусална.</p>
                 </div>
               </div>
             </div>
-            <button type="button" onClick={saveDraft} className="w-full rounded-xl bg-[#e0e3e5] py-3 font-bold text-[#031636] transition-colors hover:bg-[#d8dadc]">
+            <button type="button" onClick={saveDraft} className="w-full rounded-xl bg-surface-container-lowest py-3.5 text-sm font-extrabold text-primary shadow-sm hover:shadow-ambient transition-all font-headline">
               Save Draft
             </button>
           </div>
@@ -295,37 +296,39 @@ export default function NewProjectPage() {
         <main className="min-w-0 flex-1 px-4 py-8 md:px-10 lg:px-16 xl:px-20 2xl:px-24">
           <div className="mx-auto w-full max-w-[1040px] 2xl:max-w-[1120px]">
             <div className="mb-12">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="font-headline text-sm font-bold uppercase tracking-[0.2em] text-[#031636]">Алхам {step + 1} / 4</span>
-                <span className="text-sm text-slate-500">{currentStep.subtitle}</span>
+            <div className="mb-14">
+              <div className="mb-5 flex items-center justify-between">
+                <span className="font-headline text-[11px] font-bold uppercase tracking-[0.25em] text-primary">Алхам {step + 1} / {steps.length}</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline">{currentStep.subtitle}</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#eceef0]">
-                <div className="h-full rounded-full bg-gradient-to-r from-[#031636] to-[#13696a]" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
+              <div className="h-1.5 overflow-hidden rounded-full bg-surface-container-low">
+                <div className="h-full rounded-full primary-gradient transition-all duration-500 ease-out shadow-sm" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
               </div>
+            </div>
             </div>
 
             <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className="space-y-10">
               {step === 0 ? (
                 <>
-                  <header className="max-w-2xl">
-                    <h1 className="mb-4 font-headline text-4xl font-extrabold tracking-tight text-[#031636]">Төслийн үндсэн мэдээлэл</h1>
-                    <p className="max-w-lg text-[#44474e]">Төслийнхөө талаарх эхний мэдээллийг оруулна уу. Энэ нь танд тохирох мэргэжилтнүүдийг олоход тусална.</p>
+                  <header className="max-w-4xl mb-12">
+                    <h1 className="mb-6 font-headline text-5xl font-extrabold tracking-tighter text-primary leading-tight">Төслийн үндсэн мэдээлэл</h1>
+                    <p className="max-w-2xl text-lg font-medium leading-relaxed text-surface-500">Төслийнхөө талаарх эхний мэдээллийг оруулна уу. Энэ нь танд тохирох мэргэжилтнүүдийг олоход тусална.</p>
                   </header>
 
-                  <div className="space-y-8">
-                    <div className="space-y-3">
-                      <label className="block text-sm font-bold text-[#031636]">Төслийн нэр</label>
+                  <div className="space-y-10">
+                    <div className="space-y-4">
+                      <label className="block text-sm font-bold uppercase tracking-widest text-primary font-headline">Төслийн нэр</label>
                       <input
                         {...form.register("title")}
-                        className="w-full rounded-xl border-0 bg-white px-5 py-4 text-[#191c1e] shadow-sm ring-1 ring-transparent transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-[#031636]"
+                        className="w-full rounded-2xl border-none bg-surface-container-low px-6 py-5 text-lg font-bold text-on-surface transition-all placeholder:text-surface-400 focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0"
                         placeholder="Жишээ нь: Шинэ аппликейшн хөгжүүлэх"
                       />
-                      {form.formState.errors.title ? <p className="text-xs text-red-600">{form.formState.errors.title.message}</p> : <p className="text-xs text-slate-500">Төслийн зорилгыг тодорхой илэрхийлсэн богино нэр өгнө үү.</p>}
+                      {form.formState.errors.title ? <p className="text-xs text-red-600">{form.formState.errors.title.message}</p> : <p className="text-[11px] font-medium text-surface-400 uppercase tracking-widest font-headline">Төслийн зорилгыг тодорхой илэрхийлсэн богино нэр өгнө үү.</p>}
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="block text-sm font-bold text-[#031636]">Ангилал</label>
-                      <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-4">
+                      <label className="block text-sm font-bold uppercase tracking-widest text-primary font-headline">Ангилал</label>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {categoryOptions.slice(0, 6).map((category) => {
                           const title = locale === "en" ? category.name_en || category.name_mn || category.name : category.name_mn || category.name_en || category.name;
                           const selected = String(form.watch("category_id") || "") === String(category.id);
@@ -334,9 +337,10 @@ export default function NewProjectPage() {
                               key={category.id}
                               type="button"
                               onClick={() => setCategory(String(category.id))}
-                              className={`rounded-2xl border-2 p-5 text-left shadow-sm transition-all ${selected ? "border-[#13696a] bg-white text-[#031636]" : "border-transparent bg-white/70 text-slate-600 hover:bg-white"}`}
+                              className={`group relative overflow-hidden rounded-2xl p-6 text-left transition-all ${selected ? "bg-primary-fixed text-primary shadow-sm" : "bg-surface-container-low text-surface-500 hover:bg-surface-container-lowest hover:shadow-ambient"}`}
                             >
-                              <p className="font-semibold">{title}</p>
+                              {selected && <div className="absolute right-0 top-0 h-12 w-12 bg-primary/10 blur-2xl" />}
+                              <p className="font-headline text-sm font-bold tracking-tight">{title}</p>
                             </button>
                           );
                         })}
@@ -345,7 +349,7 @@ export default function NewProjectPage() {
                         <select
                           {...form.register("category_id")}
                           onChange={(event) => setCategory(event.target.value)}
-                          className="w-full appearance-none rounded-xl border-0 bg-white px-5 py-4 shadow-sm ring-1 ring-transparent focus:ring-2 focus:ring-[#031636]"
+                          className="w-full appearance-none rounded-2xl border-none bg-surface-container-low px-6 py-5 text-sm font-bold text-primary transition-all focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0"
                         >
                           <option value="">Ангилал сонгох</option>
                           {categoryOptions.map((category) => {
@@ -357,36 +361,38 @@ export default function NewProjectPage() {
                             );
                           })}
                         </select>
-                        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <span className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 text-primary opacity-40">
                           <DashboardIcon name="expand" className="h-5 w-5" />
                         </span>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <label className="block text-sm font-bold text-[#031636]">Төслийн төрөл</label>
-                      <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block text-sm font-bold uppercase tracking-widest text-primary font-headline">Төслийн төрөл</label>
+                      <div className="grid gap-6 sm:grid-cols-2">
                         <button
                           type="button"
                           onClick={() => setProjectType("fixed")}
-                          className={`rounded-2xl border-2 p-6 text-left shadow-sm transition-all ${projectType === "fixed" ? "border-[#13696a] bg-white shadow-[0_10px_24px_rgba(3,22,54,0.08)]" : "border-transparent bg-white/70 hover:bg-white"}`}
+                          className={`group relative overflow-hidden rounded-[2rem] p-8 text-left transition-all ${projectType === "fixed" ? "bg-surface-container-lowest shadow-ambient" : "bg-surface-container-low hover:bg-surface-container-lowest hover:shadow-ambient"}`}
                         >
-                          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#a2eded] text-[#13696a]">
-                            <DashboardIcon name="wallet" className="h-6 w-6" />
+                          <div className={`mb-8 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${projectType === "fixed" ? "bg-primary-fixed text-primary" : "bg-surface-container-lowest text-surface-300"}`}>
+                            <DashboardIcon name="wallet" className="h-7 w-7" />
                           </div>
-                          <p className="font-headline text-lg font-bold text-[#031636]">Тогтмол үнэ</p>
-                          <p className="mt-1 text-xs text-slate-500">Тодорхой төсөвт багтаан төслийг бүрэн дуусгах.</p>
+                          <p className="font-headline text-xl font-extrabold text-primary tracking-tight">Тогтмол үнэ</p>
+                          <p className="mt-2 text-sm leading-relaxed text-surface-500">Тодорхой төсөвт багтаан төслийг бүрэн дуусгах.</p>
+                          {projectType === "fixed" && <div className="absolute right-6 top-6 h-2 w-2 rounded-full bg-secondary" />}
                         </button>
                         <button
                           type="button"
                           onClick={() => setProjectType("hourly")}
-                          className={`rounded-2xl border-2 p-6 text-left shadow-sm transition-all ${projectType === "hourly" ? "border-[#13696a] bg-white shadow-[0_10px_24px_rgba(3,22,54,0.08)]" : "border-transparent bg-white/70 hover:bg-white"}`}
+                          className={`group relative overflow-hidden rounded-[2rem] p-8 text-left transition-all ${projectType === "hourly" ? "bg-surface-container-lowest shadow-ambient" : "bg-surface-container-low hover:bg-surface-container-lowest hover:shadow-ambient"}`}
                         >
-                          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#eceef0] text-slate-500">
-                            <DashboardIcon name="schedule" className="h-6 w-6" />
+                          <div className={`mb-8 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${projectType === "hourly" ? "bg-primary-fixed text-primary" : "bg-surface-container-lowest text-surface-300"}`}>
+                            <DashboardIcon name="schedule" className="h-7 w-7" />
                           </div>
-                          <p className="font-headline text-lg font-bold text-[#031636]">Цагийн хөлс</p>
-                          <p className="mt-1 text-xs text-slate-500">Ажилласан цагаар тооцож уян хатан төлөлт хийх.</p>
+                          <p className="font-headline text-xl font-extrabold text-primary tracking-tight">Цагийн хөлс</p>
+                          <p className="mt-2 text-sm leading-relaxed text-surface-500">Ажилласан цагаар тооцож уян хатан төлөлт хийх.</p>
+                          {projectType === "hourly" && <div className="absolute right-6 top-6 h-2 w-2 rounded-full bg-secondary" />}
                         </button>
                       </div>
                     </div>
@@ -396,72 +402,71 @@ export default function NewProjectPage() {
 
               {step === 1 ? (
                 <>
-                  <header className="max-w-3xl">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#a2eded]/30 px-3 py-1 text-[#13696a]">
-                      <span className="text-xs font-bold uppercase tracking-[0.18em]">Алхам 02</span>
+                  <header className="max-w-4xl mb-12">
+                    <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-secondary-fixed/30 px-4 py-1.5 text-secondary">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">Алхам 02</span>
                     </div>
-                    <h1 className="mb-4 font-headline text-4xl font-extrabold text-[#031636]">Төслийн дэлгэрэнгүй ба ур чадвар</h1>
-                    <p className="max-w-2xl text-[#44474e]">Төслийн зорилго, гүйцэтгэх ажил болон шаардлагатай ур чадваруудыг тодорхой оруулна уу.</p>
+                    <h1 className="mb-6 font-headline text-5xl font-extrabold tracking-tighter text-primary leading-tight">Төслийн дэлгэрэнгүй ба ур чадвар</h1>
+                    <p className="max-w-2xl text-lg font-medium leading-relaxed text-surface-500">Төслийн зорилго, гүйцэтгэх ажил болон шаардлагатай ур чадваруудыг тодорхой оруулна уу.</p>
                   </header>
 
                   <section className="space-y-10">
-                    <div>
-                      <label className="mb-4 flex items-center gap-2 text-lg font-bold text-[#031636]">
-                        Төслийн тайлбар
-                        <span className="text-red-600">*</span>
+                    <div className="space-y-4">
+                      <label className="mb-4 flex items-center justify-between text-sm font-bold uppercase tracking-widest text-primary font-headline">
+                        <span>Төслийн тайлбар <span className="text-red-600 ml-1">*</span></span>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-xl bg-primary-fixed px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-primary shadow-sm transition-all hover:bg-primary-fixed-dim hover:shadow-ambient"
+                          onClick={() => aiMutation.mutate()}
+                          disabled={aiMutation.isPending}
+                        >
+                          <DashboardIcon name="sparkle" className="h-4 w-4" />
+                          {aiMutation.isPending ? t("aiGenerating") : t("aiSuggest")}
+                        </button>
                       </label>
-                      <div className="rounded-xl bg-white p-1 shadow-[0_4px_20px_rgba(3,22,54,0.03)] transition-all focus-within:shadow-[0_20px_50px_rgba(3,22,54,0.06)]">
-                        <div className="flex items-center gap-2 overflow-x-auto border-b border-[#eceef0] px-4 py-2">
-                          <button type="button" className="rounded p-1.5 hover:bg-[#eceef0]"><strong>B</strong></button>
-                          <button type="button" className="rounded p-1.5 hover:bg-[#eceef0] italic">I</button>
-                          <button type="button" className="rounded p-1.5 hover:bg-[#eceef0]">• List</button>
-                          <button type="button" className="rounded p-1.5 hover:bg-[#eceef0]">Link</button>
-                          <button
-                            type="button"
-                            className="ml-auto inline-flex items-center gap-2 rounded-lg bg-[#eceef0] px-3 py-1.5 text-xs font-semibold text-[#031636]"
-                            onClick={() => aiMutation.mutate()}
-                            disabled={aiMutation.isPending}
-                          >
-                            <DashboardIcon name="sparkle" className="h-4 w-4" />
-                            {aiMutation.isPending ? t("aiGenerating") : t("aiSuggest")}
-                          </button>
+                      <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-low p-2 transition-all focus-within:bg-surface-container-lowest focus-within:shadow-ambient">
+                        <div className="flex items-center gap-2 overflow-x-auto border-b border-outline-variant/10 px-6 py-3">
+                          <button type="button" className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors"><strong>B</strong></button>
+                          <button type="button" className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors italic">I</button>
+                          <button type="button" className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors font-headline text-xs font-bold uppercase tracking-widest">• List</button>
+                          <button type="button" className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors font-headline text-xs font-bold uppercase tracking-widest">Link</button>
                         </div>
                         <textarea
                           {...form.register("description")}
                           rows={10}
-                          className="min-h-[280px] w-full resize-none border-0 bg-transparent p-6 text-[#191c1e] placeholder:text-slate-400 focus:ring-0"
+                          className="min-h-[320px] w-full resize-none border-none bg-transparent p-8 text-lg font-medium leading-relaxed text-on-surface placeholder:text-surface-400 focus:ring-0"
                           placeholder="Төслийнхөө талаар аль болох тодорхой бичнэ үү..."
                         />
                       </div>
-                      {form.formState.errors.description ? <p className="mt-2 text-xs text-red-600">{form.formState.errors.description.message}</p> : null}
+                      {form.formState.errors.description ? <p className="mt-2 text-xs text-red-600 font-headline font-bold">{form.formState.errors.description.message}</p> : null}
                     </div>
 
-                    <div>
-                      <label className="mb-4 block text-lg font-bold text-[#031636]">Шаардлагатай ур чадварууд</label>
-                      <div className="rounded-xl bg-white p-5 shadow-[0_4px_20px_rgba(3,22,54,0.03)]">
-                        <div className="mb-4 flex flex-wrap gap-2">
+                    <div className="space-y-4">
+                      <label className="block text-sm font-bold uppercase tracking-widest text-primary font-headline">Шаардлагатай ур чадварууд</label>
+                      <div className="rounded-[2.5rem] bg-surface-container-low p-8 transition-all focus-within:bg-surface-container-lowest focus-within:shadow-ambient">
+                        <div className="mb-6 flex flex-wrap gap-2.5">
                           {skills.map((skill) => (
-                            <span key={skill} className="inline-flex items-center gap-2 rounded-lg bg-[#1a2b4c] px-3 py-1.5 text-sm font-medium text-white">
+                            <span key={skill} className="inline-flex items-center gap-2.5 rounded-xl bg-primary-fixed px-4 py-2 text-xs font-extrabold uppercase tracking-widest text-primary font-headline">
                               {skill}
-                              <button type="button" onClick={() => setSkills((prev) => prev.filter((item) => item !== skill))} className="text-white/80 transition-colors hover:text-red-300">
-                                <DashboardIcon name="close" className="h-3.5 w-3.5" />
+                              <button type="button" onClick={() => setSkills((prev) => prev.filter((item) => item !== skill))} className="text-primary hover:text-red-500 transition-colors">
+                                <DashboardIcon name="close" className="h-4 w-4" />
                               </button>
                             </span>
                           ))}
                         </div>
-                        <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="flex flex-col gap-4 sm:flex-row">
                           <input
                             value={skillsInput}
                             onChange={(event) => setSkillsInput(event.target.value)}
                             onKeyDown={onSkillKeyDown}
                             placeholder="React, Node.js, UI/UX Design..."
-                            className="flex-1 rounded-xl border-0 bg-[#f2f4f6] px-4 py-3 shadow-sm ring-1 ring-transparent focus:ring-2 focus:ring-[#13696a]"
+                            className="flex-1 rounded-2xl border-none bg-surface-container-lowest px-6 py-4 text-sm font-bold text-on-surface ring-1 ring-outline-variant/10 focus:ring-2 focus:ring-primary/20"
                           />
-                          <button type="button" onClick={() => addSkill(skillsInput)} className="rounded-xl bg-[#031636] px-5 py-3 text-sm font-bold text-white">
+                          <button type="button" onClick={() => addSkill(skillsInput)} className="rounded-2xl bg-primary px-8 py-4 text-xs font-bold uppercase tracking-widest text-primary-fixed shadow-sm hover:opacity-90 transition-all">
                             Нэмэх
                           </button>
                         </div>
-                        <p className="mt-3 text-xs text-slate-500">Enter эсвэл таслал дарж skill нэмнэ.</p>
+                        <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-surface-400 font-headline">Enter эсвэл таслал дарж skill нэмнэ.</p>
                       </div>
                     </div>
                   </section>
@@ -470,51 +475,53 @@ export default function NewProjectPage() {
 
               {step === 2 ? (
                 <>
-                  <header className="mb-12 max-w-3xl">
-                    <h1 className="mb-3 font-headline text-4xl font-extrabold tracking-tight text-[#031636]">Төсөв болон хугацаа</h1>
-                    <p className="text-lg text-[#44474e]">Төслийнхөө санхүүжилт болон гүйцэтгэх хугацааг тодорхойлно уу.</p>
+                  <header className="max-w-4xl mb-12">
+                    <h1 className="mb-6 font-headline text-5xl font-extrabold tracking-tighter text-primary leading-tight">Төсөв болон хугацаа</h1>
+                    <p className="max-w-2xl text-lg font-medium leading-relaxed text-surface-500">Төслийнхөө санхүүжилт болон гүйцэтгэх хугацааг тодорхойлно уу.</p>
                   </header>
 
                   <div className="grid gap-8 md:grid-cols-12">
-                    <section className="flex flex-col gap-6 rounded-2xl bg-white p-8 shadow-[0_20px_50px_rgba(3,22,54,0.06)] md:col-span-8">
-                      <div className="flex items-center gap-3">
-                        <DashboardIcon name="wallet" className="h-6 w-6 text-[#13696a]" />
-                        <h3 className="font-headline text-xl font-bold">Төсвийн хэмжээ</h3>
+                    <section className="flex flex-col gap-8 rounded-[2.5rem] bg-surface-container-lowest p-10 shadow-sm md:col-span-8">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
+                          <DashboardIcon name="payments" className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-headline text-2xl font-black text-primary">Төсвийн хэмжээ</h3>
                       </div>
-                      <div className="grid gap-6 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <label className="ml-1 text-sm font-semibold text-slate-600">Доод (Min)</label>
+                      <div className="grid gap-8 sm:grid-cols-2">
+                        <div className="space-y-3">
+                          <label className="ml-1 text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline">Доод (Min)</label>
                           <div className="relative flex items-center">
-                            <span className="absolute left-4 font-bold text-[#13696a]">₮</span>
+                            <span className="absolute left-5 font-black text-primary">₮</span>
                             <input
                               type="number"
                               {...form.register("budget", { valueAsNumber: true })}
-                              className="w-full rounded-xl border-0 bg-[#f2f4f6] py-4 pl-10 pr-4 text-lg font-medium text-[#031636] ring-1 ring-transparent transition-all focus:ring-2 focus:ring-[#13696a]/20"
+                              className="w-full rounded-2xl border-none bg-surface-container-low py-5 pl-12 pr-6 text-xl font-black text-on-surface transition-all focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0"
                               placeholder="500,000"
                             />
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <label className="ml-1 text-sm font-semibold text-slate-600">Хугацаа (өдөр)</label>
+                        <div className="space-y-3">
+                          <label className="ml-1 text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline">Хугацаа (өдөр)</label>
                           <div className="relative flex items-center">
-                            <span className="absolute left-4 font-bold text-[#13696a]">⏱</span>
+                            <span className="absolute left-5 font-black text-primary opacity-40">⏱</span>
                             <input
                               type="number"
                               {...form.register("timeline_days", { valueAsNumber: true })}
-                              className="w-full rounded-xl border-0 bg-[#f2f4f6] py-4 pl-10 pr-4 text-lg font-medium text-[#031636] ring-1 ring-transparent transition-all focus:ring-2 focus:ring-[#13696a]/20"
+                              className="w-full rounded-2xl border-none bg-surface-container-low py-5 pl-12 pr-6 text-xl font-black text-on-surface transition-all focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0"
                               placeholder="14"
                             />
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-4 rounded-xl border-l-4 border-[#13696a] bg-[#13696a]/5 p-4">
-                        <DashboardIcon name="info" className="mt-0.5 h-5 w-5 text-[#13696a]" />
-                        <p className="text-sm text-[#1a6d6e]">Төсвийн хэмжээг тодорхой болгох нь мэргэжлийн гүйцэтгэгчдийг татахад тусална.</p>
+                      <div className="flex gap-4 rounded-3xl bg-surface-container-low p-6">
+                        <DashboardIcon name="info" className="mt-0.5 h-5 w-5 text-secondary" />
+                        <p className="text-sm font-medium leading-relaxed text-surface-500">Төсвийн хэмжээг тодорхой болгох нь мэргэжлийн гүйцэтгэгчдийг татахад тусална.</p>
                       </div>
                     </section>
 
-                    <section className="flex flex-col gap-4 md:col-span-4">
-                      <h3 className="mb-2 font-headline text-lg font-bold">Шаардлагатай туршлага</h3>
+                    <section className="flex flex-col gap-6 md:col-span-4">
+                      <h3 className="mb-2 font-headline text-sm font-bold uppercase tracking-[0.18em] text-primary">Шаардлагатай туршлага</h3>
                       {[
                         { key: "junior", title: "Анхан шат", subtitle: "Суралцаж буй залуус", icon: "info" },
                         { key: "mid", title: "Дунд шат", subtitle: "2-5 жилийн туршлагатай", icon: "description" },
@@ -524,24 +531,26 @@ export default function NewProjectPage() {
                           key={item.key}
                           type="button"
                           onClick={() => setExperienceLevel(item.key as ExperienceLevel)}
-                          className={`relative flex items-center gap-4 rounded-xl p-4 text-left transition-all ${experienceLevel === item.key ? "bg-white shadow-sm" : "bg-white/70 hover:bg-white"}`}
+                          className={`group relative flex items-center gap-5 rounded-3xl p-6 text-left transition-all ${experienceLevel === item.key ? "bg-surface-container-lowest shadow-ambient" : "bg-surface-container-low hover:bg-surface-container-lowest hover:shadow-ambient"}`}
                         >
-                          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${experienceLevel === item.key ? "bg-[#13696a] text-white" : "bg-[#f2f4f6] text-[#031636]"}`}>
-                            <DashboardIcon name={item.icon as Parameters<typeof DashboardIcon>[0]["name"]} className="h-5 w-5" />
+                          <div className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${experienceLevel === item.key ? "bg-primary-fixed text-primary" : "bg-surface-container-lowest text-surface-300"}`}>
+                            <DashboardIcon name={item.icon as Parameters<typeof DashboardIcon>[0]["name"]} className="h-6 w-6" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm font-bold">{item.title}</p>
-                            <p className="text-xs text-slate-500">{item.subtitle}</p>
+                            <p className="font-headline text-base font-bold text-primary">{item.title}</p>
+                            <p className="mt-1 text-xs font-medium text-surface-400">{item.subtitle}</p>
                           </div>
-                          {experienceLevel === item.key ? <DashboardIcon name="verified" className="h-5 w-5 text-[#13696a]" /> : null}
+                          {experienceLevel === item.key && <DashboardIcon name="verified" className="h-5 w-5 text-secondary" />}
                         </button>
                       ))}
                     </section>
 
-                    <section className="rounded-2xl bg-[#f2f4f6] p-8 md:col-span-12">
-                      <div className="mb-6 flex items-center gap-3">
-                        <DashboardIcon name="schedule" className="h-6 w-6 text-[#031636]" />
-                        <h3 className="font-headline text-xl font-bold">Төсөл үргэлжлэх хугацаа</h3>
+                    <section className="rounded-[2.5rem] bg-surface-container-low p-10 md:col-span-12">
+                      <div className="mb-8 flex items-center gap-4">
+                        <div className="rounded-2xl bg-surface-container-lowest p-3 text-primary shadow-sm">
+                          <DashboardIcon name="schedule" className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-headline text-2xl font-black text-primary">Төсөл үргэлжлэх хугацаа</h3>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-3">
                         {[
@@ -555,9 +564,10 @@ export default function NewProjectPage() {
                               key={option.value}
                               type="button"
                               onClick={() => form.setValue("timeline_days", option.value, { shouldDirty: true, shouldValidate: true })}
-                              className={`rounded-xl border px-5 py-4 text-left transition-all ${selected ? "border-[#13696a] bg-white text-[#031636]" : "border-transparent bg-white/70 text-slate-600 hover:bg-white"}`}
+                              className={`group relative overflow-hidden rounded-[2rem] p-8 text-left transition-all ${selected ? "bg-surface-container-lowest shadow-ambient" : "bg-surface-container-low hover:bg-surface-container-lowest hover:shadow-ambient"}`}
                             >
-                              <p className="font-semibold">{option.label}</p>
+                              {selected && <div className="absolute right-0 top-0 h-10 w-10 bg-secondary/5 blur-xl" />}
+                              <p className="font-headline text-lg font-bold text-primary tracking-tight">{option.label}</p>
                             </button>
                           );
                         })}
@@ -569,41 +579,41 @@ export default function NewProjectPage() {
 
               {step === 3 ? (
                 <>
-                  <header className="mb-10 max-w-3xl">
-                    <h1 className="mb-2 font-headline text-3xl font-extrabold text-[#031636]">Төслийг хянах</h1>
-                    <p className="text-[#44474e]">Нийтлэхээс өмнө бүх мэдээллийг дахин нэг шалгана уу.</p>
+                  <header className="max-w-4xl mb-12">
+                    <h1 className="mb-6 font-headline text-5xl font-extrabold tracking-tighter text-primary leading-tight">Төслийг хянах</h1>
+                    <p className="max-w-2xl text-lg font-medium leading-relaxed text-surface-500">Нийтлэхээс өмнө бүх мэдээллийг дахин нэг шалгана уу.</p>
                   </header>
 
                   <div className="space-y-8">
-                    <section className="rounded-xl bg-white p-8">
-                      <div className="mb-6 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#eceef0] text-[#031636]">
-                            <DashboardIcon name="info" className="h-7 w-7" />
+                    <section className="rounded-[2.5rem] bg-surface-container-lowest p-10 shadow-sm transition-all hover:shadow-ambient">
+                      <div className="mb-8 flex items-start justify-between">
+                        <div className="flex items-center gap-5">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-low text-primary shadow-sm">
+                            <DashboardIcon name="info" className="h-7 w-7 opacity-40" />
                           </div>
                           <div>
-                            <h2 className="text-xl font-bold text-[#031636]">Ерөнхий мэдээлэл</h2>
-                            <p className="text-sm text-slate-500">Төслийн үндсэн гарчиг болон төрөл</p>
+                            <h2 className="text-xl font-black text-primary font-headline">Ерөнхий мэдээлэл</h2>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline mt-1">Төслийн үндсэн гарчиг болон төрөл</p>
                           </div>
                         </div>
-                        <button type="button" onClick={() => setStep(0)} className="flex items-center gap-2 rounded-lg bg-[#f2f4f6] px-4 py-2 font-semibold text-[#031636]">
+                        <button type="button" onClick={() => setStep(0)} className="flex items-center gap-2 rounded-xl bg-surface-container-low px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-primary transition-all hover:bg-surface-container-lowest hover:shadow-sm font-headline">
                           <DashboardIcon name="edit" className="h-4 w-4" />
                           Засах
                         </button>
                       </div>
-                      <div className="grid gap-8 md:grid-cols-2">
+                      <div className="grid gap-10 md:grid-cols-2 bg-surface-container-low/30 p-8 rounded-3xl">
                         <div>
-                          <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Төслийн гарчиг</p>
-                          <p className="text-lg font-semibold text-[#031636]">{form.watch("title") || "Гарчиг оруулаагүй"}</p>
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Төслийн гарчиг</p>
+                          <p className="text-lg font-extrabold text-on-surface font-headline leading-tight">{form.watch("title") || "Гарчиг оруулаагүй"}</p>
                         </div>
                         <div className="flex gap-12">
                           <div>
-                            <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Ангилал</p>
-                            <p className="text-base font-medium text-[#031636]">{selectedCategoryLabel}</p>
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Ангилал</p>
+                            <p className="text-base font-bold text-primary font-headline">{selectedCategoryLabel}</p>
                           </div>
                           <div>
-                            <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Төрөл</p>
-                            <span className="inline-flex rounded-md bg-[#a2eded] px-3 py-1 text-xs font-bold text-[#1a6d6e]">
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Төрөл</p>
+                            <span className="inline-flex rounded-lg primary-gradient px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary-fixed shadow-sm">
                               {projectType === "fixed" ? "ФИКСЕД ҮНЭ" : "ЦАГИЙН ХӨЛС"}
                             </span>
                           </div>
@@ -611,64 +621,64 @@ export default function NewProjectPage() {
                       </div>
                     </section>
 
-                    <section className="rounded-xl bg-white p-8">
-                      <div className="mb-6 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#eceef0] text-[#031636]">
-                            <DashboardIcon name="description" className="h-7 w-7" />
+                    <section className="rounded-[2.5rem] bg-surface-container-lowest p-10 shadow-sm transition-all hover:shadow-ambient">
+                      <div className="mb-8 flex items-start justify-between">
+                        <div className="flex items-center gap-5">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-low text-primary shadow-sm">
+                            <DashboardIcon name="description" className="h-7 w-7 opacity-40" />
                           </div>
                           <div>
-                            <h2 className="text-xl font-bold text-[#031636]">Тайлбар болон ур чадвар</h2>
-                            <p className="text-sm text-slate-500">Хөгжүүлэгчид тавигдах шаардлага</p>
+                            <h2 className="text-xl font-black text-primary font-headline">Тайлбар болон ур чадвар</h2>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline mt-1">Хөгжүүлэгчид тавигдах шаардлага</p>
                           </div>
                         </div>
-                        <button type="button" onClick={() => setStep(1)} className="flex items-center gap-2 rounded-lg bg-[#f2f4f6] px-4 py-2 font-semibold text-[#031636]">
+                        <button type="button" onClick={() => setStep(1)} className="flex items-center gap-2 rounded-xl bg-surface-container-low px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-primary transition-all hover:bg-surface-container-lowest hover:shadow-sm font-headline">
                           <DashboardIcon name="edit" className="h-4 w-4" />
                           Засах
                         </button>
                       </div>
-                      <div className="mb-8">
-                        <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Төслийн дэлгэрэнгүй</p>
-                        <div className="whitespace-pre-wrap leading-relaxed text-[#031636]">{form.watch("description") || "Тайлбар оруулаагүй."}</div>
+                      <div className="mb-10 bg-surface-container-low/30 p-8 rounded-3xl">
+                        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Төслийн дэлгэрэнгүй</p>
+                        <div className="whitespace-pre-wrap leading-relaxed text-on-surface font-medium opacity-80">{form.watch("description") || "Тайлбар оруулаагүй."}</div>
                       </div>
-                      <div>
-                        <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Шаардлагатай ур чадварууд</p>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="bg-surface-container-low/30 p-8 rounded-3xl">
+                        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Шаардлагатай ур чадварууд</p>
+                        <div className="flex flex-wrap gap-2.5">
                           {skills.length ? skills.map((skill) => (
-                            <span key={skill} className="rounded-full bg-[#eceef0] px-4 py-2 text-sm font-semibold text-[#031636]">{skill}</span>
-                          )) : <span className="text-sm text-slate-500">Ур чадвар оруулаагүй.</span>}
+                            <span key={skill} className="rounded-xl bg-primary-fixed px-5 py-2 text-[11px] font-black uppercase tracking-widest text-primary font-headline shadow-sm">{skill}</span>
+                          )) : <span className="text-sm font-medium text-surface-400 italic">Ур чадвар оруулаагүй.</span>}
                         </div>
                       </div>
                     </section>
 
-                    <section className="rounded-xl bg-white p-8">
-                      <div className="mb-6 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#eceef0] text-[#031636]">
-                            <DashboardIcon name="payments" className="h-7 w-7" />
+                    <section className="rounded-[2.5rem] bg-surface-container-lowest p-10 shadow-sm transition-all hover:shadow-ambient">
+                      <div className="mb-8 flex items-start justify-between">
+                        <div className="flex items-center gap-5">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-low text-primary shadow-sm">
+                            <DashboardIcon name="payments" className="h-7 w-7 opacity-40" />
                           </div>
                           <div>
-                            <h2 className="text-xl font-bold text-[#031636]">Төсөв ба хугацаа</h2>
-                            <p className="text-sm text-slate-500">Хүрээ, туршлага, хугацааны сонголт</p>
+                            <h2 className="text-xl font-black text-primary font-headline">Төсөв ба хугацаа</h2>
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline mt-1">Хүрээ, туршлага, хугацааны сонголт</p>
                           </div>
                         </div>
-                        <button type="button" onClick={() => setStep(2)} className="flex items-center gap-2 rounded-lg bg-[#f2f4f6] px-4 py-2 font-semibold text-[#031636]">
+                        <button type="button" onClick={() => setStep(2)} className="flex items-center gap-2 rounded-xl bg-surface-container-low px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-primary transition-all hover:bg-surface-container-lowest hover:shadow-sm font-headline">
                           <DashboardIcon name="edit" className="h-4 w-4" />
                           Засах
                         </button>
                       </div>
-                      <div className="grid gap-8 md:grid-cols-3">
+                      <div className="grid gap-8 md:grid-cols-3 bg-surface-container-low/30 p-8 rounded-3xl">
                         <div>
-                          <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Төсөв</p>
-                          <p className="text-lg font-semibold text-[#031636]">{formatMnt(Number(form.watch("budget") || 0))}</p>
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Төсөв</p>
+                          <p className="text-2xl font-black text-primary font-headline tracking-tight">{formatMnt(Number(form.watch("budget") || 0))}</p>
                         </div>
                         <div>
-                          <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Хугацаа</p>
-                          <p className="text-lg font-semibold text-[#031636]">{form.watch("timeline_days") || 0} өдөр</p>
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Хугацаа</p>
+                          <p className="text-xl font-black text-on-surface font-headline">{form.watch("timeline_days") || 0} өдөр</p>
                         </div>
                         <div>
-                          <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">Туршлага</p>
-                          <p className="text-lg font-semibold text-[#031636]">
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-surface-400 font-headline">Туршлага</p>
+                          <p className="text-xl font-black text-on-surface font-headline italic">
                             {experienceLevel === "junior" ? "Анхан шат" : experienceLevel === "mid" ? "Дунд шат" : "Ахисан шат"}
                           </p>
                         </div>
@@ -678,17 +688,17 @@ export default function NewProjectPage() {
                 </>
               ) : null}
 
-              <div className="flex flex-col items-center gap-4 pt-10 sm:flex-row">
+              <div className="flex flex-col items-center gap-6 pt-16 sm:flex-row">
                 {step > 0 ? (
-                  <button type="button" onClick={() => setStep((prev) => Math.max(0, prev - 1))} className="w-full rounded-xl px-8 py-4 font-bold text-[#031636] transition-all hover:bg-[#eceef0] sm:w-auto">
+                  <button type="button" onClick={() => setStep((prev) => Math.max(0, prev - 1))} className="w-full rounded-2xl bg-surface-container-low px-10 py-5 text-[11px] font-bold uppercase tracking-[0.2em] text-primary transition-all hover:bg-surface-container-lowest hover:shadow-ambient sm:w-auto font-headline">
                     Буцах
                   </button>
-                ) : <div />}
+                ) : <div className="hidden sm:block sm:w-32" />}
                 {step < steps.length - 1 ? (
                   <button
                     type="button"
                     onClick={goNext}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-10 py-4 font-bold text-[#d8e2ff] shadow-[0_20px_50px_rgba(3,22,54,0.06)] transition-all active:scale-95 sm:w-auto"
+                    className="flex w-full items-center justify-center gap-4 rounded-2xl primary-gradient px-12 py-5 text-[11px] font-black uppercase tracking-[0.25em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-1 active:scale-95 sm:w-auto font-headline"
                   >
                     Дараагийн алхам
                     <DashboardIcon name="arrow" className="h-5 w-5 rotate-180" />
@@ -696,7 +706,7 @@ export default function NewProjectPage() {
                 ) : (
                   <button
                     type="submit"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-10 py-4 font-bold text-[#d8e2ff] shadow-[0_20px_50px_rgba(3,22,54,0.06)] transition-all active:scale-95 sm:w-auto"
+                    className="flex w-full items-center justify-center gap-4 rounded-2xl primary-gradient px-12 py-5 text-[11px] font-black uppercase tracking-[0.25em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-1 active:scale-95 sm:w-auto font-headline"
                     disabled={mutation.isPending}
                   >
                     <DashboardIcon name="rocket" className="h-5 w-5" />
@@ -706,16 +716,17 @@ export default function NewProjectPage() {
               </div>
             </form>
 
-            <div className="mt-12 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-2xl bg-[#1a2b4c] p-6 text-white">
-                <h4 className="mb-2 font-headline text-sm font-bold">Need Help?</h4>
-                <p className="text-xs leading-relaxed text-[#c7d2e6]">Манай зөвлөхүүд төсвөө зөв тодорхойлох, төслийн шаардлагаа илүү ойлгомжтой бичихэд тусална.</p>
+            <div className="mt-16 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="relative overflow-hidden rounded-[2.5rem] bg-primary-fixed p-8 text-primary shadow-sm hover:shadow-ambient transition-all">
+                <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-3xl" />
+                <h4 className="mb-3 font-headline text-lg font-black tracking-tight">Need Help?</h4>
+                <p className="max-w-md text-[13px] font-medium leading-relaxed opacity-70">Манай зөвлөхүүд төсвөө зөв тодорхойлох, төслийн шаардлагаа илүү ойлгомжтой бичихэд тусална.</p>
               </div>
-              <div className="rounded-2xl bg-white p-6 shadow-[0_10px_24px_rgba(3,22,54,0.05)]">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#13696a]">Quick Summary</p>
-                <p className="mt-3 text-sm font-semibold text-[#031636]">{form.watch("title") || "Гарчиг оруулаагүй"}</p>
-                <p className="mt-1 text-xs text-slate-500">{selectedCategoryLabel} · {form.watch("timeline_days") || 0} өдөр</p>
-                <p className="mt-3 text-lg font-extrabold text-[#031636]">{formatMnt(Number(form.watch("budget") || 0))}</p>
+              <div className="rounded-[2.5rem] bg-surface-container-low p-8 shadow-sm transition-all hover:shadow-ambient">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary font-headline">Quick Summary</p>
+                <p className="mt-4 truncate font-headline text-base font-extrabold text-primary leading-tight">{form.watch("title") || "Гарчиг оруулаагүй"}</p>
+                <p className="mt-2 text-[11px] font-bold text-surface-400 font-headline uppercase tracking-widest leading-none">{selectedCategoryLabel} · {form.watch("timeline_days") || 0} өдөр</p>
+                <p className="mt-4 text-2xl font-black text-primary font-headline tracking-tighter">{formatMnt(Number(form.watch("budget") || 0))}</p>
               </div>
             </div>
           </div>

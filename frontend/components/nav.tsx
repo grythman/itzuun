@@ -78,7 +78,7 @@ export function Nav() {
   }
 
   return (
-    <header className={`z-30 ${isHomeRoute ? "bg-white/92 backdrop-blur-sm" : "border-b border-[#e7e8f1] bg-[#f5f6fb]/95"}`}>
+    <header className={`z-30 sticky top-0 bg-surface/85 backdrop-blur-md transition-colors ${isHomeRoute ? "py-2" : ""}`}>
       <nav
         className={`app-frame flex items-center justify-between gap-4 ${isHomeRoute ? "py-5" : "py-3"}`}
         aria-label="Main"
@@ -100,14 +100,14 @@ export function Nav() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`inline-flex items-center gap-2 rounded-lg transition-all ${
+                  className={`inline-flex items-center gap-2 rounded-lg transition-all font-headline ${
                     isHomeRoute
                       ? active
-                        ? "bg-[#eef2ff] px-3.5 py-2 text-[14px] font-semibold text-[#3557a1]"
-                        : "px-3.5 py-2 text-[14px] font-medium text-surface-500 hover:bg-[#f7f9fb] hover:text-surface-900"
+                        ? "bg-surface-container-low px-3.5 py-2 text-[14px] font-bold text-primary"
+                        : "px-3.5 py-2 text-[14px] font-semibold text-surface-500 hover:bg-surface-container-low hover:text-on-surface"
                       : active
-                        ? "bg-brand-100 px-3 py-1.5 text-[14px] font-medium text-brand-700"
-                        : "px-3 py-1.5 text-[14px] font-medium text-surface-600 hover:bg-surface-100 hover:text-surface-900"
+                        ? "bg-surface-container-low px-3 py-1.5 text-[14px] font-bold text-primary"
+                        : "px-3 py-1.5 text-[14px] font-semibold text-surface-600 hover:bg-surface-container-low hover:text-on-surface"
                   }`}
                 >
                   {link.icon === "projects" ? (
@@ -164,7 +164,7 @@ export function Nav() {
                 type="button"
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
-                className="rounded-lg px-3 py-1.5 text-[13px] text-surface-500 hover:bg-surface-100 hover:text-surface-800"
+                className="rounded-md px-3 py-1.5 text-[13px] font-headline font-semibold text-surface-500 hover:bg-surface-container-low hover:text-on-surface"
               >
                 {t("logout")}
               </button>
@@ -184,7 +184,7 @@ export function Nav() {
               </Link>
               <Link
                 href={`${withLocale("/auth")}?tab=register`}
-                className={`rounded-full primary-gradient text-[14px] font-semibold text-white shadow-card hover:opacity-95 transition-colors ${
+                className={`rounded-md primary-gradient text-[14px] font-headline font-semibold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all ${
                   isHomeRoute ? "px-6 py-2.5" : "px-6 py-2"
                 }`}
               >
