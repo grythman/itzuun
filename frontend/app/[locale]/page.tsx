@@ -254,6 +254,7 @@ export default function HomePage() {
           <div className="absolute inset-x-[18%] bottom-[20%] h-[3px] rounded-full bg-secondary/60 shadow-[0_0_20px_rgba(137,211,212,0.4)]" />
           <div className="absolute inset-x-[22%] bottom-[32%] h-[3px] rounded-full bg-white/20" />
         </div>
+      </section>
       <section className="rounded-[3rem] bg-surface-container-low px-8 py-16 text-center md:px-16 md:py-24 shadow-sm border border-outline-variant/5">
         <h2 className="mx-auto max-w-[18ch] font-headline text-[38px] font-black tracking-tighter text-primary md:text-[54px] leading-tight">
           {t("finalTitle")}

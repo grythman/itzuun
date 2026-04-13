@@ -110,7 +110,10 @@ export default function NewProjectPage() {
   const currentStep = steps[step];
 
   const categories = useCategories();
-  const categoryOptions = Array.isArray(categories.data) ? categories.data : [];
+  const categoryOptions = useMemo(
+    () => (Array.isArray(categories.data) ? categories.data : []),
+    [categories.data],
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),

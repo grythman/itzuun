@@ -337,7 +337,6 @@ export default function ClientDashboardPage() {
               </section>
 
               <section className="grid gap-6 md:grid-cols-3">
-              <section className="grid gap-6 md:grid-cols-3">
               <div className="primary-gradient grid gap-6 rounded-[2rem] p-8 text-white shadow-ambient md:grid-cols-3">
                 <div className="flex flex-col justify-between">
                   <div>

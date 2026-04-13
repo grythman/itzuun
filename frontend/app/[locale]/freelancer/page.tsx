@@ -404,7 +404,23 @@ export default function FreelancerDashboardPage() {
 
                 <div className="rounded-3xl bg-surface-container-low p-8 transition-all hover:bg-surface-container-lowest hover:shadow-ambient">
                   <div className="mb-6 flex items-start justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 font-headline">Ү                  <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 font-headline">Үнэлгээ</span>
+                    <div className="rounded-xl bg-surface-container-high p-2 text-primary">
+                      <DashboardIcon name="star" className="h-5 w-5 opacity-40" />
+                    </div>
+                  </div>
+                  <span className="text-4xl font-extrabold text-on-surface font-headline tracking-tight">
+                    {(rating.data?.average ?? 0).toFixed(1)}
+                  </span>
+                  <p className="mt-4 text-[11px] font-bold text-surface-500 font-headline tracking-wide uppercase">
+                    {rating.data?.total ?? 0} сэтгэгдэл
+                  </p>
+                </div>
+              </section>
+
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+                <div className="space-y-6">
+                  <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
                     <div className="flex items-center justify-between border-b border-outline-variant/10 p-8">
                       <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">Идэвхтэй төслүүд</h2>
                       <button type="button" onClick={() => setActiveFilter("all")} className="text-[11px] font-bold uppercase tracking-widest text-secondary hover:underline font-headline">Бүгдийг үзэх</button>

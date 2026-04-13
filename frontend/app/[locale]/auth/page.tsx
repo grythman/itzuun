@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import Script from "next/script";
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -104,10 +105,13 @@ function AuthVisual({ activeTab }: { activeTab: AuthTab }) {
 
   return (
     <aside className="relative hidden overflow-hidden bg-[#031636] text-white lg:flex lg:w-[48%] 2xl:w-1/2">
-      <img
+      <Image
         src={backgroundImage}
         alt=""
         aria-hidden="true"
+        fill
+        unoptimized
+        sizes="50vw"
         className="absolute inset-0 h-full w-full object-cover opacity-60 mix-blend-overlay"
       />
       <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-14 2xl:p-16">
@@ -150,8 +154,8 @@ function AuthVisual({ activeTab }: { activeTab: AuthTab }) {
           <div className="flex items-center gap-4 text-sm text-[#8293ba]">
             <div className="flex -space-x-2">
               {registerAvatars.map((src) => (
-                <span key={src} className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-[#031636] bg-white/10">
-                  <img src={src} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+                <span key={src} className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-[#031636] bg-white/10">
+                  <Image src={src} alt="" aria-hidden="true" fill unoptimized sizes="32px" className="h-full w-full object-cover" />
                 </span>
               ))}
             </div>
