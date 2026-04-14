@@ -158,8 +158,7 @@ export default function ProjectsPage() {
   const [budgetSlider, setBudgetSlider] = useState(Number(budgetMax) || 750_000);
 
   const categories = useCategories();
-  const { data, isLoading, isError } = useProjects({
-    page,
+  const { data, isLoading, isError } = useProjects(page, {
     search: search || undefined,
     category: categorySlug || undefined,
     project_type: projectType || undefined,
