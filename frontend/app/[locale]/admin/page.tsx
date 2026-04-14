@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { useDashboardLayout } from "@/components/dashboard-shell";
 import { RoleGuard } from "@/components/role-guard";
 import { ActionButton, ConfirmationDialog, DashboardBottomBar, RoleSidebar, StatusPill, Modal } from "@/components/ui-kit";
 import { adminApi, toArray } from "@/lib/api/endpoints";
@@ -13,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function AdminPage() {
   const toast = useToastStore((s) => s.push);
+  const inDashboardShell = useDashboardLayout();
   const me = useMe();
   const { users, projects, escrow, disputes, commission, ledger } = useAdminSnapshot();
   
@@ -101,10 +103,10 @@ export default function AdminPage() {
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath="/auth">
       <section className="space-y-6 pb-20">
-        <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+        {!inDashboardShell && <h1 className="text-2xl font-semibold">Admin Dashboard</h1>}
 
-        <div className="flex gap-4">
-          <RoleSidebar role="admin" />
+        <div className={inDashboardShell ? "block" : "flex gap-4"}>
+          {!inDashboardShell && <RoleSidebar role="admin" />}
           <div className="flex-1 space-y-4">
             
             {/* KPI Metrics */}

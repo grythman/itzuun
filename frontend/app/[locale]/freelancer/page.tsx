@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
+import { useDashboardLayout } from "@/components/dashboard-shell";
 import { EmptyState, ErrorState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { ConfirmationDialog, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui-kit";
@@ -118,6 +119,7 @@ export default function FreelancerDashboardPage() {
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
+  const inDashboardShell = useDashboardLayout();
   const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "awaiting_client_review" | "disputed">("all");
   const [submitTarget, setSubmitTarget] = useState<number | null>(null);
 
@@ -298,8 +300,8 @@ export default function FreelancerDashboardPage() {
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
       <section aria-label="Freelancer dashboard" className="pb-24 xl:pb-10">
-        <div className="grid gap-0 xl:grid-cols-[256px_minmax(0,1fr)]">
-          <aside className="hidden xl:flex xl:h-screen xl:flex-col xl:space-y-2 xl:bg-surface-container-low xl:px-4 xl:py-6">
+        <div className={inDashboardShell ? "grid gap-0" : "grid gap-0 xl:grid-cols-[256px_minmax(0,1fr)]"}>
+          <aside className={`${inDashboardShell ? "hidden" : "hidden xl:flex xl:h-screen xl:flex-col xl:space-y-2 xl:bg-surface-container-low xl:px-4 xl:py-6"}`}>
             <div className="mb-10 px-4">
               <span className="text-xl font-black text-primary font-headline tracking-tight">ITZuun</span>
             </div>
@@ -348,7 +350,7 @@ export default function FreelancerDashboardPage() {
           </aside>
 
           <main className="min-w-0 bg-surface">
-            <header className="sticky top-0 z-10 flex h-auto flex-col justify-between gap-4 bg-surface/80 px-4 py-4 backdrop-blur-md md:flex-row md:items-center md:px-8 xl:h-16">
+            <header className={`${inDashboardShell ? "hidden" : "sticky"} top-0 z-10 flex h-auto flex-col justify-between gap-4 bg-surface/80 px-4 py-4 backdrop-blur-md md:flex-row md:items-center md:px-8 xl:h-16`}>
               <div className="flex max-w-xl flex-1 items-center">
                 <div className="relative w-full">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400">

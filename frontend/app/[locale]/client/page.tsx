@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { useDashboardLayout } from "@/components/dashboard-shell";
 import { EmptyState, ErrorState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
 import { ConfirmationDialog, StatusPill } from "@/components/ui-kit";
@@ -111,6 +112,7 @@ export default function ClientDashboardPage() {
   const projects = useProjects(1);
   const toast = useToastStore((s) => s.push);
   const proposalSectionRef = useRef<HTMLDivElement | null>(null);
+  const inDashboardShell = useDashboardLayout();
 
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const proposals = useProjectProposals(activeProjectId || "");
@@ -234,8 +236,8 @@ export default function ClientDashboardPage() {
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
       <section className="pb-24 xl:pb-10">
-        <div className="grid gap-6 xl:grid-cols-[288px_minmax(0,1fr)] 2xl:grid-cols-[288px_minmax(0,1fr)]">
-          <aside className="hidden xl:sticky xl:top-0 xl:flex xl:h-screen xl:flex-col xl:gap-2 xl:rounded-none xl:bg-surface-container-low xl:px-0 xl:py-6">
+        <div className={inDashboardShell ? "grid gap-0" : "grid gap-6 xl:grid-cols-[288px_minmax(0,1fr)] 2xl:grid-cols-[288px_minmax(0,1fr)]"}>
+          <aside className={`${inDashboardShell ? "hidden" : "hidden xl:sticky xl:top-0 xl:flex xl:h-screen xl:flex-col xl:gap-2 xl:rounded-none xl:bg-surface-container-low xl:px-0 xl:py-6"}`}>
             <div className="mb-8">
               <div className="mb-6 flex items-center gap-3 px-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">IZ</div>
@@ -287,7 +289,7 @@ export default function ClientDashboardPage() {
           </aside>
 
           <main className="min-w-0 overflow-x-hidden bg-[#f7f9fb]">
-            <header className="sticky top-0 z-20 flex flex-col gap-4 rounded-none bg-surface/80 px-5 py-4 shadow-sm backdrop-blur-md md:flex-row md:items-center md:justify-between md:px-8">
+            <header className={`${inDashboardShell ? "hidden" : "sticky"} top-0 z-20 flex flex-col gap-4 rounded-none bg-surface/80 px-5 py-4 shadow-sm backdrop-blur-md md:flex-row md:items-center md:justify-between md:px-8`}>
               <div className="relative max-w-md flex-1">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-surface-500">
                   <DashboardIcon name="search" className="h-[18px] w-[18px]" />

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
+import { DashboardShell } from "@/components/dashboard-shell";
 import { Nav } from "@/components/nav";
 
 function isDashboardRoute(pathname: string): boolean {
@@ -20,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const dashboardRoute = isDashboardRoute(pathname);
 
   if (dashboardRoute) {
-    return <>{children}</>;
+    return <DashboardShell>{children}</DashboardShell>;
   }
 
   return (
