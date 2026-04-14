@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
-import { DashboardShell } from "@/components/dashboard-shell";
-import { Nav } from "@/components/nav";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { PublicNav } from "@/components/layout/public-nav";
 
 function isDashboardRoute(pathname: string): boolean {
   const normalized = pathname.replace(/^\/proxy\/\d+(?=\/|$)/, "");
@@ -21,12 +21,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const dashboardRoute = isDashboardRoute(pathname);
 
   if (dashboardRoute) {
-    return <DashboardShell>{children}</DashboardShell>;
+    return <DashboardLayout>{children}</DashboardLayout>;
   }
 
   return (
     <>
-      <Nav />
+      <PublicNav />
       <main className="content-frame section-y">{children}</main>
     </>
   );

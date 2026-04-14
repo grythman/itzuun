@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { AppShell } from "@/components/app-shell";
-import { Providers } from "@/components/providers";
-import { ToastCenter } from "@/components/toast-center";
+import { Providers } from "@/components/shared/providers";
+import { ToastCenter } from "@/components/shared/toast-center";
 import { locales } from '../../i18n';
 
 export const dynamic = 'force-dynamic';

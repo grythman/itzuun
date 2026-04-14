@@ -3,8 +3,9 @@ export const dynamic = "force-dynamic";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { useDashboardLayout } from "@/components/dashboard-shell";
+import { RoleSidebar } from "@/components/layout/dashboard-sidebar";
 import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, ConfirmationDialog, DashboardBottomBar, RoleSidebar, StatusPill, Modal } from "@/components/ui-kit";
+import { ActionButton, ConfirmationDialog, DashboardBottomBar, StatusPill, Modal } from "@/components/ui-kit";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
