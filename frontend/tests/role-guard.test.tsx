@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
-import { RoleGuard } from "@/components/role-guard";
+import { RoleGuard } from "@/components/shared/role-guard";
 
 const replace = vi.fn();
 

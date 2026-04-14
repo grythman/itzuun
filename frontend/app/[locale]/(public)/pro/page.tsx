@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { EmptyState, ErrorState } from "@/components/states";
-import { ActionButton, AppCard, CompareTable, Modal, StatusPill } from "@/components/ui-kit";
+import { EmptyState, ErrorState } from "@/components/shared/states";
+import { ActionButton, AppCard, CompareTable, Modal, StatusPill } from "@/components/ui";
 import { useMe, usePremiumCancel, usePremiumMe, usePremiumSubscribe } from "@/lib/hooks";
 
 function formatMnt(value: number): string {

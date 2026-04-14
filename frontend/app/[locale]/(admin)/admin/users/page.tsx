@@ -4,13 +4,13 @@ export const dynamic = "force-dynamic";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { RoleGuard } from "@/components/role-guard";
-import { AppCard } from "@/components/ui-kit";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
+import { RoleGuard } from "@/components/shared/role-guard";
+import { AppCard } from "@/components/ui";
 import { useAdminSnapshot, useMe } from "@/lib/hooks";
 import { useMutation, useQueryClient } from "@/lib/hooks";
 import { adminApi } from "@/lib/api/endpoints";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 export default function AdminUsersPage() {
   const t = useTranslations("AdminUsersPage");

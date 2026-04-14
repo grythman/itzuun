@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { verificationApi } from "@/lib/api/endpoints";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 export function useSubmitVerification() {
   const queryClient = useQueryClient();

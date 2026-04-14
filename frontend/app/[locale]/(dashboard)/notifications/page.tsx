@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { ErrorState, LoadingState } from "@/components/states";
+import { ErrorState, LoadingState } from "@/components/shared/states";
 import { useMe } from "@/lib/hooks";
 
 type NotificationKind = "all" | "projects" | "payments" | "system";

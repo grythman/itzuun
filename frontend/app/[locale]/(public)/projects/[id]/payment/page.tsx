@@ -6,12 +6,12 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { ActionButton, AppCard, CompareTable, ConfirmationDialog, EscrowStatusBadge, StatusPill, StepProgress, TrustPanel } from "@/components/ui-kit";
-import { ErrorState, LoadingState } from "@/components/states";
+import { ActionButton, AppCard, CompareTable, ConfirmationDialog, EscrowStatusBadge, StatusPill, StepProgress, TrustPanel } from "@/components/ui";
+import { ErrorState, LoadingState } from "@/components/shared/states";
 import { projectsApi } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useProjectDetail } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 type EscrowLifecycleState = "created" | "pending_admin" | "held" | "released" | "disputed" | "refunded";
 

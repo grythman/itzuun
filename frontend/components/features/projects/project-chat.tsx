@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ChatBubble, StatusPill } from "@/components/ui-kit";
+import { ChatBubble, StatusPill } from "@/components/ui";
 import { EmptyState } from "@/components/shared/states";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMutation, useProjectMessages } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 import type { MessageItem } from "@/lib/types";
 

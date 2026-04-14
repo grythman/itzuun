@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { RoleGuard } from "@/components/role-guard";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
+import { RoleGuard } from "@/components/shared/role-guard";
 import { useMe, useProjects } from "@/lib/hooks";
 import type { ProjectDto } from "@/lib/api/types";
 

@@ -6,8 +6,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { RatingStars, VerifiedBadge } from "@/components/ui-kit";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
+import { RatingStars, VerifiedBadge } from "@/components/ui";
 import { profilesApi } from "@/lib/api/endpoints";
 import type { Profile } from "@/lib/types";
 

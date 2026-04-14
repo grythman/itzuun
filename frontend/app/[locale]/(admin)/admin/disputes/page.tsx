@@ -6,12 +6,12 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, AppCard, StatusPill } from "@/components/ui-kit";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
+import { RoleGuard } from "@/components/shared/role-guard";
+import { ActionButton, AppCard, StatusPill } from "@/components/ui";
 import { adminApi } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 type DisputeItem = {
   id: number;

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { premiumApi } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 export function usePremiumMe(options?: { enabled?: boolean }) {
   return useQuery({

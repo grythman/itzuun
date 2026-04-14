@@ -6,12 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { RoleGuard } from "@/components/role-guard";
-import { ErrorState, LoadingState } from "@/components/states";
-import { VerifiedBadge } from "@/components/ui-kit";
+import { RoleGuard } from "@/components/shared/role-guard";
+import { ErrorState, LoadingState } from "@/components/shared/states";
+import { VerifiedBadge } from "@/components/ui";
 import { profilesApi } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import { profileSchema } from "@/lib/validators";
 
 import type { z } from "zod";

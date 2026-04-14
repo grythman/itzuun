@@ -11,10 +11,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
-import { ActionButton, StatusPill } from "@/components/ui-kit";
+import { ActionButton, StatusPill } from "@/components/ui";
 import { authApi } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import { loginSchema, otpRequestSchema, otpVerifySchema, registerSchema } from "@/lib/validators";
 
 import type { z } from "zod";

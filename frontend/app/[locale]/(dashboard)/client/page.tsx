@@ -6,14 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { useDashboardLayout } from "@/components/dashboard-shell";
-import { EmptyState, ErrorState } from "@/components/states";
-import { RoleGuard } from "@/components/role-guard";
-import { ConfirmationDialog, StatusPill } from "@/components/ui-kit";
-import { VerificationBanner } from "@/components/verification-banner";
+import { useDashboardLayout } from "@/components/layout/dashboard-layout";
+import { EmptyState, ErrorState } from "@/components/shared/states";
+import { RoleGuard } from "@/components/shared/role-guard";
+import { ConfirmationDialog, StatusPill } from "@/components/ui";
+import { VerificationBanner } from "@/components/shared/verification-banner";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile, useProjectProposals, useProjects } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import type { ProposalDto } from "@/lib/api/types";
 
 function proposalFreelancerLabel(freelancer: ProposalDto["freelancer"]): string | number {

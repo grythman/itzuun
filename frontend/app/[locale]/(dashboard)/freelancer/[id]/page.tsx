@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ErrorState, LoadingState } from "@/components/states";
-import { AppCard, RatingStars, VerifiedBadge } from "@/components/ui-kit";
+import { ErrorState, LoadingState } from "@/components/shared/states";
+import { AppCard, RatingStars, VerifiedBadge } from "@/components/ui";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { useProfile } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";

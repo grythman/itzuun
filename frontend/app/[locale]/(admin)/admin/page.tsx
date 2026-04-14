@@ -1,14 +1,14 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import { useDashboardLayout } from "@/components/dashboard-shell";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
+import { useDashboardLayout } from "@/components/layout/dashboard-layout";
 import { RoleSidebar } from "@/components/layout/dashboard-sidebar";
-import { RoleGuard } from "@/components/role-guard";
-import { ActionButton, ConfirmationDialog, DashboardBottomBar, StatusPill, Modal } from "@/components/ui-kit";
+import { RoleGuard } from "@/components/shared/role-guard";
+import { ActionButton, ConfirmationDialog, DashboardBottomBar, StatusPill, Modal } from "@/components/ui";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import type { AdminPaymentDto, AdminUserDto, DisputeDto, EscrowDto, LedgerEntryDto } from "@/lib/api/types";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";

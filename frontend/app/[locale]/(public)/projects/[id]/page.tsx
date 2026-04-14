@@ -7,13 +7,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 
-import { ActionButton, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui-kit";
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
-import ProjectChat from "@/components/project-chat";
+import { ActionButton, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
+import ProjectChat from "@/components/features/projects/project-chat";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMe, useMutation, useProjectDetail, useProjectProposals, useQuery } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import type { ProposalDto } from "@/lib/api/types";
 import { proposalSchema, reviewSchema } from "@/lib/validators";
 import { profilesApi } from "@/lib/api/endpoints";

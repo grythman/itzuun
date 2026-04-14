@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
-import ProjectChat from "@/components/project-chat";
+import ProjectChat from "@/components/features/projects/project-chat";
 
 // Mock scrollIntoView for jsdom
 Element.prototype.scrollIntoView = vi.fn();
@@ -29,7 +29,7 @@ vi.mock("@/lib/hooks", () => ({
   }),
 }));
 
-vi.mock("@/lib/toast-store", () => ({
+vi.mock("@/lib/stores/toast-store", () => ({
   useToastStore: () => mockPush,
 }));
 

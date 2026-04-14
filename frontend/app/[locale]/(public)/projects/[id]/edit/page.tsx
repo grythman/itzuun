@@ -6,12 +6,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { AppCard, StepProgress, TrustPanel } from "@/components/ui-kit";
+import { AppCard, StepProgress, TrustPanel } from "@/components/ui";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useMe, useMutation, useProjectDetail } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import { createProjectSchema } from "@/lib/validators";
-import { ErrorState, LoadingState } from "@/components/states";
+import { ErrorState, LoadingState } from "@/components/shared/states";
 
 import type { z } from "zod";
 

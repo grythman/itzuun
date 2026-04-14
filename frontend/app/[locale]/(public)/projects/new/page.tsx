@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 
 import { projectsApi } from "@/lib/api/endpoints";
 import { useCategories, useMutation } from "@/lib/hooks";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 import { createProjectSchema } from "@/lib/validators";
 
 import type { z } from "zod";

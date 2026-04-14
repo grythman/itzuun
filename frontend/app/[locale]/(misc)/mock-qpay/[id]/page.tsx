@@ -3,9 +3,9 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AppCard, ActionButton } from "@/components/ui-kit";
-import { LoadingState } from "@/components/states";
-import { useToastStore } from "@/lib/toast-store";
+import { AppCard, ActionButton } from "@/components/ui";
+import { LoadingState } from "@/components/shared/states";
+import { useToastStore } from "@/lib/stores/toast-store";
 import { API_BASE } from "@/lib/api/endpoints";
 
 export default function MockQPayPage() {

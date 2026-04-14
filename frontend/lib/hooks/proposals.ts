@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { proposalsApi } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import type { PaginatedResponse, ProposalDto } from "@/lib/api/types";
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 export function useProposals(projectId: string | number, options?: { enabled?: boolean }) {
   return useQuery({

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { useToastStore } from "@/lib/toast-store";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 const palette = {
   info: "bg-brand-50 text-brand-800 border border-brand-100",
