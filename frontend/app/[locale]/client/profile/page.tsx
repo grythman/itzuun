@@ -2,36 +2,75 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { EmptyState, ErrorState, LoadingState } from "@/components/states";
+import { ErrorState, LoadingState } from "@/components/states";
 import { RoleGuard } from "@/components/role-guard";
-import { AppCard, ActionButton } from "@/components/ui-kit";
 import { profilesApi } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { profileSchema } from "@/lib/validators";
-import { useQueryClient } from "@tanstack/react-query";
 
 import type { z } from "zod";
 
 type ProfileForm = z.infer<typeof profileSchema>;
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline mb-2">
+      {children}
+    </label>
+  );
+}
+
+function inputCls() {
+  return "w-full rounded-2xl border-none bg-surface-container-low px-5 py-4 text-[15px] font-medium text-on-surface transition-all placeholder:text-surface-400 focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0";
+}
 
 export default function ClientProfilePage() {
   const me = useMe();
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
-
-  const [isEditing, setIsEditing] = useState(false);
   const [skillsInput, setSkillsInput] = useState("");
 
-  const form = useForm<ProfileForm>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { full_name: "", title: "", bio: "", skills: "", hourly_rate: 0, is_available: true, response_time_hours: 24, portfolio: [] },
+    defaultValues: {
+      full_name: "",
+      title: "",
+      bio: "",
+      skills: "",
+      hourly_rate: 0,
+      is_available: true,
+      response_time_hours: 24,
+      portfolio: [],
+    },
   });
+
+  useEffect(() => {
+    if (profile.data) {
+      setSkillsInput((profile.data.skills || []).join(", "));
+      reset({
+        full_name: profile.data.full_name || "",
+        title: profile.data.title || "",
+        bio: profile.data.bio || "",
+        skills: (profile.data.skills || []).join(", "),
+        hourly_rate: Number(profile.data.hourly_rate) || 0,
+        is_available: profile.data.is_available ?? true,
+        response_time_hours: profile.data.response_time_hours ?? 24,
+        portfolio: profile.data.portfolio || [],
+      });
+    }
+  }, [profile.data, reset]);
 
   const updateMutation = useMutation({
     mutationFn: (values: ProfileForm) =>
@@ -39,9 +78,7 @@ export default function ClientProfilePage() {
         full_name: values.full_name,
         title: values.title,
         bio: values.bio,
-        skills: values.skills
-          ? values.skills.split(",").map((s) => s.trim()).filter(Boolean)
-          : [],
+        skills: skillsInput.split(",").map((s) => s.trim()).filter(Boolean),
         hourly_rate: values.hourly_rate,
         is_available: values.is_available,
         response_time_hours: values.response_time_hours,
@@ -50,153 +87,161 @@ export default function ClientProfilePage() {
     onSuccess: () => {
       profile.refetch();
       queryClient.invalidateQueries({ queryKey: ["profile-me"] });
-      setIsEditing(false);
-      toast("success", "Profile updated");
+      toast("success", "Профайл шинэчлэгдлээ.");
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
-  if (me.isLoading || profile.isLoading) return <LoadingState label="Loading profile..." />;
-  if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
-  if (profile.isError || !profile.data) return <ErrorState label="Could not load profile." />;
+  if (me.isLoading || profile.isLoading) return <LoadingState label="Профайл ачааллаж байна..." />;
+  if (me.isError || !me.data) return <ErrorState label="Эхлээд нэвтэрнэ үү." />;
+  if (profile.isError || !profile.data) return <ErrorState label="Профайлыг ачааллаж чадсангүй." />;
 
   const profileData = profile.data;
-
-  function handleEdit() {
-    form.reset({
-      full_name: profileData.full_name || "",
-      title: profileData.title || "",
-      bio: profileData.bio || "",
-      skills: (profileData.skills || []).join(", "),
-      hourly_rate: Number(profileData.hourly_rate) || 0,
-      is_available: profileData.is_available ?? true,
-      response_time_hours: profileData.response_time_hours ?? 24,
-      portfolio: profileData.portfolio || [],
-    });
-    setSkillsInput((profileData.skills || []).join(", "));
-    setIsEditing(true);
-  }
-
-  function handleSubmit(values: ProfileForm) {
-    const skills = skillsInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    updateMutation.mutate(values);
-  }
-
   const completeness = profileData.profile_completeness || 0;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath="/auth">
-      <section className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Client Profile</h1>
-          <Link href="/client" className="text-[13px] text-brand-600 hover:underline">
-            Back to Dashboard
+      <section className="space-y-8 pb-20">
+        {/* Header */}
+        <div className="flex items-end justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-surface-400 font-headline">
+              Захиалагч
+            </p>
+            <h1 className="mt-3 font-headline text-[36px] font-black leading-none tracking-tighter text-primary md:text-[44px]">
+              Профайл тохиргоо
+            </h1>
+          </div>
+          <Link
+            href="/client"
+            className="hidden min-h-11 items-center rounded-2xl bg-surface-container-lowest px-6 text-[11px] font-bold uppercase tracking-[0.18em] text-primary shadow-sm transition-all hover:shadow-ambient md:inline-flex font-headline"
+          >
+            ← Dashboard
           </Link>
         </div>
 
-        {!isEditing ? (
-          <>
-            <AppCard>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold">{profileData.full_name || "Your Company"}</h2>
-                  {profileData.bio && <p className="mt-2 text-surface-600">{profileData.bio}</p>}
+        <div className="grid gap-6 md:grid-cols-[260px_1fr]">
+          {/* Left: profile overview card */}
+          <div className="flex flex-col gap-6">
+            <div className="rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm">
+              <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] primary-gradient text-2xl font-black text-primary-fixed font-headline">
+                {(profileData.full_name || me.data.email || "C")[0].toUpperCase()}
+              </div>
+              <h2 className="mt-4 font-headline text-xl font-extrabold text-primary">
+                {profileData.full_name || "Нэр оруулаагүй"}
+              </h2>
+              <p className="mt-1 text-sm font-medium text-surface-500">{me.data.email}</p>
 
-                  {profileData.skills?.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {profileData.skills.map((skill) => (
-                        <span key={skill} className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[13px] font-medium text-brand-700">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-3 space-y-1 text-[13px] text-surface-500">
-                    <p>Email: {me.data.email}</p>
-                  </div>
+              {/* Completeness bar */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">Профайлын дүүрэлт</p>
+                  <p className="text-[10px] font-black text-primary font-headline">{completeness}%</p>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-low">
+                  <div
+                    className="h-full rounded-full primary-gradient transition-all duration-700"
+                    style={{ width: `${completeness}%` }}
+                  />
                 </div>
               </div>
 
-              <div className="mt-4">
-                <p className="text-[13px] font-medium text-surface-800">Profile Completeness</p>
-                <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
-                  <div className="h-1.5 rounded-full bg-brand-600" style={{ width: `${completeness}%` }} />
+              {profileData.bio && (
+                <p className="mt-6 text-sm font-medium leading-relaxed text-surface-600">{profileData.bio}</p>
+              )}
+
+              {(profileData.skills || []).length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {(profileData.skills || []).map((skill) => (
+                    <span key={skill} className="rounded-xl bg-primary-fixed px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary font-headline">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
-                <p className="mt-1 text-[11px] text-surface-500">{completeness}% complete</p>
-              </div>
+              )}
+            </div>
 
-              <button
-                type="button"
-                className="mt-4 w-full rounded-xl bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-700"
-                onClick={handleEdit}
-              >
-                Edit Profile
-              </button>
-            </AppCard>
-
-            <AppCard>
-              <h3 className="font-semibold">About Client Profile</h3>
-              <p className="mt-2 text-[13px] text-surface-600">
-                Your profile helps freelancers understand your business and builds trust for project collaboration. A complete profile increases the
-                quality of proposals you receive.
+            {/* Info callout */}
+            <div className="rounded-[2.5rem] bg-surface-container-low p-6">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline mb-2">Яагаад чухал вэ?</p>
+              <p className="text-[13px] font-medium leading-relaxed text-surface-500">
+                Профайлыг дүүргэснээр фрилансерүүд таны бизнесийн чиглэлийг ойлгож, чанартай саналууд илгээх болно.
               </p>
-            </AppCard>
-          </>
-        ) : (
-          <AppCard>
-            <h2 className="text-lg font-semibold">Edit Your Profile</h2>
-            <form className="mt-4 space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
-              <label className="block text-sm font-medium">
-                Company / Full Name *
-                <input {...form.register("full_name")} placeholder="Your company name" className="mt-1" />
-              </label>
-              {form.formState.errors.full_name && <p className="text-xs text-red-600">{form.formState.errors.full_name.message}</p>}
+            </div>
+          </div>
 
-              <label className="block text-sm font-medium">
-                About Your Business
-                <textarea {...form.register("bio")} placeholder="Describe your company, industry, and what you're looking for..." rows={4} className="mt-1" />
-              </label>
-              {form.formState.errors.bio && <p className="text-xs text-red-600">{form.formState.errors.bio.message}</p>}
+          {/* Right: Edit form */}
+          <form
+            onSubmit={handleSubmit((v) => updateMutation.mutate(v))}
+            className="space-y-6 rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm"
+          >
+            <h2 className="font-headline text-xl font-extrabold text-primary">Профайл засах</h2>
 
-              <label className="block text-sm font-medium">
-                Services/Categories
-                <input
-                  value={skillsInput}
-                  onChange={(e) => setSkillsInput(e.target.value)}
-                  placeholder="web development, mobile apps, design, etc. (comma-separated)"
-                  className="mt-1"
-                />
-              </label>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <FieldLabel>Компани / Бүтэн нэр *</FieldLabel>
+                <input {...register("full_name")} className={inputCls()} placeholder="Таны компанийн нэр" />
+                {errors.full_name && <p className="mt-2 text-xs text-red-600">{errors.full_name.message}</p>}
+              </div>
+              <div>
+                <FieldLabel>Гарчиг / Ангилал</FieldLabel>
+                <input {...register("title")} className={inputCls()} placeholder="Жишээ: E-commerce бизнес" />
+              </div>
+            </div>
 
-              <label className="block text-sm font-medium">
-                Typical Budget Range (MNT)
-                <input
-                  type="number"
-                  {...form.register("hourly_rate", { valueAsNumber: true })}
-                  placeholder="Your typical project budget"
-                  className="mt-1"
-                />
-              </label>
+            <div>
+              <FieldLabel>Компанийн тухай</FieldLabel>
+              <textarea
+                {...register("bio")}
+                rows={4}
+                className={`${inputCls()} resize-none`}
+                placeholder="Таны компани, сектор болон хайж буй мэргэжилтний хэлбэрийг товч тайлбарлана уу..."
+              />
+              {errors.bio && <p className="mt-2 text-xs text-red-600">{errors.bio.message}</p>}
+            </div>
 
-              <div className="flex gap-2 pt-4">
+            <div>
+              <FieldLabel>Үйлчилгээний чиглэл (таслалаар)</FieldLabel>
+              <input
+                value={skillsInput}
+                onChange={(e) => setSkillsInput(e.target.value)}
+                className={inputCls()}
+                placeholder="Жишээ: веб хөгжүүлэлт, мобайл апп, дизайн..."
+              />
+            </div>
+
+            <div>
+              <FieldLabel>Нийт төсвийн хэмжээ (₮)</FieldLabel>
+              <input
+                type="number"
+                {...register("hourly_rate", { valueAsNumber: true })}
+                className={inputCls()}
+                placeholder="5000000"
+                min={0}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-4 pt-2">
+              <button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="min-h-12 rounded-2xl primary-gradient px-8 text-[11px] font-black uppercase tracking-[0.18em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5 disabled:opacity-60 font-headline"
+              >
+                {updateMutation.isPending ? "Хадгалж байна..." : "Хадгалах"}
+              </button>
+              {isDirty && (
                 <button
                   type="button"
-                  className="flex-1 rounded-xl border border-surface-200/60 py-2 text-[13px] font-medium text-surface-700 hover:bg-surface-50"
-                  onClick={() => setIsEditing(false)}
+                  className="min-h-12 rounded-2xl bg-surface-container-lowest px-6 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 shadow-sm transition-all hover:text-primary font-headline"
+                  onClick={() => reset()}
                 >
-                  Cancel
+                  Цуцлах
                 </button>
-                <ActionButton className="flex-1 text-sm" type="submit" loading={updateMutation.isPending}>
-                  Save Profile
-                </ActionButton>
-              </div>
-            </form>
-          </AppCard>
-        )}
+              )}
+            </div>
+          </form>
+        </div>
       </section>
     </RoleGuard>
   );

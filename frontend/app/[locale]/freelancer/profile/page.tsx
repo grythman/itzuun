@@ -1,28 +1,43 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { RoleGuard } from "@/components/role-guard";
 import { ErrorState, LoadingState } from "@/components/states";
-import { ActionButton, AppCard, DashboardBottomBar, RoleSidebar, VerifiedBadge } from "@/components/ui-kit";
+import { VerifiedBadge } from "@/components/ui-kit";
 import { profilesApi } from "@/lib/api/endpoints";
 import { useMe, useMutation, useMyProfile } from "@/lib/hooks";
 import { useToastStore } from "@/lib/toast-store";
 import { profileSchema } from "@/lib/validators";
 
 import type { z } from "zod";
-import { useQueryClient } from "@tanstack/react-query";
 
 type ProfileForm = z.infer<typeof profileSchema>;
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline mb-2">
+      {children}
+    </label>
+  );
+}
+
+function inputCls() {
+  return "w-full rounded-2xl border-none bg-surface-container-low px-5 py-4 text-[15px] font-medium text-on-surface transition-all placeholder:text-surface-400 focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0";
+}
 
 export default function FreelancerProfilePage() {
   const me = useMe();
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
+
+  const [skillsInput, setSkillsInput] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
 
   const {
     register,
@@ -36,11 +51,14 @@ export default function FreelancerProfilePage() {
 
   useEffect(() => {
     if (profile.data) {
+      const profileSkills = profile.data.skills || [];
+      setSkills(profileSkills);
+      setSkillsInput("");
       reset({
         full_name: profile.data.full_name || "",
         title: profile.data.title || "",
         bio: profile.data.bio || "",
-        skills: (profile.data.skills || []).join(", "),
+        skills: profileSkills.join(", "),
         hourly_rate: Number(profile.data.hourly_rate) || 0,
         is_available: profile.data.is_available ?? true,
         response_time_hours: profile.data.response_time_hours ?? 24,
@@ -55,9 +73,7 @@ export default function FreelancerProfilePage() {
         full_name: values.full_name,
         title: values.title,
         bio: values.bio || "",
-        skills: values.skills
-          ? values.skills.split(",").map((s) => s.trim()).filter(Boolean)
-          : [],
+        skills,
         hourly_rate: values.hourly_rate,
         is_available: values.is_available,
         response_time_hours: values.response_time_hours,
@@ -65,240 +81,206 @@ export default function FreelancerProfilePage() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["profile-me"] });
-      toast("success", "Profile updated");
+      toast("success", "Профайл шинэчлэгдлээ.");
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
-  if (me.isLoading || profile.isLoading) return <LoadingState label="Loading profile..." />;
-  if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
+  function addSkill(raw: string) {
+    const val = raw.trim();
+    if (!val || skills.some((s) => s.toLowerCase() === val.toLowerCase())) {
+      setSkillsInput("");
+      return;
+    }
+    setSkills((prev) => [...prev, val]);
+    setSkillsInput("");
+  }
+
+  function removeSkill(skill: string) {
+    setSkills((prev) => prev.filter((s) => s !== skill));
+  }
+
+  if (me.isLoading || profile.isLoading) return <LoadingState label="Профайл ачааллаж байна..." />;
+  if (me.isError || !me.data) return <ErrorState label="Эхлээд нэвтэрнэ үү." />;
 
   const completeness = profile.data?.profile_completeness || 0;
+  const profileData = profile.data;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath="/auth">
-      <section className="space-y-6 pb-20">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">My Profile</h1>
+      <section className="space-y-8 pb-20">
+        {/* Header */}
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-surface-400 font-headline">
+              Профайл тохиргоо
+            </p>
+            <h1 className="mt-3 font-headline text-[36px] font-black leading-none tracking-tighter text-primary md:text-[44px]">
+              Профайл
+            </h1>
+          </div>
           <VerifiedBadge verified={me.data.is_verified} />
         </div>
 
-        <div className="flex gap-4">
-          <RoleSidebar role="freelancer" />
-
-          <div className="flex-1 space-y-4">
-            {/* Profile completeness */}
-            <AppCard>
-              <p className="text-[13px] font-semibold text-surface-800">Profile completeness: {completeness}%</p>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-surface-100">
-                <div
-                  className="h-1.5 rounded-full bg-emerald-600 transition-all"
-                  style={{ width: `${completeness}%` }}
+        {/* Profile completeness ring + stats */}
+        <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+          {/* Left: completeness */}
+          <div className="relative overflow-hidden rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm">
+            <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-secondary/5 blur-3xl" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">
+              Профайлын дүүрэлт
+            </p>
+            <div className="relative mx-auto my-8 h-36 w-36">
+              <svg className="h-full w-full -rotate-90">
+                <circle className="text-surface-container-low" cx="72" cy="72" fill="transparent" r="62" stroke="currentColor" strokeWidth="10" />
+                <circle
+                  className="text-secondary"
+                  cx="72"
+                  cy="72"
+                  fill="transparent"
+                  r="62"
+                  stroke="currentColor"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray="389.6"
+                  strokeDashoffset={389.6 - (389.6 * completeness) / 100}
                 />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-headline text-3xl font-black text-primary">{completeness}%</span>
+                <span className="mt-1 text-[10px] font-black uppercase tracking-widest text-surface-400 font-headline">Дууссан</span>
               </div>
-              {completeness < 100 && (
-                <p className="mt-2 text-[11px] text-surface-500">
-                  Fill in all fields to reach 100% and get more visibility.
-                </p>
-              )}
-            </AppCard>
-
-            {/* Profile edit form */}
-            <form
-              onSubmit={handleSubmit((v) => updateMutation.mutate(v))}
-              className="rounded-2xl border border-surface-200/60 bg-white p-6 shadow-card space-y-5"
-            >
-              <h2 className="text-lg font-medium text-surface-900">Edit Profile</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label htmlFor="full_name" className="mb-1 block text-[13px] font-medium text-surface-700">
-                    Full Name
-                  </label>
-                  <input
-                    id="full_name"
-                    {...register("full_name")}
-                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    placeholder="Your full name"
-                  />
-                  {errors.full_name && (
-                    <p className="mt-1 text-[11px] text-red-600">{errors.full_name.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="title" className="mb-1 block text-[13px] font-medium text-surface-700">
-                    Professional Title
-                  </label>
-                  <input
-                    id="title"
-                    {...register("title")}
-                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    placeholder="e.g. Senior Frontend Developer"
-                  />
-                  {errors.title && (
-                    <p className="mt-1 text-[11px] text-red-600">{errors.title.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="bio" className="mb-1 block text-[13px] font-medium text-surface-700">
-                  Bio
-                </label>
-                <textarea
-                  id="bio"
-                  {...register("bio")}
-                  rows={4}
-                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  placeholder="Tell clients about yourself, your experience, and what you can offer..."
-                />
-                {errors.bio && (
-                  <p className="mt-1 text-[11px] text-red-600">{errors.bio.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="skills" className="mb-1 block text-[13px] font-medium text-surface-700">
-                  Skills
-                </label>
-                <input
-                  id="skills"
-                  {...register("skills")}
-                  className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  placeholder="React, TypeScript, Node.js, Python (comma separated)"
-                />
-                <p className="mt-1 text-[11px] text-surface-500">Separate skills with commas</p>
-                {errors.skills && (
-                  <p className="mt-1 text-[11px] text-red-600">{errors.skills.message}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                  <label htmlFor="hourly_rate" className="mb-1 block text-[13px] font-medium text-surface-700">
-                    Hourly Rate (MNT)
-                  </label>
-                  <input
-                    id="hourly_rate"
-                    type="number"
-                    {...register("hourly_rate")}
-                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    placeholder="50000"
-                    min={0}
-                  />
-                  {errors.hourly_rate && (
-                    <p className="mt-1 text-[11px] text-red-600">{errors.hourly_rate.message}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <label htmlFor="response_time_hours" className="mb-1 block text-[13px] font-medium text-surface-700">
-                    Response Time (Hours)
-                  </label>
-                  <input
-                    id="response_time_hours"
-                    type="number"
-                    {...register("response_time_hours")}
-                    className="w-full rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    placeholder="24"
-                    min={1}
-                  />
-                  {errors.response_time_hours && (
-                    <p className="mt-1 text-[11px] text-red-600">{errors.response_time_hours.message}</p>
-                  )}
-                </div>
-
-                <div className="flex items-center mt-6">
-                  <input
-                    id="is_available"
-                    type="checkbox"
-                    {...register("is_available")}
-                    className="h-4 w-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
-                  />
-                  <label htmlFor="is_available" className="ml-2 block text-[13px] font-medium text-surface-700">
-                    Available for Work
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <ActionButton type="submit" loading={updateMutation.isPending} disabled={!isDirty}>
-                  Save Profile
-                </ActionButton>
-                {isDirty && (
-                  <button
-                    type="button"
-                    className="rounded-xl px-4 py-2.5 text-[13px] text-surface-600 hover:bg-surface-100"
-                    onClick={() => reset()}
-                  >
-                    Discard Changes
-                  </button>
-                )}
-              </div>
-            </form>
-
-            {/* Preview card */}
-            {profile.data && (
-              <AppCard>
-                <h2 className="mb-3 text-lg font-medium text-surface-900">Profile Preview</h2>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Name</p>
-                    <p className="text-[13px] font-medium text-surface-800">{profile.data.full_name || "—"}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Bio</p>
-                    <p className="text-[13px] text-surface-700 whitespace-pre-wrap">
-                      {profile.data.bio || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Skills</p>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {(profile.data.skills || []).length > 0 ? (
-                        profile.data.skills.map((skill) => (
-                          <span
-                            key={skill}
-                            className="rounded-full bg-brand-50 px-3 py-1 text-[11px] font-medium text-brand-700"
-                          >
-                            {skill}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[13px] text-surface-400">—</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[11px] uppercase tracking-widest text-surface-500">Hourly Rate</p>
-                    <p className="text-[13px] font-medium">
-                      {profile.data.hourly_rate
-                        ? `${profile.data.hourly_rate.toLocaleString()} MNT`
-                        : "—"}
-                    </p>
-                  </div>
-                </div>
-              </AppCard>
-            )}
+            </div>
+            <ul className="space-y-3">
+              {[
+                { label: "Бүтэн нэр", done: !!profileData?.full_name },
+                { label: "Тодорхойлолт (Bio)", done: !!profileData?.bio },
+                { label: "Ур чадварууд", done: (profileData?.skills?.length ?? 0) > 0 },
+                { label: "Цагийн хөлс", done: (profileData?.hourly_rate ?? 0) > 0 },
+              ].map((item) => (
+                <li key={item.label} className={`flex items-center gap-3 text-[13px] font-bold font-headline ${item.done ? "text-on-surface" : "text-surface-400 italic opacity-60"}`}>
+                  <span className={`text-base ${item.done ? "text-secondary" : "text-surface-container"}`}>
+                    {item.done ? "✦" : "○"}
+                  </span>
+                  {item.label}
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
 
-        <DashboardBottomBar role="freelancer" />
+          {/* Right: Edit form */}
+          <form
+            onSubmit={handleSubmit((v) => updateMutation.mutate(v))}
+            className="space-y-6 rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm"
+          >
+            <h2 className="font-headline text-xl font-extrabold text-primary">Профайл засах</h2>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <FieldLabel>Бүтэн нэр *</FieldLabel>
+                <input {...register("full_name")} className={inputCls()} placeholder="Жишээ: Бат-Эрдэнэ" />
+                {errors.full_name && <p className="mt-2 text-xs text-red-600">{errors.full_name.message}</p>}
+              </div>
+              <div>
+                <FieldLabel>Мэргэжлийн гарчиг</FieldLabel>
+                <input {...register("title")} className={inputCls()} placeholder="Жишээ: Senior Frontend Developer" />
+                {errors.title && <p className="mt-2 text-xs text-red-600">{errors.title.message}</p>}
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel>Танилцуулга (Bio)</FieldLabel>
+              <textarea
+                {...register("bio")}
+                rows={4}
+                className={`${inputCls()} resize-none`}
+                placeholder="Таны туршлага, мэргэжлийн онцлог болон хийж чадах ажлуудаа бичнэ үү..."
+              />
+              {errors.bio && <p className="mt-2 text-xs text-red-600">{errors.bio.message}</p>}
+            </div>
+
+            {/* Skills */}
+            <div>
+              <FieldLabel>Ур чадварууд</FieldLabel>
+              <div className="rounded-2xl bg-surface-container-low p-5 transition-all focus-within:bg-surface-container-lowest focus-within:shadow-ambient">
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {skills.map((skill) => (
+                    <span key={skill} className="inline-flex items-center gap-2 rounded-xl bg-primary-fixed px-3 py-1.5 text-[11px] font-black uppercase tracking-widest text-primary font-headline">
+                      {skill}
+                      <button type="button" onClick={() => removeSkill(skill)} className="text-primary hover:text-red-500 transition-colors">×</button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <input
+                    value={skillsInput}
+                    onChange={(e) => setSkillsInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addSkill(skillsInput); } }}
+                    placeholder="React, Figma, Python... (Enter дарж нэмэх)"
+                    className="flex-1 rounded-xl border-none bg-surface-container-lowest px-4 py-3 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary/20"
+                  />
+                  <button type="button" onClick={() => addSkill(skillsInput)} className="rounded-xl bg-primary px-5 py-3 text-[11px] font-black uppercase tracking-widest text-primary-fixed font-headline">
+                    Нэмэх
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <FieldLabel>Цагийн хөлс (₮)</FieldLabel>
+                <input
+                  type="number"
+                  {...register("hourly_rate", { valueAsNumber: true })}
+                  className={inputCls()}
+                  placeholder="50000"
+                  min={0}
+                />
+                {errors.hourly_rate && <p className="mt-2 text-xs text-red-600">{errors.hourly_rate.message}</p>}
+              </div>
+              <div>
+                <FieldLabel>Хариу өгөх хугацаа (цаг)</FieldLabel>
+                <input
+                  type="number"
+                  {...register("response_time_hours", { valueAsNumber: true })}
+                  className={inputCls()}
+                  placeholder="24"
+                  min={1}
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                {...register("is_available")}
+                className="h-5 w-5 rounded border-none text-secondary focus:ring-secondary"
+              />
+              <span className="text-[13px] font-bold text-on-surface font-headline">Ажлын санал хүлээн авах боломжтой</span>
+            </label>
+
+            {/* Actions */}
+            <div className="flex items-center gap-4 pt-2">
+              <button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="min-h-12 rounded-2xl primary-gradient px-8 text-[11px] font-black uppercase tracking-[0.18em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5 disabled:opacity-60 font-headline"
+              >
+                {updateMutation.isPending ? "Хадгалж байна..." : "Хадгалах"}
+              </button>
+              {isDirty && (
+                <button
+                  type="button"
+                  className="min-h-12 rounded-2xl bg-surface-container-lowest px-6 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 shadow-sm transition-all hover:text-primary font-headline"
+                  onClick={() => reset()}
+                >
+                  Цуцлах
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
       </section>
     </RoleGuard>
   );
-}
-
-function calculateCompleteness(
-  profile: { full_name: string; bio: string; skills: string[]; hourly_rate: number } | undefined,
-): number {
-  if (!profile) return 0;
-  let filled = 0;
-  const total = 4;
-  if (profile.full_name) filled++;
-  if (profile.bio) filled++;
-  if (profile.skills?.length > 0) filled++;
-  if (profile.hourly_rate > 0) filled++;
-  return Math.round((filled / total) * 100);
 }
