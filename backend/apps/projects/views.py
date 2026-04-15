@@ -77,7 +77,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
-        ProjectService.create_project(
+        serializer.instance = ProjectService.create_project(
             owner=self.request.user, validated_data=serializer.validated_data
         )
 

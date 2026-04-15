@@ -54,19 +54,34 @@ def custom_exception_handler(exc, context):
                     "code": exc.code,
                     "message": exc.message,
                 },
+                # Backward-compatible fields expected by legacy tests/clients.
+                "code": exc.code,
+                "detail": exc.message,
             },
             status=exc.status,
         )
 
     # Format standard DRF exceptions
     if response is not None:
-        response.data = {
+        original_data = response.data
+        normalized_original = _normalize_error_data(original_data)
+        payload = {
             "success": False,
             "error": {
                 "code": _map_error_code(exc),
-                "message": _extract_message(response.data),
+                "message": _extract_message(normalized_original),
             },
         }
+        # Preserve DRF validation payload keys (e.g. code, detail, upgrade_url)
+        # for compatibility with existing tests/clients.
+        if isinstance(normalized_original, dict):
+            payload.update(normalized_original)
+            payload["detail"] = _extract_message(normalized_original)
+            payload.setdefault("code", _map_error_code(exc))
+        else:
+            payload["detail"] = _extract_message(normalized_original)
+            payload["code"] = _map_error_code(exc)
+        response.data = payload
     return response
 
 
@@ -78,7 +93,10 @@ def _extract_message(data):
         # For validation errors, concatenate messages.
         messages = []
         for field, errors in data.items():
-            messages.append(f"{field}: {', '.join(map(str, errors))}")
+            if isinstance(errors, (list, tuple)):
+                messages.append(f"{field}: {', '.join(map(str, errors))}")
+            else:
+                messages.append(f"{field}: {errors}")
         return ". ".join(messages)
     if isinstance(data, list):
         return ", ".join(map(str, data))
@@ -98,3 +116,13 @@ def _map_error_code(exc) -> str:
         "MethodNotAllowed": "METHOD_NOT_ALLOWED",
         "UnsupportedMediaType": "UNSUPPORTED_MEDIA_TYPE",
     }.get(type(exc).__name__, "SERVER_ERROR")
+
+
+def _normalize_error_data(data):
+    if isinstance(data, dict):
+        return {key: _normalize_error_data(value) for key, value in data.items()}
+    if isinstance(data, list):
+        if len(data) == 1:
+            return _normalize_error_data(data[0])
+        return [_normalize_error_data(item) for item in data]
+    return data

@@ -11,7 +11,7 @@ class MessageSelector:
         return (
             ProjectMessage.objects.filter(project_id=project_id)
             .select_related("sender")
-            .order_by("created_at")
+            .order_by("-created_at", "-id")
         )
 
     @staticmethod

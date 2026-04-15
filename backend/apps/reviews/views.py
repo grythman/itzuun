@@ -34,6 +34,9 @@ class ProjectReviewCreateView(generics.CreateAPIView):
         selected = getattr(project, "selected_proposal", None)
         freelancer_id = getattr(selected, "freelancer_id", None)
         is_owner = project.owner_id == self.request.user.id
+        is_selected_freelancer = freelancer_id == self.request.user.id
+        if not (is_owner or is_selected_freelancer):
+            raise PermissionDenied("Only project participants can review.")
         reviewee_id = freelancer_id if is_owner else project.owner_id
 
         review = ReviewService.create(
@@ -43,6 +46,7 @@ class ProjectReviewCreateView(generics.CreateAPIView):
             rating=serializer.validated_data["rating"],
             comment=serializer.validated_data.get("comment", ""),
         )
+        serializer.instance = review
         bump_user_public_version(review.reviewee_id)
 
 

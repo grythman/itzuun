@@ -1,7 +1,10 @@
 from django.db import IntegrityError
+from django.contrib.auth import get_user_model
 from .models import Review
 from apps.projects.models import Project
 from common.exceptions import BusinessLogicError
+
+User = get_user_model()
 
 
 class ReviewService:
@@ -15,7 +18,12 @@ class ReviewService:
 
     @staticmethod
     def create(
-        project: Project, reviewer, reviewee, rating: int, comment: str
+        project: Project,
+        reviewer,
+        reviewee=None,
+        reviewee_id=None,
+        rating: int = 0,
+        comment: str = "",
     ) -> Review:
         """
         Creates a new review after performing business logic validations.
@@ -35,7 +43,16 @@ class ReviewService:
         if not (is_owner or is_freelancer):
             raise BusinessLogicError("Only project participants can review.")
 
-        if reviewee.id != (freelancer_id if is_owner else project.owner_id):
+        expected_reviewee_id = freelancer_id if is_owner else project.owner_id
+
+        if reviewee is None and reviewee_id is None:
+            raise BusinessLogicError("Reviewee is required.")
+        if reviewee is None:
+            reviewee = User.objects.filter(id=reviewee_id).first()
+            if reviewee is None:
+                raise BusinessLogicError("Reviewee does not exist.")
+
+        if reviewee.id != expected_reviewee_id:
             raise BusinessLogicError("Reviewee is not the other project participant.")
 
         try:

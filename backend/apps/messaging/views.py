@@ -47,11 +47,12 @@ class ProjectMessageListCreateView(generics.ListCreateAPIView):
             self.permission_denied(
                 self.request, message="Only project members can post messages."
             )
-        MessageService.send(
+        message = MessageService.send(
             project=project,
             sender=self.request.user,
             text=serializer.validated_data["text"],
         )
+        serializer.instance = message
 
     def list(self, request, *args, **kwargs):
         project = get_object_or_404(
