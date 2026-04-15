@@ -34,6 +34,7 @@ GEMINI_API_KEY = env.str("GEMINI_API_KEY", "")
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
