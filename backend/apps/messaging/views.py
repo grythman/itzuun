@@ -8,6 +8,8 @@ from apps.projects.models import Project
 
 from .models import ProjectFile, ProjectMessage
 from .serializers import ProjectFileSerializer, ProjectMessageSerializer
+from .selectors import MessageSelector
+from .services import MessageService
 
 
 def _assert_project_member(user, project: Project):
@@ -33,11 +35,7 @@ class ProjectMessageListCreateView(generics.ListCreateAPIView):
         )
         if not _assert_project_member(self.request.user, project):
             return ProjectMessage.objects.none()
-        return (
-            ProjectMessage.objects.filter(project=project)
-            .select_related("sender")
-            .order_by("-created_at")
-        )
+        return MessageSelector.get_thread(project_id=project.id)
 
     def perform_create(self, serializer):
         project = get_object_or_404(
@@ -49,7 +47,11 @@ class ProjectMessageListCreateView(generics.ListCreateAPIView):
             self.permission_denied(
                 self.request, message="Only project members can post messages."
             )
-        serializer.save(project=project, sender=self.request.user)
+        MessageService.send(
+            project=project,
+            sender=self.request.user,
+            text=serializer.validated_data['text']
+        )
 
     def list(self, request, *args, **kwargs):
         project = get_object_or_404(
@@ -73,9 +75,10 @@ class ProjectFileUploadView(generics.CreateAPIView):
                 self.request, message="Only project members can upload files."
             )
         upload = self.request.FILES.get("file")
-        serializer.save(
+        MessageService.attach_file(
             project=project,
             uploader=self.request.user,
+            file=upload,
             name=getattr(upload, "name", ""),
             size=getattr(upload, "size", 0),
         )

@@ -27,7 +27,8 @@ from .serializers import (
     ProjectSerializer,
     ProposalSerializer,
 )
-from .services import close_project, select_freelancer, suggest_project_description
+from .services import close_project, select_freelancer, suggest_project_description, ProjectService
+from .selectors import ProjectSelector
 
 
 def _proposal_limit_for_user(user) -> int:
@@ -63,55 +64,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        queryset = (
-            Project.objects.select_related("owner", "selected_proposal__freelancer")
-            .prefetch_related("proposals")
-            .all()
-            .order_by("-created_at")
-        )
-        status_filter = self.request.query_params.get("status")
-        category_filter = self.request.query_params.get("category")
-        search = self.request.query_params.get("search")
-        skills = self.request.query_params.get("skills")
-        budget_min_raw = self.request.query_params.get("budget_min")
-        budget_max_raw = self.request.query_params.get("budget_max")
-        experience = self.request.query_params.get("experience")
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        if category_filter:
-            queryset = queryset.filter(category=category_filter)
-        if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) | Q(description__icontains=search)
-            )
-        if skills:
-            skill_terms = [item.strip() for item in skills.split(",") if item.strip()]
-            for skill in skill_terms:
-                queryset = queryset.filter(required_skills__icontains=skill)
-
-        try:
-            budget_min = int(budget_min_raw) if budget_min_raw else None
-        except (TypeError, ValueError):
-            budget_min = None
-        try:
-            budget_max = int(budget_max_raw) if budget_max_raw else None
-        except (TypeError, ValueError):
-            budget_max = None
-
-        if budget_min is not None:
-            queryset = queryset.filter(budget__gte=max(0, budget_min))
-        if budget_max is not None:
-            queryset = queryset.filter(budget__lte=max(0, budget_max))
-
-        # The project model has no explicit experience field; use timeline as a stable proxy.
-        if experience == "entry":
-            queryset = queryset.filter(timeline_days__lte=14)
-        elif experience == "intermediate":
-            queryset = queryset.filter(timeline_days__gt=14, timeline_days__lte=45)
-        elif experience == "expert":
-            queryset = queryset.filter(timeline_days__gt=45)
-
-        return queryset
+        return ProjectSelector.get_projects(self.request.query_params)
 
     def get_permissions(self):
         if self.request.method == "POST":
@@ -119,9 +72,10 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
-        project = serializer.save(owner=self.request.user)
-        bump_project_version(project.id)
-        bump_admin_resource_version("projects")
+        ProjectService.create_project(
+            owner=self.request.user,
+            validated_data=serializer.validated_data
+        )
 
     def list(self, request, *args, **kwargs):
         cache_key = project_list_cache_key(request.query_params)

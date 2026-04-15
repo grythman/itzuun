@@ -9,6 +9,23 @@ from common.state_guards import guard_project_transition
 from .models import Project, Proposal
 
 
+class ProjectService:
+    @staticmethod
+    def create_project(owner, validated_data: dict) -> Project:
+        """
+        Creates a new project.
+        """
+        # In the user's example, status is 'draft', but the model has no 'draft' status.
+        # Default status is 'open', so we don't need to set it.
+        project = Project.objects.create(
+            owner=owner,
+            **validated_data
+        )
+        bump_project_version(project.id)
+        bump_admin_resource_version("projects")
+        return project
+
+
 @transaction.atomic
 def select_freelancer(project: Project, proposal: Proposal) -> Project:
     if project.status != Project.STATUS_OPEN:

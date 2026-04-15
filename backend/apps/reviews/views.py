@@ -17,6 +17,8 @@ from apps.projects.models import Project
 
 from .models import Review
 from .serializers import ReviewSerializer
+from .selectors import ReviewSelector
+from .services import ReviewService
 
 
 class ProjectReviewCreateView(generics.CreateAPIView):
@@ -28,28 +30,21 @@ class ProjectReviewCreateView(generics.CreateAPIView):
             Project.objects.select_related("selected_proposal"),
             id=self.kwargs["project_id"],
         )
-        if project.status != Project.STATUS_COMPLETED:
-            raise ValidationError(
-                {"detail": "Reviews can only be left after project completion."}
-            )
-
-        # Only owner and selected freelancer may review each other
+        
         selected = getattr(project, "selected_proposal", None)
         freelancer_id = getattr(selected, "freelancer_id", None)
         is_owner = project.owner_id == self.request.user.id
-        is_freelancer = freelancer_id == self.request.user.id
-        if not (is_owner or is_freelancer):
-            raise PermissionDenied("Only project participants can review.")
-
-        # Prevent duplicate reviews by same user for same project
-        if Review.objects.filter(project=project, reviewer=self.request.user).exists():
-            raise ValidationError({"detail": "You already reviewed this project."})
-
         reviewee_id = freelancer_id if is_owner else project.owner_id
-        serializer.save(
-            project=project, reviewer=self.request.user, reviewee_id=reviewee_id
+        
+        review = ReviewService.create(
+            project=project,
+            reviewer=self.request.user,
+            reviewee_id=reviewee_id,
+            rating=serializer.validated_data['rating'],
+            comment=serializer.validated_data.get('comment', '')
         )
-        bump_user_public_version(reviewee_id)
+        bump_user_public_version(review.reviewee_id)
+
 
 
 class UserReviewsListView(generics.ListAPIView):
@@ -57,9 +52,9 @@ class UserReviewsListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Review.objects.filter(reviewee_id=self.kwargs["user_id"]).order_by(
-            "-created_at"
-        )
+        # We need to get the user object to pass to the selector.
+        # The user_id is in the URL kwargs.
+        return ReviewSelector.get_by_user(user=self.kwargs["user_id"])
 
     def list(self, request, *args, **kwargs):
         user_id = kwargs["user_id"]
