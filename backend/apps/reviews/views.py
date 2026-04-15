@@ -30,21 +30,20 @@ class ProjectReviewCreateView(generics.CreateAPIView):
             Project.objects.select_related("selected_proposal"),
             id=self.kwargs["project_id"],
         )
-        
+
         selected = getattr(project, "selected_proposal", None)
         freelancer_id = getattr(selected, "freelancer_id", None)
         is_owner = project.owner_id == self.request.user.id
         reviewee_id = freelancer_id if is_owner else project.owner_id
-        
+
         review = ReviewService.create(
             project=project,
             reviewer=self.request.user,
             reviewee_id=reviewee_id,
-            rating=serializer.validated_data['rating'],
-            comment=serializer.validated_data.get('comment', '')
+            rating=serializer.validated_data["rating"],
+            comment=serializer.validated_data.get("comment", ""),
         )
         bump_user_public_version(review.reviewee_id)
-
 
 
 class UserReviewsListView(generics.ListAPIView):

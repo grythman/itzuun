@@ -15,7 +15,6 @@ class ProfileListView(generics.ListAPIView):
         return ProfileSelector.get_profiles(self.request.query_params)
 
 
-
 class ProfileDetailView(generics.RetrieveAPIView):
     """Retrieres a single profile by user ID."""
 
@@ -40,6 +39,6 @@ class ProfileMeView(generics.RetrieveUpdateAPIView):
         # Use get_or_create to ensure a profile exists for the user
         profile, created = Profile.objects.get_or_create(user=self.request.user)
         return profile
-    
+
     def perform_update(self, serializer):
         ProfileService.update(self.request.user, serializer.validated_data)

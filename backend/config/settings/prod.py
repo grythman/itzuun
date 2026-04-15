@@ -42,7 +42,9 @@ elif DATABASE_URL:
         )
     }
 else:
-    raise ImproperlyConfigured("Production settings requires DATABASE_URL or DB_* env vars")
+    raise ImproperlyConfigured(
+        "Production settings requires DATABASE_URL or DB_* env vars"
+    )
 
 # Caching
 REDIS_URL = env("REDIS_URL", default=None)

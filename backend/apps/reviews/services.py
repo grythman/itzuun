@@ -3,6 +3,7 @@ from .models import Review
 from apps.projects.models import Project
 from common.exceptions import BusinessLogicError
 
+
 class ReviewService:
     @staticmethod
     def validate_one_per_project(project: Project, reviewer):
@@ -13,14 +14,18 @@ class ReviewService:
             raise BusinessLogicError("You have already reviewed this project.")
 
     @staticmethod
-    def create(project: Project, reviewer, reviewee, rating: int, comment: str) -> Review:
+    def create(
+        project: Project, reviewer, reviewee, rating: int, comment: str
+    ) -> Review:
         """
         Creates a new review after performing business logic validations.
         """
         ReviewService.validate_one_per_project(project, reviewer)
 
         if project.status != Project.STATUS_COMPLETED:
-            raise BusinessLogicError("Reviews can only be left after project completion.")
+            raise BusinessLogicError(
+                "Reviews can only be left after project completion."
+            )
 
         # Only owner and selected freelancer may review each other
         selected = getattr(project, "selected_proposal", None)
@@ -39,7 +44,7 @@ class ReviewService:
                 reviewer=reviewer,
                 reviewee=reviewee,
                 rating=rating,
-                comment=comment
+                comment=comment,
             )
         except IntegrityError as e:
             # This can happen if there's a race condition.

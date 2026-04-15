@@ -1,6 +1,7 @@
 from django.db.models import Q, QuerySet
 from .models import Project
 
+
 class ProjectSelector:
     @staticmethod
     def get_projects(filters: dict = None) -> QuerySet:
@@ -29,11 +30,15 @@ class ProjectSelector:
                 queryset = queryset.filter(required_skills__icontains=skill)
 
         try:
-            budget_min = int(filters.get("budget_min")) if filters.get("budget_min") else None
+            budget_min = (
+                int(filters.get("budget_min")) if filters.get("budget_min") else None
+            )
         except (TypeError, ValueError):
             budget_min = None
         try:
-            budget_max = int(filters.get("budget_max")) if filters.get("budget_max") else None
+            budget_max = (
+                int(filters.get("budget_max")) if filters.get("budget_max") else None
+            )
         except (TypeError, ValueError):
             budget_max = None
 
@@ -57,17 +62,18 @@ class ProjectSelector:
         """
         Returns a queryset of projects owned by a given user.
         """
-        return (Project.objects
-                .filter(owner=user)
-                .select_related('owner')
-                .prefetch_related('proposals')
-                .order_by('-created_at'))
+        return (
+            Project.objects.filter(owner=user)
+            .select_related("owner")
+            .prefetch_related("proposals")
+            .order_by("-created_at")
+        )
 
     @staticmethod
     def get_open_projects() -> QuerySet:
         """
         Returns a queryset of all projects with 'open' status.
         """
-        return (Project.objects
-                .filter(status=Project.STATUS_OPEN)
-                .select_related('owner__profile'))
+        return Project.objects.filter(status=Project.STATUS_OPEN).select_related(
+            "owner__profile"
+        )

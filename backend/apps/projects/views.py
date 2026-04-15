@@ -27,7 +27,12 @@ from .serializers import (
     ProjectSerializer,
     ProposalSerializer,
 )
-from .services import close_project, select_freelancer, suggest_project_description, ProjectService
+from .services import (
+    close_project,
+    select_freelancer,
+    suggest_project_description,
+    ProjectService,
+)
 from .selectors import ProjectSelector
 
 
@@ -73,8 +78,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         ProjectService.create_project(
-            owner=self.request.user,
-            validated_data=serializer.validated_data
+            owner=self.request.user, validated_data=serializer.validated_data
         )
 
     def list(self, request, *args, **kwargs):

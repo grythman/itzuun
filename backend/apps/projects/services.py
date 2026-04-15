@@ -17,10 +17,7 @@ class ProjectService:
         """
         # In the user's example, status is 'draft', but the model has no 'draft' status.
         # Default status is 'open', so we don't need to set it.
-        project = Project.objects.create(
-            owner=owner,
-            **validated_data
-        )
+        project = Project.objects.create(owner=owner, **validated_data)
         bump_project_version(project.id)
         bump_admin_resource_version("projects")
         return project

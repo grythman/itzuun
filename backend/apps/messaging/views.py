@@ -50,7 +50,7 @@ class ProjectMessageListCreateView(generics.ListCreateAPIView):
         MessageService.send(
             project=project,
             sender=self.request.user,
-            text=serializer.validated_data['text']
+            text=serializer.validated_data["text"],
         )
 
     def list(self, request, *args, **kwargs):
