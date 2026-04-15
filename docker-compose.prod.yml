@@ -49,6 +49,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - REDIS_URL=redis://default:${REDIS_PASSWORD:-itzuun_redis_pass}@redis:6379/1
+      - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX:-itzuun}
       - DJANGO_ALLOWED_HOSTS=itzuun.works,www.itzuun.works,localhost,127.0.0.1,api,web
       - DJANGO_CSRF_TRUSTED_ORIGINS=https://itzuun.works,https://www.itzuun.works,http://localhost,http://127.0.0.1
       - STATIC_ROOT=/app/staticfiles
