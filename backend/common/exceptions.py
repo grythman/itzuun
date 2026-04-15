@@ -17,6 +17,12 @@ class BusinessLogicError(Exception):
         super().__init__(message)
 
 
+class DomainError(BusinessLogicError):
+    """Backward-compatible domain/service exception."""
+
+    code = "DOMAIN_ERROR"
+
+
 class StateTransitionError(BusinessLogicError):
     """Invalid state transition."""
 
