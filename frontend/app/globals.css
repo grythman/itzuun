@@ -6,9 +6,9 @@
 
 :root {
   color-scheme: light;
-  --app-max-width: 1680px;
-  --app-content-width: 1520px;
-  --app-content-narrow: 1120px;
+  --app-max-width: 1920px;
+  --app-content-width: 1760px;
+  --app-content-narrow: 1540px;
   --app-gutter: clamp(16px, 2.2vw, 40px);
   --app-section-y: clamp(24px, 3vw, 48px);
 }
@@ -82,17 +82,17 @@ button {
 
 @media (max-width: 1536px) {
   :root {
-    --app-max-width: 1480px;
-    --app-content-width: 1360px;
-    --app-content-narrow: 1040px;
+    --app-max-width: 1600px;
+    --app-content-width: 1440px;
+    --app-content-narrow: 1280px;
   }
 }
 
 @media (max-width: 1280px) {
   :root {
-    --app-max-width: 1240px;
-    --app-content-width: 1160px;
-    --app-content-narrow: 920px;
+    --app-max-width: 1320px;
+    --app-content-width: 1180px;
+    --app-content-narrow: 980px;
   }
 }
 
