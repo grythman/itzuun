@@ -11,11 +11,29 @@ export function LoadingState({ label = "Loading..." }: { label?: string }) {
   );
 }
 
-export function EmptyState({ label, action }: { label: string; action?: ReactNode }) {
+export function EmptyState({
+  label,
+  description,
+  action,
+  icon,
+}: {
+  label: string;
+  description?: string;
+  action?: ReactNode;
+  icon?: ReactNode;
+}) {
   return (
-    <div className="rounded-xl border border-dashed border-surface-300 bg-white p-4 text-[13px] text-surface-400">
-      <p>{label}</p>
-      {action ? <div className="mt-3">{action}</div> : null}
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-container-lowest/60 px-8 py-16 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-container text-surface-400">
+        {icon ?? (
+          <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor" aria-hidden="true">
+            <path d="M19 11H5v2h14v-2Zm-7-9a10 10 0 1 0 0 20A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" />
+          </svg>
+        )}
+      </div>
+      <p className="font-headline text-base font-bold text-on-surface">{label}</p>
+      {description && <p className="mt-2 max-w-xs text-sm text-surface-500">{description}</p>}
+      {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }

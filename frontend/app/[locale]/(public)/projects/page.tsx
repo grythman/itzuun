@@ -337,10 +337,21 @@ export default function ProjectsPage() {
 
         {/* Cards */}
         {isLoading && <LoadingState label="Төслүүд ачааллаж байна..." />}
-        {isError && <ErrorState label="Алдаа гарлаа." />}
+        {isError && <ErrorState label="Сервертэй холбогдоход алдаа гарлаа. Хуудсыг дахин ачааллана уу." />}
         {!isLoading && !isError && (
           projects.length === 0
-            ? <EmptyState label="Тохирох төсөл олдсонгүй." />
+            ? <EmptyState
+                label="Тохирох төсөл олдсонгүй"
+                description="Хайлтаа өргөтгөж хайгаарай. Эсвэл анхны санаачлагч болоод өөрийн хүссэн байдлаар ажил зарлаарай."
+                action={
+                  <Link
+                    href={`/${locale}/client/projects/new`}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all"
+                  >
+                    Шинэ төсөл нийтлэх
+                  </Link>
+                }
+              />
             : (
               <div className="space-y-5">
                 {projects.map((p: any) => <ProjectCard key={p.id} project={p} locale={locale} />)}

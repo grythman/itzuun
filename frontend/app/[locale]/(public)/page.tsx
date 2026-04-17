@@ -26,16 +26,16 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href={withLocale("/client/projects/new")}
-                  className="rounded-md bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-10 py-5 text-lg font-bold text-white transition-all duration-150 ease-in-out active:scale-95"
-                >
-                  {t("landingSecondaryCta")}
-                </Link>
-                <Link
                   href={withLocale("/projects")}
-                  className="rounded-md bg-surface-container-low px-10 py-5 text-lg font-bold text-primary transition-all duration-150 ease-in-out hover:bg-surface-container-high active:scale-95"
+                  className="rounded-xl bg-gradient-to-br from-[#13696a] to-[#0e5254] px-10 py-5 text-lg font-bold text-white shadow-[0_16px_40px_rgba(19,105,106,0.28)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(19,105,106,0.35)] active:scale-95"
                 >
                   {t("landingPrimaryCta")}
+                </Link>
+                <Link
+                  href={withLocale("/client/projects/new")}
+                  className="rounded-xl border border-surface-200 bg-white/60 px-10 py-5 text-lg font-bold text-primary backdrop-blur-sm transition-all duration-150 hover:bg-white hover:shadow-[0_8px_24px_rgba(3,22,54,0.08)] active:scale-95"
+                >
+                  {t("landingSecondaryCta")}
                 </Link>
               </div>
             </div>
@@ -229,7 +229,6 @@ export default function HomePage() {
             <span className="text-xs font-bold uppercase tracking-widest opacity-40">{t("footerCol2")}</span>
             <Link className="text-sm text-[#191c1e]/60 transition-all duration-300 hover:text-[#031636] hover:underline" href={withLocale("/about")}>{t("footerLinkAbout")}</Link>
             <Link className="text-sm text-[#191c1e]/60 transition-all duration-300 hover:text-[#031636] hover:underline" href={withLocale("/support")}>{t("footerLinkSupport")}</Link>
-            <Link className="text-sm text-[#191c1e]/60 transition-all duration-300 hover:text-[#031636] hover:underline" href={withLocale("/support")}>Cyrillic Support</Link>
           </div>
           <div className="flex flex-col gap-4">
             <span className="text-xs font-bold uppercase tracking-widest opacity-40">{t("footerCol3")}</span>
@@ -240,8 +239,12 @@ export default function HomePage() {
           <div className="flex flex-col gap-4">
             <span className="text-xs font-bold uppercase tracking-widest opacity-40">{t("footerCol4")}</span>
             <div className="flex gap-4">
-              <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#031636]/5 transition-colors hover:bg-secondary hover:text-white">@</div>
-              <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#031636]/5 transition-colors hover:bg-secondary hover:text-white">◉</div>
+              <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#031636]/5 text-[#031636]/50 transition-colors hover:bg-[#031636] hover:text-white">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/></svg>
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#031636]/5 text-[#031636]/50 transition-colors hover:bg-[#1877F2] hover:text-white">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.2-1.6 1.6-1.6h1.7V3.8c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.3V10H8v3h2.7v8h2.8Z"/></svg>
+              </a>
             </div>
           </div>
         </div>

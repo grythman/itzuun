@@ -497,8 +497,9 @@ export default function FreelancerDashboardPage() {
                       </div>
                     ) : (
                       <EmptyState
-                        label={t("noProposals")}
-                        action={<Link href={withLocale("/projects")} className="inline-flex min-h-12 items-center rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient">{t("browseProjects")}</Link>}
+                        label="Идэвхтэй төсөл байхгүй байна"
+                        description="Одоогоор идэвхтэй гэрээ байхгүй байна. Ажил хайж санал илгээгээрэй."
+                        action={<Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center gap-2 rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">Ажил хайх</Link>}
                       />
                     )}
                   </div>
