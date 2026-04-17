@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { useDashboardLayout } from "@/components/layout/dashboard-layout";
 import { EmptyState, ErrorState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
 import { ConfirmationDialog, StatusPill } from "@/components/ui";
@@ -47,11 +46,11 @@ function projectProgress(status: string): number {
 }
 
 function projectStatusLabel(status: string): string {
-  if (status === "in_progress") return "In Progress";
-  if (status === "awaiting_client_review") return "Awaiting Review";
-  if (status === "completed") return "Released";
-  if (status === "disputed") return "Disputed";
-  return "Open";
+  if (status === "in_progress") return "Ажил явагдаж байна";
+  if (status === "awaiting_client_review") return "Таны шалгалтыг хүлээж байна 🕐";
+  if (status === "completed") return "Бүрэн дууссан";
+  if (status === "disputed") return "Маргаан шийдвэрлэж байна";
+  return "Нээлттэй";
 }
 
 function initials(label: string): string {
@@ -112,7 +111,6 @@ export default function ClientDashboardPage() {
   const projects = useProjects(1);
   const toast = useToastStore((s) => s.push);
   const proposalSectionRef = useRef<HTMLDivElement | null>(null);
-  const inDashboardShell = useDashboardLayout();
 
   const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
   const proposals = useProjectProposals(activeProjectId || "");
@@ -233,90 +231,35 @@ export default function ClientDashboardPage() {
   const proposalInbox = sortedProposalItems.slice(0, 3);
   const proposalBadgeCount = proposalInbox.length;
 
+  let priorityAction = null;
+  if (awaitingReview) {
+    priorityAction = {
+      title: "Баталгаажуулалт хүлээгдэж байна 🕐",
+      desc: `"${awaitingReview.title}" төслийн үр дүнг шалгаад Эскроу төлбөрийг чөлөөлнө үү.`,
+      cta: "Шалгах",
+      onClick: () => setReleaseTarget(awaitingReview.id)
+    };
+  } else if (proposalBadgeCount > 0) {
+    priorityAction = {
+      title: `${proposalBadgeCount} шинэ санал шалгана уу ✨`,
+      desc: openProject ? `"${openProject.title}" төсөлд шинэ санал ирсэн байна.` : "Freelancers-ийн илгээсэн саналуудтай танилцана уу.",
+      cta: "Саналуудыг харах",
+      onClick: () => openProject && focusProposalSection(openProject.id)
+    };
+  } else if (myProjects.length === 0) {
+    priorityAction = {
+      title: "Таны анхны төсөл 🚀",
+      desc: "Шилдэг мэргэжилтнүүдтэй хамтрахын тулд яг одоо төслөө нийтлэнэ үү.",
+      cta: "Төсөл нийтлэх",
+      onClick: () => router.push(withLocale("/client/projects/new"))
+    };
+  }
+
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="client" fallbackPath={withLocale("/auth")}>
       <section className="pb-24 xl:pb-10">
-        <div className={inDashboardShell ? "grid gap-0" : "grid gap-6 xl:grid-cols-[288px_minmax(0,1fr)] 2xl:grid-cols-[288px_minmax(0,1fr)]"}>
-          <aside className={`${inDashboardShell ? "hidden" : "hidden xl:sticky xl:top-0 xl:flex xl:h-screen xl:flex-col xl:gap-2 xl:rounded-none xl:bg-surface-container-low xl:px-0 xl:py-6"}`}>
-            <div className="mb-8">
-              <div className="mb-6 flex items-center gap-3 px-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">IZ</div>
-                <div>
-                  <h2 className="font-headline text-lg font-bold leading-none text-primary">Project Console</h2>
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-surface-500">Enterprise Tier</span>
-                </div>
-              </div>
-              <Link
-                href={withLocale("/client/projects/new")}
-                className="mx-6 flex min-h-12 w-auto items-center justify-center gap-2 rounded-xl primary-gradient px-4 text-sm font-bold text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5"
-              >
-                <DashboardIcon name="add" className="h-[18px] w-[18px]" />
-                Create New Brief
-              </Link>
-            </div>
-
-            <nav className="flex-1 space-y-1 px-4">
-              <Link href={withLocale("/client")} className="flex items-center gap-3 rounded-lg bg-surface-container-lowest px-4 py-3 text-[13px] font-medium text-primary shadow-sm hover:shadow-ambient transition-all text-on-surface">
-                <DashboardIcon name="folder" className="h-[18px] w-[18px]" />
-                Active Projects
-              </Link>
-              <Link href={withLocale("/client/projects/new")} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[13px] font-medium text-surface-500 transition hover:translate-x-1 hover:bg-surface-variant/50 hover:text-on-surface">
-                <DashboardIcon name="add" className="h-[18px] w-[18px]" />
-                Post a Project
-              </Link>
-              <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[13px] font-medium text-surface-500 transition hover:translate-x-1 hover:bg-surface-variant/50 hover:text-on-surface">
-                <DashboardIcon name="doc" className="h-[18px] w-[18px]" />
-                Proposals
-              </button>
-              <button type="button" onClick={() => (inProgressProject ? router.push(withLocale(`/projects/${inProgressProject.id}/payment`)) : null)} className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-[13px] font-medium text-surface-500 transition hover:translate-x-1 hover:bg-surface-variant/50 hover:text-on-surface">
-                <DashboardIcon name="payments" className="h-[18px] w-[18px]" />
-                Payments & Escrow
-              </button>
-              <Link href={withLocale("/client/profile")} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[13px] font-medium text-surface-500 transition hover:translate-x-1 hover:bg-surface-variant/50 hover:text-on-surface">
-                <DashboardIcon name="settings" className="h-[18px] w-[18px]" />
-                Settings
-              </Link>
-            </nav>
-
-            <div className="mx-6 mt-6 rounded-xl bg-surface-container-high p-4">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary-container font-headline">Тусламж хэрэгтэй юу?</p>
-              <p className="mb-3 text-xs text-surface-600">Манай зөвлөхүүдтэй шууд холбогдоно уу.</p>
-              <Link href={withLocale("/support")} className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-container transition-colors font-headline">
-                Contact Support
-                <span>→</span>
-              </Link>
-            </div>
-          </aside>
-
-          <main className="min-w-0 overflow-x-hidden bg-[#f7f9fb]">
-            <header className={`${inDashboardShell ? "hidden" : "sticky"} top-0 z-20 flex flex-col gap-4 rounded-none bg-surface/80 px-5 py-4 shadow-sm backdrop-blur-md md:flex-row md:items-center md:justify-between md:px-8`}>
-              <div className="relative max-w-md flex-1">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-surface-500">
-                  <DashboardIcon name="search" className="h-[18px] w-[18px]" />
-                </span>
-                <input
-                  className="h-11 w-full rounded-full border-none bg-surface-container-low pl-10 pr-4 text-sm text-on-surface focus:ring-0 focus:bg-surface-container-lowest focus:shadow-ambient transition-all"
-                  placeholder="Төсөл, freelancer, escrow хайх..."
-                  type="text"
-                  aria-label="Хайх"
-                />
-              </div>
-              <div className="flex items-center gap-4 self-end md:self-auto">
-                <button className="text-sm font-medium text-surface-500 transition-colors hover:text-secondary">MN/EN</button>
-                <button className="text-surface-500 transition-colors hover:text-secondary" aria-label="Notifications">
-                  <DashboardIcon name="notifications" className="h-[18px] w-[18px]" />
-                </button>
-                <div className="flex items-center gap-3 border-l border-outline-variant/30 pl-4">
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-on-surface font-headline">{clientName}</p>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-surface-500">Client</p>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-surface-container-lowest bg-primary-fixed text-xs font-bold text-primary shadow-sm">
-                    {initials(clientName)}
-                  </div>
-                </div>
-              </div>
-            </header>
+        <div className="grid gap-0">
+          <main className="min-w-0 overflow-x-hidden bg-transparent">
 
             <div className="mx-auto w-full max-w-[1440px] space-y-10 px-4 py-6 md:px-8 md:py-8 2xl:max-w-[1600px]">
               {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
@@ -326,12 +269,25 @@ export default function ClientDashboardPage() {
                   <h1 className="font-headline text-3xl font-extrabold tracking-tight text-[#031636] md:text-4xl">
                     Өдрийн мэнд, {clientName} 👋
                   </h1>
-                  <p className="mt-2 max-w-lg text-sm text-slate-500">
-                    Таны төслүүдийн явц болон санхүүгийн тойм энд байна. Бүх үйл ажиллагаа Эскроу хамгаалалттай явагдаж байна.
+                  <p className="mt-2 text-sm text-slate-500">
+                    Таны төслүүдийн явц болон санхүүгийн тойм энд байна.
                   </p>
+                  {priorityAction && (
+                    <div className="mt-6 rounded-2xl border-l-[6px] border-secondary bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="font-headline text-sm font-bold text-on-surface">{priorityAction.title}</p>
+                          <p className="mt-1 text-xs text-surface-500">{priorityAction.desc}</p>
+                        </div>
+                        <button type="button" onClick={priorityAction.onClick} className="shrink-0 rounded-xl bg-secondary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5">
+                          {priorityAction.cta}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-4">
-                  <Link href={withLocale("/projects")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#13696a] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
+                <div className="flex shrink-0 gap-4">
+                  <Link href={withLocale("/freelancers")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#13696a] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
                     <DashboardIcon name="search" className="h-[18px] w-[18px]" />
                     Freelancers хайх
                   </Link>
@@ -557,7 +513,7 @@ export default function ClientDashboardPage() {
               </Link>
 
               <Link
-                href={withLocale("/projects")}
+                href={withLocale("/freelancers")}
                 className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-[#e6e8ea] p-8 transition-transform hover:scale-[1.02] md:col-span-1"
               >
                 <DashboardIcon name="search" className="h-10 w-10 text-[#031636]" />
@@ -575,7 +531,7 @@ export default function ClientDashboardPage() {
                       <p className="mb-4 mt-2 text-xs text-slate-500">
                         Таны бүх төлбөр тооцоо аюулгүй байдлын үүднээс Эскроу системээр дамжина. Ажил 100% баталгаажсаны дараа төлбөрийг чөлөөлөх боломжтой.
                       </p>
-                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/projects")} className="border-b-2 border-[#13696a] pb-1 text-xs font-bold text-[#13696a]">
+                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/client")} className="border-b-2 border-[#13696a] pb-1 text-xs font-bold text-[#13696a]">
                         Дэлгэрэнгүй унших
                       </Link>
                     </div>

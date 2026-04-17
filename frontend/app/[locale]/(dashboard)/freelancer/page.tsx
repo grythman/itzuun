@@ -7,8 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
-import { useDashboardLayout } from "@/components/layout/dashboard-layout";
 import { EmptyState, ErrorState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
 import { ConfirmationDialog, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui";
@@ -37,13 +35,13 @@ function proposalAgeLabel(createdAt?: string): string {
 
 function projectStatusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string } {
   if (status === "in_progress") {
-    return { label: "In progress", tone: "info", nextStep: "Даалгавраа гүйцээгээд үр дүнгээ илгээ." };
+    return { label: "Ажил явагдаж байна", tone: "info", nextStep: "Даалгавраа гүйцээгээд үр дүнгээ илгээ." };
   }
   if (status === "awaiting_client_review") {
-    return { label: "Client review", tone: "warning", nextStep: "Client баталгаажуулалтыг хүлээж байна." };
+    return { label: "Шалгалт хүлээгдэж байна 🕐", tone: "warning", nextStep: "Client баталгаажуулалтыг хүлээж байна." };
   }
   if (status === "disputed") {
-    return { label: "Disputed", tone: "danger", nextStep: "Нотолгоогоо шинэчилж admin шийдвэрийг хүлээ." };
+    return { label: "Маргаан шийдвэрлэгдэж байна", tone: "danger", nextStep: "Нотолгоогоо шинэчилж admin шийдвэрийг хүлээ." };
   }
   return { label: status, tone: "neutral", nextStep: "Төслийн явцаа шалга." };
 }
@@ -119,7 +117,6 @@ export default function FreelancerDashboardPage() {
   const profile = useMyProfile();
   const queryClient = useQueryClient();
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
-  const inDashboardShell = useDashboardLayout();
   const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "awaiting_client_review" | "disputed">("all");
   const [submitTarget, setSubmitTarget] = useState<number | null>(null);
 
@@ -297,91 +294,55 @@ export default function FreelancerDashboardPage() {
   }));
   const freelancerName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Фрилансер";
 
+  const inProgressProjectForFreelancer = activeProjects.find((project) => project.status === "in_progress");
+  let priorityAction = null;
+  if (inProgressProjectForFreelancer) {
+    priorityAction = {
+      title: "Ажил явагдаж байна ⏳",
+      desc: `"${inProgressProjectForFreelancer.title}" төслийн явцаа шалгаад үр дүнгээ илгээнэ үү.`,
+      cta: "Төсөл рүү орох",
+      onClick: () => router.push(withLocale(`/projects/${inProgressProjectForFreelancer.id}`))
+    };
+  } else if (!activeProjects.length && !pendingProposals) {
+    priorityAction = {
+      title: "Эхний төслөө ол 🎯",
+      desc: "Шилдэг клиентүүдийн төслүүдтэй танилцаад яг одоо саналаа илгээнэ үү.",
+      cta: "Ажил хайх",
+      onClick: () => router.push(withLocale("/projects"))
+    };
+  }
+
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
       <section aria-label="Freelancer dashboard" className="pb-24 xl:pb-10">
-        <div className={inDashboardShell ? "grid gap-0" : "grid gap-0 xl:grid-cols-[256px_minmax(0,1fr)]"}>
-          <aside className={`${inDashboardShell ? "hidden" : "hidden xl:flex xl:h-screen xl:flex-col xl:space-y-2 xl:bg-surface-container-low xl:px-4 xl:py-6"}`}>
-            <div className="mb-10 px-4">
-              <span className="text-xl font-black text-primary font-headline tracking-tight">ITZuun</span>
-            </div>
-            <div className="mb-8 flex items-center space-x-3 px-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-fixed text-xs font-bold text-primary shadow-sm">
-                {freelancerName.slice(0, 1).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-surface-500 font-headline">Сайн байна уу?</p>
-                <p className="text-sm font-bold text-on-surface font-headline">{freelancerName}</p>
-              </div>
-            </div>
-            <nav className="flex-1 space-y-1">
-              <Link href={withLocale("/freelancer")} className="flex items-center space-x-3 rounded-lg bg-surface-container-lowest px-4 py-3 font-bold text-primary shadow-sm hover:shadow-ambient transition-all">
-                <DashboardIcon name="dashboard" className="h-5 w-5" />
-                <span className="text-sm font-headline">Хянах самбар</span>
-              </Link>
-              <Link href={withLocale("/freelancer/proposals")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
-                <DashboardIcon name="work" className="h-5 w-5" />
-                <span className="text-sm font-headline">Миний төслүүд</span>
-              </Link>
-              <Link href={withLocale("/projects")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
-                <DashboardIcon name="search" className="h-5 w-5" />
-                <span className="text-sm font-headline">Ажил хайх</span>
-              </Link>
-              <Link href={withLocale("/notifications")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
-                <DashboardIcon name="payments" className="h-5 w-5" />
-                <span className="text-sm font-headline">Санхүү</span>
-              </Link>
-              <Link href={withLocale("/freelancer/profile")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-600 transition-all hover:translate-x-1 hover:bg-surface-container-lowest/50 hover:text-on-surface">
-                <DashboardIcon name="settings" className="h-5 w-5" />
-                <span className="text-sm font-headline">Тохиргоо</span>
-              </Link>
-            </nav>
-            <div className="border-t border-outline-variant/10 pt-4">
-              <Link href={withLocale("/support")} className="flex items-center space-x-3 rounded-lg px-4 py-3 text-surface-500 transition-all hover:translate-x-1">
-                <DashboardIcon name="help" className="h-5 w-5" />
-                <span className="text-sm font-headline">Тусламж</span>
-              </Link>
-              <div className="mt-4 px-4">
-                <Link href={withLocale("/projects")} className="flex min-h-12 w-full items-center justify-center rounded-xl primary-gradient px-4 text-sm font-bold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">
-                  Төсөл эхлүүлэх
-                </Link>
-              </div>
-            </div>
-          </aside>
-
-          <main className="min-w-0 bg-surface">
-            <header className={`${inDashboardShell ? "hidden" : "sticky"} top-0 z-10 flex h-auto flex-col justify-between gap-4 bg-surface/80 px-4 py-4 backdrop-blur-md md:flex-row md:items-center md:px-8 xl:h-16`}>
-              <div className="flex max-w-xl flex-1 items-center">
-                <div className="relative w-full">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400">
-                    <DashboardIcon name="search" className="h-4 w-4" />
-                  </span>
-                  <input className="w-full rounded-full border-none bg-surface-container-low py-2 pl-10 pr-4 text-sm text-on-surface focus:ring-0 focus:bg-surface-container-lowest focus:shadow-ambient transition-all" placeholder="Ажил хайх..." type="text" />
-                </div>
-              </div>
-              <div className="ml-0 flex items-center space-x-6 md:ml-8">
-                <div className="hidden space-x-6 lg:flex">
-                  <Link href={withLocale("/projects")} className="border-b-2 border-secondary pb-1 text-sm font-bold text-primary font-headline">Ажил хайх</Link>
-                  <Link href={withLocale("/freelancer/proposals")} className="text-sm font-medium text-surface-500 transition-colors hover:text-secondary font-headline">Миний төслүүд</Link>
-                </div>
-                <div className="flex items-center space-x-4 border-l border-outline-variant/30 pl-6">
-                  <button className="relative text-surface-500 transition-colors hover:text-primary"><DashboardIcon name="notifications" className="h-5 w-5" /><span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-surface bg-red-500" /></button>
-                  <button className="text-surface-500 transition-colors hover:text-primary"><DashboardIcon name="chat" className="h-5 w-5" /></button>
-                  <button className="text-surface-500 transition-colors hover:text-primary"><DashboardIcon name="wallet" className="h-5 w-5" /></button>
-                </div>
-              </div>
-            </header>
+        <div className="grid gap-0">
+          <main className="min-w-0 bg-transparent">
 
             <div className="mx-auto max-w-[1680px] p-4 md:p-8">
               {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
 
               <section className="mb-10">
                 <div className="flex items-center justify-between gap-4">
-                  <div>
+                  <div className="flex-1">
                     <h1 className="mb-2 font-headline text-3xl font-extrabold tracking-tight text-[#031636]">Өдрийн мэнд, {freelancerName} 👋</h1>
                     <p className="font-medium text-[#44474e]">{pendingProposals} шинэ санал, {activeProjects.length} идэвхтэй төсөл байна.</p>
+                    {priorityAction && (
+                      <div className="mt-8 max-w-3xl rounded-2xl border-l-[6px] border-primary bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className="font-headline text-sm font-bold text-on-surface">{priorityAction.title}</p>
+                            <p className="mt-1 text-xs text-surface-500">{priorityAction.desc}</p>
+                          </div>
+                          <button type="button" onClick={priorityAction.onClick} className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5">
+                            {priorityAction.cta}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <VerifiedBadge status={me.data.verification_status} verified={me.data.is_verified} />
+                  <div className="self-start">
+                    <VerifiedBadge status={me.data.verification_status} verified={me.data.is_verified} />
+                  </div>
                 </div>
               </section>
 
@@ -439,8 +400,9 @@ export default function FreelancerDashboardPage() {
                         />
                       </div>
                     ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                      <>
+                        <div className="hidden overflow-x-auto md:block">
+                          <table className="w-full text-left">
                           <thead className="bg-surface-container-low/50">
                             <tr>
                               <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Төслийн нэр</th>
@@ -477,6 +439,32 @@ export default function FreelancerDashboardPage() {
                           </tbody>
                         </table>
                       </div>
+
+                      <ul className="grid gap-3 p-4 md:hidden">
+                        {filteredActiveProjects.map((project) => {
+                          const meta = projectStatusMeta(project.status);
+                          const progress = project.status === "awaiting_client_review" ? 100 : project.status === "in_progress" ? 75 : 30;
+                          return (
+                            <li key={project.id} className="rounded-[1.5rem] border border-slate-200 bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
+                              <div className="flex items-start justify-between gap-3">
+                                <p className="font-semibold text-[#031636] font-headline">{project.title}</p>
+                                <StatusPill label={meta.label} tone={meta.tone} />
+                              </div>
+                              <div className="mt-2 text-xs text-slate-500">
+                                <p>{project.category || "General project"}</p>
+                                <p className="mt-1 italic">Client #{project.owner} · {project.timeline_days ? `${project.timeline_days} хоног` : "Хугацаа тодорхойгүй"}</p>
+                              </div>
+                              <div className="mt-3 flex items-center gap-3">
+                                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e0e3e5]">
+                                  <div className="h-full primary-gradient" style={{ width: `${progress}%` }} />
+                                </div>
+                                <span className="text-[10px] font-bold text-primary">{progress}% САНАЛ</span>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
                     )}
                   </div>
 

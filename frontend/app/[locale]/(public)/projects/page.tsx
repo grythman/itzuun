@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
-import { useCategories, useProjects } from "@/lib/hooks";
+import { useCategories, useProjects, useMe } from "@/lib/hooks";
 
 // ── helpers ──────────────────────────────────────────────
 function fmnt(v: number) {
@@ -158,6 +158,14 @@ export default function ProjectsPage() {
   const [budgetSlider, setBudgetSlider] = useState(Number(budgetMax) || 750_000);
 
   const categories = useCategories();
+  const me = useMe();
+  
+  useEffect(() => {
+    if (me.data?.role === "client") {
+      router.replace(`/${locale}/freelancers`);
+    }
+  }, [me.data?.role, router, locale]);
+
   const { data, isLoading, isError } = useProjects(page, {
     search: search || undefined,
     category: categorySlug || undefined,
