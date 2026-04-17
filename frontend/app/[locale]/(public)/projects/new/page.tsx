@@ -257,27 +257,7 @@ export default function NewProjectPage() {
             </div>
           </div>
 
-          <nav className="flex-1 space-y-1">
-            {steps.map((item, index) => {
-              const active = index === step;
-              const done = index < step;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setStep(index)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-all ${
-                    active
-                      ? "bg-surface-container-lowest font-bold text-primary shadow-sm"
-                      : "text-surface-500 hover:translate-x-1 hover:text-primary"
-                  }`}
-                >
-                  <DashboardIcon name={item.icon} className={`h-5 w-5 ${done ? "text-secondary" : active ? "text-primary" : "text-surface-300"}`} />
-                  <span className="font-headline text-sm tracking-tight">{item.title}</span>
-                </button>
-              );
-            })}
-          </nav>
+
 
           <div className="mt-auto space-y-4">
             <div className="relative overflow-hidden rounded-2xl bg-primary-fixed p-6 text-primary shadow-sm">
