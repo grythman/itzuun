@@ -3,26 +3,69 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/shared/states";
+import { notificationsApi, toArray } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
-import { notificationsApi } from "@/lib/api/endpoints";
 
 type NotificationKind = "all" | "projects" | "payments" | "system";
 
-type Notification = {
+type NotificationApi = {
+  id: number;
+  type: string;
+  title: string;
+  description: string;
+  is_read: boolean;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+};
+
+type NotificationItem = {
   id: number;
   kind: "project" | "payment" | "system" | "proposal";
   title: string;
   body: string;
-  time: string;
   read: boolean;
+  timeLabel: string;
+  dayBucket: "today" | "yesterday" | "earlier";
   action?: { label: string; href: string };
 };
 
-function NotifIcon({ kind }: { kind: Notification["kind"] }) {
+function normalizeKind(rawType: string): NotificationItem["kind"] {
+  const value = rawType.toLowerCase();
+  if (value.includes("proposal")) return "proposal";
+  if (value.includes("payment") || value.includes("escrow")) return "payment";
+  if (value.includes("project")) return "project";
+  return "system";
+}
+
+function normalizeAction(metadata?: Record<string, unknown>) {
+  const action = (metadata?.action || null) as { label?: unknown; href?: unknown } | null;
+  if (!action || typeof action.href !== "string") return undefined;
+  const label = typeof action.label === "string" && action.label.trim() ? action.label : "Нээх";
+  return { label, href: action.href };
+}
+
+function toTimeLabel(createdAt: string) {
+  const current = new Date();
+  const parsed = new Date(createdAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return { dayBucket: "earlier" as const, timeLabel: "" };
+  }
+
+  const today = new Date(current.getFullYear(), current.getMonth(), current.getDate());
+  const target = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  const diff = Math.round((today.getTime() - target.getTime()) / 86400000);
+  const hhmm = parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  if (diff === 0) return { dayBucket: "today" as const, timeLabel: `Өнөөдөр ${hhmm}` };
+  if (diff === 1) return { dayBucket: "yesterday" as const, timeLabel: `Өчигдөр ${hhmm}` };
+  return { dayBucket: "earlier" as const, timeLabel: `${parsed.toLocaleDateString()} ${hhmm}` };
+}
+
+function NotifIcon({ kind }: { kind: NotificationItem["kind"] }) {
   const base = "h-5 w-5";
   if (kind === "project") {
     return (
@@ -52,68 +95,12 @@ function NotifIcon({ kind }: { kind: Notification["kind"] }) {
   );
 }
 
-function kindColor(kind: Notification["kind"]) {
+function kindColor(kind: NotificationItem["kind"]) {
   if (kind === "payment") return "bg-secondary-fixed text-secondary";
   if (kind === "project") return "bg-primary-fixed text-primary";
-  if (kind === "proposal") return "bg-surface-container-high text-surface-600";
-  return "bg-surface-container-low text-surface-500";
+  if (kind === "proposal") return "bg-surface-container-high text-on-surface/70";
+  return "bg-surface-container-low text-on-surface/60";
 }
-
-// Mock data – in production these come from the API
-const MOCK: Notification[] = [
-  {
-    id: 1,
-    kind: "proposal",
-    title: "Шинэ санал ирлээ",
-    body: "Дорж С. таны Mobile App UI Design төсөлд санал оруулсан. Үнэ: ₮3,200,000.",
-    time: "Өнөөдөр 14:22",
-    read: false,
-    action: { label: "Саналыг харах", href: "/client" },
-  },
-  {
-    id: 2,
-    kind: "payment",
-    title: "Эскроу баталгаажлаа",
-    body: "E-Commerce Platform Rebuild – ₮8,000,000 нь Escrow дансанд аюулгүй байршлаа.",
-    time: "Өнөөдөр 09:14",
-    read: false,
-    action: { label: "Эскроу харах", href: "/client" },
-  },
-  {
-    id: 3,
-    kind: "project",
-    title: "Ажил хянагдаж байна",
-    body: "AI Recommendation Engine – Гүйцэтгэгч ажлаа бэлэн гэж илгэрэхлэй. Шалгаад баталгаажуулна уу.",
-    time: "Өчигдөр 17:45",
-    read: false,
-    action: { label: "Шалгах", href: "/client" },
-  },
-  {
-    id: 4,
-    kind: "system",
-    title: "Профайл баталгаажлаа",
-    body: "Таны э-мэйл хаяг амжилттай баталгаажлаа. Одоо бүрэн эрхтэйгээр ажиллаж болно.",
-    time: "Өчигдөр 08:00",
-    read: true,
-  },
-  {
-    id: 5,
-    kind: "payment",
-    title: "Төлбөр хүлээгдэж байна",
-    body: "CRM Integration – Захиалагч нэхэмжлэлийг хүлээн авсан. Төлбөр 72 цагийн дотор шилжих болно.",
-    time: "2 хоногийн өмнө",
-    read: true,
-  },
-  {
-    id: 6,
-    kind: "proposal",
-    title: "Санал зөвшөөрөгдлөө",
-    body: "Blockchain Security Audit – Таны санал захиалагчаар зөвшөөрөгдлөө. Ажлаа эхлүүлж болно.",
-    time: "3 хоногийн өмнө",
-    read: true,
-    action: { label: "Төслийг нээх", href: "/freelancer" },
-  },
-];
 
 const FILTER_TABS: { key: NotificationKind; label: string }[] = [
   { key: "all", label: "Бүгд" },
@@ -148,212 +135,205 @@ export default function NotificationsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
-  // Map backend model to local notification format
-  const items: Notification[] = (notifQuery.data || []).map((n: any) => {
-    // Basic day conversion for UI
-    const d = new Date(n.created_at);
-    const dateStr = d.toLocaleDateString();
-    const isToday = dateStr === new Date().toLocaleDateString();
-    const isYesterday = dateStr === new Date(Date.now() - 86400000).toLocaleDateString();
-    
-    let timeStr = d.toLocaleString();
-    if (isToday) timeStr = `Өнөөдөр ${d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}`;
-    else if (isYesterday) timeStr = `Өчигдөр ${d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}`;
-
-    return {
-      id: n.id,
-      kind: n.type.toLowerCase() as Notification["kind"],
-      title: n.title,
-      body: n.description,
-      time: timeStr,
-      read: n.is_read,
-      action: n.metadata?.action,
-    };
-  });
+  const items = useMemo<NotificationItem[]>(() => {
+    const rows = toArray<NotificationApi>(notifQuery.data as NotificationApi[]);
+    return rows.map((row) => {
+      const time = toTimeLabel(row.created_at);
+      return {
+        id: row.id,
+        kind: normalizeKind(row.type),
+        title: row.title,
+        body: row.description,
+        read: row.is_read,
+        timeLabel: time.timeLabel,
+        dayBucket: time.dayBucket,
+        action: normalizeAction(row.metadata),
+      };
+    });
+  }, [notifQuery.data]);
 
   if (me.isLoading) return <LoadingState label="Мэдэгдлүүд ачааллаж байна..." />;
   if (me.isError || !me.data) {
     return (
       <ErrorState
         label="Мэдэгдлүүдийг харахын тулд нэвтэрнэ үү."
-        action={<Link href={withLocale("/auth?tab=signin")} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-fixed">Нэвтрэх</Link>}
+        action={
+          <Link href={withLocale("/auth?tab=signin")} className="ui-btn-primary">
+            Нэвтрэх
+          </Link>
+        }
       />
     );
   }
 
-  const filtered = items.filter((n) => {
+  const filteredItems = items.filter((item) => {
     if (filter === "all") return true;
-    if (filter === "projects") return n.kind === "project" || n.kind === "proposal";
-    if (filter === "payments") return n.kind === "payment";
-    if (filter === "system") return n.kind === "system";
+    if (filter === "projects") return item.kind === "project" || item.kind === "proposal";
+    if (filter === "payments") return item.kind === "payment";
+    if (filter === "system") return item.kind === "system";
     return true;
   });
 
-  const unreadCount = items.filter((n) => !n.read).length;
-
-  function markAll() {
-    markAllMutation.mutate();
-  }
-
-  function markOne(id: number) {
-    if (!items.find(x => x.id === id)?.read) {
-      markOneMutation.mutate(id);
-    }
-  }
-
-  const today = filtered.filter((n) => n.time.startsWith("Өнөөдөр") || n.time.startsWith("Маргааш"));
-  const yesterday = filtered.filter((n) => n.time.startsWith("Өчигдөр"));
-  const older = filtered.filter(
-    (n) => !n.time.startsWith("Өнөөдөр") && !n.time.startsWith("Маргааш") && !n.time.startsWith("Өчигдөр"),
-  );
+  const unreadCount = items.filter((item) => !item.read).length;
 
   const groups = [
-    { label: "Шинэ", items: today },
-    { label: "Өчигдөр", items: yesterday },
-    { label: "Эрт үе", items: older },
-  ].filter((g) => g.items.length > 0);
+    { label: "Шинэ", bucket: "today" as const, items: filteredItems.filter((item) => item.dayBucket === "today") },
+    { label: "Өчигдөр", bucket: "yesterday" as const, items: filteredItems.filter((item) => item.dayBucket === "yesterday") },
+    { label: "Эрт үе", bucket: "earlier" as const, items: filteredItems.filter((item) => item.dayBucket === "earlier") },
+  ].filter((group) => group.items.length > 0);
 
   return (
-    <section className="space-y-8 pb-20">
-      {/* Header */}
-      <div className="flex items-end justify-between gap-6">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-surface-400 font-headline">
-            Мэдэгдлийн төв
-          </p>
-          <h1 className="mt-3 font-headline text-[36px] font-black leading-none tracking-tighter text-primary md:text-[44px]">
-            Мэдэгдлүүд
+    <section className="space-y-6 pb-10">
+      <div className="ui-surface p-4 sm:p-5 lg:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-surface-container-low px-4 py-4 sm:px-5">
+          <div>
+            <p className="ui-eyebrow">Notification Center</p>
+            <h1 className="mt-2 font-headline text-[2rem] font-black leading-none tracking-tight text-primary sm:text-[2.25rem]">
+              Мэдэгдлүүд
+            </h1>
+            <p className="mt-2 text-sm font-medium text-on-surface/60">
+              Шинэ update-уудаа эрэмбэлж, дараагийн алхмаа хурдан тодорхойлно.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
             {unreadCount > 0 && (
-              <span className="ml-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-[11px] font-black text-white font-headline">
-                {unreadCount}
+              <span className="inline-flex h-8 items-center rounded-full bg-red-100 px-3 text-xs font-black uppercase tracking-[0.16em] text-red-600">
+                {unreadCount} шинэ
               </span>
             )}
-          </h1>
-        </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={markAll}
-            className="hidden min-h-11 items-center rounded-2xl bg-surface-container-lowest px-6 text-[11px] font-bold uppercase tracking-[0.18em] text-primary shadow-sm transition-all hover:shadow-ambient md:inline-flex font-headline"
-          >
-            Бүгдийг уншсан гэж тэмдэглэх
-          </button>
-        )}
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {FILTER_TABS.map((tab) => {
-          const active = tab.key === filter;
-          const count =
-            tab.key === "all"
-              ? unreadCount
-              : items.filter((n) => {
-                  if (tab.key === "projects") return (n.kind === "project" || n.kind === "proposal") && !n.read;
-                  if (tab.key === "payments") return n.kind === "payment" && !n.read;
-                  if (tab.key === "system") return n.kind === "system" && !n.read;
-                  return false;
-                }).length;
-          return (
             <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`flex shrink-0 items-center gap-2 rounded-2xl px-5 py-3 text-[11px] font-black uppercase tracking-[0.18em] transition-all font-headline ${
-                active
-                  ? "bg-primary text-primary-fixed shadow-ambient"
-                  : "bg-surface-container-lowest text-surface-500 hover:bg-surface-container-low hover:text-primary shadow-sm"
-              }`}
+              type="button"
+              onClick={() => markAllMutation.mutate()}
+              disabled={unreadCount === 0 || markAllMutation.isPending}
+              className="ui-btn-ghost disabled:opacity-45"
             >
-              {tab.label}
-              {count > 0 && (
-                <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ${active ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
-                  {count}
-                </span>
-              )}
+              Бүгдийг уншсан болгох
             </button>
-          );
-        })}
-      </div>
-
-      {/* Notification Groups */}
-      {groups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[2.5rem] bg-surface-container-lowest py-24 shadow-sm">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-container-low text-surface-300">
-            <svg viewBox="0 0 24 24" className="h-10 w-10" fill="currentColor" aria-hidden>
-              <path d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z" />
-            </svg>
           </div>
-          <p className="mt-6 font-headline text-lg font-black text-primary">Мэдэгдэл байхгүй</p>
-          <p className="mt-2 text-sm font-medium text-surface-400">Шинэ үйл явдал гарах үед энд мэдэгдэх болно.</p>
         </div>
-      ) : (
-        <div className="space-y-8">
-          {groups.map((group) => (
-            <div key={group.label}>
-              <p className="mb-4 ml-2 text-[10px] font-black uppercase tracking-[0.22em] text-surface-400 font-headline">
-                {group.label}
-              </p>
-              <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
-                {group.items.map((notif, i) => (
-                  <div
-                    key={notif.id}
-                    onClick={() => markOne(notif.id)}
-                    className={`group flex items-start gap-5 px-8 py-7 transition-all hover:bg-surface-container-low cursor-pointer ${
-                      i > 0 ? "border-t border-outline-variant/10" : ""
-                    } ${!notif.read ? "bg-primary-fixed/20" : ""}`}
-                  >
-                    {/* Icon */}
-                    <div className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ${kindColor(notif.kind)}`}>
-                      <NotifIcon kind={notif.kind} />
-                    </div>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <p className={`font-headline text-[15px] font-bold leading-tight tracking-tight ${!notif.read ? "text-primary" : "text-on-surface"}`}>
-                          {notif.title}
-                          {!notif.read && (
-                            <span className="ml-2 inline-block h-2 w-2 rounded-full bg-secondary align-middle" />
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          {FILTER_TABS.map((tab) => {
+            const active = tab.key === filter;
+            const count =
+              tab.key === "all"
+                ? unreadCount
+                : items.filter((item) => {
+                    if (tab.key === "projects") return !item.read && (item.kind === "project" || item.kind === "proposal");
+                    if (tab.key === "payments") return !item.read && item.kind === "payment";
+                    if (tab.key === "system") return !item.read && item.kind === "system";
+                    return false;
+                  }).length;
+
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setFilter(tab.key)}
+                className={[
+                  "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-[11px] font-black uppercase tracking-[0.16em] transition-all",
+                  active
+                    ? "bg-primary text-primary-fixed shadow-[0_12px_24px_rgba(3,22,54,0.18)]"
+                    : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
+                ].join(" ")}
+              >
+                <span>{tab.label}</span>
+                {count > 0 && (
+                  <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${active ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {notifQuery.isLoading && <LoadingState label="Мэдэгдэл ачааллаж байна..." />}
+
+        {notifQuery.isError && (
+          <div className="mt-4 rounded-2xl bg-surface-container-low p-5 text-center">
+            <p className="text-sm font-semibold text-primary">Мэдэгдлийн мэдээлэл дуудаж чадсангүй.</p>
+            <button type="button" onClick={() => notifQuery.refetch()} className="mt-3 ui-btn-ghost">
+              Дахин оролдох
+            </button>
+          </div>
+        )}
+
+        {!notifQuery.isLoading && !notifQuery.isError && groups.length === 0 && (
+          <div className="mt-4 rounded-2xl bg-surface-container-low p-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-lowest text-on-surface/35 shadow-[0_12px_24px_rgba(3,22,54,0.06)]">
+              <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor" aria-hidden>
+                <path d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z" />
+              </svg>
+            </div>
+            <p className="mt-5 text-lg font-black text-primary">Мэдэгдэл алга байна</p>
+            <p className="mt-2 text-sm text-on-surface/60">Шинэ үйл явдал гарахад энд автоматаар нэмэгдэнэ.</p>
+            <Link href={withLocale("/projects")} className="mt-5 ui-btn-secondary">
+              Төсөл үзэх
+            </Link>
+          </div>
+        )}
+
+        {!notifQuery.isLoading && !notifQuery.isError && groups.length > 0 && (
+          <div className="mt-4 space-y-5">
+            {groups.map((group) => (
+              <div key={group.bucket} className="rounded-2xl bg-surface-container-low p-3 sm:p-4">
+                <p className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/45">{group.label}</p>
+                <div className="space-y-2">
+                  {group.items.map((item) => (
+                    <article
+                      key={item.id}
+                      className={[
+                        "w-full rounded-xl px-4 py-4 text-left transition-all",
+                        item.read
+                          ? "bg-surface-container-lowest"
+                          : "bg-primary-fixed/30 shadow-[0_12px_24px_rgba(3,22,54,0.08)]",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${kindColor(item.kind)}`}>
+                          <NotifIcon kind={item.kind} />
+                        </span>
+
+                        <span className="min-w-0 flex-1">
+                          <span className="flex flex-wrap items-start justify-between gap-2">
+                            <span className="text-sm font-bold leading-tight text-primary">
+                              {item.title}
+                              {!item.read && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-secondary align-middle" />}
+                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">{item.timeLabel}</span>
+                          </span>
+                          <span className="mt-1 block text-sm font-medium leading-relaxed text-on-surface/68">{item.body}</span>
+                          {!item.read && (
+                            <button
+                              type="button"
+                              onClick={() => markOneMutation.mutate(item.id)}
+                              className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.16em] text-primary underline underline-offset-4"
+                            >
+                              Уншсан болгох
+                            </button>
                           )}
-                        </p>
-                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-surface-400 font-headline">
-                          {notif.time}
+                          {item.action && (
+                            <Link
+                              href={withLocale(item.action.href)}
+                              className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-secondary underline underline-offset-4"
+                            >
+                              {item.action.label}
+                              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                                <path d="M5 12h14M13 5l7 7-7 7" />
+                              </svg>
+                            </Link>
+                          )}
                         </span>
                       </div>
-                      <p className="mt-2 text-[13px] font-medium leading-relaxed text-surface-500">
-                        {notif.body}
-                      </p>
-                      {notif.action && (
-                        <Link
-                          href={withLocale(notif.action.href)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-4 inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-secondary transition-all hover:opacity-70 font-headline"
-                        >
-                          {notif.action.label}
-                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3">
-                            <path d="M5 12h14M13 5l7 7-7 7" />
-                          </svg>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    </article>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Bottom CTA row */}
-      {unreadCount > 0 && (
-        <div className="flex justify-center md:hidden">
-          <button
-            onClick={markAll}
-            className="min-h-11 rounded-2xl bg-surface-container-lowest px-6 text-[11px] font-bold uppercase tracking-[0.18em] text-primary shadow-sm transition-all hover:shadow-ambient font-headline"
-          >
-            Бүгдийг уншсан гэж тэмдэглэх
-          </button>
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

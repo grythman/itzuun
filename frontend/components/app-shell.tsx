@@ -11,7 +11,7 @@ function isDashboardRoute(pathname: string): boolean {
   const pathWithoutLocale =
     parts[0] === "mn" || parts[0] === "en" ? `/${parts.slice(1).join("/")}` : normalized;
 
-  return ["/client", "/freelancer", "/admin", "/client/projects/new"].some(
+  return ["/client", "/freelancer", "/admin", "/client/projects/new", "/messages", "/notifications"].some(
     (prefix) => pathWithoutLocale === prefix || pathWithoutLocale.startsWith(`${prefix}/`),
   );
 }

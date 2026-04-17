@@ -170,13 +170,13 @@ export default function ClientDashboardPage() {
   if (me.isLoading || projects.isLoading || profile.isLoading) {
     return (
       <section className="space-y-4 pb-20">
-        <div className="h-40 animate-pulse rounded-3xl border border-[#d6e2ee] bg-[#eef4fa]" />
+        <div className="h-40 animate-pulse rounded-3xl bg-[#eef4fa]" />
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
         </div>
-        <div className="h-64 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f8fbff]" />
+        <div className="h-64 animate-pulse rounded-2xl bg-[#f8fbff]" />
       </section>
     );
   }
@@ -273,11 +273,14 @@ export default function ClientDashboardPage() {
                     Таны төслүүдийн явц болон санхүүгийн тойм энд байна.
                   </p>
                   {priorityAction && (
-                    <div className="mt-6 rounded-2xl border-l-[6px] border-secondary bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
+                    <div className="mt-6 rounded-2xl bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
+                        <div className="flex items-start gap-3">
+                          <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-lg bg-secondary-fixed text-secondary">●</span>
+                          <div>
                           <p className="font-headline text-sm font-bold text-on-surface">{priorityAction.title}</p>
                           <p className="mt-1 text-xs text-surface-500">{priorityAction.desc}</p>
+                          </div>
                         </div>
                         <button type="button" onClick={priorityAction.onClick} className="shrink-0 rounded-xl bg-secondary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5">
                           {priorityAction.cta}
@@ -303,14 +306,14 @@ export default function ClientDashboardPage() {
                   </div>
                   <span className="mt-4 w-fit rounded bg-white/10 px-2 py-1 text-[10px]">Бүх төсөл</span>
                 </div>
-                <div className="flex flex-col justify-between border-l border-white/10 pl-6">
+                <div className="flex flex-col justify-between rounded-xl bg-white/5 px-5 py-4">
                   <div>
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-accent-300">Эскроу дансанд</p>
                     <h3 className="font-headline text-3xl font-bold text-accent-300">{formatMnt(securedEscrow)}</h3>
                   </div>
                   <p className="mt-4 text-[10px] text-white/50">Хамгаалалтай хадгалалажсан</p>
                 </div>
-                <div className="flex flex-col justify-between border-l border-white/10 pl-6">
+                <div className="flex flex-col justify-between rounded-xl bg-white/5 px-5 py-4">
                   <div>
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">Хүлээгдэж буй</p>
                     <h3 className="font-headline text-3xl font-bold">{formatMnt(pendingEscrow)}</h3>
@@ -347,14 +350,15 @@ export default function ClientDashboardPage() {
                     <EmptyState label="Шинэ санал алга." action={<button className="rounded-lg bg-surface-container-low px-3 py-1.5 text-xs font-semibold text-primary font-headline" onClick={retryAll}>Сэргээх</button>} />
                   )}
                 </div>
-                <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="mt-auto border-t border-outline-variant/15 pt-4 text-center text-xs font-bold text-primary font-headline hover:text-primary-container">
+                <div className="ui-divider-soft mt-auto" />
+                <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="pt-4 text-center text-xs font-bold text-primary font-headline hover:text-primary-container">
                   Бүх саналыг үзэх
                 </button>
               </div>
               </section>
 
               <section>
-              <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="font-headline text-2xl font-bold text-[#031636]">Идэвхтэй төслүүд</h2>
                   <p className="text-sm text-slate-500">Статус, төсөв, дараагийн алхамыг нэг харагдацаар удирдана.</p>
@@ -392,12 +396,12 @@ export default function ClientDashboardPage() {
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Үйлдэл</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-outline-variant/10">
+                      <tbody>
                         {myProjects.map((project) => {
                           const meta = statusMeta(project.status);
                           const progress = projectProgress(project.status);
                           return (
-                            <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30">
+                            <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30 odd:bg-surface-container-low/20">
                               <td className="px-6 py-5">
                                 <p className="mb-1 text-sm font-bold text-on-surface font-headline">{project.title}</p>
                                 <div className="space-y-1">
@@ -451,7 +455,7 @@ export default function ClientDashboardPage() {
                       const meta = statusMeta(project.status);
                       const progress = projectProgress(project.status);
                       return (
-                        <li key={project.id} className="rounded-[1.5rem] border border-slate-200 bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
+                        <li key={project.id} className="rounded-[1.5rem] bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                           <div className="flex items-start justify-between gap-3">
                             <p className="font-semibold text-[#031636]">{project.title}</p>
                             <StatusPill label={projectStatusLabel(project.status)} tone={meta.tone} />
@@ -480,12 +484,12 @@ export default function ClientDashboardPage() {
                                 Release хийх
                               </button>
                             ) : (
-                              <button className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-[#031636]" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
+                              <button className="min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-[#031636] shadow-sm" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
                                 Дэлгэрэнгүй
                               </button>
                             )}
                             <button
-                              className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-[#1e4f78]"
+                              className="min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-[#1e4f78] shadow-sm"
                               onClick={() => (["in_progress", "awaiting_client_review"].includes(project.status) ? setDisputeTarget(project.id) : router.push(withLocale(`/projects/${project.id}/payment`)))}
                             >
                               {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан" : "Escrow"}
@@ -531,7 +535,7 @@ export default function ClientDashboardPage() {
                       <p className="mb-4 mt-2 text-xs text-slate-500">
                         Таны бүх төлбөр тооцоо аюулгүй байдлын үүднээс Эскроу системээр дамжина. Ажил 100% баталгаажсаны дараа төлбөрийг чөлөөлөх боломжтой.
                       </p>
-                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/client")} className="border-b-2 border-[#13696a] pb-1 text-xs font-bold text-[#13696a]">
+                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/client")} className="text-xs font-bold text-[#13696a] underline underline-offset-4">
                         Дэлгэрэнгүй унших
                       </Link>
                     </div>

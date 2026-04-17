@@ -19,7 +19,9 @@ type NavItem = {
     | "support"
     | "shield"
     | "users"
-    | "finance";
+    | "finance"
+    | "chat"
+    | "notifications";
   exact?: boolean;
 };
 
@@ -70,6 +72,12 @@ function SidebarIcon({
   if (icon === "users") {
     return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4ZM8 12a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm8 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4ZM8 14c-2.3 0-7 1.1-7 3.5V20h5v-2c0-1.2.7-2.2 2-3Z" /></svg>;
   }
+  if (icon === "chat") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-4 3v-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 5v2h12V9H6Zm0 4v2h8v-2H6Z" /></svg>;
+  }
+  if (icon === "notifications") {
+    return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z" /></svg>;
+  }
   return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M11 18h2v-2h-2v2Zm1-16a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm0-14a3 3 0 0 0-3 3h2a1 1 0 1 1 1 1c-1.1 0-2 .9-2 2v1h2v-1a3 3 0 1 0-3-3h2a1 1 0 1 1 1-1Z" /></svg>;
 }
 
@@ -78,6 +86,8 @@ const navByRole: Record<DashboardRole, NavItem[]> = {
     { href: "/client", label: "Active Projects", icon: "folder", exact: true },
     { href: "/client/projects/new", label: "Post a Project", icon: "brief" },
     { href: "/projects", label: "Proposals", icon: "proposal" },
+    { href: "/messages", label: "Messages", icon: "chat" },
+    { href: "/notifications", label: "Notifications", icon: "notifications" },
     { href: "/client/escrow", label: "Payments & Escrow", icon: "wallet" },
     { href: "/client/settings", label: "Settings", icon: "settings" },
   ],
@@ -85,6 +95,8 @@ const navByRole: Record<DashboardRole, NavItem[]> = {
     { href: "/freelancer", label: "Хянах самбар", icon: "dashboard", exact: true },
     { href: "/freelancer/projects", label: "Миний төслүүд", icon: "folder" },
     { href: "/projects", label: "Ажил хайх", icon: "search" },
+    { href: "/messages", label: "Мессеж", icon: "chat" },
+    { href: "/notifications", label: "Мэдэгдэл", icon: "notifications" },
     { href: "/freelancer/finance", label: "Санхүү", icon: "finance" },
     { href: "/freelancer/settings", label: "Тохиргоо", icon: "settings" },
   ],

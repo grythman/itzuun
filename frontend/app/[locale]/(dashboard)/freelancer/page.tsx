@@ -176,14 +176,14 @@ export default function FreelancerDashboardPage() {
   if (me.isLoading || proposals.isLoading || projects.isLoading || profile.isLoading) {
     return (
       <section className="space-y-4 pb-20" aria-busy="true" aria-live="polite">
-        <div className="h-36 animate-pulse rounded-3xl border border-[#d8e3ee] bg-[#eef4fa]" />
+        <div className="h-36 animate-pulse rounded-3xl bg-[#eef4fa]" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
         </div>
-        <div className="h-60 animate-pulse rounded-2xl border border-[#dce4ec] bg-[#f8fbff]" />
+        <div className="h-60 animate-pulse rounded-2xl bg-[#f8fbff]" />
         <p className="text-sm text-surface-500">Хянах самбар ачааллаж байна. Түр хүлээнэ үү...</p>
       </section>
     );
@@ -327,11 +327,14 @@ export default function FreelancerDashboardPage() {
                     <h1 className="mb-2 font-headline text-3xl font-extrabold tracking-tight text-[#031636]">Өдрийн мэнд, {freelancerName} 👋</h1>
                     <p className="font-medium text-[#44474e]">{pendingProposals} шинэ санал, {activeProjects.length} идэвхтэй төсөл байна.</p>
                     {priorityAction && (
-                      <div className="mt-8 max-w-3xl rounded-2xl border-l-[6px] border-primary bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
+                      <div className="mt-8 max-w-3xl rounded-2xl bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                          <div>
+                          <div className="flex items-start gap-3">
+                            <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-lg bg-primary-fixed text-primary">●</span>
+                            <div>
                             <p className="font-headline text-sm font-bold text-on-surface">{priorityAction.title}</p>
                             <p className="mt-1 text-xs text-surface-500">{priorityAction.desc}</p>
+                            </div>
                           </div>
                           <button type="button" onClick={priorityAction.onClick} className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5">
                             {priorityAction.cta}
@@ -388,7 +391,7 @@ export default function FreelancerDashboardPage() {
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_0.6fr]">
                 <div className="space-y-6">
                   <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
-                    <div className="flex items-center justify-between border-b border-outline-variant/10 p-8">
+                    <div className="flex items-center justify-between p-8">
                       <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">Идэвхтэй төслүүд</h2>
                       <button type="button" onClick={() => setActiveFilter("all")} className="text-[11px] font-bold uppercase tracking-widest text-secondary hover:underline font-headline">Бүгдийг үзэх</button>
                     </div>
@@ -412,12 +415,12 @@ export default function FreelancerDashboardPage() {
                               <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Төлөв</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-outline-variant/5">
+                          <tbody>
                             {filteredActiveProjects.map((project) => {
                               const meta = projectStatusMeta(project.status);
                               const progress = project.status === "awaiting_client_review" ? 100 : project.status === "in_progress" ? 75 : 30;
                               return (
-                                <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30">
+                                <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30 odd:bg-surface-container-low/20">
                                   <td className="px-8 py-6">
                                     <p className="text-sm font-bold text-on-surface font-headline">{project.title}</p>
                                     <p className="text-[11px] font-bold text-surface-400 font-headline mt-0.5">{project.category || "General project"}</p>
@@ -445,7 +448,7 @@ export default function FreelancerDashboardPage() {
                           const meta = projectStatusMeta(project.status);
                           const progress = project.status === "awaiting_client_review" ? 100 : project.status === "in_progress" ? 75 : 30;
                           return (
-                            <li key={project.id} className="rounded-[1.5rem] border border-slate-200 bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
+                            <li key={project.id} className="rounded-[1.5rem] bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                               <div className="flex items-start justify-between gap-3">
                                 <p className="font-semibold text-[#031636] font-headline">{project.title}</p>
                                 <StatusPill label={meta.label} tone={meta.tone} />
@@ -487,7 +490,8 @@ export default function FreelancerDashboardPage() {
                               </div>
                               <h3 className="mb-3 text-lg font-bold text-on-surface transition-colors group-hover:text-primary font-headline">{project?.title || `Төсөл #${proposal.project}`}</h3>
                               <p className="mb-6 line-clamp-2 text-xs leading-relaxed text-surface-500">{project?.description || proposal.message || "Саналд тохирох төсөл."}</p>
-                              <div className="flex items-center justify-between border-t border-outline-variant/10 pt-4">
+                              <div className="ui-divider-soft" />
+                              <div className="flex items-center justify-between pt-4">
                                 <span className="text-lg font-black text-primary font-headline tracking-tighter">{formatMnt(Number(proposal.price || 0))}</span>
                                 <button type="button" className="text-surface-400 hover:text-primary transition-colors transition-transform hover:scale-110" onClick={() => openEditModal(proposal)}>✎</button>
                               </div>
@@ -548,12 +552,12 @@ export default function FreelancerDashboardPage() {
                   </div>
 
                   {me.data.verification_status !== "verified" && verificationGuidance ? (
-                    <div className="rounded-2xl border border-[#d8e3ee] bg-white p-5">
+                    <div className="rounded-2xl bg-white p-5 shadow-sm">
                       <p className="text-sm font-semibold text-[#031636]">{verificationGuidance.title}</p>
                       <p className="mt-2 text-xs text-[#44474e]">{verificationGuidance.text}</p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         <Link href={verificationGuidance.href} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 text-[13px] font-semibold text-white">{verificationGuidance.cta}</Link>
-                        <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-700">Support</Link>
+                        <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 text-[13px] font-semibold text-slate-700">Support</Link>
                       </div>
                     </div>
                   ) : null}
@@ -594,7 +598,7 @@ export default function FreelancerDashboardPage() {
 
             {editingProposalId !== null && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 p-4 backdrop-blur-sm">
-                <div className="w-full max-w-[480px] rounded-2xl border border-surface-200/60 bg-white p-6 shadow-modal">
+                <div className="w-full max-w-[480px] rounded-2xl bg-white p-6 shadow-modal">
                   <h3 className="text-lg font-semibold text-surface-900">{t("editProposal")}</h3>
                   <form className="mt-4 space-y-3" onSubmit={editForm.handleSubmit((v) => updateProposalMutation.mutate(v))}>
                     <label className="block text-[13px] font-medium text-surface-700">
