@@ -113,7 +113,7 @@ function FreelancerCard({ profile, locale }: { profile: Profile; locale: string 
             )}
           </div>
           <span className="inline-flex items-center gap-2 rounded-2xl primary-gradient px-6 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-primary-fixed font-headline shadow-sm transition-all group-hover:shadow-ambient">
-            View Profile →
+            Профайл харах →
           </span>
         </div>
       </div>
@@ -177,12 +177,12 @@ export default function FreelancersPage() {
       {/* ── SIDEBAR ── */}
       <aside className="hidden w-56 shrink-0 space-y-7 lg:block">
         <div>
-          <p className="font-headline text-[11px] font-black uppercase tracking-[0.25em] text-primary">Filters</p>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-surface-400">Refine your search</p>
+          <p className="font-headline text-[11px] font-black uppercase tracking-[0.25em] text-primary">Шүүлтүүр</p>
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-surface-400">Хайлтаа нарийвчлах</p>
         </div>
 
         {/* Skills */}
-        <FilterSection title="Skills" icon={
+        <FilterSection title="Ур чадвар" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
         }>
           <div className="flex flex-wrap gap-1.5">
@@ -200,7 +200,7 @@ export default function FreelancersPage() {
         </FilterSection>
 
         {/* Min Rating */}
-        <FilterSection title="Min Rating" icon={
+        <FilterSection title="Хамгийн бага үнэлгээ" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
         }>
           <div className="flex flex-wrap gap-1.5">
@@ -218,7 +218,7 @@ export default function FreelancersPage() {
         </FilterSection>
 
         {/* Verified */}
-        <FilterSection title="Status" icon={
+        <FilterSection title="Статус" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
         }>
           <label className="flex cursor-pointer items-center gap-2.5">
@@ -226,7 +226,7 @@ export default function FreelancersPage() {
               onClick={() => push({ verified: verifiedOnly ? "" : "true" })}>
               {verifiedOnly && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className="h-2.5 w-2.5"><path d="M20 6 9 17l-5-5" /></svg>}
             </span>
-            <span className={`text-[13px] font-medium ${verifiedOnly ? "font-bold text-primary" : "text-surface-500"}`}>Verified only</span>
+            <span className={`text-[13px] font-medium ${verifiedOnly ? "font-bold text-primary" : "text-surface-500"}`}>Зөвхөн баталгаажсан</span>
           </label>
         </FilterSection>
 
@@ -235,7 +235,7 @@ export default function FreelancersPage() {
           onClick={() => router.push(pathname)}
           className="w-full rounded-2xl primary-gradient py-4 text-[11px] font-black uppercase tracking-[0.2em] text-primary-fixed shadow-ambient font-headline transition-all hover:shadow-lg"
         >
-          Apply Filters
+          Шүүлтүүр хэрэглэх
         </button>
       </aside>
 
@@ -272,8 +272,16 @@ export default function FreelancersPage() {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && push({ search: searchInput })}
             placeholder="Нэр, ур чадвар, bio хайх..."
-            className="w-full rounded-2xl bg-surface-container-lowest py-4 pl-12 pr-5 text-[14px] font-medium text-primary outline-none shadow-sm placeholder:text-surface-300 focus:shadow-ambient"
+            className="w-full rounded-2xl bg-surface-container-lowest py-4 pl-12 pr-14 text-[14px] font-medium text-primary outline-none shadow-sm placeholder:text-surface-300 focus:shadow-ambient"
           />
+          <button
+            type="button"
+            onClick={() => push({ search: searchInput })}
+            aria-label="Хайх"
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-xl primary-gradient text-primary-fixed shadow-sm transition-all hover:shadow-ambient"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+          </button>
         </div>
 
         {/* Cards */}
@@ -281,7 +289,15 @@ export default function FreelancersPage() {
         {profiles.isError && <ErrorState label="Алдаа гарлаа." />}
         {!profiles.isLoading && !profiles.isError && (
           items.length === 0
-            ? <EmptyState label="Тохирох мэргэжилтэн олдсонгүй." />
+            ? <EmptyState
+                label="Тохирох мэргэжилтэн олдсонгүй"
+                description="Шүүлтүүрэе өөрчлөж дахин хайгаарай, эсвэл хайлтаа өөрчийг арилгаарай."
+                action={
+                  <button type="button" onClick={() => router.push(pathname)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-surface-container px-6 text-sm font-bold text-primary shadow-sm transition-all hover:shadow-ambient">
+                    Шүүлтүүр цэвох
+                  </button>
+                }
+              />
             : <div className="space-y-5">{items.map((p) => <FreelancerCard key={p.id} profile={p} locale={locale} />)}</div>
         )}
 

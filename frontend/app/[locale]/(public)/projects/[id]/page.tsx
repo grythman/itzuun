@@ -171,9 +171,9 @@ export default function ProjectDetailPage() {
 
   const budget = Number(project.budget || 0);
   const milestones = [
-    { num: "01", title: "Загварчлал & Архитектур", desc: "Систем болон UI/UX дизайны суурь тавих", amount: Math.round(budget * 0.24), badge: escrowState === "held" || escrowState === "released" ? "FUNDING READY" : null },
-    { num: "02", title: "Гол хөгжүүлэлт", desc: "Үндсэн функцуудыг хөгжүүлж дуусгах", amount: Math.round(budget * 0.50), badge: null },
-    { num: "03", title: "Тест & Нэвтрүүлэлт", desc: "Тест болон зах зээлд нэвтрэх", amount: Math.round(budget * 0.26), badge: null },
+    { num: "01", title: "Төлөвлөлт & Дизайн", desc: "Шаардлага тодруулах, архитектур болон дизайны суурь тавих", amount: Math.round(budget * 0.24), badge: escrowState === "held" || escrowState === "released" ? "ХӨРӨНГӨЖҮҮЛСЭН" : null },
+    { num: "02", title: "Гол хэрэгжүүлэлт", desc: "Үндсэн ажлыг гүйцэтгэж дуусгах", amount: Math.round(budget * 0.50), badge: null },
+    { num: "03", title: "Хүлээлцэлт & Дуусгавар", desc: "Эцсийн шалгалт, хүлээлцэлт болон зах зээлд нэвтрүүлэх", amount: Math.round(budget * 0.26), badge: null },
   ];
 
   return (
@@ -249,7 +249,7 @@ export default function ProjectDetailPage() {
 
           {/* Proposal Form (Freelancer) */}
           {canFreelancerPropose && (
-            <div className="rounded-[2.5rem] bg-surface-container-low p-8 md:p-10">
+            <div id="proposal-form" className="rounded-[2.5rem] bg-surface-container-low p-8 md:p-10">
               <h2 className="font-headline text-[24px] font-black tracking-tighter text-primary">Санал илгээх</h2>
               <form className="mt-8 space-y-5" onSubmit={proposalForm.handleSubmit((v) => proposalMutation.mutate(v))}>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -299,7 +299,7 @@ export default function ProjectDetailPage() {
                         <li key={item.id} className="rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm">
                           <div className="flex flex-wrap items-start justify-between gap-4">
                             <div>
-                              <p className="font-headline text-[18px] font-black text-primary">Freelancer #{fId}</p>
+                              <p className="font-headline text-[18px] font-black text-primary">{item.freelancer_name || `Фрилансер #${fId}`}</p>
                               <div className="mt-2 flex items-center gap-4 text-[14px] font-bold text-secondary font-headline">
                                 <span>{formatMnt(price)}</span>
                                 <span className="text-surface-400 font-medium">{item.timeline_days} өдөр</span>
@@ -427,13 +427,13 @@ export default function ProjectDetailPage() {
               {formatMnt(Math.round(budget * 0.8))} — {formatMnt(budget)}
             </p>
             <div className="mt-3 flex gap-4 text-[13px] font-bold opacity-70">
-              <span>{project.timeline_days} сар</span>
+              <span>{project.timeline_days} өдөр</span>
               <span className="capitalize">{(project as any).experience_level || "Intermediate"}</span>
             </div>
             {canFreelancerPropose && (
-              <button type="button" className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-white/10 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] backdrop-blur-sm transition-all hover:bg-white/20 font-headline">
-                Apply for this Project →
-              </button>
+              <a href="#proposal-form" className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-white/10 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] backdrop-blur-sm transition-all hover:bg-white/20 font-headline">
+                Санал илгээх →
+              </a>
             )}
             {isClientOwner && (
               <div className="mt-6 grid gap-3">
@@ -477,7 +477,7 @@ export default function ProjectDetailPage() {
           {/* Client Info */}
           <div className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-surface-400">About the Client</h3>
+              <h3 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-surface-400">Клиентийн тухай</h3>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5 text-secondary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
             </div>
             <div className="mt-5 flex items-center gap-4">
@@ -490,16 +490,17 @@ export default function ProjectDetailPage() {
               </div>
             </div>
             <div className="mt-6 space-y-3 text-[13px]">
-              {[
-                { label: "Location", value: "Ulaanbaatar, MN" },
-                { label: "Projects Posted", value: "—" },
-                { label: "Hire Rate", value: "—" },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between">
-                  <span className="font-medium text-surface-400">{label}</span>
-                  <span className="font-black text-primary font-headline">{value}</span>
-                </div>
-              ))}
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-surface-400">Байршил</span>
+                <span className="font-black text-primary font-headline">Улаанбаатар, МН</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-surface-400">Статус</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-black text-secondary font-headline">
+                  <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+                  Идэвхтэй клиент
+                </span>
+              </div>
             </div>
           </div>
 
