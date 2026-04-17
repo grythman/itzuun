@@ -9,6 +9,7 @@ export const registerSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   role: z.enum(["client", "freelancer"]).default("client"),
+  first_name: z.string().min(2, "Нэрээ оруулна уу").optional(),
 });
 
 export const otpRequestSchema = z.object({

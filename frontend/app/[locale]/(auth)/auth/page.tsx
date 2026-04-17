@@ -301,7 +301,7 @@ function AuthCard() {
 
   const registerForm = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", role: "client" },
+    defaultValues: { email: "", password: "", role: "client", first_name: "" },
   });
   const selectedRegisterRole = registerForm.watch("role");
 
@@ -467,7 +467,7 @@ function AuthCard() {
             {expectedRole ? (
               <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
                 <p className="text-xs text-amber-800">Сонгосон эрх: <strong>{expectedRole}</strong></p>
-                <StatusPill label="Role check" tone="warning" />
+                <StatusPill label="Эрх шалгалт" tone="warning" />
               </div>
             ) : null}
 
@@ -477,7 +477,7 @@ function AuthCard() {
                 <p className="mt-1">{authError}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   <button className="min-h-11 rounded-lg bg-white px-3 text-xs font-semibold" onClick={() => setAuthError("")}>Ойлголоо</button>
-                  <Link href={withLocale("/support")} className="inline-flex min-h-11 items-center rounded-lg bg-white px-3 text-xs font-semibold">Support</Link>
+                  <Link href={withLocale("/support")} className="inline-flex min-h-11 items-center rounded-lg bg-white px-3 text-xs font-semibold">Тусламж</Link>
                   {expectedRole ? (
                     <button className="min-h-11 rounded-lg bg-white px-3 text-xs font-semibold" onClick={logoutAndReset}>Role солих</button>
                   ) : null}
@@ -537,7 +537,7 @@ function AuthCard() {
 
                 <label className="block space-y-1.5">
                   <span className="ml-1 text-sm font-semibold text-surface-600">Овог нэр</span>
-                  <input className="w-full rounded-xl border-0 bg-white px-4 py-3.5 text-surface-900 placeholder:text-surface-400 focus:ring-2 focus:ring-[#031636]/15" type="text" placeholder="Жишээ: Бат-Эрдэнэ" autoComplete="name" />
+                  <input className="w-full rounded-xl border-0 bg-white px-4 py-3.5 text-surface-900 placeholder:text-surface-400 focus:ring-2 focus:ring-[#031636]/15" type="text" placeholder="Жишээ: Бат-Эрдэнэ" autoComplete="name" {...registerForm.register("first_name")} />
                 </label>
 
                 <label className="block space-y-1.5">
@@ -610,7 +610,7 @@ function AuthCard() {
                         <path d="M4 6a2 2 0 0 0-2 2v.35l10 5.71L22 8.35V8a2 2 0 0 0-2-2H4Zm18 4.65-9.5 5.43a1 1 0 0 1-1 0L2 10.65V16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5.35Z" />
                       </svg>
                     </span>
-                    <input className="rounded-xl border-0 bg-surface-100 px-11 py-3.5" type="email" placeholder="example@itzuun.mn" autoComplete="email" {...loginForm.register("email")} />
+                    <input className="w-full rounded-xl border-0 bg-surface-100 px-11 py-3.5" type="email" placeholder="example@itzuun.mn" autoComplete="email" {...loginForm.register("email")} />
                   </div>
                 </label>
                 {loginForm.formState.errors.email ? <p className="-mt-3 text-xs text-red-600">{loginForm.formState.errors.email.message}</p> : null}
@@ -627,7 +627,7 @@ function AuthCard() {
                       </svg>
                     </span>
                     <input
-                      className="rounded-xl border-0 bg-surface-100 px-11 py-3.5 pr-12"
+                      className="w-full rounded-xl border-0 bg-surface-100 px-11 py-3.5 pr-12"
                       type={showLoginPassword ? "text" : "password"}
                       placeholder="••••••••"
                       autoComplete="current-password"
@@ -656,10 +656,7 @@ function AuthCard() {
                 </div>
                 {loginForm.formState.errors.password ? <p className="-mt-3 text-xs text-red-600">{loginForm.formState.errors.password.message}</p> : null}
 
-                <label className="flex items-center gap-2 text-sm text-surface-700">
-                  <input type="checkbox" className="h-5 w-5 rounded border-surface-300" />
-                  Намайг санах
-                </label>
+
 
                 <ActionButton
                   className="w-full min-h-12 rounded-xl bg-gradient-to-br from-[#031636] to-[#1a2b4c] py-3 text-base font-semibold text-[#d8e2ff] shadow-[0_12px_26px_rgba(3,22,54,0.16)]"
@@ -697,14 +694,13 @@ function AuthCard() {
                 </button>
                 <button
                   type="button"
-                  className={`flex items-center justify-center rounded-xl py-3 text-sm font-semibold transition-colors ${
+                  disabled
+                  className={`group relative flex items-center justify-center rounded-xl py-3 text-sm font-semibold transition-colors opacity-60 cursor-not-allowed ${
                     isRegister
-                      ? "gap-3 border-0 bg-white px-4 text-surface-800 hover:bg-surface-200"
-                      : "gap-2 border border-surface-200 bg-surface-100 text-surface-700 hover:bg-surface-200"
+                      ? "gap-3 border-0 bg-white px-4 text-surface-800"
+                      : "gap-2 border border-surface-200 bg-surface-100 text-surface-700"
                   }`}
-                  onClick={() => {
-                    if (!isRegister) setShowPasswordless((prev) => !prev);
-                  }}
+                  title="Тун удахгүй"
                 >
                   {isRegister ? (
                     <>
@@ -732,6 +728,7 @@ function AuthCard() {
                       LinkedIn
                     </>
                   )}
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-surface-800 px-2.5 py-1 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">Тун удахгүй</span>
                 </button>
               </div>
             </div>
@@ -792,7 +789,7 @@ function AuthCard() {
       <footer className="mt-0 flex flex-col gap-4 bg-[#eceef0] px-6 py-6 text-sm text-surface-600 md:flex-row md:items-center md:justify-between lg:mx-auto lg:max-w-[1360px] lg:rounded-b-xl xl:max-w-[1520px] 2xl:max-w-[1680px]">
         <div className="flex items-center gap-2">
           <span className="font-black text-[#031636]">ITZuun</span>
-          <span className="text-xs">© 2024 ITZuun. Бүх эрх хуулиар хамгаалагдсан.</span>
+          <span className="text-xs">© {new Date().getFullYear()} ITZuun. Бүх эрх хуулиар хамгаалагдсан.</span>
         </div>
         <div className="flex flex-wrap gap-6">
           <Link href={withLocale("/about")}>Бидний тухай</Link>
