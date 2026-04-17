@@ -23,6 +23,69 @@ type ProposalForm = z.infer<typeof proposalSchema>;
 type ReviewForm = z.infer<typeof reviewSchema>;
 type EscrowLifecycleState = "created" | "pending_admin" | "held" | "released" | "disputed" | "refunded";
 
+const ESCROW_FLOW: EscrowLifecycleState[] = [
+  "created",
+  "pending_admin",
+  "held",
+  "released",
+  "disputed",
+  "refunded",
+];
+
+const ESCROW_COPY: Record<
+  EscrowLifecycleState,
+  { label: string; happened: string; now: string; owner: string; next: string; toneClass: string }
+> = {
+  created: {
+    label: "Created",
+    happened: "Escrow үүссэн, төлбөр хараахан түгжигдээгүй.",
+    now: "Клиент төлбөр нээж escrow руу хөрөнгө байршуулах",
+    owner: "Client",
+    next: "Pending admin шат руу орно",
+    toneClass: "bg-primary-fixed text-primary",
+  },
+  pending_admin: {
+    label: "Pending Admin",
+    happened: "Төлбөр үүссэн, шалгалт хүлээж байна.",
+    now: "Админ баталгаажуулалт хүлээх",
+    owner: "Admin",
+    next: "Held (ажил эхлэх) шат руу шилжинэ",
+    toneClass: "bg-[#fff3d8] text-[#a15c00]",
+  },
+  held: {
+    label: "Held",
+    happened: "Төлбөр escrow-д аюулгүй хадгалагдаж байна.",
+    now: "Ажил гүйцэтгэл, deliverable review хийх",
+    owner: "Freelancer + Client",
+    next: "Released эсвэл Disputed",
+    toneClass: "bg-secondary-fixed text-secondary",
+  },
+  released: {
+    label: "Released",
+    happened: "Төлбөр амжилттай чөлөөлөгдсөн.",
+    now: "Review үлдээж харилцагчийн түүхээ шинэчлэх",
+    owner: "Client + Freelancer",
+    next: "Төсөл дууссан",
+    toneClass: "bg-[#def7e7] text-[#087443]",
+  },
+  disputed: {
+    label: "Disputed",
+    happened: "Маргаан бүртгэгдсэн. Release түр түдгэлзсэн.",
+    now: "Нотолгоо нэмэх, mediation хүлээх",
+    owner: "Admin + хоёр тал",
+    next: "Released эсвэл Refunded",
+    toneClass: "bg-[#ffe8ea] text-[#b42318]",
+  },
+  refunded: {
+    label: "Refunded",
+    happened: "Escrow төлбөр буцаагдсан.",
+    now: "Шийдвэрийн тайлбар, дараагийн алхмаа шинэчлэх",
+    owner: "Admin",
+    next: "Төсөл хаагдана",
+    toneClass: "bg-[#f4ecff] text-[#5925dc]",
+  },
+};
+
 function formatMnt(value: number): string {
   return `₮${new Intl.NumberFormat("mn-MN").format(value)}`;
 }
@@ -53,12 +116,20 @@ function statusLabel(status: string): string {
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function isEscrowStepReached(current: EscrowLifecycleState, step: EscrowLifecycleState) {
+  const currentIndex = ESCROW_FLOW.indexOf(current);
+  const stepIndex = ESCROW_FLOW.indexOf(step);
+  if (current === "disputed") return step === "created" || step === "pending_admin" || step === "held" || step === "disputed";
+  if (current === "refunded") return step !== "released";
+  return stepIndex <= currentIndex;
+}
+
 function CopyShareUrl({ projectId }: { projectId: string | number }) {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== "undefined" ? `${window.location.origin}/projects/${projectId}` : `itzuun.mn/projects/${projectId}`;
   return (
     <div className="flex items-center gap-2 rounded-2xl bg-surface-container-low p-2">
-      <span className="flex-1 truncate px-3 text-[12px] font-medium text-surface-400">{url}</span>
+      <span className="flex-1 truncate px-3 text-[12px] font-medium text-on-surface/50">{url}</span>
       <button
         type="button"
         onClick={() => { navigator.clipboard?.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
@@ -66,7 +137,7 @@ function CopyShareUrl({ projectId }: { projectId: string | number }) {
       >
         {copied
           ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-4 w-4 text-secondary"><path d="M20 6 9 17l-5-5" /></svg>
-          : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-surface-400"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
+          : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-on-surface/50"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>}
       </button>
     </div>
   );
@@ -81,11 +152,11 @@ function ProposalTrustMeta({ freelancerId, verificationStatus, fallbackVerified 
       <div className="flex flex-wrap items-center gap-3">
         <VerifiedBadge status={verificationStatus} verified={fallbackVerified} />
         {rating.data?.total
-          ? <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-surface-600"><RatingStars value={rating.data.average} />{rating.data.total} сэтгэгдэл</span>
-          : <span className="text-[11px] text-surface-400">Одоогоор review байхгүй</span>}
+          ? <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-on-surface/72"><RatingStars value={rating.data.average} />{rating.data.total} сэтгэгдэл</span>
+          : <span className="text-[11px] text-on-surface/50">Одоогоор review байхгүй</span>}
       </div>
-      {skills.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{skills.map((s: string) => <span key={s} className="rounded-xl bg-surface-container-lowest px-3 py-1 text-[11px] font-bold text-surface-400 font-headline">{s}</span>)}</div>}
-      {profile.data?.bio && <p className="mt-2 line-clamp-2 text-[12px] text-surface-500">{profile.data.bio}</p>}
+      {skills.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{skills.map((s: string) => <span key={s} className="rounded-xl bg-surface-container-lowest px-3 py-1 text-[11px] font-bold text-on-surface/50 font-headline">{s}</span>)}</div>}
+      {profile.data?.bio && <p className="mt-2 line-clamp-2 text-[12px] text-on-surface/62">{profile.data.bio}</p>}
     </div>
   );
 }
@@ -170,6 +241,9 @@ export default function ProjectDetailPage() {
   const skills = normalizeSkills(project.required_skills);
 
   const budget = Number(project.budget || 0);
+  const platformFee = Math.round(budget * 0.1);
+  const freelancerNet = Math.max(0, budget - platformFee);
+  const escrowMeta = ESCROW_COPY[escrowState];
   const milestones = [
     { num: "01", title: "Төлөвлөлт & Дизайн", desc: "Шаардлага тодруулах, архитектур болон дизайны суурь тавих", amount: Math.round(budget * 0.24), badge: escrowState === "held" || escrowState === "released" ? "ХӨРӨНГӨЖҮҮЛСЭН" : null },
     { num: "02", title: "Гол хэрэгжүүлэлт", desc: "Үндсэн ажлыг гүйцэтгэж дуусгах", amount: Math.round(budget * 0.50), badge: null },
@@ -193,7 +267,7 @@ export default function ProjectDetailPage() {
             <h1 className="mt-5 max-w-[18ch] font-headline text-[40px] font-black leading-[0.95] tracking-tighter text-primary md:text-[56px]">
               {project.title}
             </h1>
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-[13px] font-medium text-surface-400">
+            <div className="mt-5 flex flex-wrap items-center gap-4 text-[13px] font-medium text-on-surface/50">
               <span className="flex items-center gap-1.5">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                 Саяхан нийтэлсэн
@@ -208,14 +282,14 @@ export default function ProjectDetailPage() {
 
           {/* Description */}
           <div className="rounded-[2.5rem] bg-surface-container-low p-8 md:p-10">
-            <h2 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-surface-400">Төслийн танилцуулга</h2>
-            <p className="mt-6 text-[16px] font-medium leading-[1.8] text-surface-600 whitespace-pre-line">{project.description}</p>
+            <h2 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-on-surface/50">Төслийн танилцуулга</h2>
+            <p className="mt-6 text-[16px] font-medium leading-[1.8] text-on-surface/72 whitespace-pre-line">{project.description}</p>
           </div>
 
           {/* Skills */}
           {skills.length > 0 && (
             <div>
-              <h2 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-surface-400">Шаардлагатай үр чадварууд</h2>
+              <h2 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-on-surface/50">Шаардлагатай үр чадварууд</h2>
               <div className="mt-5 flex flex-wrap gap-3">
                 {skills.map((s) => (
                   <span key={s} className="rounded-2xl bg-surface-container-lowest px-5 py-2.5 text-[13px] font-black text-primary shadow-sm font-headline">
@@ -235,9 +309,9 @@ export default function ProjectDetailPage() {
                   {m.badge && (
                     <span className="absolute right-6 top-6 rounded-xl bg-secondary-fixed px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] text-secondary font-headline">{m.badge}</span>
                   )}
-                  <span className="font-headline text-[42px] font-black leading-none tracking-tighter text-surface-200">{m.num}</span>
+                  <span className="font-headline text-[42px] font-black leading-none tracking-tighter text-on-surface/25">{m.num}</span>
                   <h3 className="mt-6 font-headline text-[20px] font-black tracking-tight text-primary">{m.title}</h3>
-                  <p className="mt-3 text-[14px] font-medium leading-relaxed text-surface-400">{m.desc}</p>
+                  <p className="mt-3 text-[14px] font-medium leading-relaxed text-on-surface/50">{m.desc}</p>
                   <div className="mt-6 flex items-center gap-3">
                     <span className="font-headline text-[22px] font-black text-secondary">{formatMnt(m.amount)}</span>
                     <div className="h-[2px] flex-1 rounded-full bg-secondary/20" />
@@ -254,16 +328,16 @@ export default function ProjectDetailPage() {
               <form className="mt-8 space-y-5" onSubmit={proposalForm.handleSubmit((v) => proposalMutation.mutate(v))}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">Үнэ (₮)</label>
+                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/50 font-headline">Үнэ (₮)</label>
                     <input type="number" {...proposalForm.register("price", { valueAsNumber: true })} className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[15px] font-bold text-primary outline-none shadow-sm focus:shadow-ambient" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">Хугацаа (өдөр)</label>
+                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/50 font-headline">Хугацаа (өдөр)</label>
                     <input type="number" {...proposalForm.register("timeline_days", { valueAsNumber: true })} className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[15px] font-bold text-primary outline-none shadow-sm focus:shadow-ambient" />
                   </div>
                 </div>
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">Захидал / Мессеж</label>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/50 font-headline">Захидал / Мессеж</label>
                   <textarea rows={4} {...proposalForm.register("message")} placeholder="Яагаад та энэ төслийг хийх чадвартай вэ?" className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[15px] font-medium text-primary outline-none shadow-sm focus:shadow-ambient resize-none" />
                 </div>
                 <ActionButton className="w-full rounded-2xl py-4 text-[11px] font-black uppercase tracking-[0.2em] font-headline" type="submit" loading={proposalMutation.isPending}>
@@ -273,7 +347,7 @@ export default function ProjectDetailPage() {
             </div>
           )}
           {needsVerification && (
-            <div className="rounded-[2.5rem] bg-yellow-50 p-8 border border-yellow-100">
+            <div className="rounded-[2.5rem] bg-[#fff7e8] p-8">
               <p className="font-headline text-[16px] font-black text-yellow-800">Баталгаажуулалт шаардлагатай</p>
               <p className="mt-3 text-[14px] font-medium leading-relaxed text-yellow-700">Санал илгээхийн тулд эхлээд профайлаа баталгаажуулна уу.</p>
               <Link href={withLocale("/freelancer/profile")} className="mt-6 inline-flex rounded-2xl bg-yellow-800 px-6 py-3 text-[11px] font-black uppercase tracking-widest text-white font-headline">
@@ -287,14 +361,19 @@ export default function ProjectDetailPage() {
             <div className="space-y-6">
               <button type="button" onClick={() => setProposalsOpen((v) => !v)} className="flex w-full items-center justify-between rounded-[2.5rem] bg-surface-container-low px-8 py-6">
                 <span className="font-headline text-[24px] font-black tracking-tighter text-primary">Саналууд ({proposalItems.length})</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`h-5 w-5 text-surface-400 transition-transform ${proposalsOpen ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`h-5 w-5 text-on-surface/50 transition-transform ${proposalsOpen ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
               </button>
               {proposalsOpen && (
                 !proposalItems.length ? <EmptyState label="Одоогоор санал байхгүй." /> : (
                   <ul className="space-y-4">
                     {proposalItems.map((item) => {
                       const price = Number(item.price || 0);
+                      const timelineDays = Number(item.timeline_days || 0);
                       const fId = resolveFreelancerId(item.freelancer);
+                      const baselineTimeline = Number(project.timeline_days || 0);
+                      const isLowBid = budget > 0 && price < budget * 0.45;
+                      const isLongTimeline = baselineTimeline > 0 && timelineDays > baselineTimeline * 1.5;
+                      const isBestValue = budget > 0 && price >= budget * 0.65 && price <= budget && !isLongTimeline;
                       return (
                         <li key={item.id} className="rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -302,7 +381,24 @@ export default function ProjectDetailPage() {
                               <p className="font-headline text-[18px] font-black text-primary">{(item.freelancer_name as string) || `Фрилансер #${fId}`}</p>
                               <div className="mt-2 flex items-center gap-4 text-[14px] font-bold text-secondary font-headline">
                                 <span>{formatMnt(price)}</span>
-                                <span className="text-surface-400 font-medium">{item.timeline_days} өдөр</span>
+                                <span className="text-on-surface/50 font-medium">{timelineDays} өдөр</span>
+                              </div>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {isBestValue && (
+                                  <span className="rounded-xl bg-secondary-fixed px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-secondary font-headline">
+                                    Best Value
+                                  </span>
+                                )}
+                                {isLowBid && (
+                                  <span className="rounded-xl bg-[#ffe8ea] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#b42318] font-headline">
+                                    Risk: Хэт бага үнэ
+                                  </span>
+                                )}
+                                {isLongTimeline && (
+                                  <span className="rounded-xl bg-[#fff7e8] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#a15c00] font-headline">
+                                    Risk: Хэт урт хугацаа
+                                  </span>
+                                )}
                               </div>
                             </div>
                             {isClientOwner && status === "open" && (
@@ -311,7 +407,12 @@ export default function ProjectDetailPage() {
                               </ActionButton>
                             )}
                           </div>
-                          {item.message && <p className="mt-5 text-[14px] font-medium leading-relaxed text-surface-500">{item.message}</p>}
+                          {item.message && <p className="mt-5 text-[14px] font-medium leading-relaxed text-on-surface/62">{item.message}</p>}
+                          {(isLowBid || isLongTimeline) && (
+                            <p className="mt-3 text-[12px] font-medium text-on-surface/60">
+                              Анхааруулга: эрсдэлтэй санал сонгосноор scope drift эсвэл хугацааны хоцрогдол үүсэх магадлалтай.
+                            </p>
+                          )}
                           <div className="mt-5">
                             <ProposalTrustMeta freelancerId={fId} verificationStatus={item.freelancer_verification_status} fallbackVerified={item.freelancer_is_verified} />
                           </div>
@@ -326,7 +427,7 @@ export default function ProjectDetailPage() {
 
           {/* Dispute Panel */}
           {isClientOwner && canDispute && (
-            <div className="rounded-[2.5rem] bg-yellow-50 p-8 border border-yellow-100">
+            <div className="rounded-[2.5rem] bg-[#fff7e8] p-8">
               <h2 className="font-headline text-[20px] font-black text-yellow-800">Маргаан нээх</h2>
               <p className="mt-3 text-[14px] font-medium leading-relaxed text-yellow-700">Шалтгаанаа тодорхой бичээд нотолгооны линк/тайлбараа нэм.</p>
               <div className="mt-6 flex flex-wrap gap-2">
@@ -345,16 +446,16 @@ export default function ProjectDetailPage() {
               <h2 className="font-headline text-[24px] font-black tracking-tighter text-primary">Ажлын үр дүн илгээх</h2>
               <div className="mt-8 space-y-5">
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">Файл оруулах</label>
-                  <input type="file" onChange={(e) => setDeliverableFile(e.target.files?.[0] || null)} disabled={status !== "in_progress"} className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[14px] text-surface-500 outline-none" />
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/50 font-headline">Файл оруулах</label>
+                  <input type="file" onChange={(e) => setDeliverableFile(e.target.files?.[0] || null)} disabled={status !== "in_progress"} className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[14px] text-on-surface/62 outline-none" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 font-headline">Checksum</label>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/50 font-headline">Checksum</label>
                   <input value={checksum} onChange={(e) => setChecksum(e.target.value)} placeholder="SHA-256 checksum" disabled={status !== "in_progress"} className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[14px] font-bold text-primary outline-none shadow-sm" />
                 </div>
                 {uploadDeliverableMutation.isPending && (
                   <div className="rounded-2xl bg-surface-container-lowest p-4">
-                    <div className="mb-2 flex justify-between text-[11px] font-bold text-surface-500 font-headline"><span>Байршуулж байна...</span><span>{deliverableUploadProgress}%</span></div>
+                    <div className="mb-2 flex justify-between text-[11px] font-bold text-on-surface/62 font-headline"><span>Байршуулж байна...</span><span>{deliverableUploadProgress}%</span></div>
                     <div className="h-2 overflow-hidden rounded-full bg-surface-container"><div className="h-full bg-secondary transition-all" style={{ width: `${deliverableUploadProgress}%` }} /></div>
                   </div>
                 )}
@@ -375,29 +476,29 @@ export default function ProjectDetailPage() {
             reviewRecap ? (
               <div className="rounded-[2.5rem] bg-secondary-fixed p-8">
                 <p className="font-headline text-[18px] font-black text-secondary">Review амжилттай илгээгдлээ ✓</p>
-                <p className="mt-2 text-[14px] font-medium text-surface-500">Ерөнхий: {reviewRecap.rating}/5 · Харилцаа: {reviewRecap.communication}/5 · Чанар: {reviewRecap.quality}/5</p>
+                <p className="mt-2 text-[14px] font-medium text-on-surface/62">Ерөнхий: {reviewRecap.rating}/5 · Харилцаа: {reviewRecap.communication}/5 · Чанар: {reviewRecap.quality}/5</p>
               </div>
             ) : (
               <div className="rounded-[2.5rem] bg-surface-container-low p-8 md:p-10">
                 <div className="flex items-center justify-between">
                   <h2 className="font-headline text-[24px] font-black tracking-tighter text-primary">Review үлдээх</h2>
-                  <span className="text-[11px] font-black text-surface-400 font-headline">Алхам {reviewStep + 1} / 3</span>
+                  <span className="text-[11px] font-black text-on-surface/50 font-headline">Алхам {reviewStep + 1} / 3</span>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={reviewForm.handleSubmit((v) => { const avg = Math.round((communicationRating + qualityRating) / 2); reviewMutation.mutate({ ...v, rating: Math.max(1, Math.min(5, avg)), comment: `${v.comment || ""}\nHarилцаа: ${communicationRating}/5\nЧанар: ${qualityRating}/5\nЗөвлөх эсэх: ${wouldRecommend}`.trim() }); })}>
+                <form className="mt-8 space-y-6" onSubmit={reviewForm.handleSubmit((v) => { const avg = Math.round((communicationRating + qualityRating) / 2); reviewMutation.mutate({ ...v, rating: Math.max(1, Math.min(5, avg)), comment: `${v.comment || ""}\nХарилцаа: ${communicationRating}/5\nЧанар: ${qualityRating}/5\nЗөвлөх эсэх: ${wouldRecommend}`.trim() }); })}>
                   {reviewStep === 0 && <div><label className="mb-3 block text-[13px] font-bold text-primary">Харилцааны үнэлгээ: {communicationRating}/5</label><input type="range" min={1} max={5} value={communicationRating} onChange={(e) => setCommunicationRating(Number(e.target.value))} className="w-full accent-secondary" /></div>}
                   {reviewStep === 1 && <div><label className="mb-3 block text-[13px] font-bold text-primary">Чанарын үнэлгээ: {qualityRating}/5</label><input type="range" min={1} max={5} value={qualityRating} onChange={(e) => setQualityRating(Number(e.target.value))} className="w-full accent-secondary" /></div>}
                   {reviewStep === 2 && (
                     <div className="space-y-4">
                       <label className="block text-[13px] font-bold text-primary">Дахин зөвлөх үү?</label>
                       <div className="flex gap-3">
-                        <button type="button" onClick={() => setWouldRecommend("yes")} className={`rounded-2xl px-6 py-3 text-[12px] font-black font-headline transition-all ${wouldRecommend === "yes" ? "bg-secondary text-white" : "bg-surface-container-lowest text-surface-500 shadow-sm"}`}>Тийм</button>
-                        <button type="button" onClick={() => setWouldRecommend("no")} className={`rounded-2xl px-6 py-3 text-[12px] font-black font-headline transition-all ${wouldRecommend === "no" ? "bg-red-500 text-white" : "bg-surface-container-lowest text-surface-500 shadow-sm"}`}>Үгүй</button>
+                        <button type="button" onClick={() => setWouldRecommend("yes")} className={`rounded-2xl px-6 py-3 text-[12px] font-black font-headline transition-all ${wouldRecommend === "yes" ? "bg-secondary text-white" : "bg-surface-container-lowest text-on-surface/62 shadow-sm"}`}>Тийм</button>
+                        <button type="button" onClick={() => setWouldRecommend("no")} className={`rounded-2xl px-6 py-3 text-[12px] font-black font-headline transition-all ${wouldRecommend === "no" ? "bg-red-500 text-white" : "bg-surface-container-lowest text-on-surface/62 shadow-sm"}`}>Үгүй</button>
                       </div>
                       <textarea placeholder="Дэлгэрэнгүй санал" {...reviewForm.register("comment")} rows={3} className="w-full rounded-2xl bg-surface-container-lowest px-5 py-4 text-[14px] outline-none shadow-sm resize-none" />
                     </div>
                   )}
                   <div className="flex justify-between gap-3">
-                    <button type="button" onClick={() => setReviewStep((p) => Math.max(0, p - 1))} disabled={reviewStep === 0} className="rounded-2xl bg-surface-container-lowest px-6 py-3 text-[12px] font-black font-headline text-surface-500 shadow-sm disabled:opacity-30">Буцах</button>
+                    <button type="button" onClick={() => setReviewStep((p) => Math.max(0, p - 1))} disabled={reviewStep === 0} className="rounded-2xl bg-surface-container-lowest px-6 py-3 text-[12px] font-black font-headline text-on-surface/62 shadow-sm disabled:opacity-30">Буцах</button>
                     {reviewStep < 2
                       ? <button type="button" onClick={() => setReviewStep((p) => Math.min(2, p + 1))} className="rounded-2xl primary-gradient px-8 py-3 text-[12px] font-black font-headline text-primary-fixed shadow-ambient">Дараах →</button>
                       : <ActionButton className="rounded-2xl px-8 py-3 text-[11px] font-black uppercase tracking-widest font-headline" type="submit" loading={reviewMutation.isPending}>Илгээх</ActionButton>}
@@ -411,7 +512,7 @@ export default function ProjectDetailPage() {
           <div>
             <button type="button" onClick={() => setChatOpen((v) => !v)} className="flex w-full items-center justify-between rounded-[2.5rem] bg-surface-container-low px-8 py-6">
               <span className="font-headline text-[24px] font-black tracking-tighter text-primary">Мессеж</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`h-5 w-5 text-surface-400 transition-transform ${chatOpen ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`h-5 w-5 text-on-surface/50 transition-transform ${chatOpen ? "rotate-180" : ""}`}><path d="m6 9 6 6 6-6" /></svg>
             </button>
             {chatOpen && <div className="mt-4"><ProjectChat projectId={id} currentUserId={me.data.id} /></div>}
           </div>
@@ -429,6 +530,21 @@ export default function ProjectDetailPage() {
             <div className="mt-3 flex gap-4 text-[13px] font-bold opacity-70">
               <span>{project.timeline_days} өдөр</span>
               <span className="capitalize">{((project as any).experience_level || "intermediate") === "entry" ? "Анхан шат" : ((project as any).experience_level || "intermediate") === "expert" ? "Мэргэжилтэн" : "Дунд шат"}</span>
+            </div>
+            <div className="mt-6 space-y-2 rounded-2xl bg-white/10 p-4 text-[13px]">
+              <div className="flex items-center justify-between">
+                <span className="opacity-75">Нийт дүн</span>
+                <span className="font-headline font-black">{formatMnt(budget)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="opacity-75">Платформ шимтгэл</span>
+                <span className="font-headline font-black">{formatMnt(platformFee)}</span>
+              </div>
+              <div className="h-px w-full bg-white/20" />
+              <div className="flex items-center justify-between">
+                <span className="opacity-85">Freelancer авах дүн</span>
+                <span className="font-headline font-black">{formatMnt(freelancerNet)}</span>
+              </div>
             </div>
             {canFreelancerPropose && (
               <a href="#proposal-form" className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-white/10 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] backdrop-blur-sm transition-all hover:bg-white/20 font-headline">
@@ -461,15 +577,40 @@ export default function ProjectDetailPage() {
 
           {/* Escrow Status */}
           <div className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm">
-            <h3 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-surface-400">Escrow төлөв</h3>
+            <h3 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-on-surface/50">Escrow төлөв</h3>
             <div className="mt-4 flex items-center gap-3">
               <EscrowStatusBadge status={escrowState} />
               <span className="text-[14px] font-bold text-primary capitalize">{escrowState.replace(/_/g, " ")}</span>
             </div>
+            <div className={`mt-5 rounded-2xl p-4 ${escrowMeta.toneClass}`}>
+              <p className="font-headline text-[11px] font-black uppercase tracking-[0.15em]">{escrowMeta.label}</p>
+              <p className="mt-2 text-[13px] font-medium leading-relaxed">{escrowMeta.happened}</p>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {ESCROW_FLOW.map((step) => {
+                const reached = isEscrowStepReached(escrowState, step);
+                return (
+                  <div
+                    key={step}
+                    className={`rounded-xl px-2 py-2 text-center text-[9px] font-black uppercase tracking-[0.12em] font-headline ${
+                      reached ? "bg-primary-fixed text-primary" : "bg-surface-container-low text-on-surface/50"
+                    }`}
+                  >
+                    {step.replace("_", " ")}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-5 space-y-2 text-[12px] text-on-surface/70">
+              <p><span className="font-black text-primary">Юу болсон:</span> {escrowMeta.happened}</p>
+              <p><span className="font-black text-primary">Одоо юу хийх:</span> {escrowMeta.now}</p>
+              <p><span className="font-black text-primary">Хэн хийх:</span> {escrowMeta.owner}</p>
+              <p><span className="font-black text-primary">Дараагийн алхам:</span> {escrowMeta.next}</p>
+            </div>
             <div className="mt-5 rounded-2xl bg-secondary-fixed p-4">
               <div className="flex items-start gap-3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 h-5 w-5 shrink-0 text-secondary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                <p className="text-[13px] font-medium leading-relaxed text-secondary">Төлбөр баталгаажсан бөгөөд ITZUUN Escrow системээр аюулгүй байршсан.</p>
+                <p className="text-[12px] font-medium leading-relaxed text-secondary">Escrow state бүр дээр action audit trail хадгалагдана.</p>
               </div>
             </div>
           </div>
@@ -477,7 +618,7 @@ export default function ProjectDetailPage() {
           {/* Client Info */}
           <div className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-surface-400">Клиентийн тухай</h3>
+              <h3 className="font-headline text-[13px] font-black uppercase tracking-[0.2em] text-on-surface/50">Клиентийн тухай</h3>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5 text-secondary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
             </div>
             <div className="mt-5 flex items-center gap-4">
@@ -486,16 +627,16 @@ export default function ProjectDetailPage() {
               </div>
               <div>
                 <p className="font-headline text-[15px] font-black text-primary">Захиалагч #{project.owner}</p>
-                <div className="mt-1 flex items-center gap-1.5"><RatingStars value={5} /><span className="text-[12px] font-bold text-surface-400">(5.0)</span></div>
+                <div className="mt-1 flex items-center gap-1.5"><RatingStars value={5} /><span className="text-[12px] font-bold text-on-surface/50">(5.0)</span></div>
               </div>
             </div>
             <div className="mt-6 space-y-3 text-[13px]">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-surface-400">Байршил</span>
+                <span className="font-medium text-on-surface/50">Байршил</span>
                 <span className="font-black text-primary font-headline">Улаанбаатар, МН</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-surface-400">Статус</span>
+                <span className="font-medium text-on-surface/50">Статус</span>
                 <span className="inline-flex items-center gap-1 text-[11px] font-black text-secondary font-headline">
                   <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
                   Идэвхтэй клиент
@@ -506,7 +647,7 @@ export default function ProjectDetailPage() {
 
           {/* Share */}
           <div className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm">
-            <h3 className="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 mb-4">Энэ төслийг хуваалцах</h3>
+            <h3 className="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/50 mb-4">Энэ төслийг хуваалцах</h3>
             <CopyShareUrl projectId={id} />
           </div>
         </aside>
@@ -514,7 +655,7 @@ export default function ProjectDetailPage() {
 
       {/* Confirmations */}
       <ConfirmationDialog open={selectConfirmProposalId !== null} title="Freelancer сонгохыг баталгаажуулах"
-        message={selectedProposal ? `Freelancer #${resolveFreelancerId(selectedProposal.freelancer)}-г сонговол төсэл эхэлж, escrow идэвхжинэ.\nҮнэ: ${formatMnt(Number(selectedProposal.price || 0))}, хугацаа: ${selectedProposal.timeline_days} өдөр.` : "Сонголтоо баталгаажуулна уу."}
+        message={selectedProposal ? `Freelancer #${resolveFreelancerId(selectedProposal.freelancer)}-г сонговол төсөл эхэлж escrow түгжинэ.\nСаналын дүн: ${formatMnt(Number(selectedProposal.price || 0))}\nХугацаа: ${selectedProposal.timeline_days} өдөр\nДараагийн алхам: Admin approval → Held → Delivery review` : "Сонголтоо баталгаажуулна уу."}
         confirmLabel="Тийм, сонгоё" confirmTone="primary" loading={selectMutation.isPending}
         onCancel={() => setSelectConfirmProposalId(null)}
         onConfirm={() => { if (selectConfirmProposalId !== null) { selectMutation.mutate(selectConfirmProposalId, { onSettled: () => setSelectConfirmProposalId(null) }); } }} />

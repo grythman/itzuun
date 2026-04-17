@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChatBubble, StatusPill } from "@/components/ui";
-import { EmptyState } from "@/components/shared/states";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMutation, useProjectMessages } from "@/lib/hooks";
@@ -123,16 +123,16 @@ export default function ProjectChat({
   const isSending = sendMutation.isPending || fileMutation.isPending;
 
   return (
-    <div className="rounded-2xl border border-surface-200/60 bg-white shadow-card flex flex-col">
+    <div className="ui-surface flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-surface-100 px-5 py-3">
-        <h2 className="text-lg font-medium text-surface-900">Project Chat</h2>
+      <div className="flex items-center justify-between px-5 py-4 sm:px-6">
+        <h2 className="font-headline text-[18px] font-black text-primary">Project Chat</h2>
         <div className="flex items-center gap-2">
           <StatusPill label="Live" tone="success" />
           <button
             type="button"
             onClick={() => messages.refetch()}
-            className="rounded-lg px-2 py-1 text-[11px] text-surface-500 hover:bg-surface-100"
+            className="rounded-lg bg-surface-container-low px-2 py-1 text-[11px] font-bold text-on-surface/60 hover:bg-surface-container"
             title="Refresh messages"
           >
             ↻
@@ -141,7 +141,7 @@ export default function ProjectChat({
       </div>
 
       {/* Escrow banner */}
-      <div className="mx-4 mt-3 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+      <div className="mx-4 mt-1 flex items-center gap-2 rounded-xl bg-secondary-fixed px-3 py-2 text-xs text-secondary sm:mx-6">
         <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
@@ -149,13 +149,27 @@ export default function ProjectChat({
       </div>
 
       {/* Message list */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ maxHeight: "400px", minHeight: "200px" }}>
+      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-6" style={{ maxHeight: "400px", minHeight: "220px" }}>
         {messages.isLoading ? (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-[13px] text-surface-400">Loading messages...</p>
-          </div>
+          <LoadingState label="Loading messages..." />
+        ) : messages.isError ? (
+          <ErrorState
+            label="Message thread татахад алдаа гарлаа."
+            action={
+              <button
+                type="button"
+                onClick={() => messages.refetch()}
+                className="ui-btn-ghost min-h-9 px-3 text-[10px]"
+              >
+                Дахин оролдох
+              </button>
+            }
+          />
         ) : !sortedMessages.length ? (
-          <EmptyState label="No messages yet. Start the conversation!" />
+          <EmptyState
+            label="Одоогоор мессеж алга байна."
+            description="Төслийн хүрээ, deliverable болон хугацааны тохиролцоогоо эндээс эхлүүлээрэй."
+          />
         ) : (
           <>
             {sortedMessages.map((item) => {
@@ -188,35 +202,35 @@ export default function ProjectChat({
       </div>
 
       {/* Input area */}
-      <div className="border-t border-surface-100 px-4 py-3 space-y-2">
+      <div className="ui-surface-soft mx-4 mb-4 space-y-2 px-3 py-3 sm:mx-6 sm:px-4">
         {/* Selected file preview */}
         {selectedFile && (
-          <div className="flex items-center gap-2 rounded-lg bg-surface-50 px-3 py-2 text-[13px]">
-            <svg className="h-4 w-4 text-surface-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-2 rounded-lg bg-surface-container-lowest px-3 py-2 text-[13px] shadow-sm">
+            <svg className="h-4 w-4 text-on-surface/55" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
             </svg>
-            <span className="flex-1 truncate text-surface-700">{selectedFile.name}</span>
-            <span className="text-[11px] text-surface-400">{formatFileSize(selectedFile.size)}</span>
+            <span className="flex-1 truncate text-on-surface/75">{selectedFile.name}</span>
+            <span className="text-[11px] text-on-surface/50">{formatFileSize(selectedFile.size)}</span>
             <button
               type="button"
               onClick={() => {
                 setSelectedFile(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
               }}
-              className="text-surface-400 hover:text-red-500"
+              className="text-on-surface/45 hover:text-[#b42318]"
             >
               ✕
             </button>
           </div>
         )}
         {fileMutation.isPending && (
-          <div className="rounded-lg bg-surface-50 px-3 py-2">
-            <div className="mb-1 flex items-center justify-between text-[11px] text-surface-500">
+          <div className="rounded-lg bg-surface-container-lowest px-3 py-2 shadow-sm">
+            <div className="mb-1 flex items-center justify-between text-[11px] text-on-surface/60">
               <span>Uploading file...</span>
               <span>{uploadProgress}%</span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-200">
-              <div className="h-full bg-brand-600 transition-all" style={{ width: `${uploadProgress}%` }} />
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
+              <div className="h-full bg-secondary transition-all" style={{ width: `${uploadProgress}%` }} />
             </div>
           </div>
         )}
@@ -226,7 +240,7 @@ export default function ProjectChat({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="shrink-0 rounded-xl p-2.5 text-surface-400 hover:bg-surface-100 hover:text-surface-600"
+            className="shrink-0 rounded-xl bg-surface-container-lowest p-2.5 text-on-surface/50 shadow-sm hover:text-on-surface/75"
             title="Attach file (PDF, PNG, JPG, TXT, ZIP, DOCX — max 10MB)"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +257,7 @@ export default function ProjectChat({
 
           {/* Text input */}
           <textarea
-            className="flex-1 resize-none rounded-xl border border-surface-200/60 px-4 py-2.5 text-[13px] placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="flex-1 resize-none rounded-xl bg-surface-container-lowest px-4 py-2.5 text-[13px] text-on-surface placeholder:text-on-surface/45 shadow-sm focus:outline-none focus:shadow-ambient"
             rows={1}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -257,7 +271,7 @@ export default function ProjectChat({
             type="button"
             onClick={handleSend}
             disabled={isSending || (!text.trim() && !selectedFile)}
-            className="shrink-0 rounded-xl bg-brand-600 p-2.5 text-white transition-colors hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="shrink-0 rounded-xl bg-primary-gradient p-2.5 text-primary-fixed transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             title="Send message"
           >
             {isSending ? (

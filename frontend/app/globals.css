@@ -80,6 +80,60 @@ button {
   padding-block: var(--app-section-y);
 }
 
+@layer components {
+  .ui-page-shell {
+    @apply rounded-[2rem] bg-surface-container-low p-4 shadow-[0_20px_50px_rgba(3,22,54,0.04)] sm:p-6 lg:p-8;
+  }
+
+  .ui-surface {
+    @apply rounded-[1.5rem] bg-surface-container-lowest shadow-[0_14px_34px_rgba(3,22,54,0.06)];
+  }
+
+  .ui-surface-soft {
+    @apply rounded-[1.25rem] bg-surface-container-low shadow-[0_10px_24px_rgba(3,22,54,0.05)];
+  }
+
+  .ui-card-pad {
+    @apply p-5 sm:p-6;
+  }
+
+  .ui-kpi-value {
+    @apply font-headline text-[1.7rem] font-black leading-none tracking-tight text-primary;
+  }
+
+  .ui-eyebrow {
+    @apply font-headline text-[10px] font-black uppercase tracking-[0.22em] text-on-surface/45;
+  }
+
+  .ui-heading {
+    @apply font-headline text-[1.95rem] font-black leading-[1.05] tracking-tight text-primary;
+  }
+
+  .ui-text-subtle {
+    @apply text-[14px] font-medium leading-relaxed text-on-surface/60;
+  }
+
+  .ui-chip {
+    @apply inline-flex items-center rounded-xl bg-surface-container-low px-3 py-1.5 text-[11px] font-bold text-on-surface/70;
+  }
+
+  .ui-divider-soft {
+    @apply h-px w-full bg-on-surface/[0.06];
+  }
+
+  .ui-btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl bg-primary-gradient px-5 text-[12px] font-black uppercase tracking-[0.18em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5;
+  }
+
+  .ui-btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl bg-secondary px-5 text-[12px] font-black uppercase tracking-[0.18em] text-white shadow-[0_12px_24px_rgba(19,105,106,0.28)] transition-all hover:-translate-y-0.5;
+  }
+
+  .ui-btn-ghost {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl bg-surface-container-low px-5 text-[12px] font-black uppercase tracking-[0.18em] text-on-surface/70 transition-colors hover:bg-surface-container;
+  }
+}
+
 @media (max-width: 1536px) {
   :root {
     --app-max-width: 1600px;
