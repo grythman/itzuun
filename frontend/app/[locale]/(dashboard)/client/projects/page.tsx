@@ -183,7 +183,7 @@ export default function ClientProjectsPage() {
                               {project.title}
                             </p>
                             <p className="mt-1 text-[11px] font-bold text-surface-400 font-headline uppercase tracking-widest">
-                              {project.category || "General"}
+                              {project.category || "Ерөнхий"}
                             </p>
                           </Link>
                         </td>

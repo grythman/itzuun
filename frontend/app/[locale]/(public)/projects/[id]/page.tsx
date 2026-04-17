@@ -81,7 +81,7 @@ function ProposalTrustMeta({ freelancerId, verificationStatus, fallbackVerified 
       <div className="flex flex-wrap items-center gap-3">
         <VerifiedBadge status={verificationStatus} verified={fallbackVerified} />
         {rating.data?.total
-          ? <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-surface-600"><RatingStars value={rating.data.average} />{rating.data.total} reviews</span>
+          ? <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-surface-600"><RatingStars value={rating.data.average} />{rating.data.total} сэтгэгдэл</span>
           : <span className="text-[11px] text-surface-400">Одоогоор review байхгүй</span>}
       </div>
       {skills.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{skills.map((s: string) => <span key={s} className="rounded-xl bg-surface-container-lowest px-3 py-1 text-[11px] font-bold text-surface-400 font-headline">{s}</span>)}</div>}
@@ -141,8 +141,8 @@ export default function ProjectDetailPage() {
       await projectsApi.sendMessage(id, fileData, "file");
       await projectsApi.sendMessage(id, "Deliverable илгээлээ. Шалгаад баталгаажуулна уу.");
     },
-    onSuccess: () => { setDeliverableUploadProgress(0); toast("success", "Deliverable uploaded"); },
-    onError: (e: any) => { setDeliverableUploadProgress(0); toast("error", "Upload failed", extractApiErrorMessage(e, "Дахин оролдоно уу")); },
+    onSuccess: () => { setDeliverableUploadProgress(0); toast("success", "Файл амжилттай байршлаа"); },
+    onError: (e: any) => { setDeliverableUploadProgress(0); toast("error", "Байршуулахад алдаа гарлаа", extractApiErrorMessage(e, "Дахин оролдоно уу")); },
   });
   const resultMutation = useMutation({ mutationFn: () => projectsApi.submitResult(id, { note: "Work submitted" }), onSuccess: () => { detail.refetch(); toast("success", "Үр дүн илгээгдлээ"); }, onError: (e: Error) => toast("error", e.message) });
   const reviewMutation = useMutation({
@@ -196,11 +196,11 @@ export default function ProjectDetailPage() {
             <div className="mt-5 flex flex-wrap items-center gap-4 text-[13px] font-medium text-surface-400">
               <span className="flex items-center gap-1.5">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                Posted recently
+                Саяхан нийтэлсэн
               </span>
               <span className="flex items-center gap-1.5">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                Ulaanbaatar, MN
+                Улаанбаатар, МН
               </span>
               <StatusPill label={statusLabel(status)} tone={status === "open" ? "success" : status === "completed" ? "info" : "warning"} />
             </div>
@@ -330,7 +330,7 @@ export default function ProjectDetailPage() {
               <h2 className="font-headline text-[20px] font-black text-yellow-800">Маргаан нээх</h2>
               <p className="mt-3 text-[14px] font-medium leading-relaxed text-yellow-700">Шалтгаанаа тодорхой бичээд нотолгооны линк/тайлбараа нэм.</p>
               <div className="mt-6 flex flex-wrap gap-2">
-                {["Scope зөрсөн", "Хугацаа хэтэрсэн", "Чанарын асуудал", "Communication issue"].map((chip) => (
+                {["Scope зөрсөн", "Хугацаа хэтэрсэн", "Чанарын асуудал", "Харилцааны асуудал"].map((chip) => (
                   <button key={chip} type="button" onClick={() => setDisputeReason(chip)} className={`rounded-2xl px-4 py-2 text-[12px] font-black font-headline transition-all ${disputeReason === chip ? "bg-yellow-700 text-white" : "bg-white text-yellow-800 shadow-sm"}`}>{chip}</button>
                 ))}
               </div>
@@ -354,7 +354,7 @@ export default function ProjectDetailPage() {
                 </div>
                 {uploadDeliverableMutation.isPending && (
                   <div className="rounded-2xl bg-surface-container-lowest p-4">
-                    <div className="mb-2 flex justify-between text-[11px] font-bold text-surface-500 font-headline"><span>Uploading...</span><span>{deliverableUploadProgress}%</span></div>
+                    <div className="mb-2 flex justify-between text-[11px] font-bold text-surface-500 font-headline"><span>Байршуулж байна...</span><span>{deliverableUploadProgress}%</span></div>
                     <div className="h-2 overflow-hidden rounded-full bg-surface-container"><div className="h-full bg-secondary transition-all" style={{ width: `${deliverableUploadProgress}%` }} /></div>
                   </div>
                 )}
@@ -428,7 +428,7 @@ export default function ProjectDetailPage() {
             </p>
             <div className="mt-3 flex gap-4 text-[13px] font-bold opacity-70">
               <span>{project.timeline_days} өдөр</span>
-              <span className="capitalize">{(project as any).experience_level || "Intermediate"}</span>
+              <span className="capitalize">{((project as any).experience_level || "intermediate") === "entry" ? "Анхан шат" : ((project as any).experience_level || "intermediate") === "expert" ? "Мэргэжилтэн" : "Дунд шат"}</span>
             </div>
             {canFreelancerPropose && (
               <a href="#proposal-form" className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-white/10 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] backdrop-blur-sm transition-all hover:bg-white/20 font-headline">
@@ -439,7 +439,7 @@ export default function ProjectDetailPage() {
               <div className="mt-6 grid gap-3">
                 {canRelease && (
                   <button type="button" onClick={() => setReleaseConfirmOpen(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-4 text-[12px] font-black uppercase tracking-widest font-headline">
-                    Release Escrow ✓
+                    Escrow чөлөөлөх ✓
                   </button>
                 )}
                 {canDispute && (
@@ -469,7 +469,7 @@ export default function ProjectDetailPage() {
             <div className="mt-5 rounded-2xl bg-secondary-fixed p-4">
               <div className="flex items-start gap-3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 h-5 w-5 shrink-0 text-secondary"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                <p className="text-[13px] font-medium leading-relaxed text-secondary">Payment is verified and secured via ITZUUN Escrow system.</p>
+                <p className="text-[13px] font-medium leading-relaxed text-secondary">Төлбөр баталгаажсан бөгөөд ITZUUN Escrow системээр аюулгүй байршсан.</p>
               </div>
             </div>
           </div>
@@ -485,7 +485,7 @@ export default function ProjectDetailPage() {
                 {String(project.owner || "C")[0].toUpperCase()}
               </div>
               <div>
-                <p className="font-headline text-[15px] font-black text-primary">Client #{project.owner}</p>
+                <p className="font-headline text-[15px] font-black text-primary">Захиалагч #{project.owner}</p>
                 <div className="mt-1 flex items-center gap-1.5"><RatingStars value={5} /><span className="text-[12px] font-bold text-surface-400">(5.0)</span></div>
               </div>
             </div>
@@ -506,7 +506,7 @@ export default function ProjectDetailPage() {
 
           {/* Share */}
           <div className="rounded-[2.5rem] bg-surface-container-lowest p-6 shadow-sm">
-            <h3 className="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 mb-4">Share this job</h3>
+            <h3 className="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-surface-400 mb-4">Энэ төслийг хуваалцах</h3>
             <CopyShareUrl projectId={id} />
           </div>
         </aside>
@@ -518,9 +518,9 @@ export default function ProjectDetailPage() {
         confirmLabel="Тийм, сонгоё" confirmTone="primary" loading={selectMutation.isPending}
         onCancel={() => setSelectConfirmProposalId(null)}
         onConfirm={() => { if (selectConfirmProposalId !== null) { selectMutation.mutate(selectConfirmProposalId, { onSettled: () => setSelectConfirmProposalId(null) }); } }} />
-      <ConfirmationDialog open={releaseConfirmOpen} title="Release Escrow"
+      <ConfirmationDialog open={releaseConfirmOpen} title="Escrow чөлөөлөх"
         message={`Энэ үйлдлээр ${formatMnt(budget)} escrow freelancer руу шилжинэ. Буцаах боломжгүй.`}
-        confirmLabel="Release Now" confirmTone="success" loading={completionMutation.isPending}
+        confirmLabel="Одоо чөлөөлөх" confirmTone="success" loading={completionMutation.isPending}
         onCancel={() => setReleaseConfirmOpen(false)}
         onConfirm={() => completionMutation.mutate(undefined, { onSettled: () => setReleaseConfirmOpen(false) })} />
       <ConfirmationDialog open={disputeConfirmOpen} title="Маргаан нээх"
