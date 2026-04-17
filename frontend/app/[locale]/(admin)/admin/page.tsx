@@ -104,7 +104,7 @@ export default function AdminPage() {
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath="/auth">
       <section className="space-y-6 pb-20">
-        {!inDashboardShell && <h1 className="text-2xl font-semibold">Admin Dashboard</h1>}
+        {!inDashboardShell && <h1 className="text-2xl font-semibold">Админ хянах самбар</h1>}
 
         <div className={inDashboardShell ? "block" : "flex gap-4"}>
           {!inDashboardShell && <RoleSidebar role="admin" />}

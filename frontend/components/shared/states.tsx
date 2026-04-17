@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-export function LoadingState({ label = "Loading..." }: { label?: string }) {
+export function LoadingState({ label = "Ачааллаж байна..." }: { label?: string }) {
   return (
     <div className="rounded-xl border border-surface-200/60 bg-white p-4 text-[13px] text-surface-500">
       <p>{label}</p>
