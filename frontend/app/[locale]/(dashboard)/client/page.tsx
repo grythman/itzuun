@@ -301,14 +301,14 @@ export default function ClientDashboardPage() {
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">Нийт зарцуулсан</p>
                     <h3 className="font-headline text-3xl font-bold">{formatMnt(totalEscrow)}</h3>
                   </div>
-                  <span className="mt-4 w-fit rounded bg-white/10 px-2 py-1 text-[10px]">All projects</span>
+                  <span className="mt-4 w-fit rounded bg-white/10 px-2 py-1 text-[10px]">Бүх төсөл</span>
                 </div>
                 <div className="flex flex-col justify-between border-l border-white/10 pl-6">
                   <div>
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-accent-300">Эскроу дансанд</p>
                     <h3 className="font-headline text-3xl font-bold text-accent-300">{formatMnt(securedEscrow)}</h3>
                   </div>
-                  <p className="mt-4 text-[10px] text-white/50">Fully Secured</p>
+                  <p className="mt-4 text-[10px] text-white/50">Хамгаалалтай хадгалалажсан</p>
                 </div>
                 <div className="flex flex-col justify-between border-l border-white/10 pl-6">
                   <div>
@@ -338,7 +338,7 @@ export default function ClientDashboardPage() {
                         {initials(`F ${proposalFreelancerLabel(proposal.freelancer)}`)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-on-surface font-headline">Freelancer #{proposalFreelancerLabel(proposal.freelancer)}</p>
+                        <p className="text-xs font-bold text-on-surface font-headline">{(proposal as any).freelancer_name || `Фрилансер #${proposalFreelancerLabel(proposal.freelancer)}`}</p>
                         <p className="truncate text-[10px] text-surface-500">{formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} өдөр</p>
                       </div>
                       <span className="text-sm text-surface-300 transition-colors group-hover:text-primary">→</span>
@@ -536,21 +536,16 @@ export default function ClientDashboardPage() {
                       </Link>
                     </div>
                     <div className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-full bg-slate-50 lg:flex">
-                      <span className="text-5xl text-[#13696a]">🛡</span>
-                    </div>
+                        <svg viewBox="0 0 24 24" className="h-14 w-14 text-[#13696a]" fill="currentColor" aria-hidden="true">
+                          <path d="m12 2 8 3v6c0 5-3.4 9.7-8 11-4.6-1.3-8-6-8-11V5l8-3Zm0 5a3 3 0 0 0-3 3v1h-1v2h1v4h2v-4h2v4h2v-4h1v-2h-1v-1a3 3 0 0 0-3-3Z" />
+                        </svg>
+                      </div>
                   </div>
                 </div>
               </div>
             </section>
 
-            <footer className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 bg-white/50 px-2 py-6 md:flex-row">
-              <p className="text-[11px] font-medium text-slate-400">© 2024 ITZuun Professional Marketplace. All rights reserved.</p>
-              <div className="flex gap-6">
-                <Link className="text-[11px] font-bold text-slate-500 hover:text-[#031636]" href={withLocale("/privacy")}>Нууцлалын бодлого</Link>
-                <Link className="text-[11px] font-bold text-slate-500 hover:text-[#031636]" href={withLocale("/terms")}>Үйлчилгээний нөхцөл</Link>
-                <Link className="text-[11px] font-bold text-slate-500 hover:text-[#031636]" href={withLocale("/support")}>Тусламж</Link>
-              </div>
-            </footer>
+
             </div>
           </main>
         </div>

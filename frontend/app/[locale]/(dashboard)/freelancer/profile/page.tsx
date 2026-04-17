@@ -153,16 +153,24 @@ export default function FreelancerProfilePage() {
             </div>
             <ul className="space-y-3">
               {[
-                { label: "Бүтэн нэр", done: !!profileData?.full_name },
-                { label: "Тодорхойлолт (Bio)", done: !!profileData?.bio },
-                { label: "Ур чадварууд", done: (profileData?.skills?.length ?? 0) > 0 },
-                { label: "Цагийн хөлс", done: (profileData?.hourly_rate ?? 0) > 0 },
+                { label: "Бүтэн нэр", done: !!profileData?.full_name, anchor: "#field-full-name" },
+                { label: "Тодорхойлолт (Bio)", done: !!profileData?.bio, anchor: "#field-bio" },
+                { label: "Ур чадварууд", done: (profileData?.skills?.length ?? 0) > 0, anchor: "#field-skills" },
+                { label: "Цагийн хөлс", done: (profileData?.hourly_rate ?? 0) > 0, anchor: "#field-rate" },
+                { label: "Портфолио", done: (profileData?.portfolio?.length ?? 0) > 0, anchor: "#field-skills" },
               ].map((item) => (
-                <li key={item.label} className={`flex items-center gap-3 text-[13px] font-bold font-headline ${item.done ? "text-on-surface" : "text-surface-400 italic opacity-60"}`}>
-                  <span className={`text-base ${item.done ? "text-secondary" : "text-surface-container"}`}>
-                    {item.done ? "✦" : "○"}
+                <li key={item.label} className={`flex items-center justify-between text-[13px] font-bold font-headline ${item.done ? "text-on-surface" : "text-surface-400"}`}>
+                  <span className="flex items-center gap-3">
+                    <span className={`text-base ${item.done ? "text-secondary" : "text-surface-container"}`}>
+                      {item.done ? "❆" : "◦"}
+                    </span>
+                    <span className={item.done ? "" : "opacity-60 italic"}>{item.label}</span>
                   </span>
-                  {item.label}
+                  {!item.done && (
+                    <a href={item.anchor} className="text-[10px] font-black uppercase tracking-[0.15em] text-secondary hover:underline font-headline">
+                      Нэмэх →
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -176,7 +184,7 @@ export default function FreelancerProfilePage() {
             <h2 className="font-headline text-xl font-extrabold text-primary">Профайл засах</h2>
 
             <div className="grid gap-6 md:grid-cols-2">
-              <div>
+              <div id="field-full-name">
                 <FieldLabel>Бүтэн нэр *</FieldLabel>
                 <input {...register("full_name")} className={inputCls()} placeholder="Жишээ: Бат-Эрдэнэ" />
                 {errors.full_name && <p className="mt-2 text-xs text-red-600">{errors.full_name.message}</p>}
@@ -188,7 +196,7 @@ export default function FreelancerProfilePage() {
               </div>
             </div>
 
-            <div>
+            <div id="field-bio">
               <FieldLabel>Танилцуулга (Bio)</FieldLabel>
               <textarea
                 {...register("bio")}
@@ -200,7 +208,7 @@ export default function FreelancerProfilePage() {
             </div>
 
             {/* Skills */}
-            <div>
+            <div id="field-skills">
               <FieldLabel>Ур чадварууд</FieldLabel>
               <div className="rounded-2xl bg-surface-container-low p-5 transition-all focus-within:bg-surface-container-lowest focus-within:shadow-ambient">
                 <div className="mb-4 flex flex-wrap gap-2">
@@ -227,7 +235,7 @@ export default function FreelancerProfilePage() {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2">
-              <div>
+              <div id="field-rate">
                 <FieldLabel>Цагийн хөлс (₮)</FieldLabel>
                 <input
                   type="number"
@@ -239,14 +247,16 @@ export default function FreelancerProfilePage() {
                 {errors.hourly_rate && <p className="mt-2 text-xs text-red-600">{errors.hourly_rate.message}</p>}
               </div>
               <div>
-                <FieldLabel>Хариу өгөх хугацаа (цаг)</FieldLabel>
-                <input
-                  type="number"
+                <FieldLabel>Хариу өгөх хугацаа</FieldLabel>
+                <select
                   {...register("response_time_hours", { valueAsNumber: true })}
                   className={inputCls()}
-                  placeholder="24"
-                  min={1}
-                />
+                >
+                  <option value={1}>Маш хурдан (&lt; 1 цаг)</option>
+                  <option value={24}>Өдрийн дотор (&lt; 24 цаг)</option>
+                  <option value={72}>2-3 өдөр дотор</option>
+                  <option value={168}>Удаан (&gt; 3 өдөр)</option>
+                </select>
               </div>
             </div>
 

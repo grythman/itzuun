@@ -194,31 +194,26 @@ export default function NewProjectPage() {
 		key: StepKey;
 		title: string;
 		subtitle: string;
-		icon: ReturnType<typeof stepIconName>;
 	}[] = [
 		{
 			key: "basics",
-			title: "Project Basics",
+			title: "Төслийн суурь",
 			subtitle: "Төслийн суурь мэдээлэл",
-			icon: "edit",
 		},
 		{
 			key: "scope",
-			title: "Description & Skills",
+			title: "Тайлбар ба ур чадвар",
 			subtitle: "Тайлбар ба ур чадвар",
-			icon: "description",
 		},
 		{
 			key: "budget",
-			title: "Budget & Timeline",
+			title: "Төсөв ба хугацаа",
 			subtitle: "Төсөв ба хугацаа",
-			icon: "payments",
 		},
 		{
 			key: "preview",
-			title: "Preview & Post",
+			title: "Шалгах ба нийтлэх",
 			subtitle: "Шалгах ба нийтлэх",
-			icon: "visibility",
 		},
 	];
 
@@ -356,8 +351,34 @@ export default function NewProjectPage() {
 	}
 
 	function saveDraft() {
-		toast("success", "Draft локал төлөвт хадгалагдлаа.");
+		const currentValues = form.getValues();
+		localStorage.setItem("itzuun_new_project_draft", JSON.stringify({
+			...currentValues,
+			required_skills: skills,
+			projectType,
+			experienceLevel
+		}));
+		toast("success", "Ноорог хадгалагдлаа.");
 	}
+
+	import { useEffect } from "react";
+	useEffect(() => {
+		try {
+			const draft = localStorage.getItem("itzuun_new_project_draft");
+			if (draft) {
+				const parsed = JSON.parse(draft);
+				if (parsed.title) form.setValue("title", parsed.title);
+				if (parsed.description) form.setValue("description", parsed.description);
+				if (parsed.budget) form.setValue("budget", parsed.budget);
+				if (parsed.timeline_days) form.setValue("timeline_days", parsed.timeline_days);
+				if (parsed.category) form.setValue("category", parsed.category);
+				if (parsed.category_id) form.setValue("category_id", parsed.category_id);
+				if (parsed.required_skills) setSkills(parsed.required_skills);
+				if (parsed.projectType) setProjectType(parsed.projectType);
+				if (parsed.experienceLevel) setExperienceLevel(parsed.experienceLevel);
+			}
+		} catch (e) {}
+	}, [form]);
 
 	return (
 		<div className="pb-20 text-on-surface">
@@ -367,23 +388,25 @@ export default function NewProjectPage() {
 						Шинэ төсөл оруулах
 					</h1>
 				</div>
-				<div className="flex items-center gap-3">
-					<button
-						type="button"
-						onClick={saveDraft}
-						className="rounded-xl px-4 py-2 text-sm font-bold text-surface-500 transition-all hover:bg-surface-container-lowest font-headline"
-					>
-						Save as Draft
-					</button>
-					<button
-						type="button"
-						onClick={form.handleSubmit((values) => mutation.mutate(values))}
-						className="rounded-xl primary-gradient px-6 py-2.5 text-sm font-bold text-primary-fixed shadow-ambient transition-all active:scale-95 font-headline"
-						disabled={mutation.isPending}
-					>
-						{mutation.isPending ? t("saving") : t("publish")}
-					</button>
-				</div>
+				{step === steps.length - 1 && (
+					<div className="flex items-center gap-3">
+						<button
+							type="button"
+							onClick={saveDraft}
+							className="rounded-xl px-4 py-2 text-sm font-bold text-surface-500 transition-all hover:bg-surface-container-lowest font-headline"
+						>
+							Ноорог хадгалах
+						</button>
+						<button
+							type="button"
+							onClick={form.handleSubmit((values) => mutation.mutate(values))}
+							className="rounded-xl primary-gradient px-6 py-2.5 text-sm font-bold text-primary-fixed shadow-ambient transition-all active:scale-95 font-headline"
+							disabled={mutation.isPending}
+						>
+							{mutation.isPending ? t("saving") : t("publish")}
+						</button>
+					</div>
+				)}
 			</div>
 
 			<div className="min-w-0 flex-1 px-4 py-8 md:px-10 lg:px-16 xl:px-20 2xl:px-24">
@@ -596,32 +619,6 @@ export default function NewProjectPage() {
 											</button>
 										</label>
 										<div className="overflow-hidden rounded-[2.5rem] bg-surface-container-low p-2 transition-all focus-within:bg-surface-container-lowest focus-within:shadow-ambient">
-											<div className="flex items-center gap-2 overflow-x-auto border-b border-outline-variant/10 px-6 py-3">
-												<button
-													type="button"
-													className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors"
-												>
-													<strong>B</strong>
-												</button>
-												<button
-													type="button"
-													className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors italic"
-												>
-													I
-												</button>
-												<button
-													type="button"
-													className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors font-headline text-xs font-bold uppercase tracking-widest"
-												>
-													• List
-												</button>
-												<button
-													type="button"
-													className="rounded-lg p-2 text-surface-400 hover:bg-surface-container-lowest hover:text-primary transition-colors font-headline text-xs font-bold uppercase tracking-widest"
-												>
-													Link
-												</button>
-											</div>
 											<textarea
 												{...form.register("description")}
 												rows={10}
@@ -714,7 +711,7 @@ export default function NewProjectPage() {
 										<div className="grid gap-8 sm:grid-cols-2">
 											<div className="space-y-3">
 												<label className="ml-1 text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline">
-													Доод (Min)
+													Төсөв
 												</label>
 												<div className="relative flex items-center">
 													<span className="absolute left-5 font-black text-primary">
@@ -1087,7 +1084,7 @@ export default function NewProjectPage() {
 									disabled={mutation.isPending}
 								>
 									<DashboardIcon name="rocket" className="h-5 w-5" />
-									{mutation.isPending ? t("saving") : "Post Project"}
+									{mutation.isPending ? t("saving") : t("publish")}
 								</button>
 							)}
 						</div>
@@ -1097,7 +1094,7 @@ export default function NewProjectPage() {
 						<div className="relative overflow-hidden rounded-[2.5rem] bg-primary-fixed p-8 text-primary shadow-sm hover:shadow-ambient transition-all">
 							<div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-3xl" />
 							<h4 className="mb-3 font-headline text-lg font-black tracking-tight">
-								Need Help?
+								Тусламж хэрэгтэй юу?
 							</h4>
 							<p className="max-w-md text-[13px] font-medium leading-relaxed opacity-70">
 								Манай зөвлөхүүд төсвөө зөв тодорхойлох, төслийн шаардлагаа илүү
@@ -1106,7 +1103,7 @@ export default function NewProjectPage() {
 						</div>
 						<div className="rounded-[2.5rem] bg-surface-container-low p-8 shadow-sm transition-all hover:shadow-ambient">
 							<p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary font-headline">
-								Quick Summary
+								Товч мэдээлэл
 							</p>
 							<p className="mt-4 truncate font-headline text-base font-extrabold text-primary leading-tight">
 								{form.watch("title") || "Гарчиг оруулаагүй"}
@@ -1126,11 +1123,3 @@ export default function NewProjectPage() {
 	);
 }
 
-function stepIconName(
-	step: StepKey,
-): Parameters<typeof DashboardIcon>[0]["name"] {
-	if (step === "basics") return "edit";
-	if (step === "scope") return "description";
-	if (step === "budget") return "payments";
-	return "visibility";
-}
