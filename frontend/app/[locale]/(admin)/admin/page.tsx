@@ -42,7 +42,7 @@ export default function AdminPage() {
       adminApi.verifyUser(userId, { action: action, rejection_reason: reason }),
     onSuccess: () => {
       users.refetch();
-      toast("success", "User verification updated");
+      toast("success", "Хэрэглэгчийн баталгаажуулалт шинэчлэгдлээ");
     },
   });
 
@@ -76,7 +76,7 @@ export default function AdminPage() {
       disputes.refetch();
       setResolveTarget(null);
       setResolveNote("");
-      toast("success", "Dispute resolved");
+      toast("success", "Маргаан шийдвэрлэгдлээ");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -85,7 +85,7 @@ export default function AdminPage() {
     mutationFn: (pct: number) => adminApi.setCommission(pct),
     onSuccess: () => {
       commission.refetch();
-      toast("success", "Commission updated");
+      toast("success", "Шимтгэл шинэчлэгдлээ");
     },
   });
 
@@ -93,13 +93,13 @@ export default function AdminPage() {
     mutationFn: (escrowId: number) => adminApi.approveEscrow(escrowId),
     onSuccess: () => {
       escrow.refetch();
-      toast("success", "Escrow approved");
+      toast("success", "Escrow батлагдлаа");
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
-  if (me.isLoading) return <LoadingState label="Checking admin session..." />;
-  if (me.isError || !me.data) return <ErrorState label="Please sign in first." />;
+  if (me.isLoading) return <LoadingState label="Админ эрхийг шалгаж байна..." />;
+  if (me.isError || !me.data) return <ErrorState label="Эхлээд нэвтэрнэ үү." />;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath="/auth">
@@ -113,54 +113,54 @@ export default function AdminPage() {
             {/* KPI Metrics */}
             <div className="grid gap-3 md:grid-cols-4">
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Total Users</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Нийт хэрэглэгч</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">{users.data ? userItems.length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">
-                  {users.data ? userItems.filter((u) => u.is_verified).length : 0} Verified
+                  {users.data ? userItems.filter((u) => u.is_verified).length : 0} Баталгаажсан
                 </p>
               </div>
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Total Projects</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Нийт төсөл</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">{projects.data ? projectItems.length : "..."}</p>
-                <p className="text-[11px] text-surface-500 mt-1">Platform volume</p>
+                <p className="text-[11px] text-surface-500 mt-1">Платформын хэмжээ</p>
               </div>
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Escrow Value</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Escrow дүн</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">
                   {escrow.data ? escrowItems.reduce((acc, item) => acc + item.amount, 0).toLocaleString() : "..."}
                 </p>
-                <p className="text-[11px] text-surface-500 mt-1">MNT Held</p>
+                <p className="text-[11px] text-surface-500 mt-1">MNT Хадгалагдсан</p>
               </div>
               <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Disputes</p>
+                <p className="text-[11px] uppercase tracking-widest text-surface-500">Маргаан</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">{disputes.data ? disputeItems.filter((d) => !d.resolved_at).length : "..."}</p>
-                <p className="text-[11px] text-surface-500 mt-1">Active</p>
+                <p className="text-[11px] text-surface-500 mt-1">Идэвхтэй</p>
               </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-            <h2 className="text-lg font-medium text-surface-900">Commission</h2>
-            {commission.isLoading ? <LoadingState label="Loading commission..." /> : null}
-            {commission.isError ? <ErrorState label="Unable to load commission." /> : null}
-            {commission.data ? <p className="mt-2 text-[13px] text-surface-600">Current: {commission.data.platform_fee_pct}%</p> : null}
-            <ActionButton className="mt-3" onClick={() => commissionMutation.mutate(10)} loading={commissionMutation.isPending}>Set 10%</ActionButton>
+            <h2 className="text-lg font-medium text-surface-900">Шимтгэл</h2>
+            {commission.isLoading ? <LoadingState label="Шимтгэл ачааллаж байна..." /> : null}
+            {commission.isError ? <ErrorState label="Шимтгэл ачааллах боломжгүй байна." /> : null}
+            {commission.data ? <p className="mt-2 text-[13px] text-surface-600">Одоогийн: {commission.data.platform_fee_pct}%</p> : null}
+            <ActionButton className="mt-3" onClick={() => commissionMutation.mutate(10)} loading={commissionMutation.isPending}>10% болгох</ActionButton>
           </div>
 
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-            <h2 className="text-lg font-medium text-surface-900">Escrow</h2>
-            {escrow.isLoading ? <LoadingState label="Loading escrow..." /> : null}
-            {escrow.data && escrowItems.length === 0 ? <EmptyState label="No escrow rows." /> : null}
+            <h2 className="text-lg font-medium text-surface-900">Escrow систем</h2>
+            {escrow.isLoading ? <LoadingState label="Escrow ачааллаж байна..." /> : null}
+            {escrow.data && escrowItems.length === 0 ? <EmptyState label="Escrow бичлэг алга." /> : null}
             {escrow.data && escrowItems.length > 0 ? (
               <ul className="space-y-2 mt-2">
                 {escrowItems.map((item) => (
                   <li key={item.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
                     <div>
-                      <p className="text-surface-800">Escrow #{item.id} — Project #{item.project}</p>
+                      <p className="text-surface-800">Escrow #{item.id} — Төсөл #{item.project}</p>
                       <p className="text-[11px] text-surface-500">{item.amount?.toLocaleString()} MNT · <StatusPill label={item.status} tone={item.status === "held" ? "success" : item.status === "created" ? "warning" : "neutral"} /></p>
                     </div>
                     {item.status === "created" && (
-                      <ActionButton tone="success" loading={approveMutation.isPending} onClick={() => approveMutation.mutate(item.id)}>Approve</ActionButton>
+                      <ActionButton tone="success" loading={approveMutation.isPending} onClick={() => approveMutation.mutate(item.id)}>Батлах</ActionButton>
                     )}
                   </li>
                 ))}
@@ -171,30 +171,30 @@ export default function AdminPage() {
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-medium text-surface-900">Payments</h2>
+            <h2 className="text-lg font-medium text-surface-900">Төлбөрүүд</h2>
             <div className="flex gap-2">
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("all")}>All</button>
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("paid")}>Paid</button>
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("pending")}>Pending</button>
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("failed")}>Failed</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("all")}>Бүгд</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("paid")}>Төлөгдсөн</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("pending")}>Хүлээгдэж буй</button>
+              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("failed")}>Амжилтгүй</button>
             </div>
           </div>
-          <p className="mb-2 text-[11px] uppercase tracking-widest text-surface-500">Filter: {paymentFilter}</p>
-          {payments.isLoading ? <LoadingState label="Loading payments..." /> : null}
-          {payments.data && paymentItems.length === 0 ? <EmptyState label="No payments." /> : null}
+          <p className="mb-2 text-[11px] uppercase tracking-widest text-surface-500">Шүүлтүүр: {paymentFilter}</p>
+          {payments.isLoading ? <LoadingState label="Төлбөрүүдийг ачааллаж байна..." /> : null}
+          {payments.data && paymentItems.length === 0 ? <EmptyState label="Төлбөр алга." /> : null}
           {payments.data && paymentItems.length > 0 ? (
             <ul className="space-y-2">
               {paymentItems.map((item) => (
                 <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                  <p className="text-surface-800">Invoice: {item.invoice_id}</p>
+                  <p className="text-surface-800">Нэхэмжлэх: {item.invoice_id}</p>
                   <p className="mt-1">
                     <StatusPill
                       label={item.status}
                       tone={item.status === "paid" ? "success" : item.status === "failed" ? "danger" : "warning"}
                     />
                   </p>
-                  <p className="text-surface-600">Project: {item.project}</p>
-                  <p className="text-surface-600">Paid at: {item.paid_at ?? "-"}</p>
+                  <p className="text-surface-600">Төсөл: {item.project}</p>
+                  <p className="text-surface-600">Төлсөн огноо: {item.paid_at ?? "-"}</p>
                   <p className="text-surface-600">Escrow: {item.escrow_status ?? "-"}</p>
                 </li>
               ))}
@@ -204,10 +204,10 @@ export default function AdminPage() {
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-medium text-surface-900">Financial Audit Logs (Ledger)</h2>
+                <h2 className="text-lg font-medium text-surface-900">Санхүүгийн аудитын бүртгэл (Ledger)</h2>
               </div>
-              {ledger.isLoading ? <LoadingState label="Loading ledger..." /> : null}
-              {ledger.data && ledgerItems.length === 0 ? <EmptyState label="No ledger entries." /> : null}
+              {ledger.isLoading ? <LoadingState label="Ledger ачааллаж байна..." /> : null}
+              {ledger.data && ledgerItems.length === 0 ? <EmptyState label="Ledger бичлэг алга." /> : null}
               {ledger.data && ledgerItems.length > 0 ? (
                 <ul className="space-y-2">
                   {ledgerItems.map((entry) => (
@@ -231,9 +231,9 @@ export default function AdminPage() {
             </div>
 
             <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-          <h2 className="mb-3 text-lg font-medium text-surface-900">Users</h2>
-          {users.isLoading ? <LoadingState label="Loading users..." /> : null}
-          {users.isError ? <ErrorState label="Unable to load users." /> : null}
+          <h2 className="mb-3 text-lg font-medium text-surface-900">Хэрэглэгчид</h2>
+          {users.isLoading ? <LoadingState label="Хэрэглэгчдийг ачааллаж байна..." /> : null}
+          {users.isError ? <ErrorState label="Хэрэглэгчдийг ачааллах боломжгүй байна." /> : null}
           {users.data ? (
             <ul className="space-y-2">
               {userItems.map((user) => (
@@ -246,18 +246,18 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <ActionButton onClick={() => verifyMutation.mutate({ userId: user.id, action: "approve" })} loading={verifyMutation.isPending && verifyMutation.variables?.action === "approve"}>Approve</ActionButton>
+                    <ActionButton onClick={() => verifyMutation.mutate({ userId: user.id, action: "approve" })} loading={verifyMutation.isPending && verifyMutation.variables?.action === "approve"}>Батлах</ActionButton>
                     <ActionButton tone="danger" onClick={() => {
                       const reason = window.prompt("Татгалзах шалтгаан:");
                       if (reason !== null) {
                         verifyMutation.mutate({ userId: user.id, action: "reject", reason });
                       }
-                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "reject"}>Reject</ActionButton>
+                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "reject"}>Татгалзах</ActionButton>
                     <ActionButton tone="danger" onClick={() => {
                       const r = window.prompt("Түр түдгэлзүүлэх шалтгаан:");
                       if (!r || !r.trim()) return;
                       verifyMutation.mutate({ userId: user.id, action: "suspend", reason: r.trim() });
-                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "suspend"}>Suspend</ActionButton>
+                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "suspend"}>Түдгэлзүүлэх</ActionButton>
                   </div>
                 </li>
               ))}
@@ -267,29 +267,29 @@ export default function AdminPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-            <h2 className="mb-3 text-lg font-medium text-surface-900">Projects</h2>
-            {projects.isLoading ? <LoadingState label="Loading projects..." /> : null}
-            {projects.data ? <p className="text-[13px] text-surface-600">Total: {projectItems.length}</p> : null}
+            <h2 className="mb-3 text-lg font-medium text-surface-900">Төслүүд</h2>
+            {projects.isLoading ? <LoadingState label="Төслүүдийг ачааллаж байна..." /> : null}
+            {projects.data ? <p className="text-[13px] text-surface-600">Нийт: {projectItems.length}</p> : null}
           </div>
 
           <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
-            <h2 className="mb-3 text-lg font-medium text-surface-900">Disputes</h2>
-            {disputes.isLoading ? <LoadingState label="Loading disputes..." /> : null}
-            {disputes.data && disputeItems.length === 0 ? <EmptyState label="No disputes." /> : null}
+            <h2 className="mb-3 text-lg font-medium text-surface-900">Маргаан</h2>
+            {disputes.isLoading ? <LoadingState label="Маргааныг ачааллаж байна..." /> : null}
+            {disputes.data && disputeItems.length === 0 ? <EmptyState label="Маргаан алга." /> : null}
             {disputes.data && disputeItems.length > 0 ? (
               <ul className="space-y-2">
                 {disputeItems.map((item) => (
                   <li key={item.id} className="flex flex-col gap-2 rounded-xl border border-surface-200/60 p-3 text-[13px]">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-surface-800">Dispute #{item.id} — Project #{item.project}</span>
+                      <span className="font-medium text-surface-800">Маргаан #{item.id} — Төсөл #{item.project}</span>
                       {item.resolved_at ? (
-                        <StatusPill tone="success" label="Resolved" />
+                        <StatusPill tone="success" label="Шийдвэрлэгдсэн" />
                       ) : (
-                        <ActionButton tone="warning" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Resolve Now</ActionButton>
+                        <ActionButton tone="warning" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Одоо шийдвэрлэх</ActionButton>
                       )}
                     </div>
-                    <div className="text-surface-600">Reason: {item.reason}</div>
-                    {item.note && <div className="mt-1 border-t border-surface-100 pt-2 text-[12px] text-surface-500">Admin Note: {item.note}</div>}
+                    <div className="text-surface-600">Шалтгаан: {item.reason}</div>
+                    {item.note && <div className="mt-1 border-t border-surface-100 pt-2 text-[12px] text-surface-500">Админы тэмдэглэл: {item.note}</div>}
                   </li>
                 ))}
               </ul>
@@ -301,14 +301,14 @@ export default function AdminPage() {
 
         <Modal
           open={!!resolveTarget}
-          title="Resolve Dispute"
+          title="Маргааныг шийдвэрлэх"
           onClose={() => setResolveTarget(null)}
         >
           {resolveTarget && (
             <div className="space-y-4 pt-2">
               <p className="text-[13px] text-surface-500">
-                Choose how to distribute the funds held in escrow for Project #{resolveTarget.projectId}. 
-                Current Escrow Amount: {
+                Төсөл #{resolveTarget.projectId}-ийн escrow-д хадгалагдаж буй мөнгийг хэрхэн хуваарилахыг сонгоно уу. 
+                Одоогийн Escrow дүн: {
                   (escrowItems.find((item) => item.project === resolveTarget.projectId)?.amount || 0).toLocaleString()
                 } MNT
               </p>
@@ -318,27 +318,27 @@ export default function AdminPage() {
                   className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "refund" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
                   onClick={() => setResolveAction("refund")}
                 >
-                  Refund 100% (Client)
+                  100% Буцаах (Захиалагч)
                 </button>
                 <button
                   type="button"
                   className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "release" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
                   onClick={() => setResolveAction("release")}
                 >
-                  Release 100% (Freelancer)
+                  100% Олгох (Фрилансер)
                 </button>
                 <button
                   type="button"
                   className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "split" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
                   onClick={() => setResolveAction("split")}
                 >
-                  Split Funds
+                  Мөнгийг хуваах
                 </button>
               </div>
 
               {resolveAction === "split" && (
                 <div className="space-y-2">
-                  <label className="text-[13px] font-medium text-surface-700">Release to Freelancer: {splitReleasePct}%</label>
+                  <label className="text-[13px] font-medium text-surface-700">Фрилансерт олгох: {splitReleasePct}%</label>
                   <input
                     type="range"
                     min={1}
@@ -347,12 +347,12 @@ export default function AdminPage() {
                     onChange={(e) => setSplitReleasePct(Number(e.target.value))}
                     className="w-full"
                   />
-                  <p className="text-[12px] text-surface-500">The remaining {100 - splitReleasePct}% will be refunded to the client.</p>
+                  <p className="text-[12px] text-surface-500">Үлдсэн {100 - splitReleasePct}%-ийг захиалагчид буцаана.</p>
                 </div>
               )}
 
               <textarea
-                placeholder="Resolution note (visible in audit log)..."
+                placeholder="Шийдвэрийн тэмдэглэл (аудитын бүртгэлд харагдана)..."
                 value={resolveNote}
                 onChange={(e) => setResolveNote(e.target.value)}
                 className="w-full"
@@ -361,10 +361,10 @@ export default function AdminPage() {
 
               <div className="flex justify-end gap-2 mt-4">
                 <button className="bg-surface-100 text-surface-700 hover:bg-surface-200 px-4 py-2 rounded" onClick={() => setResolveTarget(null)}>
-                  Cancel
+                  Цуцлах
                 </button>
                 <ActionButton tone="success" loading={resolveMutation.isPending} onClick={() => resolveTarget && resolveMutation.mutate(resolveTarget)}>
-                  Confirm Resolution
+                  Шийдвэрийг батлах
                 </ActionButton>
               </div>
             </div>
