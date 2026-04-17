@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
-import { KeyboardEvent, useMemo, useState } from "react";
+import { KeyboardEvent, useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
 
@@ -361,7 +361,7 @@ export default function NewProjectPage() {
 		toast("success", "Ноорог хадгалагдлаа.");
 	}
 
-	import { useEffect } from "react";
+	// Form auto-save draft effect
 	useEffect(() => {
 		try {
 			const draft = localStorage.getItem("itzuun_new_project_draft");

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 
+
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
     type = models.CharField(max_length=64, help_text="e.g. PROJECT_INVITE, NEW_MESSAGE")

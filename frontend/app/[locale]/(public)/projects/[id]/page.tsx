@@ -299,7 +299,7 @@ export default function ProjectDetailPage() {
                         <li key={item.id} className="rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm">
                           <div className="flex flex-wrap items-start justify-between gap-4">
                             <div>
-                              <p className="font-headline text-[18px] font-black text-primary">{item.freelancer_name || `Фрилансер #${fId}`}</p>
+                              <p className="font-headline text-[18px] font-black text-primary">{(item.freelancer_name as string) || `Фрилансер #${fId}`}</p>
                               <div className="mt-2 flex items-center gap-4 text-[14px] font-bold text-secondary font-headline">
                                 <span>{formatMnt(price)}</span>
                                 <span className="text-surface-400 font-medium">{item.timeline_days} өдөр</span>

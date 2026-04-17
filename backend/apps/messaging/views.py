@@ -99,6 +99,7 @@ class ProjectFileUploadView(generics.CreateAPIView):
 from rest_framework.views import APIView
 from django.db.models import Q
 
+
 class GlobalInboxView(APIView):
     """Returns a list of conversation threads for the user's active projects."""
     def get(self, request):
