@@ -33,7 +33,7 @@ const CATEGORIES = [
         <path d="M14 3c3.9 0 7 3.1 7 7 0 2.1-.9 4.1-2.4 5.4l-2.2 2.2-3.2-3.2 2.2-2.2A5.4 5.4 0 0 0 14 3Zm-3.3 8.1L3 18.8V21h2.2l7.7-7.7-2.2-2.2Zm-5 8.9H4v-1.7l5.8-5.8 1.7 1.7L5.7 20Z" />
       </svg>
     ),
-    label: "Getting Started",
+    label: "Эхлэх заавар",
   },
   {
     icon: (
@@ -41,7 +41,7 @@ const CATEGORIES = [
         <path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2H3V6Zm0 4h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm11 3a1 1 0 1 0 0 2h3a1 1 0 1 0 0-2h-3Z" />
       </svg>
     ),
-    label: "Payments",
+    label: "Төлбөр тооцоо",
   },
   {
     icon: (
@@ -49,7 +49,7 @@ const CATEGORIES = [
         <path d="M12 2 4 5v6c0 5.6 3.8 10.8 8 12 4.2-1.2 8-6.4 8-12V5l-8-3Zm-1 13-3-3 1.4-1.4L11 12.2l3.6-3.6L16 10l-5 5Z" />
       </svg>
     ),
-    label: "Escrow",
+    label: "Escrow систем",
   },
   {
     icon: (
@@ -57,7 +57,7 @@ const CATEGORIES = [
         <path d="m23 12-2.4-2.8.3-3.7-3.6-.8L15.4 1 12 2.5 8.6 1 6.7 4.7l-3.6.8.3 3.7L1 12l2.4 2.8-.3 3.7 3.6.8L8.6 23l3.4-1.5 3.4 1.5 1.9-3.7 3.6-.8-.3-3.7L23 12Zm-12 4-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 8l-7 8Z" />
       </svg>
     ),
-    label: "Trust & Safety",
+    label: "Аюулгүй байдал",
   },
   {
     icon: (
@@ -65,16 +65,16 @@ const CATEGORIES = [
         <path d="M12 2a8 8 0 0 0-8 8v3a3 3 0 0 0 3 3h1v-6H6v-1a6 6 0 1 1 12 0v1h-2v6h1a3 3 0 0 0 3-3v-3a8 8 0 0 0-8-8Zm-3 9h6v7H9v-7Zm1 8h4v1a2 2 0 1 1-4 0v-1Z" />
       </svg>
     ),
-    label: "Support",
+    label: "Тусламж",
   },
 ];
 
 const SIDEBAR_LINKS = [
-  { icon: "🚀", label: "Getting Started" },
-  { icon: "💳", label: "Payments & Escrow" },
-  { icon: "📋", label: "Project Management" },
-  { icon: "🔒", label: "Account Security" },
-  { icon: "🛠", label: "Technical Support" },
+  { icon: "🚀", label: "Эхлэх заавар" },
+  { icon: "💳", label: "Төлбөр & Escrow" },
+  { icon: "📋", label: "Төслийн удирдлага" },
+  { icon: "🔒", label: "Бүртгэлийн аюулгүй байдал" },
+  { icon: "🛠", label: "Техникийн тусламж" },
 ];
 
 function FaqAccordion({ items }: { items: FaqItem[] }) {
@@ -210,12 +210,12 @@ export default function SupportPage() {
                   <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12Zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8Z" />
                 </svg>
               </div>
-              <p className="text-sm font-bold">Expert Guidance</p>
+              <p className="text-sm font-bold">Мэргэжилтний зөвлөгөө</p>
               <Link
                 href={`mailto:support@itzuun.mn`}
                 className="mt-4 flex w-full items-center justify-center rounded-xl bg-secondary py-2.5 text-xs font-bold text-white transition-all hover:brightness-110"
               >
-                Contact Support
+                Тусламж хүсэх
               </Link>
             </div>
           </div>

@@ -116,7 +116,7 @@ export default function ClientProfilePage() {
             href="/client"
             className="hidden min-h-11 items-center rounded-2xl bg-surface-container-lowest px-6 text-[11px] font-bold uppercase tracking-[0.18em] text-primary shadow-sm transition-all hover:shadow-ambient md:inline-flex font-headline"
           >
-            ← Dashboard
+            ← Хянах самбар
           </Link>
         </div>
 

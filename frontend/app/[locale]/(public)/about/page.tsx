@@ -19,18 +19,18 @@ export default async function AboutPage() {
       <div className="grid gap-8 md:grid-cols-2">
         <div className="rounded-[3rem] bg-secondary p-12 text-white">
           <h2 className="font-headline text-[32px] font-black tracking-tighter leading-none">
-            Our Vision
+            Бидний зорилго
           </h2>
           <p className="mt-8 text-[16px] font-medium leading-relaxed opacity-80">
-            We are building a marketplace where architectural precision meets digital innovation, ensuring every project is curated for excellence.
+            Бид дижитал инновацийг төгс гүйцэтгэлтэй хослуулсан, төсөл бүрийг чанартай хүргэхэд зориулагдсан платформыг бүтээж байна.
           </p>
         </div>
         <div className="rounded-[3rem] bg-surface-container-lowest p-12 shadow-sm">
           <h2 className="font-headline text-[32px] font-black tracking-tighter leading-none text-primary">
-            Curated Talent
+            Сонгосон чадварлаг мэргэжилтнүүд
           </h2>
           <p className="mt-8 text-[16px] font-medium leading-relaxed text-surface-500">
-            Itzuun filters for the highest caliber of freelancers, providing clients with an authoritative professional experience.
+            Itzuun нь шилдэг ур чадвартай фрилансерүүдийг цуглуулж, харилцагчдад хамгийн найдвартай мэргэжлийн үйлчилгээ үзүүлэх боломжийг бүрдүүлдэг.
           </p>
         </div>
       </div>
