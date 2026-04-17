@@ -9,6 +9,7 @@ from .serializers import NotificationSerializer
 
 class NotificationListView(generics.ListAPIView):
     """Get user notifications"""
+
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
@@ -17,6 +18,7 @@ class NotificationListView(generics.ListAPIView):
 
 class NotificationMarkReadView(APIView):
     """Mark a notification as read"""
+
     def post(self, request, pk):
         notification = get_object_or_404(Notification, id=pk, user=request.user)
         notification.is_read = True
@@ -26,6 +28,10 @@ class NotificationMarkReadView(APIView):
 
 class NotificationMarkAllReadView(APIView):
     """Mark all notifications as read"""
+
     def post(self, request):
-        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        Notification.objects.filter(user=request.user, is_read=False).update(
+            is_read=True
+        )
         return Response({"success": True})
+

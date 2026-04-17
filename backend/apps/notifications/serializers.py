@@ -12,5 +12,6 @@ class NotificationSerializer(serializers.ModelSerializer):
             "description",
             "is_read",
             "metadata",
-            "created_at"
+            "created_at",
         ]
+
