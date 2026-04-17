@@ -64,7 +64,14 @@ export default function MessagesPage() {
 
   const me = useMe();
   const [selected, setSelected] = useState<Thread>(MOCK_THREADS[0]);
+  const [messages, setMessages] = useState(MOCK_MESSAGES);
   const [message, setMessage] = useState("");
+  
+  function sendMessage() {
+    if (!message.trim()) return;
+    setMessages(prev => [...prev, { id: Date.now(), from: "me", text: message, time: "Яг одоо" }]);
+    setMessage("");
+  }
 
   if (me.isLoading) return <LoadingState label="Мессежүүд ачааллаж байна..." />;
   if (me.isError || !me.data) {
@@ -147,7 +154,7 @@ export default function MessagesPage() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto space-y-4 px-8 py-6">
-            {MOCK_MESSAGES.map((msg) => (
+            {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[70%] rounded-2xl px-5 py-3.5 ${
@@ -172,13 +179,13 @@ export default function MessagesPage() {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && message.trim()) setMessage(""); }}
+                onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
                 placeholder="Мессеж бичих..."
                 className="flex-1 border-none bg-transparent text-sm font-medium text-on-surface placeholder:text-surface-400 focus:ring-0"
               />
               <button
                 type="button"
-                onClick={() => setMessage("")}
+                onClick={sendMessage}
                 disabled={!message.trim()}
                 className="flex h-10 w-10 items-center justify-center rounded-xl primary-gradient text-primary-fixed shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-30 disabled:translate-y-0"
               >

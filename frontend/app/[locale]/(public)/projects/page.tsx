@@ -74,7 +74,7 @@ function ProjectCard({ project, locale }: { project: any; locale: string }) {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <span className={`inline-flex rounded-xl px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] font-headline ${isHourly ? "bg-[#e8f4f4] text-secondary" : "bg-secondary-fixed text-secondary"}`}>
-              {isHourly ? "Hourly" : "Fixed Price"}
+              {isHourly ? "Цагийн" : "Тогтмол Үнэ"}
             </span>
             {postedAt && <span className="text-[12px] font-medium text-surface-400">{ago(postedAt)}</span>}
           </div>
@@ -127,7 +127,7 @@ function ProjectCard({ project, locale }: { project: any; locale: string }) {
           </div>
         </div>
         <span className="inline-flex items-center gap-2 rounded-2xl primary-gradient px-6 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-primary-fixed font-headline shadow-sm transition-all group-hover:shadow-ambient">
-          Apply Now →
+          Дэлгэрэнгүй →
         </span>
       </div>
     </Link>
@@ -200,12 +200,12 @@ export default function ProjectsPage() {
       {/* ── SIDEBAR ── */}
       <aside className="hidden w-56 shrink-0 space-y-7 lg:block">
         <div>
-          <p className="font-headline text-[11px] font-black uppercase tracking-[0.25em] text-primary">Filters</p>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-surface-400">Refine your search</p>
+          <p className="font-headline text-[11px] font-black uppercase tracking-[0.25em] text-primary">Шүүлтүүр</p>
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-surface-400">Хайлтаа нарийвчлах</p>
         </div>
 
         {/* Category */}
-        <FilterSection title="Category" icon={
+        <FilterSection title="Ангилал" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="8" rx="1" />
             <rect x="3" y="13" width="8" height="8" rx="1" /><rect x="13" y="13" width="8" height="8" rx="1" />
@@ -228,12 +228,12 @@ export default function ProjectsPage() {
         </FilterSection>
 
         {/* Project Type */}
-        <FilterSection title="Project Type" icon={
+        <FilterSection title="Төслийн төрөл" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <path d="M4 7h16M7 4v6m10-6v6M5 10h14v10H5z" />
           </svg>
         }>
-          {[{ val: "fixed", label: "Fixed Price" }, { val: "hourly", label: "Hourly Rate" }].map(({ val, label }) => (
+          {[{ val: "fixed", label: "Тогтмол үнэ" }, { val: "hourly", label: "Цагийн үнэ" }].map(({ val, label }) => (
             <label key={val} className="flex cursor-pointer items-center gap-2.5">
               <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${projectType === val ? "border-secondary bg-secondary" : "border-surface-300 bg-transparent"}`}
                 onClick={() => push({ project_type: projectType === val ? "" : val })}>
@@ -245,7 +245,7 @@ export default function ProjectsPage() {
         </FilterSection>
 
         {/* Budget */}
-        <FilterSection title="Budget Range" icon={
+        <FilterSection title="Төсвийн хэмжээ" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
@@ -266,7 +266,7 @@ export default function ProjectsPage() {
         </FilterSection>
 
         {/* Experience */}
-        <FilterSection title="Experience Level" icon={
+        <FilterSection title="Туршлагын түвшин" icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
             <path d="M12 3v18M6 8h12M8 16h8" />
           </svg>
@@ -274,7 +274,7 @@ export default function ProjectsPage() {
           <div className="flex flex-wrap gap-1.5">
             {expLevels.map((lv) => {
               const active = expLevel === lv;
-              const label = lv === "entry" ? "Entry" : lv === "intermediate" ? "Intermediate" : "Expert";
+              const label = lv === "entry" ? "Анхан шат" : lv === "intermediate" ? "Дунд шат" : "Мэргэжилтэн";
               return (
                 <button key={lv} type="button"
                   onClick={() => push({ experience_level: active ? "" : lv })}
@@ -291,7 +291,7 @@ export default function ProjectsPage() {
           onClick={() => router.push(pathname)}
           className="w-full rounded-2xl primary-gradient py-4 text-[11px] font-black uppercase tracking-[0.2em] text-primary-fixed shadow-ambient font-headline transition-all hover:shadow-lg"
         >
-          Apply Filters
+          Шүүлтүүр хэрэглэх
         </button>
       </aside>
 
@@ -324,10 +324,10 @@ export default function ProjectsPage() {
               onChange={(e) => push({ ordering: e.target.value })}
               className="appearance-none rounded-2xl bg-surface-container-lowest py-4 pl-5 pr-10 text-[13px] font-bold text-primary outline-none shadow-sm focus:shadow-ambient"
             >
-              <option value="-created_at">Newest</option>
-              <option value="created_at">Oldest</option>
-              <option value="budget">Budget ↑</option>
-              <option value="-budget">Budget ↓</option>
+              <option value="-created_at">Шинэ</option>
+              <option value="created_at">Хуучин</option>
+              <option value="budget">Төсөв ↑</option>
+              <option value="-budget">Төсөв ↓</option>
             </select>
             <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
               <ChevronIcon />

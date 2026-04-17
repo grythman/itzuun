@@ -64,7 +64,7 @@ const MOCK: Notification[] = [
     kind: "proposal",
     title: "Шинэ санал ирлээ",
     body: "Дорж С. таны Mobile App UI Design төсөлд санал оруулсан. Үнэ: ₮3,200,000.",
-    time: "Маргааш 14:22",
+    time: "Өнөөдөр 14:22",
     read: false,
     action: { label: "Саналыг харах", href: "/client" },
   },

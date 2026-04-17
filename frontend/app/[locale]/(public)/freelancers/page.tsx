@@ -49,17 +49,17 @@ function FreelancerCard({ profile, locale }: { profile: Profile; locale: string 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-3">
             {isVerified && (
-              <span className="inline-flex rounded-xl bg-secondary-fixed px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-secondary font-headline">Verified</span>
+              <span className="inline-flex rounded-xl bg-secondary-fixed px-3 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-secondary font-headline">Баталгаажсан</span>
             )}
             {profile.is_available && (
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-green-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />Available
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />Нээлттэй
               </span>
             )}
           </div>
 
           <h2 className="font-headline text-[22px] font-black leading-tight tracking-tight text-primary group-hover:text-secondary transition-colors">
-            {profile.full_name || "Unnamed Freelancer"}
+            {profile.full_name || "Нэргүй мэргэжилтэн"}
           </h2>
 
           {profile.title && (
@@ -86,7 +86,7 @@ function FreelancerCard({ profile, locale }: { profile: Profile; locale: string 
                 : <span>{String(profile.full_name || "F")[0].toUpperCase()}</span>}
             </div>
             <div>
-              <p className="text-[12px] font-black text-primary font-headline">{profile.full_name || "Freelancer"}</p>
+              <p className="text-[12px] font-black text-primary font-headline">{profile.full_name || "Мэргэжилтэн"}</p>
               <div className="flex items-center gap-1.5">
                 <VerifiedBadge status={profile.verification_status} />
                 {total > 0 ? (
@@ -109,7 +109,7 @@ function FreelancerCard({ profile, locale }: { profile: Profile; locale: string 
               </>
             )}
             {total > 0 && (
-              <p className="mt-2 text-[11px] font-bold text-surface-400">{total} review{total > 1 ? "s" : ""}</p>
+              <p className="mt-2 text-[11px] font-bold text-surface-400">{total} сэтгэгдэл</p>
             )}
           </div>
           <span className="inline-flex items-center gap-2 rounded-2xl primary-gradient px-6 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-primary-fixed font-headline shadow-sm transition-all group-hover:shadow-ambient">
@@ -255,9 +255,9 @@ export default function FreelancersPage() {
               className="appearance-none rounded-2xl bg-surface-container-lowest py-3 pl-5 pr-10 text-[13px] font-bold text-primary outline-none shadow-sm focus:shadow-ambient"
             >
               <option value="">Шинэ</option>
-              <option value="-avg_rating">Rating ↓</option>
-              <option value="hourly_rate">Rate ↑</option>
-              <option value="-hourly_rate">Rate ↓</option>
+              <option value="-avg_rating">Үнэлгээ ↓</option>
+              <option value="hourly_rate">Цагийн үнэ ↑</option>
+              <option value="-hourly_rate">Цагийн үнэ ↓</option>
             </select>
           </div>
         </div>
