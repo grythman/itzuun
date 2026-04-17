@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "apps.reviews",
     "apps.adminpanel",
     "apps.web",
+    "apps.notifications",
     "common",
 ]
 

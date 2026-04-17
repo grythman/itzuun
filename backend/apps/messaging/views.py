@@ -95,3 +95,47 @@ class ProjectFileUploadView(generics.CreateAPIView):
                 "size": data["size"],
             }
         )
+
+from rest_framework.views import APIView
+from django.db.models import Q
+
+class GlobalInboxView(APIView):
+    """Returns a list of conversation threads for the user's active projects."""
+    def get(self, request):
+        user = request.user
+        
+        # Find projects where user is owner or hired freelancer
+        projects = Project.objects.filter(
+            Q(owner=user) | Q(selected_proposal__freelancer=user)
+        ).distinct()
+        
+        threads = []
+        for p in projects:
+            latest_msg = p.messages.order_by('-created_at').first()
+            if not latest_msg:
+                continue
+                
+            is_client = (p.owner_id == user.id)
+            other_user = getattr(p.selected_proposal, "freelancer", None) if is_client else p.owner
+            
+            threads.append({
+                "id": p.id,
+                "project_title": p.title,
+                "name": getattr(other_user, 'email', 'Unknown') if other_user else "Unknown",
+                "avatar": getattr(other_user, 'email', '?')[0].upper() if other_user else "?",
+                "role": "client" if is_client else "freelancer",
+                "lastMessage": latest_msg.text or (f"[{latest_msg.type}]"),
+                "time": latest_msg.created_at.strftime("%H:%M") if latest_msg.created_at else "",
+                "created_at_dt": latest_msg.created_at, # For sorting
+                "unread": 0, # Simple for now
+            })
+            
+        threads.sort(key=lambda x: x["created_at_dt"], reverse=True)
+        
+        # Remove datetime obj before returning
+        return_threads = [
+            {k: v for k, v in t.items() if k != "created_at_dt"} 
+            for t in threads
+        ]
+            
+        return Response(return_threads)

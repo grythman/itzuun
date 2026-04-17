@@ -341,3 +341,29 @@ export const verificationApi = {
     return res.data;
   }
 }
+
+export const messagingApi = {
+  globalInbox: async () => {
+    const res = await apiClient.get("/messages/inbox/");
+    return res.data;
+  },
+  getProjectMessages: async (projectId: string | number) => {
+    const res = await apiClient.get(`/projects/${projectId}/messages`);
+    return res.data;
+  }
+}
+
+export const notificationsApi = {
+  list: async () => {
+    const res = await apiClient.get("/notifications/");
+    return res.data;
+  },
+  markAllRead: async () => {
+    const res = await apiClient.post("/notifications/mark-all-read/");
+    return res.data;
+  },
+  markRead: async (id: string | number) => {
+    const res = await apiClient.post(`/notifications/${id}/read/`);
+    return res.data;
+  }
+}

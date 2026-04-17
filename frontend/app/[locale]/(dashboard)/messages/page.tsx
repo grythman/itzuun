@@ -5,8 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/shared/states";
 import { useMe } from "@/lib/hooks";
+import { messagingApi, projectsApi } from "@/lib/api/endpoints";
 
 type Thread = {
   id: number;
@@ -57,20 +59,45 @@ const MOCK_MESSAGES = [
 ];
 
 export default function MessagesPage() {
+  const queryClient = useQueryClient();
   const pathname = usePathname();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
   const withLocale = (href: string) => `/${locale}${href}`;
 
   const me = useMe();
-  const [selected, setSelected] = useState<Thread>(MOCK_THREADS[0]);
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
+  const [selected, setSelected] = useState<Thread | null>(null);
   const [message, setMessage] = useState("");
-  
+
+  const inboxQuery = useQuery<Thread[]>({
+    queryKey: ["globalInbox"],
+    queryFn: () => messagingApi.globalInbox(),
+    enabled: !!me.data,
+  });
+
+  const activeProjectId = selected?.id;
+  const messagesQuery = useQuery({
+    queryKey: ["projectMessages", activeProjectId],
+    queryFn: () => messagingApi.getProjectMessages(activeProjectId!),
+    enabled: !!activeProjectId,
+  });
+
+  // Automatically select the first thread if none is selected and data is available
+  if (!selected && inboxQuery.data && inboxQuery.data.length > 0) {
+    setSelected(inboxQuery.data[0]);
+  }
+
+  const sendMutation = useMutation({
+    mutationFn: (text: string) => projectsApi.sendMessage(activeProjectId!, text, "text"),
+    onSuccess: () => {
+      setMessage("");
+      queryClient.invalidateQueries({ queryKey: ["projectMessages", activeProjectId] });
+    },
+  });
+
   function sendMessage() {
-    if (!message.trim()) return;
-    setMessages(prev => [...prev, { id: Date.now(), from: "me", text: message, time: "Яг одоо" }]);
-    setMessage("");
+    if (!message.trim() || !activeProjectId) return;
+    sendMutation.mutate(message);
   }
 
   if (me.isLoading) return <LoadingState label="Мессежүүд ачааллаж байна..." />;
@@ -106,18 +133,19 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {MOCK_THREADS.map((thread) => (
+            {inboxQuery.isLoading && <p className="p-5 text-sm text-surface-500">Ачааллаж байна...</p>}
+            {inboxQuery.data?.map((thread) => (
               <button
                 key={thread.id}
                 onClick={() => setSelected(thread)}
                 className={`flex w-full items-start gap-4 px-5 py-5 text-left transition-all ${
-                  selected.id === thread.id
+                  selected?.id === thread.id
                     ? "bg-primary-fixed"
                     : "hover:bg-surface-container-low"
                 }`}
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-base font-black text-primary-fixed font-headline">
-                  {thread.avatar}
+                  {thread.avatar || "?"}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
@@ -133,44 +161,54 @@ export default function MessagesPage() {
                 )}
               </button>
             ))}
+            {inboxQuery.data && inboxQuery.data.length === 0 && (
+               <p className="p-5 text-sm text-surface-500">Мессеж алга байна.</p>
+            )}
           </div>
         </aside>
 
         {/* Chat panel */}
         <div className="flex flex-1 flex-col overflow-hidden">
-          {/* Chat header */}
-          <div className="flex items-center gap-4 border-b border-outline-variant/10 px-8 py-5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-base font-black text-primary-fixed font-headline">
-              {selected.avatar}
-            </div>
-            <div>
-              <p className="font-headline text-base font-extrabold text-primary">{selected.name}</p>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-[11px] font-medium text-surface-400">Онлайн</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-4 px-8 py-6">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[70%] rounded-2xl px-5 py-3.5 ${
-                    msg.from === "me"
-                      ? "primary-gradient text-primary-fixed rounded-br-none"
-                      : "bg-surface-container-low text-on-surface rounded-bl-none"
-                  }`}
-                >
-                  <p className="text-[14px] font-medium leading-relaxed">{msg.text}</p>
-                  <p className={`mt-2 text-[10px] font-bold uppercase tracking-widest font-headline ${msg.from === "me" ? "text-white/50" : "text-surface-400"}`}>
-                    {msg.time}
-                  </p>
+          {selected ? (
+            <>
+              {/* Chat header */}
+              <div className="flex items-center gap-4 border-b border-outline-variant/10 px-8 py-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-base font-black text-primary-fixed font-headline">
+                  {selected.avatar || "?"}
+                </div>
+                <div>
+                  <p className="font-headline text-base font-extrabold text-primary">{selected.name}</p>
+                  <p className="text-[10px] text-surface-400">Төсөл #{selected.id}</p>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto space-y-4 px-8 py-6 flex flex-col-reverse">
+                {messagesQuery.data?.slice().reverse().map((msg: any) => {
+                  const isMe = msg.sender === me.data?.id;
+                  return (
+                    <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[70%] rounded-2xl px-5 py-3.5 ${
+                          isMe
+                            ? "primary-gradient text-primary-fixed rounded-br-none"
+                            : "bg-surface-container-low text-on-surface rounded-bl-none"
+                        }`}
+                      >
+                        {msg.type === "file" ? (
+                          <p className="text-[14px] font-medium leading-relaxed italic">[Файл илгээгдсэн]</p>
+                        ) : (
+                          <p className="text-[14px] font-medium leading-relaxed">{msg.text}</p>
+                        )}
+                        <p className={`mt-2 text-[10px] font-bold uppercase tracking-widest font-headline ${isMe ? "text-white/50" : "text-surface-400"}`}>
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {messagesQuery.isLoading && <p className="text-center text-sm text-surface-400">Уншиж байна...</p>}
+              </div>
 
           {/* Message input */}
           <div className="border-t border-outline-variant/10 p-5">
@@ -186,7 +224,7 @@ export default function MessagesPage() {
               <button
                 type="button"
                 onClick={sendMessage}
-                disabled={!message.trim()}
+                disabled={!message.trim() || sendMutation.isPending}
                 className="flex h-10 w-10 items-center justify-center rounded-xl primary-gradient text-primary-fixed shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-30 disabled:translate-y-0"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
@@ -195,6 +233,12 @@ export default function MessagesPage() {
               </button>
             </div>
           </div>
+            </>
+          ) : (
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-surface-400">Харилцах хүнээ сонгоно уу.</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

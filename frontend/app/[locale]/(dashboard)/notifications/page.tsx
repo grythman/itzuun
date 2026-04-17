@@ -5,8 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/shared/states";
 import { useMe } from "@/lib/hooks";
+import { notificationsApi } from "@/lib/api/endpoints";
 
 type NotificationKind = "all" | "projects" | "payments" | "system";
 
@@ -121,6 +123,7 @@ const FILTER_TABS: { key: NotificationKind; label: string }[] = [
 ];
 
 export default function NotificationsPage() {
+  const queryClient = useQueryClient();
   const pathname = usePathname();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
@@ -128,7 +131,45 @@ export default function NotificationsPage() {
 
   const me = useMe();
   const [filter, setFilter] = useState<NotificationKind>("all");
-  const [items, setItems] = useState<Notification[]>(MOCK);
+
+  const notifQuery = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => notificationsApi.list(),
+    enabled: !!me.data,
+  });
+
+  const markAllMutation = useMutation({
+    mutationFn: () => notificationsApi.markAllRead(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const markOneMutation = useMutation({
+    mutationFn: (id: number) => notificationsApi.markRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  // Map backend model to local notification format
+  const items: Notification[] = (notifQuery.data || []).map((n: any) => {
+    // Basic day conversion for UI
+    const d = new Date(n.created_at);
+    const dateStr = d.toLocaleDateString();
+    const isToday = dateStr === new Date().toLocaleDateString();
+    const isYesterday = dateStr === new Date(Date.now() - 86400000).toLocaleDateString();
+    
+    let timeStr = d.toLocaleString();
+    if (isToday) timeStr = `Өнөөдөр ${d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}`;
+    else if (isYesterday) timeStr = `Өчигдөр ${d.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}`;
+
+    return {
+      id: n.id,
+      kind: n.type.toLowerCase() as Notification["kind"],
+      title: n.title,
+      body: n.description,
+      time: timeStr,
+      read: n.is_read,
+      action: n.metadata?.action,
+    };
+  });
 
   if (me.isLoading) return <LoadingState label="Мэдэгдлүүд ачааллаж байна..." />;
   if (me.isError || !me.data) {
@@ -151,11 +192,13 @@ export default function NotificationsPage() {
   const unreadCount = items.filter((n) => !n.read).length;
 
   function markAll() {
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    markAllMutation.mutate();
   }
 
   function markOne(id: number) {
-    setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    if (!items.find(x => x.id === id)?.read) {
+      markOneMutation.mutate(id);
+    }
   }
 
   const today = filtered.filter((n) => n.time.startsWith("Өнөөдөр") || n.time.startsWith("Маргааш"));

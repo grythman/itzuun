@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import ProjectFileUploadView, ProjectMessageListCreateView
+from .views import ProjectFileUploadView, ProjectMessageListCreateView, GlobalInboxView
 
 urlpatterns = [
     path(
@@ -14,5 +14,10 @@ urlpatterns = [
         "projects/<int:project_id>/files",
         ProjectFileUploadView.as_view(),
         name="project-files",
+    ),
+    path(
+        "messages/inbox/",
+        GlobalInboxView.as_view(),
+        name="global-inbox",
     ),
 ]
