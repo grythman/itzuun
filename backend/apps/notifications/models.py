@@ -23,4 +23,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.type}] {self.user.email}: {self.title}"
-

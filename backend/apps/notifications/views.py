@@ -34,4 +34,3 @@ class NotificationMarkAllReadView(APIView):
             is_read=True
         )
         return Response({"success": True})
-

@@ -14,4 +14,3 @@ class NotificationSerializer(serializers.ModelSerializer):
             "metadata",
             "created_at",
         ]
-

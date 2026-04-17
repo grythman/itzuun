@@ -96,6 +96,7 @@ class ProjectFileUploadView(generics.CreateAPIView):
             }
         )
 
+
 from rest_framework.views import APIView
 from django.db.models import Q
 
@@ -128,17 +129,23 @@ class GlobalInboxView(APIView):
                 {
                     "id": p.id,
                     "project_title": p.title,
-                    "name": getattr(other_user, "email", "Unknown")
-                    if other_user
-                    else "Unknown",
-                    "avatar": getattr(other_user, "email", "?")[0].upper()
-                    if other_user
-                    else "?",
+                    "name": (
+                        getattr(other_user, "email", "Unknown")
+                        if other_user
+                        else "Unknown"
+                    ),
+                    "avatar": (
+                        getattr(other_user, "email", "?")[0].upper()
+                        if other_user
+                        else "?"
+                    ),
                     "role": "client" if is_client else "freelancer",
                     "lastMessage": latest_msg.text or (f"[{latest_msg.type}]"),
-                    "time": latest_msg.created_at.strftime("%H:%M")
-                    if latest_msg.created_at
-                    else "",
+                    "time": (
+                        latest_msg.created_at.strftime("%H:%M")
+                        if latest_msg.created_at
+                        else ""
+                    ),
                     "created_at_dt": latest_msg.created_at,  # For sorting
                     "unread": 0,  # Simple for now
                 }
@@ -152,4 +159,3 @@ class GlobalInboxView(APIView):
         ]
 
         return Response(return_threads)
-

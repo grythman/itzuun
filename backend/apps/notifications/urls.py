@@ -15,4 +15,3 @@ urlpatterns = [
         name="notification-mark-read",
     ),
 ]
-
