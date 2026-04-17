@@ -6,7 +6,7 @@ export function DashboardBottomBar({ role = "client" }: { role?: "client" | "fre
   const mobileLinksByRole: Record<"client" | "freelancer" | "admin", Array<{ href: string; label: string; primary?: boolean }>> = {
     client: [
       { href: "/projects", label: "Projects" },
-      { href: "/projects/new", label: "Post Project", primary: true },
+      { href: "/client/projects/new", label: "Post Project", primary: true },
       { href: "/client/profile", label: "Profile" },
     ],
     freelancer: [

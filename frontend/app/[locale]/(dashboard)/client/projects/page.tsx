@@ -87,7 +87,7 @@ export default function ClientProjectsPage() {
             </p>
           </div>
           <Link
-            href={withLocale("/projects/new")}
+            href={withLocale("/client/projects/new")}
             className="inline-flex min-h-12 items-center rounded-2xl primary-gradient px-6 text-[11px] font-black uppercase tracking-[0.18em] text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5 font-headline"
           >
             + Шинэ төсөл
@@ -152,7 +152,7 @@ export default function ClientProjectsPage() {
             <p className="mt-6 font-headline text-lg font-black text-primary">Төсөл байхгүй байна</p>
             <p className="mt-2 text-sm font-medium text-surface-400">Эхний төслөө байршуулаарай.</p>
             <Link
-              href={withLocale("/projects/new")}
+              href={withLocale("/client/projects/new")}
               className="mt-8 inline-flex min-h-12 items-center rounded-2xl primary-gradient px-8 text-[11px] font-black uppercase tracking-[0.18em] text-primary-fixed shadow-ambient font-headline"
             >
               Төсөл байршуулах

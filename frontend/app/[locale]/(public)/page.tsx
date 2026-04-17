@@ -26,7 +26,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href={withLocale("/projects/new")}
+                  href={withLocale("/client/projects/new")}
                   className="rounded-md bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-10 py-5 text-lg font-bold text-white transition-all duration-150 ease-in-out active:scale-95"
                 >
                   {t("landingSecondaryCta")}

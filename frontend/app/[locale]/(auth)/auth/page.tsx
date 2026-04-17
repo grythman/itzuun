@@ -67,7 +67,7 @@ function onboardingFirstPath(user: any) {
   }
   if (role === "client") {
     if (!user?.is_verified || user?.verification_status !== "verified") return "/client/profile";
-    return "/projects/new";
+    return "/client/projects/new";
   }
   return defaultRoleDashboard(role);
 }

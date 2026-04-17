@@ -247,7 +247,7 @@ export default function ClientDashboardPage() {
                 </div>
               </div>
               <Link
-                href={withLocale("/projects/new")}
+                href={withLocale("/client/projects/new")}
                 className="mx-6 flex min-h-12 w-auto items-center justify-center gap-2 rounded-xl primary-gradient px-4 text-sm font-bold text-primary-fixed shadow-ambient transition-all hover:-translate-y-0.5"
               >
                 <DashboardIcon name="add" className="h-[18px] w-[18px]" />
@@ -260,7 +260,7 @@ export default function ClientDashboardPage() {
                 <DashboardIcon name="folder" className="h-[18px] w-[18px]" />
                 Active Projects
               </Link>
-              <Link href={withLocale("/projects/new")} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[13px] font-medium text-surface-500 transition hover:translate-x-1 hover:bg-surface-variant/50 hover:text-on-surface">
+              <Link href={withLocale("/client/projects/new")} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[13px] font-medium text-surface-500 transition hover:translate-x-1 hover:bg-surface-variant/50 hover:text-on-surface">
                 <DashboardIcon name="add" className="h-[18px] w-[18px]" />
                 Post a Project
               </Link>
@@ -403,7 +403,7 @@ export default function ClientDashboardPage() {
                   <h2 className="font-headline text-2xl font-bold text-[#031636]">Идэвхтэй төслүүд</h2>
                   <p className="text-sm text-slate-500">Статус, төсөв, дараагийн алхамыг нэг харагдацаар удирдана.</p>
                 </div>
-                <Link href={withLocale("/projects/new")} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-[#d8e2ff]">
+                <Link href={withLocale("/client/projects/new")} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-[#d8e2ff]">
                   {t("postProject")}
                 </Link>
               </div>
@@ -416,7 +416,7 @@ export default function ClientDashboardPage() {
                     action={
                       <div className="flex items-center gap-2">
                         <p className="text-xs text-surface-500">{t("noProjectsDesc")}</p>
-                        <Link href={withLocale("/projects/new")} className="rounded-full primary-gradient px-4 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
+                        <Link href={withLocale("/client/projects/new")} className="rounded-full primary-gradient px-4 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
                           {t("postProject")}
                         </Link>
                       </div>
@@ -546,7 +546,7 @@ export default function ClientDashboardPage() {
 
             <section ref={proposalSectionRef} className="grid grid-cols-1 gap-6 md:grid-cols-4">
               <Link
-                href={withLocale("/projects/new")}
+                href={withLocale("/client/projects/new")}
                 className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-[#13696a] p-8 text-white transition-transform hover:scale-[1.02] md:col-span-1"
               >
                 <span className="text-4xl">⊕</span>

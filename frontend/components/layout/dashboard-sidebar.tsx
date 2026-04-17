@@ -76,7 +76,7 @@ function SidebarIcon({
 const navByRole: Record<DashboardRole, NavItem[]> = {
   client: [
     { href: "/client", label: "Active Projects", icon: "folder", exact: true },
-    { href: "/projects/new", label: "Post a Project", icon: "brief" },
+    { href: "/client/projects/new", label: "Post a Project", icon: "brief" },
     { href: "/projects", label: "Proposals", icon: "proposal" },
     { href: "/client/escrow", label: "Payments & Escrow", icon: "wallet" },
     { href: "/client/settings", label: "Settings", icon: "settings" },
@@ -112,7 +112,7 @@ const roleMeta: Record<
     kicker: "Enterprise Tier",
     title: "Project Console",
     ctaLabel: "Create New Brief",
-    ctaHref: "/projects/new",
+    ctaHref: "/client/projects/new",
     helperTitle: "Тусламж хэрэгтэй юу?",
     helperBody: "Манай зөвлөхүүдтэй шууд холбогдож төсөл, escrow, rollout-аа хурдан шийд.",
   },
