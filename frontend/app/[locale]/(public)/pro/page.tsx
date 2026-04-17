@@ -53,7 +53,7 @@ export default function ProPage() {
     return (
       <EmptyState
         label="PRO багц одоогоор freelancer role-д нээлттэй."
-        action={<Link href={withLocale("/freelancer")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white">Freelancer самбар руу</Link>}
+        action={<Link href={withLocale("/freelancer")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white">Фрилансерийн хянах самбар руу</Link>}
       />
     );
   }
@@ -67,13 +67,13 @@ export default function ProPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">ITZuun PRO</p>
             <h1 className="mt-1 text-2xl font-extrabold text-surface-900">Хурдан өсөх freelancer багц</h1>
-            <p className="mt-1 text-sm text-surface-600">Visibility, proposal limit, support-оо нэг дор өсгөнө.</p>
+            <p className="mt-1 text-sm text-surface-600">Хайлтанд харагдац, санал илгээх хязгаар, тусламжийн үйлчилгээгээ нэг дор өсгөнө.</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-surface-500">Үнэ</p>
             <p className="text-2xl font-extrabold text-emerald-700">{formatMnt(monthlyPrice)}/сар</p>
             <div className="mt-2">
-              <StatusPill label={isPremium ? "PRO active" : "Free tier"} tone={isPremium ? "success" : "neutral"} />
+              <StatusPill label={isPremium ? "PRO идэвхтэй" : "Үнэгүй багц"} tone={isPremium ? "success" : "neutral"} />
             </div>
           </div>
         </div>
@@ -81,14 +81,14 @@ export default function ProPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <AppCard>
-          <h2 className="text-lg font-semibold text-surface-900">Free vs PRO</h2>
+          <h2 className="text-lg font-semibold text-surface-900">Үнэгүй vs PRO</h2>
           <div className="mt-3">
             <CompareTable
               rows={[
-                { label: "Сарын proposal limit", value: isPremium ? "50 (PRO)" : "10 (Free)" },
-                { label: "Search visibility", value: "PRO = Priority boost (cap-тай)" },
-                { label: "Support", value: "PRO = Priority support" },
-                { label: "Badge", value: "PRO label" },
+                { label: "Сарын санал илгээх хязгаар", value: isPremium ? "50 (PRO)" : "10 (Үнэгүй)" },
+                { label: "Хайлтын харагдалт", value: "PRO = Эхэнд гарна (хязгаартай)" },
+                { label: "Дэмжлэг", value: "PRO = Нэн тэргүүнд" },
+                { label: "Цол/Тэмдэг", value: "PRO тэмдэгтэй" },
               ]}
             />
           </div>
@@ -133,7 +133,7 @@ export default function ProPage() {
               </ActionButton>
             )}
             <Link href={withLocale("/freelancer")} className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 px-4 text-sm font-semibold text-surface-700">
-              Dashboard руу буцах
+              Хянах самбар руу буцах
             </Link>
           </div>
         </div>
