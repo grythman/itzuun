@@ -196,7 +196,7 @@ export function PublicNav() {
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-on-surface hover:bg-surface-container-low transition-colors"
                         >
-                          Dashboard
+                          Хянах самбар
                         </Link>
                         <Link
                           href={withLocale(user.role === "freelancer" ? "/freelancer/profile" : "/client/profile")}

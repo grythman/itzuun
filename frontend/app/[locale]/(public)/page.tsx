@@ -94,7 +94,7 @@ export default function HomePage() {
                 <h3 className="mb-4 text-3xl font-bold text-primary">{t("categoryTitle1")}</h3>
                 <p className="max-w-xs text-on-surface-variant">{t("f1Text")}</p>
                 <div className="mt-auto">
-                  <span className="flex items-center gap-2 text-sm font-bold text-primary transition-transform group-hover:translate-x-2">Explore →</span>
+                  <span className="flex items-center gap-2 text-sm font-bold text-primary transition-transform group-hover:translate-x-2">Цааш үзэх →</span>
                 </div>
               </div>
               <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-surface-container opacity-20 transition-transform duration-700 group-hover:scale-125" />
@@ -103,20 +103,20 @@ export default function HomePage() {
             <div className="group relative overflow-hidden rounded-xl bg-primary p-8 text-white">
               <span className="mb-4 block text-3xl text-tertiary-fixed">▯</span>
               <h3 className="mb-2 text-xl font-bold">{t("categoryTitle2")}</h3>
-              <p className="text-sm text-white/60">iOS & Android solutions.</p>
+              <p className="text-sm text-white/60">iOS болон Android шийдлүүд.</p>
             </div>
 
             <div className="group relative overflow-hidden rounded-xl bg-secondary p-8 text-white">
               <span className="mb-4 block text-3xl">△</span>
               <h3 className="mb-2 text-xl font-bold">{t("categoryTitle3")}</h3>
-              <p className="text-sm text-white/60">Architecture-driven design.</p>
+              <p className="text-sm text-white/60">Архитектурт суурилсан загвар.</p>
             </div>
 
             <div className="group flex items-center justify-between rounded-xl bg-surface-container-low p-8 transition-colors hover:bg-surface-container-high md:col-span-2">
               <div>
                 <span className="mb-4 block text-3xl text-primary">▤</span>
                 <h3 className="mb-2 text-xl font-bold text-primary">{t("categoryTitle4")}</h3>
-                <p className="text-sm text-on-surface-variant">Actionable business intelligence.</p>
+                <p className="text-sm text-on-surface-variant">Бизнесийн ухаалаг шийдлүүд.</p>
               </div>
               <span className="text-4xl text-primary/10 transition-colors group-hover:text-primary/30">◍</span>
             </div>
@@ -168,10 +168,10 @@ export default function HomePage() {
                   </div>
                   <div className="space-y-6">
                     <div className="h-2 w-full overflow-hidden rounded-full bg-primary/40"><div className="h-full w-2/3 bg-secondary" /></div>
-                    <div className="flex justify-between text-xs font-bold text-primary-fixed/40"><span>Milestone 01: UI Prototype</span><span className="text-secondary">Completed</span></div>
+                    <div className="flex justify-between text-xs font-bold text-primary-fixed/40"><span>Үе шат 01: UI Прототип</span><span className="text-secondary">Дууссан</span></div>
                     <div className="h-[1px] bg-white/5" />
                     <div className="h-2 w-full rounded-full bg-primary/40" />
-                    <div className="flex justify-between text-xs font-bold text-primary-fixed/40"><span>Milestone 02: Core Features</span><span>In Progress</span></div>
+                    <div className="flex justify-between text-xs font-bold text-primary-fixed/40"><span>Үе шат 02: Үндсэн функцүүд</span><span>Хийгдэж байна</span></div>
                   </div>
                 </div>
               </div>
