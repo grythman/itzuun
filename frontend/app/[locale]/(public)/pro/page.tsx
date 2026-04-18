@@ -33,14 +33,14 @@ export default function ProPage() {
   const netAfterPlan = Math.max(0, estimatedGain - monthlyPrice);
 
   if (me.isLoading || premiumMe.isLoading) {
-    return <section className="space-y-4"><div className="h-48 animate-pulse rounded-2xl border border-surface-200/60 bg-surface-100" /></section>;
+    return <section className="space-y-4"><div className="h-48 animate-pulse rounded-2xl bg-surface-container-low" /></section>;
   }
 
   if (!me.data) {
     return (
       <ErrorState
         label="PRO багц харахын тулд эхлээд нэвтэрнэ үү."
-        action={<Link href={withLocale("/auth")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white">Нэвтрэх</Link>}
+        action={<Link href={withLocale("/auth")} className="ui-btn-primary">Нэвтрэх</Link>}
       />
     );
   }
@@ -53,7 +53,7 @@ export default function ProPage() {
     return (
       <EmptyState
         label="PRO багц одоогоор freelancer role-д нээлттэй."
-        action={<Link href={withLocale("/freelancer")} className="inline-flex min-h-11 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white">Фрилансерийн хянах самбар руу</Link>}
+        action={<Link href={withLocale("/freelancer")} className="ui-btn-primary">Фрилансерийн хянах самбар руу</Link>}
       />
     );
   }
@@ -62,7 +62,7 @@ export default function ProPage() {
 
   return (
     <section className="space-y-5 pb-20">
-      <AppCard className="border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-brand-50">
+      <AppCard className="bg-gradient-to-br from-emerald-50 via-white to-brand-50">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-700">ITZuun PRO</p>
@@ -100,11 +100,11 @@ export default function ProPage() {
           <div className="mt-3 space-y-3 text-sm">
             <label className="block">
               <span className="mb-1 block text-surface-600">Нэг ажил дундаж орлого (₮)</span>
-              <input type="number" min={0} value={winAmount} onChange={(e) => setWinAmount(Number(e.target.value || 0))} className="w-full rounded-xl border border-surface-200/70 px-3 py-2" />
+              <input type="number" min={0} value={winAmount} onChange={(e) => setWinAmount(Number(e.target.value || 0))} className="w-full rounded-xl bg-surface-container-lowest px-3 py-2" />
             </label>
             <label className="block">
               <span className="mb-1 block text-surface-600">PRO-оор нэмэгдэх боломжит win (сар)</span>
-              <input type="number" min={0} value={extraWins} onChange={(e) => setExtraWins(Number(e.target.value || 0))} className="w-full rounded-xl border border-surface-200/70 px-3 py-2" />
+              <input type="number" min={0} value={extraWins} onChange={(e) => setExtraWins(Number(e.target.value || 0))} className="w-full rounded-xl bg-surface-container-lowest px-3 py-2" />
             </label>
           </div>
           <div className="mt-4 rounded-xl bg-surface-50 p-3 text-sm">
@@ -132,7 +132,7 @@ export default function ProPage() {
                 PRO цуцлах
               </ActionButton>
             )}
-            <Link href={withLocale("/freelancer")} className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 px-4 text-sm font-semibold text-surface-700">
+            <Link href={withLocale("/freelancer")} className="ui-btn-ghost">
               Хянах самбар руу буцах
             </Link>
           </div>
@@ -146,7 +146,7 @@ export default function ProPage() {
           <p>Багц: <strong>pro_monthly</strong></p>
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <button className="rounded-lg bg-surface-100 px-3 py-2 text-sm font-medium text-surface-700" onClick={() => setShowUpgrade(false)}>
+          <button className="ui-btn-ghost" onClick={() => setShowUpgrade(false)}>
             Болих
           </button>
           <ActionButton
