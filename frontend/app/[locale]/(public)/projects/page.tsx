@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
-import { useCategories, useProjects } from "@/lib/hooks";
+import { useCategories, useMe, useProjects } from "@/lib/hooks";
 
 type PushOptions = {
   resetPage?: boolean;
@@ -157,6 +157,7 @@ export default function ProjectsPage() {
 
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const me = useMe({ retryOnAuth: true });
 
   const page = Number(searchParams.get("page") || "1");
   const search = searchParams.get("search") || "";
@@ -169,6 +170,12 @@ export default function ProjectsPage() {
   const [searchInput, setSearchInput] = useState(search);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [budgetSlider, setBudgetSlider] = useState(Number(budgetMax) || 3_000_000);
+
+  useEffect(() => {
+    if (me.data?.role === "client") {
+      router.replace(`/${locale}/client/projects`);
+    }
+  }, [me.data?.role, locale, router]);
 
   useEffect(() => {
     setSearchInput(search);
@@ -217,6 +224,9 @@ export default function ProjectsPage() {
   };
 
   const categoryList = Array.isArray(categories.data) ? categories.data : [];
+  if (me.data?.role === "client") {
+    return <LoadingState label="Таны төслүүд рүү шилжүүлж байна..." />;
+  }
   const expOptions = [
     { value: "entry", label: pt("experienceEntry") },
     { value: "intermediate", label: pt("experienceIntermediate") },

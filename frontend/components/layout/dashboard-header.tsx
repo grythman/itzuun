@@ -98,10 +98,13 @@ export function DashboardTopHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const [onlineForMessages, setOnlineForMessages] = useState(true);
   const initials = userName.trim().slice(0, 1).toUpperCase() || "I";
+  const searchAction = role === "client" ? `${localePrefix}/freelancers` : `${localePrefix}/projects`;
   const homeHref =
     role === "admin" ? `${localePrefix}/admin` : role === "freelancer" ? `${localePrefix}/freelancer` : `${localePrefix}/client`;
   const profileHref = role === "freelancer" ? "/freelancer/profile" : role === "client" ? "/client/profile" : "/admin";
+  const settingsHref = role === "freelancer" ? "/freelancer/settings" : role === "client" ? "/client/settings" : "/admin";
   const membershipHref = role === "freelancer" ? "/pro" : "/support";
+  const connectsHref = role === "client" ? "/freelancers" : role === "freelancer" ? "/projects" : "/admin/users";
 
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
@@ -122,13 +125,13 @@ export function DashboardTopHeader({
 
   const accountMenuItems = useMemo(
     () => [
-      { href: profileHref, label: "Your profile", icon: "profile" as const },
-      { href: role === "admin" ? "/admin" : `/${role}`, label: "Stats and trends", icon: "trend" as const },
-      { href: "/support", label: "Account health", icon: "health" as const },
-      { href: membershipHref, label: "Membership plan", icon: "membership" as const },
-      { href: "/projects", label: "Connects", icon: "connects" as const },
+      { href: profileHref, label: "Профайл", icon: "profile" as const },
+      { href: role === "admin" ? "/admin" : `/${role}`, label: "Статистик", icon: "trend" as const },
+      { href: "/support", label: "Дансны эрүүл байдал", icon: "health" as const },
+      { href: membershipHref, label: "Эрхийн төлөвлөгөө", icon: "membership" as const },
+      { href: connectsHref, label: "Холболт", icon: "connects" as const },
     ],
-    [membershipHref, profileHref, role],
+    [connectsHref, membershipHref, profileHref, role],
   );
 
   return (
@@ -139,7 +142,7 @@ export function DashboardTopHeader({
             type="button"
             onClick={onOpenSidebar}
             className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-low text-primary shadow-[0_12px_28px_rgba(3,22,54,0.05)] lg:hidden"
-            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            aria-label={sidebarOpen ? "Цэс хаах" : "Цэс нээх"}
             aria-expanded={sidebarOpen}
           >
             <HeaderIcon icon={sidebarOpen ? "close" : "menu"} />
@@ -148,17 +151,22 @@ export function DashboardTopHeader({
           <Link
             href={homeHref}
             className="inline-flex h-11 items-center rounded-2xl bg-surface-container-low px-4 font-headline text-sm font-extrabold tracking-tight text-primary shadow-[0_10px_24px_rgba(3,22,54,0.05)]"
-            aria-label="Go to dashboard home"
+            aria-label="Самбарын нүүр рүү орох"
           >
             ITZuun
           </Link>
 
           <form
             className="relative min-w-0 flex-1"
-            action={`${localePrefix}/projects`}
+            action={searchAction}
             onSubmit={(event) => {
-              if (!query.trim()) return;
-              event.currentTarget.submit();
+              event.preventDefault();
+              const q = query.trim();
+              if (!q) {
+                router.push(searchAction);
+                return;
+              }
+              router.push(`${searchAction}?search=${encodeURIComponent(q)}`);
             }}
           >
             <input type="hidden" name="search" value={query} />
@@ -181,14 +189,15 @@ export function DashboardTopHeader({
             <button
               type="button"
               className="hidden min-h-11 rounded-full px-3 text-[12px] font-semibold text-on-surface/56 transition-colors hover:text-primary sm:inline-flex sm:items-center"
-              aria-label="Switch language"
+              aria-label="Хэл солих"
             >
               MN/EN
             </button>
             <button
               type="button"
+              onClick={() => router.push(`${localePrefix}/notifications`)}
               className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-low text-on-surface/56 shadow-[0_10px_24px_rgba(3,22,54,0.05)] transition-colors hover:text-primary"
-              aria-label="Notifications"
+              aria-label="Мэдэгдэл"
             >
               <HeaderIcon icon="notifications" />
             </button>
@@ -198,7 +207,7 @@ export function DashboardTopHeader({
                 type="button"
                 onClick={() => setMenuOpen((value) => !value)}
                 className="flex h-11 items-center gap-3 rounded-[22px] bg-surface-container-lowest px-3 shadow-[0_14px_28px_rgba(3,22,54,0.06)]"
-                aria-label="Account menu"
+                aria-label="Дансны цэс"
                 aria-expanded={menuOpen}
               >
                 <div className="text-right leading-tight">
@@ -214,7 +223,7 @@ export function DashboardTopHeader({
                 <>
                   <button
                     type="button"
-                    aria-label="Close account menu"
+                    aria-label="Дансны цэс хаах"
                     onClick={() => setMenuOpen(false)}
                     className="fixed inset-0 z-40 cursor-default"
                   />
@@ -232,7 +241,7 @@ export function DashboardTopHeader({
                     </div>
 
                     <div className="mt-2 flex items-center justify-between rounded-xl px-3 py-3 text-[14px] text-white/90">
-                      <span>Online for messages</span>
+                      <span>Мессеж хүлээн авч байна</span>
                       <button
                         type="button"
                         onClick={() => setOnlineForMessages((value) => !value)}
@@ -240,7 +249,7 @@ export function DashboardTopHeader({
                           "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
                           onlineForMessages ? "bg-secondary" : "bg-white/15",
                         ].join(" ")}
-                        aria-label="Toggle online for messages"
+                        aria-label="Мессежийн онлайн төлөв солих"
                         aria-pressed={onlineForMessages}
                       >
                         <span
@@ -277,20 +286,20 @@ export function DashboardTopHeader({
                           <HeaderIcon icon="moon" />
                         </span>
                         <span className="flex flex-1 items-center justify-between">
-                          <span>Theme: Dark</span>
+                          <span>Харанхуй горим</span>
                           <HeaderIcon icon="chevronDown" className="h-4 w-4 text-white/65" />
                         </span>
                       </button>
 
                       <Link
-                        href={`${localePrefix}${profileHref}`}
+                        href={`${localePrefix}${settingsHref}`}
                         onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-[15px] font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white"
                       >
                         <span className="text-white/85">
                           <HeaderIcon icon="settings" />
                         </span>
-                        <span>Account settings</span>
+                        <span>Тохиргоо</span>
                       </Link>
                     </div>
 
@@ -307,7 +316,7 @@ export function DashboardTopHeader({
                         className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[15px] font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-55"
                       >
                         <HeaderIcon icon="logout" />
-                        <span>{logoutMutation.isPending ? "Logging out..." : "Log out"}</span>
+                        <span>{logoutMutation.isPending ? "Гарч байна..." : "Гарах"}</span>
                       </button>
                     </div>
                   </div>

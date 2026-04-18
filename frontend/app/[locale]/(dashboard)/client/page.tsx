@@ -41,14 +41,6 @@ function formatRelativeTime(iso?: string): string {
   return `${diffDay} өдрийн өмнө шинэчлэгдсэн`;
 }
 
-function projectProgress(status: string): number {
-  if (status === "completed") return 100;
-  if (status === "awaiting_client_review") return 92;
-  if (status === "in_progress") return 65;
-  if (status === "disputed") return 58;
-  return 18;
-}
-
 function projectStatusLabel(status: string): string {
   if (status === "in_progress") return "Ажил явагдаж байна";
   if (status === "awaiting_client_review") return "Таны шалгалтыг хүлээж байна 🕐";
@@ -189,8 +181,8 @@ export default function ClientDashboardPage() {
       <ErrorState
         label="Нэвтэрч орно уу."
         action={
-          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
-            Нэвтрэх хуудас руу
+          <button className="rounded-lg bg-surface-container-lowest px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
+            Нэвтрэх
           </button>
         }
       />
@@ -199,9 +191,9 @@ export default function ClientDashboardPage() {
   if (projects.isError || !projects.data) {
     return (
       <ErrorState
-        label="Төслүүдийг ачаалж чадсангүй."
+        label="Төслүүд ачааллагдсангүй."
         action={
-          <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
+          <button className="rounded-lg bg-surface-container-lowest px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
             Дахин оролдох
           </button>
         }
@@ -405,7 +397,7 @@ export default function ClientDashboardPage() {
                         <tr className="bg-surface-container-low/50">
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Төслийн нэр</th>
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Эскроу</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Явц</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Дараагийн алхам</th>
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Төлөв</th>
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Үйлдэл</th>
                         </tr>
@@ -413,7 +405,6 @@ export default function ClientDashboardPage() {
                       <tbody>
                         {myProjects.map((project) => {
                           const meta = statusMeta(project.status);
-                          const progress = projectProgress(project.status);
                           return (
                             <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30 odd:bg-surface-container-low/20">
                               <td className="px-6 py-5">
@@ -429,13 +420,8 @@ export default function ClientDashboardPage() {
                                 <p className="text-xs font-semibold text-on-surface font-headline">{formatMnt(Number(project.budget || 0))}</p>
                                 <p className="text-[11px] text-on-surface/60">{meta.escrowLabel}</p>
                               </td>
-                              <td className="px-6 py-5 w-56">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-container-high">
-                                    <div className="h-full rounded-full primary-gradient" style={{ width: `${progress}%` }} />
-                                  </div>
-                                  <span className="text-[10px] font-bold text-primary">{progress}%</span>
-                                </div>
+                              <td className="px-6 py-5 w-72">
+                                <p className="text-[13px] text-primary font-medium">{meta.nextStep}</p>
                               </td>
                               <td className="px-6 py-5">
                                 <StatusPill label={projectStatusLabel(project.status)} tone={meta.tone} />
@@ -467,7 +453,6 @@ export default function ClientDashboardPage() {
                   <ul className="grid gap-3 p-4 md:hidden">
                     {myProjects.map((project) => {
                       const meta = statusMeta(project.status);
-                      const progress = projectProgress(project.status);
                       return (
                         <li key={project.id} className="rounded-[1.5rem] bg-gradient-to-b from-surface-container-lowest to-surface-container-low p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                           <div className="flex items-start justify-between gap-3">
@@ -477,12 +462,6 @@ export default function ClientDashboardPage() {
                           <div className="mt-2 grid gap-1 text-xs text-on-surface/60">
                             <p>Төсөв: {formatMnt(Number(project.budget || 0))}</p>
                             <p>{project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр</p>
-                          </div>
-                          <div className="mt-3 flex items-center gap-3">
-                            <div className="h-1.5 flex-1 rounded-full bg-surface-container-high">
-                              <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
-                            </div>
-                            <span className="text-[10px] font-bold text-primary">{progress}%</span>
                           </div>
                           <div className="mt-3 rounded-xl bg-surface-container-low px-3 py-2">
                             <p className="text-[11px] font-semibold text-accent-700">Дараагийн алхам</p>
@@ -537,11 +516,11 @@ export default function ClientDashboardPage() {
                 <DashboardIcon name="search" className="h-10 w-10 text-primary" />
                 <div>
                   <h4 className="font-headline text-xl font-bold text-primary">Мэргэжилтэн хайх</h4>
-                  <p className="mt-2 text-xs text-on-surface/60">Freelancers жагсаалтаас шүүлтүүр ашиглан хайх.</p>
+                  <p className="mt-2 text-xs text-on-surface/60">Фрилансерүүдийн жагсаалтаас шүүлтүүр ашиглан хайх.</p>
                 </div>
               </Link>
 
-              <div className="relative overflow-hidden rounded-[2rem] bg-white p-8 shadow-sm md:col-span-2">
+              <div className="relative overflow-hidden rounded-[2rem] bg-surface-container-lowest p-8 shadow-sm md:col-span-2">
                 <div className="relative z-10">
                   <div className="flex items-center gap-8">
                     <div className="flex-1">

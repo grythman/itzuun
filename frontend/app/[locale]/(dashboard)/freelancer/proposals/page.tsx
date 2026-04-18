@@ -29,16 +29,9 @@ type StatusMeta = { label: string; bg: string; text: string };
 function statusMeta(status: string): StatusMeta {
   if (status === "accepted") return { label: "Зөвшөөрөгдсөн", bg: "bg-green-50", text: "text-green-700" };
   if (status === "rejected") return { label: "Татгалзсан", bg: "bg-red-50", text: "text-red-700" };
-  if (status === "withdrawn") return { label: "Цуцалсан", bg: "bg-surface-container-low", text: "text-surface-500" };
+  if (status === "withdrawn") return { label: "Цуцалсан", bg: "bg-surface-container-low", text: "text-on-surface/60" };
   return { label: "Хүлээгдэж байна", bg: "bg-secondary-fixed/30", text: "text-secondary" };
 }
-
-const TABS = [
-  { key: "all", label: "Бүгд" },
-  { key: "pending", label: "Хүлээгдэж байна" },
-  { key: "accepted", label: "Зөвшөөрөгдсөн" },
-  { key: "rejected", label: "Татгалзсан" },
-];
 
 export default function FreelancerProposalsPage() {
   const pathname = usePathname();
@@ -86,13 +79,13 @@ export default function FreelancerProposalsPage() {
         {/* Header */}
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-surface-400 font-headline">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface/45 font-headline">
               Фрилансер
             </p>
             <h1 className="mt-3 font-headline text-[36px] font-black leading-none tracking-tighter text-primary md:text-[44px]">
               Миний саналууд
             </h1>
-            <p className="mt-3 text-[15px] font-medium text-surface-500">
+            <p className="mt-3 text-[15px] font-medium text-on-surface/65">
               {pending > 0 ? `${pending} санал хүлээгдэж байна` : "Идэвхтэй санал байхгүй байна."}
               {accepted > 0 && ` · ${accepted} зөвшөөрөгдсөн`}
             </p>
@@ -114,7 +107,7 @@ export default function FreelancerProposalsPage() {
             { label: "Татгалзсан", value: items.filter((p) => p.status === "rejected").length },
           ].map((stat) => (
             <div key={stat.label} className="rounded-[2rem] bg-surface-container-lowest p-6 shadow-sm">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45 font-headline">
                 {stat.label}
               </p>
               <p className="mt-3 font-headline text-3xl font-black text-primary">{stat.value}</p>
@@ -125,13 +118,13 @@ export default function FreelancerProposalsPage() {
         {/* Proposal List */}
         {!items.length ? (
           <div className="flex flex-col items-center justify-center rounded-[2.5rem] bg-surface-container-lowest py-24 shadow-sm text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-container-low text-surface-300">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-container-low text-on-surface/35">
               <svg viewBox="0 0 24 24" className="h-10 w-10" fill="currentColor" aria-hidden>
                 <path d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 1.5V7h3.5L13 3.5ZM8 11h8v1.5H8V11Zm0 3h8v1.5H8V14Zm0 3h5v1.5H8V17Z" />
               </svg>
             </div>
             <p className="mt-6 font-headline text-lg font-black text-primary">Санал байхгүй байна</p>
-            <p className="mt-2 text-sm font-medium text-surface-400">Төсөл хайж санал оруулаарай.</p>
+            <p className="mt-2 text-sm font-medium text-on-surface/55">Төсөл хайж санал оруулаарай.</p>
             <Link
               href={withLocale("/projects")}
               className="mt-8 inline-flex min-h-12 items-center rounded-2xl primary-gradient px-8 text-[11px] font-black uppercase tracking-[0.18em] text-primary-fixed shadow-ambient"
@@ -142,32 +135,32 @@ export default function FreelancerProposalsPage() {
         ) : (
           <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
             {/* Table header */}
-            <div className="border-b border-outline-variant/10 px-8 py-6">
+            <div className="bg-surface-container-low/45 px-8 py-6">
               <h2 className="font-headline text-lg font-extrabold text-primary">Саналуудын жагсаалт</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-surface-container-low/50">
                   <tr>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">Төсөл</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">Үнэ</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">Хугацаа</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">Илгээсэн</th>
-                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-surface-400 font-headline">Төлөв</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45 font-headline">Төсөл</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45 font-headline">Үнэ</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45 font-headline">Хугацаа</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45 font-headline">Илгээсэн</th>
+                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45 font-headline">Төлөв</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-outline-variant/5">
+                <tbody>
                   {items.map((proposal) => {
                     const meta = statusMeta(proposal.status || "pending");
                     return (
-                      <tr key={proposal.id} className="group transition-colors hover:bg-surface-container-low/30">
+                      <tr key={proposal.id} className="group transition-colors odd:bg-surface-container-low/20 hover:bg-surface-container-low/30">
                         <td className="px-8 py-6">
                           <Link href={withLocale(`/projects/${proposal.project}`)} className="group/link">
                             <p className="font-headline text-sm font-bold text-on-surface group-hover/link:text-primary transition-colors">
                               Төсөл #{proposal.project}
                             </p>
                             {proposal.message && (
-                              <p className="mt-1 line-clamp-1 text-[11px] font-medium text-surface-400">
+                              <p className="mt-1 line-clamp-1 text-[11px] font-medium text-on-surface/55">
                                 {proposal.message}
                               </p>
                             )}
@@ -178,10 +171,10 @@ export default function FreelancerProposalsPage() {
                             {formatMnt(Number(proposal.price || 0))}
                           </span>
                         </td>
-                        <td className="px-8 py-6 text-sm font-medium text-surface-500">
+                        <td className="px-8 py-6 text-sm font-medium text-on-surface/65">
                           {proposal.timeline_days ? `${proposal.timeline_days} хоног` : "—"}
                         </td>
-                        <td className="px-8 py-6 text-[11px] font-bold uppercase tracking-widest text-surface-400 font-headline">
+                        <td className="px-8 py-6 text-[11px] font-bold uppercase tracking-widest text-on-surface/45 font-headline">
                           {proposalAgeLabel(proposal.created_at)}
                         </td>
                         <td className="px-8 py-6">

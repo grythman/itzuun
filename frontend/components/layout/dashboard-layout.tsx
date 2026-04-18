@@ -31,6 +31,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const pathWithoutLocale = normalizeDashboardPath(pathname);
   const me = useMe({ enabled: true, retryOnAuth: true });
+  const sessionDependentRoleRoute =
+    pathWithoutLocale === "/projects" ||
+    pathWithoutLocale.startsWith("/projects/") ||
+    pathWithoutLocale === "/freelancers" ||
+    pathWithoutLocale.startsWith("/freelancers/");
   const role = (me.data?.role as "client" | "freelancer" | "admin" | undefined) || dashboardRole(pathWithoutLocale);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -47,17 +52,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const searchPlaceholder =
     role === "admin"
-      ? "User, project, dispute хайх..."
+      ? "Хэрэглэгч, төсөл, маргаан хайх..."
       : role === "freelancer"
-        ? "Ажил, proposal, payout хайх..."
-        : "Төсөл, freelancer, escrow хайх...";
+        ? "Ажил, санал, төлбөр хайх..."
+        : "Төсөл, фрилансер, эскроу хайх...";
 
   const roleLabel =
     role === "admin"
-      ? "Operations"
+      ? "Үйл ажиллагаа"
       : role === "freelancer"
-        ? "Talent Desk"
-        : "Client Admin";
+        ? "Фрилансер"
+        : "Захиалагч";
+
+  if (sessionDependentRoleRoute && me.isLoading && !me.data) {
+    return (
+      <div className="min-h-screen bg-surface p-4 sm:p-6">
+        <div className="mx-auto h-[88px] max-w-[1920px] animate-pulse rounded-[28px] bg-surface-container-low" />
+      </div>
+    );
+  }
 
   return (
     <DashboardLayoutContext.Provider value={true}>
@@ -87,7 +100,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               className="absolute inset-0 bg-[rgba(3,22,54,0.22)] backdrop-blur-sm"
-              aria-label="Close sidebar overlay"
+              aria-label="Цэсний давхаргыг хаах"
               onClick={() => setMobileOpen(false)}
             />
             <div className="absolute inset-y-3 left-3 w-[min(86vw,320px)]">

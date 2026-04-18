@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,12 +33,19 @@ function proposalAgeLabel(createdAt?: string): string {
   return `${diffDays} хоног хүлээгдэж байна`;
 }
 
+function proposalStatusLabel(status?: string): string {
+  if (status === "accepted") return "Сонгогдсон";
+  if (status === "rejected") return "Татгалзсан";
+  if (status === "withdrawn") return "Цуцалсан";
+  return "Хүлээгдэж байна";
+}
+
 function projectStatusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string } {
   if (status === "in_progress") {
     return { label: "Ажил явагдаж байна", tone: "info", nextStep: "Даалгавраа гүйцээгээд үр дүнгээ илгээ." };
   }
   if (status === "awaiting_client_review") {
-    return { label: "Шалгалт хүлээгдэж байна 🕐", tone: "warning", nextStep: "Client баталгаажуулалтыг хүлээж байна." };
+    return { label: "Шалгалт хүлээгдэж байна 🕐", tone: "warning", nextStep: "Захиалагчийн баталгаажуулалтыг хүлээж байна." };
   }
   if (status === "disputed") {
     return { label: "Маргаан шийдвэрлэгдэж байна", tone: "danger", nextStep: "Нотолгоогоо шинэчилж admin шийдвэрийг хүлээ." };
@@ -119,6 +126,7 @@ export default function FreelancerDashboardPage() {
   const [editingProposalId, setEditingProposalId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "in_progress" | "awaiting_client_review" | "disputed">("all");
   const [submitTarget, setSubmitTarget] = useState<number | null>(null);
+  const [hideOnboarding, setHideOnboarding] = useState(false);
 
   const rating = useQuery({
     queryKey: ["my-rating", me.data?.id],
@@ -126,6 +134,12 @@ export default function FreelancerDashboardPage() {
     enabled: !!me.data?.id,
   });
   const toast = useToastStore((s) => s.push);
+
+  useEffect(() => {
+    try {
+      setHideOnboarding(localStorage.getItem("freelancer_onboarding_dismissed_v1") === "1");
+    } catch {}
+  }, []);
 
   const retryAll = () => {
     me.refetch();
@@ -176,15 +190,15 @@ export default function FreelancerDashboardPage() {
   if (me.isLoading || proposals.isLoading || projects.isLoading || profile.isLoading) {
     return (
       <section className="space-y-4 pb-20" aria-busy="true" aria-live="polite">
-        <div className="h-36 animate-pulse rounded-3xl bg-[#eef4fa]" />
+        <div className="h-36 animate-pulse rounded-3xl bg-surface-container-low" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
         </div>
-        <div className="h-60 animate-pulse rounded-2xl bg-[#f8fbff]" />
-        <p className="text-sm text-surface-500">Хянах самбар ачааллаж байна. Түр хүлээнэ үү...</p>
+        <div className="h-60 animate-pulse rounded-2xl bg-surface-container-lowest" />
+        <p className="text-sm text-on-surface/60">Хянах самбар ачааллаж байна. Түр хүлээнэ үү...</p>
       </section>
     );
   }
@@ -192,10 +206,10 @@ export default function FreelancerDashboardPage() {
   if (me.isError || !me.data) {
     return (
       <ErrorState
-        label="Please sign in first."
+        label="Нэвтэрч орно уу."
         action={
-          <button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
-            Go to sign in
+          <button className="min-h-11 rounded-lg bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
+            Нэвтрэх
           </button>
         }
       />
@@ -208,7 +222,7 @@ export default function FreelancerDashboardPage() {
         label="Dashboard мэдээлэл ачааллахад алдаа гарлаа."
         action={
           <div className="flex flex-wrap gap-2">
-            <button className="min-h-11 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700" onClick={retryAll}>
+            <button className="min-h-11 rounded-lg bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-red-700" onClick={retryAll}>
               Дахин оролдох
             </button>
             <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white">
@@ -230,6 +244,8 @@ export default function FreelancerDashboardPage() {
   );
 
   const pendingProposals = myProposals.filter((item) => (item.status || "pending") === "pending").length;
+  const rejectedProposals = myProposals.filter((item) => item.status === "rejected").length;
+  const acceptedProposals = myProposals.filter((item) => item.status === "accepted").length;
   const earnings = activeProjects.reduce((acc, item) => acc + Number(item.budget || 0), 0);
 
   const rank = (status: string) => {
@@ -284,6 +300,7 @@ export default function FreelancerDashboardPage() {
   }
 
   const filteredRecommendations = sortedProposals.filter((proposal) => (proposal.status || "pending") === "pending").slice(0, 2);
+  const recentProposals = sortedProposals.slice(0, 4);
   const availableBalance = Math.max(0, Math.round(earnings * 0.33));
   const pendingPayout = Math.max(0, earnings - availableBalance);
   const latestTransactions = activeProjects.slice(0, 2).map((project, index) => ({
@@ -312,6 +329,8 @@ export default function FreelancerDashboardPage() {
     };
   }
 
+  const showOnboarding = !hideOnboarding && activeProjects.length === 0 && myProposals.length === 0;
+
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="freelancer" fallbackPath={withLocale("/auth")}>
       <section aria-label="Freelancer dashboard" className="pb-24 xl:pb-10">
@@ -324,8 +343,11 @@ export default function FreelancerDashboardPage() {
               <section className="mb-10">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
-                    <h1 className="mb-2 font-headline text-3xl font-extrabold tracking-tight text-[#031636]">Өдрийн мэнд, {freelancerName} 👋</h1>
-                    <p className="font-medium text-[#44474e]">{pendingProposals} шинэ санал, {activeProjects.length} идэвхтэй төсөл байна.</p>
+                    <h1 className="mb-2 font-headline text-3xl font-extrabold tracking-tight text-primary">Өдрийн мэнд, {freelancerName} 👋</h1>
+                    <p className="font-medium text-on-surface/70">{pendingProposals} шинэ санал, {activeProjects.length} идэвхтэй төсөл байна.</p>
+                    <p className="mt-2 text-[13px] text-on-surface/60">
+                      Хүлээгдэж байна {pendingProposals} • Татгалзсан {rejectedProposals} • Сонгогдсон {acceptedProposals}
+                    </p>
                     {priorityAction && (
                       <div className="mt-8 max-w-3xl rounded-2xl bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -333,7 +355,7 @@ export default function FreelancerDashboardPage() {
                             <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-lg bg-primary-fixed text-primary">●</span>
                             <div>
                             <p className="font-headline text-sm font-bold text-on-surface">{priorityAction.title}</p>
-                            <p className="mt-1 text-xs text-surface-500">{priorityAction.desc}</p>
+                            <p className="mt-1 text-xs text-on-surface/60">{priorityAction.desc}</p>
                             </div>
                           </div>
                           <button type="button" onClick={priorityAction.onClick} className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5">
@@ -349,10 +371,52 @@ export default function FreelancerDashboardPage() {
                 </div>
               </section>
 
+              {showOnboarding ? (
+                <section className="mb-10 rounded-3xl bg-surface-container-low p-6 shadow-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="ui-eyebrow">Эхлэх алхам</p>
+                      <h2 className="mt-2 font-headline text-2xl font-black text-primary">Эхний орлого олох checklist</h2>
+                      <p className="mt-2 text-[13px] text-on-surface/60">Энэ 4 алхмыг хийснээр саналын чанар, сонгогдох магадлал шууд өснө.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="ui-btn-ghost"
+                      onClick={() => {
+                        try {
+                          localStorage.setItem("freelancer_onboarding_dismissed_v1", "1");
+                        } catch {}
+                        setHideOnboarding(true);
+                      }}
+                    >
+                      Дараа сануул
+                    </button>
+                  </div>
+                  <ul className="mt-5 grid gap-3 md:grid-cols-2">
+                    <li className="rounded-2xl bg-surface-container-lowest p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">1. Профайл</p>
+                      <Link href={withLocale("/freelancer/profile")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Профайлаа бөглөх (100%)</Link>
+                    </li>
+                    <li className="rounded-2xl bg-surface-container-lowest p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">2. Портфолио</p>
+                      <Link href={withLocale("/freelancer/profile#portfolio")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Портфолио нэмэх</Link>
+                    </li>
+                    <li className="rounded-2xl bg-surface-container-lowest p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">3. Төсөл</p>
+                      <Link href={withLocale("/projects")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Анхны ажлаа хайх</Link>
+                    </li>
+                    <li className="rounded-2xl bg-surface-container-lowest p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">4. Санал</p>
+                      <Link href={withLocale("/projects")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Санал илгээх</Link>
+                    </li>
+                  </ul>
+                </section>
+              ) : null}
+
               <section className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-3">
                 <div className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient">
                   <div className="mb-6 flex items-start justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 font-headline">Нийт орлого</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55 font-headline">Нийт орлого</span>
                     <div className="rounded-xl bg-surface-container-low p-2 text-primary">
                       <DashboardIcon name="payments" className="h-5 w-5 opacity-40" />
                     </div>
@@ -374,7 +438,7 @@ export default function FreelancerDashboardPage() {
 
                 <div className="rounded-3xl bg-surface-container-low p-8 transition-all hover:bg-surface-container-lowest hover:shadow-ambient">
                   <div className="mb-6 flex items-start justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500 font-headline">Үнэлгээ</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55 font-headline">Үнэлгээ</span>
                     <div className="rounded-xl bg-surface-container-high p-2 text-primary">
                       <DashboardIcon name="star" className="h-5 w-5 opacity-40" />
                     </div>
@@ -382,7 +446,7 @@ export default function FreelancerDashboardPage() {
                   <span className="text-4xl font-extrabold text-on-surface font-headline tracking-tight">
                     {(rating.data?.average ?? 0).toFixed(1)}
                   </span>
-                  <p className="mt-4 text-[11px] font-bold text-surface-500 font-headline tracking-wide uppercase">
+                  <p className="mt-4 text-[11px] font-bold text-on-surface/55 font-headline tracking-wide uppercase">
                     {rating.data?.total ?? 0} сэтгэгдэл
                   </p>
                 </div>
@@ -408,31 +472,25 @@ export default function FreelancerDashboardPage() {
                           <table className="w-full text-left">
                           <thead className="bg-surface-container-low/50">
                             <tr>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Төслийн нэр</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Захиалагч</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Дуусах хугацаа</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Явц</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-surface-500 font-headline">Төлөв</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Төслийн нэр</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Захиалагч</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Дуусах хугацаа</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Дараагийн алхам</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Төлөв</th>
                             </tr>
                           </thead>
                           <tbody>
                             {filteredActiveProjects.map((project) => {
                               const meta = projectStatusMeta(project.status);
-                              const progress = project.status === "awaiting_client_review" ? 100 : project.status === "in_progress" ? 75 : 30;
                               return (
                                 <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30 odd:bg-surface-container-low/20">
                                   <td className="px-8 py-6">
                                     <p className="text-sm font-bold text-on-surface font-headline">{project.title}</p>
-                                    <p className="text-[11px] font-bold text-surface-400 font-headline mt-0.5">{project.category || "General project"}</p>
+                                    <p className="mt-0.5 text-[11px] font-bold text-on-surface/45 font-headline">{project.category || "Ерөнхий төсөл"}</p>
                                   </td>
-                                  <td className="px-8 py-6 text-sm font-bold text-on-surface font-headline italic opacity-80">Client #{project.owner}</td>
-                                  <td className="px-8 py-6 text-sm text-surface-500 font-medium">{project.timeline_days ? `${project.timeline_days} хоног` : "Тодорхойгүй"}</td>
-                                  <td className="px-8 py-6">
-                                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-container-low">
-                                      <div className="h-full primary-gradient" style={{ width: `${progress}%` }} />
-                                    </div>
-                                    <span className="mt-1.5 block text-[10px] font-bold text-primary font-headline uppercase tracking-widest">{progress}% САНАЛ</span>
-                                  </td>
+                                  <td className="px-8 py-6 text-sm font-bold text-on-surface font-headline italic opacity-80">Захиалагч #{project.owner}</td>
+                                  <td className="px-8 py-6 text-sm text-on-surface/60 font-medium">{project.timeline_days ? `${project.timeline_days} хоног` : "Тодорхойгүй"}</td>
+                                  <td className="px-8 py-6 text-[13px] text-primary font-medium">{meta.nextStep}</td>
                                   <td className="px-8 py-6">
                                     <StatusPill label={meta.label} tone={meta.tone} />
                                   </td>
@@ -446,22 +504,19 @@ export default function FreelancerDashboardPage() {
                       <ul className="grid gap-3 p-4 md:hidden">
                         {filteredActiveProjects.map((project) => {
                           const meta = projectStatusMeta(project.status);
-                          const progress = project.status === "awaiting_client_review" ? 100 : project.status === "in_progress" ? 75 : 30;
                           return (
-                            <li key={project.id} className="rounded-[1.5rem] bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
+                            <li key={project.id} className="rounded-[1.5rem] bg-surface-container-low p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                               <div className="flex items-start justify-between gap-3">
-                                <p className="font-semibold text-[#031636] font-headline">{project.title}</p>
+                                <p className="font-semibold text-primary font-headline">{project.title}</p>
                                 <StatusPill label={meta.label} tone={meta.tone} />
                               </div>
-                              <div className="mt-2 text-xs text-slate-500">
-                                <p>{project.category || "General project"}</p>
-                                <p className="mt-1 italic">Client #{project.owner} · {project.timeline_days ? `${project.timeline_days} хоног` : "Хугацаа тодорхойгүй"}</p>
+                              <div className="mt-2 text-xs text-on-surface/60">
+                                <p>{project.category || "Ерөнхий төсөл"}</p>
+                                <p className="mt-1 italic">Захиалагч #{project.owner} · {project.timeline_days ? `${project.timeline_days} хоног` : "Хугацаа тодорхойгүй"}</p>
                               </div>
-                              <div className="mt-3 flex items-center gap-3">
-                                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e0e3e5]">
-                                  <div className="h-full primary-gradient" style={{ width: `${progress}%` }} />
-                                </div>
-                                <span className="text-[10px] font-bold text-primary">{progress}% САНАЛ</span>
+                              <div className="mt-3 rounded-xl bg-surface-container-lowest px-3 py-2">
+                                <p className="text-[11px] font-semibold text-primary">Дараагийн алхам</p>
+                                <p className="mt-1 text-xs text-on-surface/65">{meta.nextStep}</p>
                               </div>
                             </li>
                           );
@@ -484,16 +539,16 @@ export default function FreelancerDashboardPage() {
                             <div key={proposal.id} className="group rounded-3xl bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-ambient">
                               <div className="mb-4 flex items-start justify-between">
                                 <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-headline ${index === 0 ? "bg-secondary text-white" : "bg-primary-fixed text-primary"}`}>
-                                  {index === 0 ? "High Budget" : "Urgent"}
+                                  {index === 0 ? "Төсөв өндөр" : "Түргэн эхлэх"}
                                 </span>
-                                <span className="text-[10px] font-bold text-surface-400 font-headline uppercase tracking-widest">{proposalAgeLabel(proposal.created_at)}</span>
+                                <span className="text-[10px] font-bold text-on-surface/45 font-headline uppercase tracking-widest">{proposalAgeLabel(proposal.created_at)}</span>
                               </div>
                               <h3 className="mb-3 text-lg font-bold text-on-surface transition-colors group-hover:text-primary font-headline">{project?.title || `Төсөл #${proposal.project}`}</h3>
-                              <p className="mb-6 line-clamp-2 text-xs leading-relaxed text-surface-500">{project?.description || proposal.message || "Саналд тохирох төсөл."}</p>
+                              <p className="mb-6 line-clamp-2 text-xs leading-relaxed text-on-surface/60">{project?.description || proposal.message || "Саналд тохирох төсөл."}</p>
                               <div className="ui-divider-soft" />
                               <div className="flex items-center justify-between pt-4">
                                 <span className="text-lg font-black text-primary font-headline tracking-tighter">{formatMnt(Number(proposal.price || 0))}</span>
-                                <button type="button" className="text-surface-400 hover:text-primary transition-colors transition-transform hover:scale-110" onClick={() => openEditModal(proposal)}>✎</button>
+                                <button type="button" className="text-on-surface/45 hover:text-primary transition-colors transition-transform hover:scale-110" onClick={() => openEditModal(proposal)}>✎</button>
                               </div>
                             </div>
                           );
@@ -510,9 +565,32 @@ export default function FreelancerDashboardPage() {
                 </div>
 
                   <aside className="space-y-6">
+                  {recentProposals.length ? (
+                    <div className="rounded-[2rem] bg-surface-container-lowest p-6 shadow-sm">
+                      <h3 className="font-headline text-lg font-black text-primary">Сүүлийн саналууд</h3>
+                      <ul className="mt-4 space-y-3">
+                        {recentProposals.map((proposal) => {
+                          const linkedProject = projectById.get(Number(proposal.project));
+                          return (
+                            <li key={`proposal-row-${proposal.id}`} className="rounded-xl bg-surface-container-low p-3">
+                              <p className="text-[13px] font-bold text-primary">{linkedProject?.title || `Төсөл #${proposal.project}`}</p>
+                              <p className="mt-1 text-[11px] text-on-surface/60">
+                                {formatMnt(Number(proposal.price || 0))} • {proposalAgeLabel(proposal.created_at)}
+                              </p>
+                              <p className="mt-1 text-[11px] font-semibold text-secondary">{proposalStatusLabel(proposal.status)}</p>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <Link href={withLocale("/freelancer/proposals")} className="mt-4 inline-flex text-[12px] font-bold text-primary underline underline-offset-4">
+                        Бүх санал харах
+                      </Link>
+                    </div>
+                  ) : null}
+
                   <div className="relative overflow-hidden rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient">
                     <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
-                    <h2 className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-surface-500 font-headline">Профайлын гүйцэтгэл</h2>
+                    <h2 className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-on-surface/55 font-headline">Профайлын гүйцэтгэл</h2>
                     <div className="relative mx-auto mb-8 h-40 w-40">
                       <svg className="h-full w-full -rotate-90">
                         <circle className="text-surface-container-low" cx="80" cy="80" fill="transparent" r="74" stroke="currentColor" strokeWidth="10" />
@@ -531,48 +609,48 @@ export default function FreelancerDashboardPage() {
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-3xl font-black text-primary font-headline">{profileCompleteness}%</span>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-surface-400 font-headline mt-1">Дууссан</span>
+                        <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-on-surface/45 font-headline">Дууссан</span>
                       </div>
                     </div>
                     <ul className="mb-8 space-y-4">
                       <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> Портфолио нэмсэн</li>
                       <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> И-мэйл баталгаажсан</li>
-                      <li className="flex items-center text-[13px] font-medium text-surface-400 font-headline italic opacity-60"><span className="mr-3 text-surface-container">○</span> Утас баталгаажуулах</li>
+                      <li className="flex items-center text-[13px] font-medium text-on-surface/45 font-headline italic opacity-60"><span className="mr-3 text-on-surface/35">○</span> Утас баталгаажуулах</li>
                     </ul>
                     <div className="flex items-center justify-between rounded-2xl bg-surface-container-low p-6">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-surface-500 font-headline">Үнэлгээ</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Үнэлгээ</p>
                         <div className="mt-2 flex items-center">
                           <span className="mr-3 text-2xl font-black text-primary font-headline">{(rating.data?.average ?? 0).toFixed(1)}</span>
                           <RatingStars value={rating.data?.average ?? 0} />
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-surface-400 font-headline uppercase tracking-widest">{rating.data?.total ?? 0} сэтгэгдэл</span>
+                      <span className="text-[10px] font-bold text-on-surface/45 font-headline uppercase tracking-widest">{rating.data?.total ?? 0} сэтгэгдэл</span>
                     </div>
                   </div>
 
                   {me.data.verification_status !== "verified" && verificationGuidance ? (
-                    <div className="rounded-2xl bg-white p-5 shadow-sm">
-                      <p className="text-sm font-semibold text-[#031636]">{verificationGuidance.title}</p>
-                      <p className="mt-2 text-xs text-[#44474e]">{verificationGuidance.text}</p>
+                    <div className="rounded-2xl bg-surface-container-lowest p-5 shadow-sm">
+                      <p className="text-sm font-semibold text-primary">{verificationGuidance.title}</p>
+                      <p className="mt-2 text-xs text-on-surface/70">{verificationGuidance.text}</p>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <Link href={verificationGuidance.href} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 text-[13px] font-semibold text-white">{verificationGuidance.cta}</Link>
-                        <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 text-[13px] font-semibold text-slate-700">Support</Link>
+                        <Link href={verificationGuidance.href} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-white">{verificationGuidance.cta}</Link>
+                        <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 text-[13px] font-semibold text-on-surface/75">Тусламж</Link>
                       </div>
                     </div>
                   ) : null}
 
                   {premiumMe.data && !premiumMe.data.is_premium ? (
-                    <div className="group relative overflow-hidden rounded-2xl bg-[#1a2b4c] p-6 text-white">
+                    <div className="group relative overflow-hidden rounded-2xl bg-primary-container p-6 text-white">
                       <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_20%_20%,white_1px,transparent_1px)] [background-size:10px_10px]" />
                       <h3 className="relative z-10 mb-2 text-sm font-bold">ITZuun Premium</h3>
-                      <p className="relative z-10 mb-6 text-xs text-[#c7d2e6]">Төслүүдэд түрүүлж санал өгөх болон шимтгэлийн хөнгөлөлт эдлээрэй.</p>
-                      <Link href={withLocale("/pro")} className="relative z-10 flex min-h-11 w-full items-center justify-center rounded-lg bg-white py-2 text-xs font-bold text-[#031636] transition-all hover:bg-[#13696a] hover:text-white">Шинэчлэх</Link>
+                      <p className="relative z-10 mb-6 text-xs text-primary-fixed">Төслүүдэд түрүүлж санал өгөх болон шимтгэлийн хөнгөлөлт эдлээрэй.</p>
+                      <Link href={withLocale("/pro")} className="relative z-10 flex min-h-11 w-full items-center justify-center rounded-lg bg-surface-container-lowest py-2 text-xs font-bold text-primary transition-all hover:bg-secondary hover:text-white">Шинэчлэх</Link>
                     </div>
                   ) : null}
 
-                  <div className="rounded-2xl bg-[#f2f4f6] p-6">
-                    <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-[#031636]">Сүүлийн үеийн гүйлгээ</h3>
+                  <div className="rounded-2xl bg-surface-container-low p-6">
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-primary">Сүүлийн үеийн гүйлгээ</h3>
                     <div className="space-y-4">
                       {latestTransactions.length ? latestTransactions.map((txn) => (
                         <div key={txn.id} className="flex items-center justify-between">
@@ -581,14 +659,14 @@ export default function FreelancerDashboardPage() {
                               <span className={`text-sm ${txn.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{txn.amount >= 0 ? "↗" : "↙"}</span>
                             </div>
                             <div>
-                              <p className="text-[11px] font-bold text-[#031636]">{txn.label}</p>
-                              <p className="text-[9px] text-slate-400">{txn.date}</p>
+                              <p className="text-[11px] font-bold text-primary">{txn.label}</p>
+                              <p className="text-[9px] text-on-surface/45">{txn.date}</p>
                             </div>
                           </div>
                           <span className={`text-xs font-bold ${txn.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{txn.amount >= 0 ? "+" : "-"}{formatMnt(Math.abs(txn.amount))}</span>
                         </div>
                       )) : (
-                        <p className="text-xs text-slate-500">Гүйлгээ хараахан бүртгэгдээгүй.</p>
+                        <p className="text-xs text-on-surface/60">Гүйлгээ хараахан бүртгэгдээгүй.</p>
                       )}
                     </div>
                   </div>
@@ -597,26 +675,26 @@ export default function FreelancerDashboardPage() {
             </div>
 
             {editingProposalId !== null && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 p-4 backdrop-blur-sm">
-                <div className="w-full max-w-[480px] rounded-2xl bg-white p-6 shadow-modal">
-                  <h3 className="text-lg font-semibold text-surface-900">{t("editProposal")}</h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 p-4 backdrop-blur-sm">
+                <div className="w-full max-w-[480px] rounded-2xl bg-surface-container-lowest p-6 shadow-modal">
+                  <h3 className="text-lg font-semibold text-on-surface">{t("editProposal")}</h3>
                   <form className="mt-4 space-y-3" onSubmit={editForm.handleSubmit((v) => updateProposalMutation.mutate(v))}>
-                    <label className="block text-[13px] font-medium text-surface-700">
+                    <label className="block text-[13px] font-medium text-on-surface/75">
                       {t("price")} (MNT)
                       <input type="number" {...editForm.register("price", { valueAsNumber: true })} className="mt-1" />
                     </label>
-                    <label className="block text-[13px] font-medium text-surface-700">
+                    <label className="block text-[13px] font-medium text-on-surface/75">
                       {t("timeline")} ({t("days")})
                       <input type="number" {...editForm.register("timeline_days", { valueAsNumber: true })} className="mt-1" />
                     </label>
-                    <label className="block text-[13px] font-medium text-surface-700">
+                    <label className="block text-[13px] font-medium text-on-surface/75">
                       {t("message")}
                       <textarea {...editForm.register("message")} rows={3} className="mt-1" />
                     </label>
                     <div className="flex gap-2 pt-2">
                       <button
                         type="button"
-                        className="min-h-11 flex-1 rounded-lg bg-surface-100 py-2 text-[13px] text-surface-700 hover:bg-surface-200"
+                        className="min-h-11 flex-1 rounded-lg bg-surface-container-low py-2 text-[13px] text-on-surface/75 hover:bg-surface-container"
                         onClick={() => setEditingProposalId(null)}
                       >
                         {t("cancel")}

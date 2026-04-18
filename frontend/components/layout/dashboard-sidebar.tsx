@@ -33,6 +33,12 @@ function normalizeDashboardPath(pathname: string): string {
     : normalized;
 }
 
+function normalizedLocalePrefix(pathname: string): string {
+  const normalized = pathname.replace(/^\/proxy\/\d+(?=\/|$)/, "");
+  const parts = normalized.split("/").filter(Boolean);
+  return parts[0] === "mn" || parts[0] === "en" ? `/${parts[0]}` : "";
+}
+
 function isActive(pathname: string, item: NavItem): boolean {
   return item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
@@ -86,7 +92,7 @@ const navByRole: Record<DashboardRole, NavItem[]> = {
     { href: "/client", label: "Нүүр", icon: "dashboard", exact: true },
     { href: "/freelancers", label: "Фрилансер хайх", icon: "search" },
     { href: "/client/projects", label: "Миний төслүүд", icon: "folder" },
-    { href: "/projects", label: "Санал хүлээх", icon: "proposal" },
+    { href: "/client/proposals", label: "Ирсэн саналууд", icon: "proposal" },
     { href: "/messages", label: "Мессеж", icon: "chat" },
     { href: "/notifications", label: "Мэдэгдэл", icon: "notifications" },
     { href: "/client/escrow", label: "Санхүү", icon: "wallet" },
@@ -103,11 +109,11 @@ const navByRole: Record<DashboardRole, NavItem[]> = {
     { href: "/freelancer/settings", label: "Тохиргоо", icon: "settings" },
   ],
   admin: [
-    { href: "/admin", label: "Control Room", icon: "dashboard", exact: true },
-    { href: "/admin/users", label: "Users", icon: "users" },
-    { href: "/admin/projects", label: "Projects", icon: "folder" },
-    { href: "/admin/disputes", label: "Disputes", icon: "shield" },
-    { href: "/admin/escrow", label: "Escrow", icon: "wallet" },
+    { href: "/admin", label: "Хяналтын төв", icon: "dashboard", exact: true },
+    { href: "/admin/users", label: "Хэрэглэгчид", icon: "users" },
+    { href: "/admin/projects", label: "Төслүүд", icon: "folder" },
+    { href: "/admin/disputes", label: "Маргаан", icon: "shield" },
+    { href: "/admin/escrow", label: "Эскроу", icon: "wallet" },
   ],
 };
 
@@ -123,25 +129,25 @@ const roleMeta: Record<
   }
 > = {
   client: {
-    kicker: "Enterprise Tier",
-    title: "Project Console",
-    ctaLabel: "Create New Brief",
+    kicker: "Захиалагч",
+    title: "Төслийн самбар",
+    ctaLabel: "Шинэ төсөл үүсгэх",
     ctaHref: "/client/projects/new",
     helperTitle: "Тусламж хэрэгтэй юу?",
     helperBody: "Манай зөвлөхүүдтэй шууд холбогдож төсөл, escrow, rollout-аа хурдан шийд.",
   },
   freelancer: {
-    kicker: "Professional Desk",
-    title: "Talent Console",
-    ctaLabel: "Төсөл хайх",
+    kicker: "Фрилансер",
+    title: "Ажлын самбар",
+    ctaLabel: "Ажил хайх",
     ctaHref: "/projects",
     helperTitle: "Pipeline-аа өсгө",
     helperBody: "Шилдэг саналуудыг өдөр бүр хянаж, verification-аа сайжруулж орлогоо тогтвортой өсгө.",
   },
   admin: {
-    kicker: "Operations Layer",
-    title: "Command Deck",
-    ctaLabel: "Users Review",
+    kicker: "Админ",
+    title: "Удирдлагын төв",
+    ctaLabel: "Users харах",
     ctaHref: "/admin/users",
     helperTitle: "Ops Pulse",
     helperBody: "Audit, disputes, escrow action-уудаа нэг төвөөс удирдах зориулалттай консол.",
@@ -159,6 +165,7 @@ export function RoleSidebar({
 }) {
   const pathname = usePathname() || "/";
   const current = normalizeDashboardPath(pathname);
+  const localePrefix = normalizedLocalePrefix(pathname);
   const meta = roleMeta[role];
   const items = navByRole[role];
 
@@ -181,7 +188,7 @@ export function RoleSidebar({
         </div>
 
         <Link
-          href={meta.ctaHref}
+          href={`${localePrefix}${meta.ctaHref}`}
           onClick={onNavigate}
           className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-fixed shadow-[0_18px_38px_rgba(3,22,54,0.18)] transition-transform duration-200 hover:-translate-y-0.5"
         >
@@ -196,7 +203,7 @@ export function RoleSidebar({
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={`${localePrefix}${item.href}`}
               onClick={onNavigate}
               className={[
                 "group flex min-h-[52px] items-center gap-3 rounded-2xl px-4 py-3 text-[13px] font-medium transition-all duration-200",
@@ -226,13 +233,13 @@ export function RoleSidebar({
           </div>
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary/60">{meta.helperTitle}</p>
           <p className="mt-2 text-sm leading-6 text-on-surface/68">{meta.helperBody}</p>
-          <button
-            type="button"
+          <Link
+            href={`${localePrefix}/support`}
             className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-2xl bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-primary shadow-[0_10px_24px_rgba(3,22,54,0.06)]"
           >
-            <span>Contact Support</span>
+            <span>Тусламж авах</span>
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true"><path fill="currentColor" d="M12.3 5.3 11 6.6l3.2 3.2H4v1.9h10.2L11 14.9l1.3 1.3 5.4-5.4-5.4-5.5Z" /></svg>
-          </button>
+          </Link>
         </div>
       </div>
     </aside>
