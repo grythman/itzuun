@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -42,7 +43,10 @@ export default function HomePage() {
 
             <div className="relative h-[520px] lg:col-span-5 lg:h-[600px]">
               <div className="absolute inset-0 scale-105 rotate-3 rounded-3xl bg-secondary/5" />
-              <img
+              <Image
+                fill
+                unoptimized
+                sizes="(min-width: 1024px) 35vw, 100vw"
                 className="relative z-10 h-full w-full rounded-3xl object-cover shadow-[0_20px_50px_rgba(3,22,54,0.1)]"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOT2zxw3JU8x2NoyJTfp6ypWiZE2vvWToLlMhfTwFXzTrQdq9Mgv1Pv19HleG_DfyvbepvSjp2hd19b5QJegn2titT_3DildMpk109034vpFMbwRPOgez_k5rS3FCOeLSagV-uZRtOwJqcER84HPV8iQAFCCOaPsPw2u17xe_kSq83jSHF-MP4_0liYUVKf86f3Im8l_Cu80aXEzmSNR9p_4tQmkolEBg1K366KodzLcM8yZ1m_3flr9ZZFGueFwPvJEonix68qWw"
                 alt="Modern architectural office"
@@ -197,7 +201,10 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="relative flex-1">
-              <img
+              <Image
+                unoptimized
+                width={960}
+                height={640}
                 className="relative z-10 rounded-2xl shadow-2xl"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfcAiw6tU-cbRJpatGcubv-BuDeFAlPIPia8__yYL8TlMEgMGqFmhsQYREUPtNImFColMuRPyLYakoRrwkVAd7ma4ppVBjexCbBQk4kJ6c7NzbgxT3Tb-Ft-nRa4hqREb8gNY1q0_T-sa7Mz39Jjb5wptIQl8Dqwx62DpXK4pagtRislm9rmdHo0IossrRkRN1oqXq4nm7zbjR59k1L5UocL-CpAkgmb8higlir-0nzn8z1XoIlmnUaFnb25rTmYEIqdIW8gxSTIo"
                 alt="Escrow finance workspace"
