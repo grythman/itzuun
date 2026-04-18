@@ -69,6 +69,8 @@ export default function AdminEscrowPage() {
   if (escrowQuery.isError || auditQuery.isError) return <ErrorState label={t("loadError")} />;
 
   const records = toArray<EscrowItem>(escrowQuery.data as any);
+  const totalPendingAmount = records.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const createdCount = records.filter((item) => item.status === "created").length;
   const audits = toArray<AuditItem>(auditQuery.data as any).filter((item) => {
     if (!auditDate) return true;
     return (item.created_at || "").slice(0, 10) >= auditDate;
@@ -88,6 +90,21 @@ export default function AdminEscrowPage() {
           <p className="mt-2 text-sm text-on-surface/65">
             Pending approval: {records.length}. Санхүүгийн урсгал audit-тайгаа хамт харагдана.
           </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Pending records</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{records.length}</p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Created status</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{createdCount}</p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Amount at hold</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{totalPendingAmount.toLocaleString()} ₮</p>
+          </div>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-5">

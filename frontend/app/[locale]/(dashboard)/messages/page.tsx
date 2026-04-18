@@ -46,6 +46,10 @@ function formatMessageTime(value: string) {
   return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function roleLabel(role: Thread["role"]) {
+  return role === "client" ? "Захиалагч" : "Фрилансер";
+}
+
 export default function MessagesPage() {
   const queryClient = useQueryClient();
   const pathname = usePathname();
@@ -102,6 +106,16 @@ export default function MessagesPage() {
     });
   }, [threads, search]);
 
+  const unreadThreads = useMemo(
+    () => threads.filter((thread) => thread.unread > 0).length,
+    [threads],
+  );
+
+  const totalUnreadMessages = useMemo(
+    () => threads.reduce((sum, thread) => sum + thread.unread, 0),
+    [threads],
+  );
+
   const activeThread = useMemo(
     () => threads.find((thread) => thread.id === activeThreadId) || null,
     [threads, activeThreadId],
@@ -154,7 +168,34 @@ export default function MessagesPage() {
   return (
     <section className="pb-10">
       <div className="ui-surface p-3 sm:p-4 lg:p-5">
-        <div className="grid min-h-[calc(100vh-220px)] gap-3 lg:grid-cols-[330px_minmax(0,1fr)]">
+        <div className="mb-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-2xl bg-surface-container-low p-3.5">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45">
+              Нийт thread
+            </p>
+            <p className="mt-2 font-headline text-3xl font-black leading-none tracking-tight text-primary">
+              {threads.length}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-3.5">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45">
+              Уншаагүй thread
+            </p>
+            <p className="mt-2 font-headline text-3xl font-black leading-none tracking-tight text-primary">
+              {unreadThreads}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-3.5">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-on-surface/45">
+              Уншаагүй мессеж
+            </p>
+            <p className="mt-2 font-headline text-3xl font-black leading-none tracking-tight text-primary">
+              {totalUnreadMessages}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid min-h-[calc(100vh-220px)] gap-3 xl:grid-cols-[360px_minmax(0,1fr)]">
           <aside className="ui-surface-soft flex min-h-[320px] flex-col p-3 sm:p-4">
             <div className="rounded-2xl bg-surface-container-low px-4 py-4">
               <p className="ui-eyebrow">Communication</p>
@@ -241,6 +282,9 @@ export default function MessagesPage() {
                           <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/40">
                             {thread.title}
                           </p>
+                          <p className="mt-1 inline-flex rounded-full bg-surface-container px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.16em] text-on-surface/55">
+                            {roleLabel(thread.role)}
+                          </p>
                         </div>
                         {thread.unread > 0 && (
                           <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-[10px] font-black text-white">
@@ -267,11 +311,20 @@ export default function MessagesPage() {
                       <div>
                         <p className="text-base font-black text-primary">{activeThread.name}</p>
                         <p className="text-xs font-medium text-on-surface/55">{activeThread.title}</p>
+                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">
+                          {roleLabel(activeThread.role)}
+                          {activeThread.unread > 0 ? ` · ${activeThread.unread} шинэ` : ""}
+                        </p>
                       </div>
                     </div>
-                    <Link href={withLocale(`/projects/${activeThread.id}`)} className="ui-btn-ghost">
-                      Төсөл рүү очих
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => messagesQuery.refetch()} className="ui-btn-ghost">
+                        Шинэчлэх
+                      </button>
+                      <Link href={withLocale(`/projects/${activeThread.id}`)} className="ui-btn-ghost">
+                        Төсөл рүү очих
+                      </Link>
+                    </div>
                   </div>
                 </div>
 
@@ -353,6 +406,10 @@ export default function MessagesPage() {
                       </svg>
                     </button>
                   </div>
+                  <div className="mt-2 flex items-center justify-between px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">
+                    <span>Enter дарж илгээнэ</span>
+                    {sendMutation.isPending && <span className="text-secondary">Илгээж байна...</span>}
+                  </div>
                 </div>
               </>
             ) : (
@@ -362,6 +419,9 @@ export default function MessagesPage() {
                   <p className="mt-2 text-sm text-on-surface/60">
                     Төсөл дээрээ үргэлжлүүлэн ажиллахын тулд зүүн талын thread-ээс сонгоно уу.
                   </p>
+                  <Link href={withLocale("/projects")} className="mt-4 ui-btn-ghost">
+                    Төсөл үзэх
+                  </Link>
                 </div>
               </div>
             )}

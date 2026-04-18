@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
@@ -23,6 +24,8 @@ export default function AdminUsersPage() {
   const admin = useAdminSnapshot();
   const queryClient = useQueryClient();
   const pushToast = useToastStore((s) => s.push);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "verified" | "suspended">("all");
+  const [search, setSearch] = useState("");
 
   const unsuspendMutation = useMutation({
     mutationFn: ({ userId, reason }: { userId: number | string; reason?: string }) =>
@@ -36,12 +39,27 @@ export default function AdminUsersPage() {
     },
   });
 
+  const users = toArray<any>(admin.users.data as any);
+  const suspendedCount = users.filter((item) => item.verification_status === "suspended").length;
+  const pendingCount = users.filter((item) => item.verification_status === "pending").length;
+  const verifiedCount = users.filter((item) => item.verification_status === "verified").length;
+
+  const filteredUsers = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    return users.filter((item) => {
+      if (statusFilter !== "all" && (item.verification_status || "unverified") !== statusFilter) {
+        return false;
+      }
+      if (!keyword) return true;
+      const email = String(item.email || "").toLowerCase();
+      const role = String(item.role || "").toLowerCase();
+      return email.includes(keyword) || role.includes(keyword);
+    });
+  }, [users, search, statusFilter]);
+
   if (me.isLoading || admin.users.isLoading) return <LoadingState label={t("loading")} />;
   if (me.isError || !me.data) return <ErrorState label={t("signinRequired")} />;
   if (admin.users.isError) return <ErrorState label={t("loadError")} />;
-
-  const users = toArray<any>(admin.users.data as any);
-  const suspendedCount = users.filter((item) => item.verification_status === "suspended").length;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
@@ -54,11 +72,65 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
+        <div className="grid gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Нийт</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{users.length}</p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Pending</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{pendingCount}</p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Verified</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{verifiedCount}</p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Suspended</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{suspendedCount}</p>
+          </div>
+        </div>
+
         <AppCard className="space-y-3">
-          {!users.length ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { key: "all", label: "Бүгд" },
+              { key: "pending", label: "Pending" },
+              { key: "verified", label: "Verified" },
+              { key: "suspended", label: "Suspended" },
+            ].map((filter) => {
+              const active = statusFilter === filter.key;
+              return (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => setStatusFilter(filter.key as typeof statusFilter)}
+                  className={[
+                    "inline-flex min-h-10 items-center rounded-xl px-4 text-xs font-black uppercase tracking-[0.14em] transition-all",
+                    active
+                      ? "bg-primary text-primary-fixed shadow-[0_10px_24px_rgba(3,22,54,0.14)]"
+                      : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
+                  ].join(" ")}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+            <div className="ml-auto min-w-[220px] rounded-xl bg-surface-container-low px-3 py-2">
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Имэйл эсвэл role..."
+                className="w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface/45 focus:ring-0"
+              />
+            </div>
+          </div>
+
+          {!filteredUsers.length ? (
             <EmptyState label={t("empty")} />
           ) : (
-            users.slice(0, 40).map((item: any) => (
+            filteredUsers.slice(0, 50).map((item: any) => (
               <article key={item.id} className="rounded-xl bg-surface-container-low p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

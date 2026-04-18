@@ -74,6 +74,9 @@ export default function AdminDisputesPage() {
   if (disputesQuery.isError || auditQuery.isError) return <ErrorState label={t("loadError")} />;
 
   const disputes = toArray<DisputeItem>(disputesQuery.data as any);
+  const openDisputes = disputes.filter((item) => !item.resolved_at);
+  const resolvedDisputes = disputes.filter((item) => !!item.resolved_at);
+  const totalEscrowAtRisk = openDisputes.reduce((sum, item) => sum + Number(item.escrow_amount || 0), 0);
   const audits = toArray<AuditItem>(auditQuery.data as any).filter((item) => {
     if (!auditDate) return true;
     return (item.created_at || "").slice(0, 10) >= auditDate;
@@ -145,115 +148,132 @@ export default function AdminDisputesPage() {
           </p>
         </div>
 
-        <AppCard>
-          <h2 className="mb-4 text-sm font-semibold text-surface-800">{t("unresolvedTitle")}</h2>
-          {!disputes.length ? (
-            <EmptyState label={t("empty")} />
-          ) : (
-            <ul className="space-y-3">
-              {disputes.slice(0, 20).map((item) => {
-                const state = getState(item.id);
-                return (
-                  <li key={item.id} className="space-y-4 rounded-xl bg-surface-container-low p-4 text-[13px]">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="font-semibold text-primary">{t("dispute")} #{item.id}</p>
-                      <StatusPill label={item.resolved_at ? t("resolved") : t("open")} tone={item.resolved_at ? "success" : "warning"} />
-                    </div>
-                    <p className="text-on-surface/65">{t("project")}: #{item.project}</p>
-                    <p className="text-on-surface/65">{t("escrowAmount")}: {Number(item.escrow_amount || 0).toLocaleString()} MNT</p>
-                    <p className="text-on-surface/65">{t("reason")}: {item.reason || "-"}</p>
-
-                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-                      <select
-                        className="rounded-xl bg-surface-container-lowest px-3 py-2 text-sm"
-                        value={state.action}
-                        onChange={(event) => patchState(item.id, { action: event.target.value as "release" | "refund" | "split" })}
-                      >
-                        <option value="release">{t("actionRelease")}</option>
-                        <option value="refund">{t("actionRefund")}</option>
-                        <option value="split">{t("actionSplit")}</option>
-                      </select>
-
-                      <input
-                        className="rounded-xl bg-surface-container-lowest px-3 py-2 text-sm"
-                        type="number"
-                        min={0}
-                        disabled={state.action !== "split"}
-                        value={state.release}
-                        onChange={(event) => patchState(item.id, { release: event.target.value })}
-                        placeholder={t("releaseAmount")}
-                      />
-
-                      <input
-                        className="rounded-xl bg-surface-container-lowest px-3 py-2 text-sm"
-                        type="number"
-                        min={0}
-                        disabled={state.action !== "split"}
-                        value={state.refund}
-                        onChange={(event) => patchState(item.id, { refund: event.target.value })}
-                        placeholder={t("refundAmount")}
-                      />
-
-                      <ActionButton
-                        className="rounded-xl px-4 py-2 text-sm whitespace-nowrap"
-                        loading={resolveMutation.isPending}
-                        onClick={() => submitResolve(item)}
-                      >
-                        {t("resolve")}
-                      </ActionButton>
-                    </div>
-
-                    <textarea
-                      className="w-full rounded-xl bg-surface-container-lowest px-3 py-2 text-[13px]"
-                      rows={3}
-                      value={state.note}
-                      onChange={(event) => patchState(item.id, { note: event.target.value })}
-                      placeholder={t("notePlaceholder")}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </AppCard>
-
-        <AppCard>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-surface-800">{t("recentAuditTitle")}</h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <select
-                className="rounded-xl bg-surface-container-low px-3 py-2 text-xs"
-                value={auditAction}
-                onChange={(event) => setAuditAction(event.target.value)}
-              >
-                <option value="">{t("auditActionAll")}</option>
-                <option value="release">{t("auditActionRelease")}</option>
-                <option value="refund">{t("auditActionRefund")}</option>
-                <option value="dispute">{t("auditActionDispute")}</option>
-              </select>
-              <input
-                type="date"
-                className="rounded-xl bg-surface-container-low px-3 py-2 text-xs"
-                value={auditDate}
-                onChange={(event) => setAuditDate(event.target.value)}
-              />
-            </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Open disputes</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{openDisputes.length}</p>
           </div>
-          {!audits.length ? (
-            <EmptyState label={t("auditEmpty")} />
-          ) : (
-            <ul className="space-y-2 max-h-80 overflow-y-auto">
-              {audits.slice(0, 15).map((log) => (
-                <li key={log.id} className="rounded-xl bg-surface-container-low p-3 text-[12px] text-on-surface/65">
-                  <p className="font-semibold text-primary">
-                    {log.action_type} / {log.entity_type} #{log.entity_id}
-                  </p>
-                  <p>{log.reason || "-"}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </AppCard>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Resolved</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{resolvedDisputes.length}</p>
+          </div>
+          <div className="rounded-2xl bg-surface-container-low p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Escrow at risk</p>
+            <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{totalEscrowAtRisk.toLocaleString()} ₮</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <AppCard>
+            <h2 className="mb-4 text-sm font-semibold text-surface-800">{t("unresolvedTitle")}</h2>
+            {!disputes.length ? (
+              <EmptyState label={t("empty")} />
+            ) : (
+              <ul className="space-y-3">
+                {disputes.slice(0, 20).map((item) => {
+                  const state = getState(item.id);
+                  return (
+                    <li key={item.id} className="space-y-4 rounded-xl bg-surface-container-low p-4 text-[13px]">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-semibold text-primary">{t("dispute")} #{item.id}</p>
+                        <StatusPill label={item.resolved_at ? t("resolved") : t("open")} tone={item.resolved_at ? "success" : "warning"} />
+                      </div>
+                      <p className="text-on-surface/65">{t("project")}: #{item.project}</p>
+                      <p className="text-on-surface/65">{t("escrowAmount")}: {Number(item.escrow_amount || 0).toLocaleString()} MNT</p>
+                      <p className="text-on-surface/65">{t("reason")}: {item.reason || "-"}</p>
+
+                      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+                        <select
+                          className="rounded-xl bg-surface-container-lowest px-3 py-2 text-sm"
+                          value={state.action}
+                          onChange={(event) => patchState(item.id, { action: event.target.value as "release" | "refund" | "split" })}
+                        >
+                          <option value="release">{t("actionRelease")}</option>
+                          <option value="refund">{t("actionRefund")}</option>
+                          <option value="split">{t("actionSplit")}</option>
+                        </select>
+
+                        <input
+                          className="rounded-xl bg-surface-container-lowest px-3 py-2 text-sm"
+                          type="number"
+                          min={0}
+                          disabled={state.action !== "split"}
+                          value={state.release}
+                          onChange={(event) => patchState(item.id, { release: event.target.value })}
+                          placeholder={t("releaseAmount")}
+                        />
+
+                        <input
+                          className="rounded-xl bg-surface-container-lowest px-3 py-2 text-sm"
+                          type="number"
+                          min={0}
+                          disabled={state.action !== "split"}
+                          value={state.refund}
+                          onChange={(event) => patchState(item.id, { refund: event.target.value })}
+                          placeholder={t("refundAmount")}
+                        />
+
+                        <ActionButton
+                          className="rounded-xl px-4 py-2 text-sm whitespace-nowrap"
+                          loading={resolveMutation.isPending}
+                          onClick={() => submitResolve(item)}
+                        >
+                          {t("resolve")}
+                        </ActionButton>
+                      </div>
+
+                      <textarea
+                        className="w-full rounded-xl bg-surface-container-lowest px-3 py-2 text-[13px]"
+                        rows={3}
+                        value={state.note}
+                        onChange={(event) => patchState(item.id, { note: event.target.value })}
+                        placeholder={t("notePlaceholder")}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </AppCard>
+
+          <AppCard className="h-fit">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-surface-800">{t("recentAuditTitle")}</h2>
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  className="rounded-xl bg-surface-container-low px-3 py-2 text-xs"
+                  value={auditAction}
+                  onChange={(event) => setAuditAction(event.target.value)}
+                >
+                  <option value="">{t("auditActionAll")}</option>
+                  <option value="release">{t("auditActionRelease")}</option>
+                  <option value="refund">{t("auditActionRefund")}</option>
+                  <option value="dispute">{t("auditActionDispute")}</option>
+                </select>
+                <input
+                  type="date"
+                  className="rounded-xl bg-surface-container-low px-3 py-2 text-xs"
+                  value={auditDate}
+                  onChange={(event) => setAuditDate(event.target.value)}
+                />
+              </div>
+            </div>
+            {!audits.length ? (
+              <EmptyState label={t("auditEmpty")} />
+            ) : (
+              <ul className="space-y-2 max-h-80 overflow-y-auto">
+                {audits.slice(0, 15).map((log) => (
+                  <li key={log.id} className="rounded-xl bg-surface-container-low p-3 text-[12px] text-on-surface/65">
+                    <p className="font-semibold text-primary">
+                      {log.action_type} / {log.entity_type} #{log.entity_id}
+                    </p>
+                    <p>{log.reason || "-"}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AppCard>
+        </div>
       </section>
     </RoleGuard>
   );

@@ -175,6 +175,10 @@ export default function NotificationsPage() {
   });
 
   const unreadCount = items.filter((item) => !item.read).length;
+  const unreadProjects = items.filter((item) => !item.read && (item.kind === "project" || item.kind === "proposal")).length;
+  const unreadPayments = items.filter((item) => !item.read && item.kind === "payment").length;
+  const unreadSystem = items.filter((item) => !item.read && item.kind === "system").length;
+  const latestEventLabel = items[0]?.timeLabel || "Шинэ мэдэгдэлгүй";
 
   const groups = [
     { label: "Шинэ", bucket: "today" as const, items: filteredItems.filter((item) => item.dayBucket === "today") },
@@ -212,127 +216,173 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-          {FILTER_TABS.map((tab) => {
-            const active = tab.key === filter;
-            const count =
-              tab.key === "all"
-                ? unreadCount
-                : items.filter((item) => {
-                    if (tab.key === "projects") return !item.read && (item.kind === "project" || item.kind === "proposal");
-                    if (tab.key === "payments") return !item.read && item.kind === "payment";
-                    if (tab.key === "system") return !item.read && item.kind === "system";
-                    return false;
-                  }).length;
+        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_290px]">
+          <div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {FILTER_TABS.map((tab) => {
+                const active = tab.key === filter;
+                const count =
+                  tab.key === "all"
+                    ? unreadCount
+                    : items.filter((item) => {
+                        if (tab.key === "projects") return !item.read && (item.kind === "project" || item.kind === "proposal");
+                        if (tab.key === "payments") return !item.read && item.kind === "payment";
+                        if (tab.key === "system") return !item.read && item.kind === "system";
+                        return false;
+                      }).length;
 
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setFilter(tab.key)}
-                className={[
-                  "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-[11px] font-black uppercase tracking-[0.16em] transition-all",
-                  active
-                    ? "bg-primary text-primary-fixed shadow-[0_12px_24px_rgba(3,22,54,0.18)]"
-                    : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
-                ].join(" ")}
-              >
-                <span>{tab.label}</span>
-                {count > 0 && (
-                  <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${active ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {notifQuery.isLoading && <LoadingState label="Мэдэгдэл ачааллаж байна..." />}
-
-        {notifQuery.isError && (
-          <div className="mt-4 rounded-2xl bg-surface-container-low p-5 text-center">
-            <p className="text-sm font-semibold text-primary">Мэдэгдлийн мэдээлэл дуудаж чадсангүй.</p>
-            <button type="button" onClick={() => notifQuery.refetch()} className="mt-3 ui-btn-ghost">
-              Дахин оролдох
-            </button>
-          </div>
-        )}
-
-        {!notifQuery.isLoading && !notifQuery.isError && groups.length === 0 && (
-          <div className="mt-4 rounded-2xl bg-surface-container-low p-12 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-lowest text-on-surface/35 shadow-[0_12px_24px_rgba(3,22,54,0.06)]">
-              <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor" aria-hidden>
-                <path d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z" />
-              </svg>
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setFilter(tab.key)}
+                    className={[
+                      "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-[11px] font-black uppercase tracking-[0.16em] transition-all",
+                      active
+                        ? "bg-primary text-primary-fixed shadow-[0_12px_24px_rgba(3,22,54,0.18)]"
+                        : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
+                    ].join(" ")}
+                  >
+                    <span>{tab.label}</span>
+                    {count > 0 && (
+                      <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${active ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-            <p className="mt-5 text-lg font-black text-primary">Мэдэгдэл алга байна</p>
-            <p className="mt-2 text-sm text-on-surface/60">Шинэ үйл явдал гарахад энд автоматаар нэмэгдэнэ.</p>
-            <Link href={withLocale("/projects")} className="mt-5 ui-btn-secondary">
-              Төсөл үзэх
-            </Link>
-          </div>
-        )}
 
-        {!notifQuery.isLoading && !notifQuery.isError && groups.length > 0 && (
-          <div className="mt-4 space-y-5">
-            {groups.map((group) => (
-              <div key={group.bucket} className="rounded-2xl bg-surface-container-low p-3 sm:p-4">
-                <p className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/45">{group.label}</p>
-                <div className="space-y-2">
-                  {group.items.map((item) => (
-                    <article
-                      key={item.id}
-                      className={[
-                        "w-full rounded-xl px-4 py-4 text-left transition-all",
-                        item.read
-                          ? "bg-surface-container-lowest"
-                          : "bg-primary-fixed/30 shadow-[0_12px_24px_rgba(3,22,54,0.08)]",
-                      ].join(" ")}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className={`mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${kindColor(item.kind)}`}>
-                          <NotifIcon kind={item.kind} />
-                        </span>
+            {notifQuery.isLoading && <LoadingState label="Мэдэгдэл ачааллаж байна..." />}
 
-                        <span className="min-w-0 flex-1">
-                          <span className="flex flex-wrap items-start justify-between gap-2">
-                            <span className="text-sm font-bold leading-tight text-primary">
-                              {item.title}
-                              {!item.read && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-secondary align-middle" />}
-                            </span>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">{item.timeLabel}</span>
-                          </span>
-                          <span className="mt-1 block text-sm font-medium leading-relaxed text-on-surface/68">{item.body}</span>
-                          {!item.read && (
-                            <button
-                              type="button"
-                              onClick={() => markOneMutation.mutate(item.id)}
-                              className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.16em] text-primary underline underline-offset-4"
-                            >
-                              Уншсан болгох
-                            </button>
-                          )}
-                          {item.action && (
-                            <Link
-                              href={withLocale(item.action.href)}
-                              className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-secondary underline underline-offset-4"
-                            >
-                              {item.action.label}
-                              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                                <path d="M5 12h14M13 5l7 7-7 7" />
-                              </svg>
-                            </Link>
-                          )}
-                        </span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+            {notifQuery.isError && (
+              <div className="mt-4 rounded-2xl bg-surface-container-low p-5 text-center">
+                <p className="text-sm font-semibold text-primary">Мэдэгдлийн мэдээлэл дуудаж чадсангүй.</p>
+                <button type="button" onClick={() => notifQuery.refetch()} className="mt-3 ui-btn-ghost">
+                  Дахин оролдох
+                </button>
               </div>
-            ))}
+            )}
+
+            {!notifQuery.isLoading && !notifQuery.isError && groups.length === 0 && (
+              <div className="mt-4 rounded-2xl bg-surface-container-low p-12 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-lowest text-on-surface/35 shadow-[0_12px_24px_rgba(3,22,54,0.06)]">
+                  <svg viewBox="0 0 24 24" className="h-8 w-8" fill="currentColor" aria-hidden>
+                    <path d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z" />
+                  </svg>
+                </div>
+                <p className="mt-5 text-lg font-black text-primary">Мэдэгдэл алга байна</p>
+                <p className="mt-2 text-sm text-on-surface/60">Шинэ үйл явдал гарахад энд автоматаар нэмэгдэнэ.</p>
+                <Link href={withLocale("/projects")} className="mt-5 ui-btn-secondary">
+                  Төсөл үзэх
+                </Link>
+              </div>
+            )}
+
+            {!notifQuery.isLoading && !notifQuery.isError && groups.length > 0 && (
+              <div className="mt-4 space-y-5">
+                {groups.map((group) => (
+                  <div key={group.bucket} className="rounded-2xl bg-surface-container-low p-3 sm:p-4">
+                    <p className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface/45">{group.label}</p>
+                    <div className="space-y-2">
+                      {group.items.map((item) => (
+                        <article
+                          key={item.id}
+                          className={[
+                            "w-full rounded-xl px-4 py-4 text-left transition-all",
+                            item.read
+                              ? "bg-surface-container-lowest"
+                              : "bg-primary-fixed/30 shadow-[0_12px_24px_rgba(3,22,54,0.08)]",
+                          ].join(" ")}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${kindColor(item.kind)}`}>
+                              <NotifIcon kind={item.kind} />
+                            </span>
+
+                            <span className="min-w-0 flex-1">
+                              <span className="flex flex-wrap items-start justify-between gap-2">
+                                <span className="text-sm font-bold leading-tight text-primary">
+                                  {item.title}
+                                  {!item.read && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-secondary align-middle" />}
+                                </span>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">{item.timeLabel}</span>
+                              </span>
+                              <span className="mt-1 block text-sm font-medium leading-relaxed text-on-surface/68">{item.body}</span>
+                              {!item.read && (
+                                <button
+                                  type="button"
+                                  onClick={() => markOneMutation.mutate(item.id)}
+                                  className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.16em] text-primary underline underline-offset-4"
+                                >
+                                  Уншсан болгох
+                                </button>
+                              )}
+                              {item.action && (
+                                <Link
+                                  href={withLocale(item.action.href)}
+                                  className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-secondary underline underline-offset-4"
+                                >
+                                  {item.action.label}
+                                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                                    <path d="M5 12h14M13 5l7 7-7 7" />
+                                  </svg>
+                                </Link>
+                              )}
+                            </span>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          <aside className="ui-surface-soft h-fit p-4">
+            <p className="ui-eyebrow">Insights</p>
+            <h2 className="mt-2 font-headline text-[1.35rem] font-black tracking-tight text-primary">
+              Шуурхай тойм
+            </h2>
+            <p className="mt-2 text-xs font-medium text-on-surface/60">
+              Сүүлд шинэчлэгдсэн: {latestEventLabel}
+            </p>
+
+            <div className="mt-4 space-y-2">
+              <div className="rounded-xl bg-surface-container-low px-3 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Төсөл / санал</p>
+                <p className="mt-1 text-2xl font-black tracking-tight text-primary">{unreadProjects}</p>
+              </div>
+              <div className="rounded-xl bg-surface-container-low px-3 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Төлбөр / escrow</p>
+                <p className="mt-1 text-2xl font-black tracking-tight text-primary">{unreadPayments}</p>
+              </div>
+              <div className="rounded-xl bg-surface-container-low px-3 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Систем</p>
+                <p className="mt-1 text-2xl font-black tracking-tight text-primary">{unreadSystem}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl bg-surface-container-low p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">
+                Дараагийн алхам
+              </p>
+              <div className="mt-3 flex flex-col gap-2">
+                <Link href={withLocale("/messages")} className="ui-btn-ghost">
+                  Мессеж рүү очих
+                </Link>
+                <Link href={withLocale("/projects")} className="ui-btn-ghost">
+                  Төсөл шалгах
+                </Link>
+                <Link href={withLocale("/support")} className="ui-btn-ghost">
+                  Тусламж
+                </Link>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
   );
