@@ -6,7 +6,8 @@ import { useTranslations } from "next-intl";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
-import { AppCard } from "@/components/ui";
+import { AppCard, StatusPill } from "@/components/ui";
+import { toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe } from "@/lib/hooks";
 
 export default function AdminProjectsPage() {
@@ -23,21 +24,35 @@ export default function AdminProjectsPage() {
   if (me.isError || !me.data) return <ErrorState label={t("signinRequired")} />;
   if (admin.projects.isError) return <ErrorState label={t("loadError")} />;
 
-  const projects = Array.isArray(admin.projects.data) ? admin.projects.data : [];
+  const projects = toArray<any>(admin.projects.data as any);
+  const openCount = projects.filter((item) => (item.status || "").toLowerCase().includes("open")).length;
+  const activeCount = projects.filter((item) => (item.status || "").toLowerCase().includes("progress")).length;
 
   return (
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
-      <section className="space-y-5">
-        <h1 className="font-headline text-3xl font-extrabold text-surface-900">{t("title")}</h1>
+      <section className="space-y-5 pb-10">
+        <div className="ui-surface p-5">
+          <p className="ui-eyebrow">Project Oversight</p>
+          <h1 className="mt-2 font-headline text-[2rem] font-black tracking-tight text-primary">{t("title")}</h1>
+          <p className="mt-2 text-sm text-on-surface/65">
+            Нийт {projects.length} төсөл байна. Open: {openCount}, In progress: {activeCount}.
+          </p>
+        </div>
+
         <AppCard>
           {!projects.length ? (
             <EmptyState label={t("empty")} />
           ) : (
             <ul className="space-y-2">
-              {projects.slice(0, 20).map((item: any) => (
-                <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
-                  <p className="font-semibold text-surface-900">{item.title}</p>
-                  <p className="text-surface-500">{t("status")}: {item.status}</p>
+              {projects.slice(0, 40).map((item: any) => (
+                <li key={item.id} className="rounded-xl bg-surface-container-low p-4 text-[13px]">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold text-primary">{item.title || `Project #${item.id}`}</p>
+                    <StatusPill label={item.status || "unknown"} tone="neutral" />
+                  </div>
+                  <p className="mt-2 text-on-surface/60">
+                    {t("status")}: {item.status || "-"} · ID: {item.id}
+                  </p>
                 </li>
               ))}
             </ul>

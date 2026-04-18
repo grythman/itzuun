@@ -112,26 +112,26 @@ export default function AdminPage() {
             
             {/* KPI Metrics */}
             <div className="grid gap-3 md:grid-cols-4">
-              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+              <div className="ui-surface p-4">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Нийт хэрэглэгч</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">{users.data ? userItems.length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">
                   {users.data ? userItems.filter((u) => u.is_verified).length : 0} Баталгаажсан
                 </p>
               </div>
-              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+              <div className="ui-surface p-4">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Нийт төсөл</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">{projects.data ? projectItems.length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">Платформын хэмжээ</p>
               </div>
-              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+              <div className="ui-surface p-4">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Escrow дүн</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">
                   {escrow.data ? escrowItems.reduce((acc, item) => acc + item.amount, 0).toLocaleString() : "..."}
                 </p>
                 <p className="text-[11px] text-surface-500 mt-1">MNT Хадгалагдсан</p>
               </div>
-              <div className="rounded-2xl border border-surface-200/60 bg-white p-4 shadow-card">
+              <div className="ui-surface p-4">
                 <p className="text-[11px] uppercase tracking-widest text-surface-500">Маргаан</p>
                 <p className="mt-1 text-2xl font-semibold text-surface-900">{disputes.data ? disputeItems.filter((d) => !d.resolved_at).length : "..."}</p>
                 <p className="text-[11px] text-surface-500 mt-1">Идэвхтэй</p>
@@ -139,7 +139,7 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+          <div className="ui-surface p-5">
             <h2 className="text-lg font-medium text-surface-900">Шимтгэл</h2>
             {commission.isLoading ? <LoadingState label="Шимтгэл ачааллаж байна..." /> : null}
             {commission.isError ? <ErrorState label="Шимтгэл ачааллах боломжгүй байна." /> : null}
@@ -147,14 +147,14 @@ export default function AdminPage() {
             <ActionButton className="mt-3" onClick={() => commissionMutation.mutate(10)} loading={commissionMutation.isPending}>10% болгох</ActionButton>
           </div>
 
-          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+          <div className="ui-surface p-5">
             <h2 className="text-lg font-medium text-surface-900">Escrow систем</h2>
             {escrow.isLoading ? <LoadingState label="Escrow ачааллаж байна..." /> : null}
             {escrow.data && escrowItems.length === 0 ? <EmptyState label="Escrow бичлэг алга." /> : null}
             {escrow.data && escrowItems.length > 0 ? (
               <ul className="space-y-2 mt-2">
                 {escrowItems.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                  <li key={item.id} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3 text-[13px]">
                     <div>
                       <p className="text-surface-800">Escrow #{item.id} — Төсөл #{item.project}</p>
                       <p className="text-[11px] text-surface-500">{item.amount?.toLocaleString()} MNT · <StatusPill label={item.status} tone={item.status === "held" ? "success" : item.status === "created" ? "warning" : "neutral"} /></p>
@@ -169,14 +169,14 @@ export default function AdminPage() {
           </div>
             </div>
 
-            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <div className="ui-surface p-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-medium text-surface-900">Төлбөрүүд</h2>
             <div className="flex gap-2">
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("all")}>Бүгд</button>
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("paid")}>Төлөгдсөн</button>
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("pending")}>Хүлээгдэж буй</button>
-              <button className="bg-brand-600 text-white hover:bg-brand-700" onClick={() => setPaymentFilter("failed")}>Амжилтгүй</button>
+              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("all")}>Бүгд</button>
+              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("paid")}>Төлөгдсөн</button>
+              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("pending")}>Хүлээгдэж буй</button>
+              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("failed")}>Амжилтгүй</button>
             </div>
           </div>
           <p className="mb-2 text-[11px] uppercase tracking-widest text-surface-500">Шүүлтүүр: {paymentFilter}</p>
@@ -185,7 +185,7 @@ export default function AdminPage() {
           {payments.data && paymentItems.length > 0 ? (
             <ul className="space-y-2">
               {paymentItems.map((item) => (
-                <li key={item.id} className="rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                <li key={item.id} className="rounded-xl bg-surface-container-low p-3 text-[13px]">
                   <p className="text-surface-800">Нэхэмжлэх: {item.invoice_id}</p>
                   <p className="mt-1">
                     <StatusPill
@@ -202,7 +202,7 @@ export default function AdminPage() {
           ) : null}
             </div>
 
-            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <div className="ui-surface p-5">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-medium text-surface-900">Санхүүгийн аудитын бүртгэл (Ledger)</h2>
               </div>
@@ -211,7 +211,7 @@ export default function AdminPage() {
               {ledger.data && ledgerItems.length > 0 ? (
                 <ul className="space-y-2">
                   {ledgerItems.map((entry) => (
-                    <li key={entry.id} className="rounded-xl border border-surface-200/60 p-3 flex flex-col gap-1 text-[13px]">
+                    <li key={entry.id} className="rounded-xl bg-surface-container-low p-3 flex flex-col gap-1 text-[13px]">
                       <div className="flex items-center gap-2">
                         <StatusPill
                           label={entry.entry_type}
@@ -230,14 +230,14 @@ export default function AdminPage() {
               ) : null}
             </div>
 
-            <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+            <div className="ui-surface p-5">
           <h2 className="mb-3 text-lg font-medium text-surface-900">Хэрэглэгчид</h2>
           {users.isLoading ? <LoadingState label="Хэрэглэгчдийг ачааллаж байна..." /> : null}
           {users.isError ? <ErrorState label="Хэрэглэгчдийг ачааллах боломжгүй байна." /> : null}
           {users.data ? (
             <ul className="space-y-2">
               {userItems.map((user) => (
-                <li key={user.id} className="flex items-center justify-between rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                <li key={user.id} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3 text-[13px]">
                   <div className="flex items-center gap-2">
                     <span className="text-surface-700">{user.email} ({user.role})</span>
                     <StatusPill 
@@ -266,20 +266,20 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+          <div className="ui-surface p-5">
             <h2 className="mb-3 text-lg font-medium text-surface-900">Төслүүд</h2>
             {projects.isLoading ? <LoadingState label="Төслүүдийг ачааллаж байна..." /> : null}
             {projects.data ? <p className="text-[13px] text-surface-600">Нийт: {projectItems.length}</p> : null}
           </div>
 
-          <div className="rounded-2xl border border-surface-200/60 bg-white p-5 shadow-card">
+          <div className="ui-surface p-5">
             <h2 className="mb-3 text-lg font-medium text-surface-900">Маргаан</h2>
             {disputes.isLoading ? <LoadingState label="Маргааныг ачааллаж байна..." /> : null}
             {disputes.data && disputeItems.length === 0 ? <EmptyState label="Маргаан алга." /> : null}
             {disputes.data && disputeItems.length > 0 ? (
               <ul className="space-y-2">
                 {disputeItems.map((item) => (
-                  <li key={item.id} className="flex flex-col gap-2 rounded-xl border border-surface-200/60 p-3 text-[13px]">
+                  <li key={item.id} className="flex flex-col gap-2 rounded-xl bg-surface-container-low p-3 text-[13px]">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-surface-800">Маргаан #{item.id} — Төсөл #{item.project}</span>
                       {item.resolved_at ? (
@@ -289,7 +289,7 @@ export default function AdminPage() {
                       )}
                     </div>
                     <div className="text-surface-600">Шалтгаан: {item.reason}</div>
-                    {item.note && <div className="mt-1 border-t border-surface-100 pt-2 text-[12px] text-surface-500">Админы тэмдэглэл: {item.note}</div>}
+                    {item.note && <div className="mt-2 pt-2 text-[12px] text-surface-500">Админы тэмдэглэл: {item.note}</div>}
                   </li>
                 ))}
               </ul>
@@ -315,21 +315,21 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "refund" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
+                  className={`flex-1 rounded-xl px-3 py-2 text-sm ${resolveAction === "refund" ? "bg-primary text-primary-fixed shadow-[0_10px_22px_rgba(3,22,54,0.16)]" : "bg-surface-container-low text-on-surface/70 hover:bg-surface-container"}`}
                   onClick={() => setResolveAction("refund")}
                 >
                   100% Буцаах (Захиалагч)
                 </button>
                 <button
                   type="button"
-                  className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "release" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
+                  className={`flex-1 rounded-xl px-3 py-2 text-sm ${resolveAction === "release" ? "bg-primary text-primary-fixed shadow-[0_10px_22px_rgba(3,22,54,0.16)]" : "bg-surface-container-low text-on-surface/70 hover:bg-surface-container"}`}
                   onClick={() => setResolveAction("release")}
                 >
                   100% Олгох (Фрилансер)
                 </button>
                 <button
                   type="button"
-                  className={`flex-1 rounded border px-3 py-2 text-sm ${resolveAction === "split" ? "bg-brand-600 text-white border-brand-600" : "bg-surface-50 border-surface-200"}`}
+                  className={`flex-1 rounded-xl px-3 py-2 text-sm ${resolveAction === "split" ? "bg-primary text-primary-fixed shadow-[0_10px_22px_rgba(3,22,54,0.16)]" : "bg-surface-container-low text-on-surface/70 hover:bg-surface-container"}`}
                   onClick={() => setResolveAction("split")}
                 >
                   Мөнгийг хуваах
@@ -360,7 +360,7 @@ export default function AdminPage() {
               />
 
               <div className="flex justify-end gap-2 mt-4">
-                <button className="bg-surface-100 text-surface-700 hover:bg-surface-200 px-4 py-2 rounded" onClick={() => setResolveTarget(null)}>
+                <button className="ui-btn-ghost" onClick={() => setResolveTarget(null)}>
                   Цуцлах
                 </button>
                 <ActionButton tone="success" loading={resolveMutation.isPending} onClick={() => resolveTarget && resolveMutation.mutate(resolveTarget)}>
