@@ -377,8 +377,8 @@ export default function ClientDashboardPage() {
                   <h2 className="font-headline text-2xl font-bold text-[#031636]">Идэвхтэй төслүүд</h2>
                   <p className="text-sm text-slate-500">Статус, төсөв, дараагийн алхамыг нэг харагдацаар удирдана.</p>
                 </div>
-                <Link href={withLocale("/client/projects/new")} className="inline-flex min-h-11 items-center rounded-xl bg-[#031636] px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-[#d8e2ff]">
-                  {t("postProject")}
+                <Link href={withLocale("/client/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-primary hover:bg-surface-container">
+                  Бүх төслийг удирдах
                 </Link>
               </div>
 
