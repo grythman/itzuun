@@ -249,7 +249,7 @@ export function DashboardTopHeader({
                     onClick={() => setMenuOpen(false)}
                     className="fixed inset-0 z-40 cursor-default"
                   />
-                  <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[308px] overflow-hidden rounded-2xl bg-[#0d1118] p-2 text-[#f5f7fb] shadow-[0_30px_60px_rgba(3,22,54,0.45)]">
+                  <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-[308px] overflow-hidden rounded-2xl bg-primary p-2 text-primary-fixed shadow-[0_30px_60px_rgba(3,22,54,0.45)]">
                     <div className="rounded-xl bg-white/5 px-3 py-3">
                       <div className="flex items-center gap-3">
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/8 text-sm font-black text-white">
@@ -269,7 +269,7 @@ export function DashboardTopHeader({
                         onClick={() => setOnlineForMessages((value) => !value)}
                         className={[
                           "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                          onlineForMessages ? "bg-[#0fba43]" : "bg-white/15",
+                          onlineForMessages ? "bg-secondary" : "bg-white/15",
                         ].join(" ")}
                         aria-label="Toggle online for messages"
                         aria-pressed={onlineForMessages}
@@ -335,7 +335,7 @@ export function DashboardTopHeader({
                           setMenuOpen(false);
                         }}
                         disabled={logoutMutation.isPending}
-                        className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[15px] font-semibold text-white transition-colors hover:bg-[#ffffff14] disabled:opacity-55"
+                        className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[15px] font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-55"
                       >
                         <HeaderIcon icon="logout" />
                         <span>{logoutMutation.isPending ? "Logging out..." : "Log out"}</span>

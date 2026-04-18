@@ -174,13 +174,13 @@ export default function ClientDashboardPage() {
   if (me.isLoading || projects.isLoading || profile.isLoading) {
     return (
       <section className="space-y-4 pb-20">
-        <div className="h-40 animate-pulse rounded-3xl bg-[#eef4fa]" />
+        <div className="h-40 animate-pulse rounded-3xl bg-surface-container-low" />
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
-          <div className="h-24 animate-pulse rounded-2xl bg-[#f3f7fc]" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
+          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
         </div>
-        <div className="h-64 animate-pulse rounded-2xl bg-[#f8fbff]" />
+        <div className="h-64 animate-pulse rounded-2xl bg-surface-container-lowest" />
       </section>
     );
   }
@@ -270,10 +270,10 @@ export default function ClientDashboardPage() {
 
               <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
                 <div>
-                  <h1 className="font-headline text-3xl font-extrabold tracking-tight text-[#031636] md:text-4xl">
+                  <h1 className="font-headline text-3xl font-extrabold tracking-tight text-primary md:text-4xl">
                     Өдрийн мэнд, {clientName} 👋
                   </h1>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-on-surface/60">
                     Таны төслүүдийн явц болон санхүүгийн тойм энд байна.
                   </p>
                   {priorityAction && (
@@ -283,7 +283,7 @@ export default function ClientDashboardPage() {
                           <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-lg bg-secondary-fixed text-secondary">●</span>
                           <div>
                           <p className="font-headline text-sm font-bold text-on-surface">{priorityAction.title}</p>
-                          <p className="mt-1 text-xs text-surface-500">{priorityAction.desc}</p>
+                          <p className="mt-1 text-xs text-on-surface/60">{priorityAction.desc}</p>
                           </div>
                         </div>
                         <button type="button" onClick={priorityAction.onClick} className="shrink-0 rounded-xl bg-secondary px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-transform hover:-translate-y-0.5">
@@ -294,11 +294,11 @@ export default function ClientDashboardPage() {
                   )}
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
-                  <Link href={withLocale("/client/projects/new")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#031636] px-6 py-3 text-sm font-bold text-[#d8e2ff] shadow-lg shadow-[#031636]/10 transition hover:-translate-y-0.5">
+                  <Link href={withLocale("/client/projects/new")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-fixed shadow-ambient transition hover:-translate-y-0.5">
                     <DashboardIcon name="add" className="h-[18px] w-[18px]" />
                     Төсөл оруулах
                   </Link>
-                  <Link href={withLocale("/freelancers")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#13696a] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
+                  <Link href={withLocale("/freelancers")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-secondary px-6 py-3 text-sm font-bold text-white shadow-ambient transition hover:-translate-y-0.5">
                     <DashboardIcon name="search" className="h-[18px] w-[18px]" />
                     Мэргэжилтэн хайх
                   </Link>
@@ -356,9 +356,9 @@ export default function ClientDashboardPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-on-surface font-headline">{(proposal as any).freelancer_name || `Фрилансер #${proposalFreelancerLabel(proposal.freelancer)}`}</p>
-                        <p className="truncate text-[10px] text-surface-500">{formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} өдөр</p>
+                        <p className="truncate text-[10px] text-on-surface/60">{formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} өдөр</p>
                       </div>
-                      <span className="text-sm text-surface-300 transition-colors group-hover:text-primary">→</span>
+                      <span className="text-sm text-on-surface/40 transition-colors group-hover:text-primary">→</span>
                     </button>
                   )) : (
                     <EmptyState label="Шинэ санал алга." action={<button className="rounded-lg bg-surface-container-low px-3 py-1.5 text-xs font-semibold text-primary font-headline" onClick={retryAll}>Сэргээх</button>} />
@@ -374,8 +374,8 @@ export default function ClientDashboardPage() {
               <section>
               <div className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h2 className="font-headline text-2xl font-bold text-[#031636]">Идэвхтэй төслүүд</h2>
-                  <p className="text-sm text-slate-500">Статус, төсөв, дараагийн алхамыг нэг харагдацаар удирдана.</p>
+                  <h2 className="font-headline text-2xl font-bold text-primary">Идэвхтэй төслүүд</h2>
+                  <p className="text-sm text-on-surface/60">Статус, төсөв, дараагийн алхамыг нэг харагдацаар удирдана.</p>
                 </div>
                 <Link href={withLocale("/client/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-primary hover:bg-surface-container">
                   Бүх төслийг удирдах
@@ -389,7 +389,7 @@ export default function ClientDashboardPage() {
                     label={t("noProjects")}
                     action={
                       <div className="flex items-center gap-2">
-                        <p className="text-xs text-surface-500">{t("noProjectsDesc")}</p>
+                        <p className="text-xs text-on-surface/60">{t("noProjectsDesc")}</p>
                         <Link href={withLocale("/client/projects/new")} className="rounded-full primary-gradient px-4 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
                           {t("postProject")}
                         </Link>
@@ -403,11 +403,11 @@ export default function ClientDashboardPage() {
                     <table className="w-full border-collapse text-left">
                       <thead>
                         <tr className="bg-surface-container-low/50">
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Төслийн нэр</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Эскроу</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Явц</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Төлөв</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Үйлдэл</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Төслийн нэр</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Эскроу</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Явц</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Төлөв</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Үйлдэл</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -420,14 +420,14 @@ export default function ClientDashboardPage() {
                                 <p className="mb-1 text-sm font-bold text-on-surface font-headline">{project.title}</p>
                                 <div className="space-y-1">
                                   <p className="text-[11px] text-primary">Дараагийн алхам: {meta.nextStep}</p>
-                                  <p className="text-[11px] text-surface-500">
+                                  <p className="text-[11px] text-on-surface/60">
                                     {project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр
                                   </p>
                                 </div>
                               </td>
                               <td className="px-6 py-5">
                                 <p className="text-xs font-semibold text-on-surface font-headline">{formatMnt(Number(project.budget || 0))}</p>
-                                <p className="text-[11px] text-surface-500">{meta.escrowLabel}</p>
+                                <p className="text-[11px] text-on-surface/60">{meta.escrowLabel}</p>
                               </td>
                               <td className="px-6 py-5 w-56">
                                 <div className="flex items-center gap-3">
@@ -469,41 +469,41 @@ export default function ClientDashboardPage() {
                       const meta = statusMeta(project.status);
                       const progress = projectProgress(project.status);
                       return (
-                        <li key={project.id} className="rounded-[1.5rem] bg-gradient-to-b from-white to-[#f8fafc] p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
+                        <li key={project.id} className="rounded-[1.5rem] bg-gradient-to-b from-surface-container-lowest to-surface-container-low p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                           <div className="flex items-start justify-between gap-3">
-                            <p className="font-semibold text-[#031636]">{project.title}</p>
+                            <p className="font-semibold text-primary">{project.title}</p>
                             <StatusPill label={projectStatusLabel(project.status)} tone={meta.tone} />
                           </div>
-                          <div className="mt-2 grid gap-1 text-xs text-slate-500">
+                          <div className="mt-2 grid gap-1 text-xs text-on-surface/60">
                             <p>Төсөв: {formatMnt(Number(project.budget || 0))}</p>
                             <p>{project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр</p>
                           </div>
                           <div className="mt-3 flex items-center gap-3">
-                            <div className="h-1.5 flex-1 rounded-full bg-[#e0e3e5]">
-                              <div className="h-full rounded-full bg-[#031636]" style={{ width: `${progress}%` }} />
+                            <div className="h-1.5 flex-1 rounded-full bg-surface-container-high">
+                              <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
                             </div>
-                            <span className="text-[10px] font-bold text-[#031636]">{progress}%</span>
+                            <span className="text-[10px] font-bold text-primary">{progress}%</span>
                           </div>
-                          <div className="mt-3 rounded-xl bg-[#f1f4f7] px-3 py-2">
-                            <p className="text-[11px] font-semibold text-[#1f4d76]">Дараагийн алхам</p>
-                            <p className="mt-1 text-xs text-slate-600">{meta.nextStep}</p>
+                          <div className="mt-3 rounded-xl bg-surface-container-low px-3 py-2">
+                            <p className="text-[11px] font-semibold text-accent-700">Дараагийн алхам</p>
+                            <p className="mt-1 text-xs text-on-surface/65">{meta.nextStep}</p>
                           </div>
                           <div className="mt-3 grid grid-cols-2 gap-2">
                             {project.status === "open" ? (
-                              <button className="min-h-11 rounded-xl bg-[#031636] px-3 text-xs font-bold text-[#d8e2ff]" onClick={() => focusProposalSection(project.id)}>
+                              <button className="min-h-11 rounded-xl bg-primary px-3 text-xs font-bold text-primary-fixed" onClick={() => focusProposalSection(project.id)}>
                                 Санал харах
                               </button>
                             ) : project.status === "awaiting_client_review" ? (
-                              <button className="min-h-11 rounded-xl bg-[#13696a] px-3 text-xs font-bold text-white" onClick={() => setReleaseTarget(project.id)}>
+                              <button className="min-h-11 rounded-xl bg-secondary px-3 text-xs font-bold text-white" onClick={() => setReleaseTarget(project.id)}>
                                 Төлбөр шилжүүлэх
                               </button>
                             ) : (
-                              <button className="min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-[#031636] shadow-sm" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
+                              <button className="min-h-11 rounded-xl bg-surface-container-lowest px-3 text-xs font-bold text-primary shadow-sm" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
                                 Дэлгэрэнгүй
                               </button>
                             )}
                             <button
-                              className="min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-[#1e4f78] shadow-sm"
+                              className="min-h-11 rounded-xl bg-surface-container-lowest px-3 text-xs font-bold text-accent-700 shadow-sm"
                               onClick={() => (["in_progress", "awaiting_client_review"].includes(project.status) ? setDisputeTarget(project.id) : router.push(withLocale(`/projects/${project.id}/payment`)))}
                             >
                               {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан" : "Эскроу"}
@@ -521,7 +521,7 @@ export default function ClientDashboardPage() {
             <section ref={proposalSectionRef} className="grid grid-cols-1 gap-6 md:grid-cols-4">
               <Link
                 href={withLocale("/client/projects/new")}
-                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-[#13696a] p-8 text-white transition-transform hover:scale-[1.02] md:col-span-1"
+                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-secondary p-8 text-white transition-transform hover:scale-[1.02] md:col-span-1"
               >
                 <span className="text-4xl">⊕</span>
                 <div>
@@ -532,12 +532,12 @@ export default function ClientDashboardPage() {
 
               <Link
                 href={withLocale("/freelancers")}
-                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-[#e6e8ea] p-8 transition-transform hover:scale-[1.02] md:col-span-1"
+                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] bg-surface-container p-8 transition-transform hover:scale-[1.02] md:col-span-1"
               >
-                <DashboardIcon name="search" className="h-10 w-10 text-[#031636]" />
+                <DashboardIcon name="search" className="h-10 w-10 text-primary" />
                 <div>
-                  <h4 className="font-headline text-xl font-bold text-[#031636]">Мэргэжилтэн хайх</h4>
-                  <p className="mt-2 text-xs text-slate-500">Freelancers жагсаалтаас шүүлтүүр ашиглан хайх.</p>
+                  <h4 className="font-headline text-xl font-bold text-primary">Мэргэжилтэн хайх</h4>
+                  <p className="mt-2 text-xs text-on-surface/60">Freelancers жагсаалтаас шүүлтүүр ашиглан хайх.</p>
                 </div>
               </Link>
 
@@ -545,16 +545,16 @@ export default function ClientDashboardPage() {
                 <div className="relative z-10">
                   <div className="flex items-center gap-8">
                     <div className="flex-1">
-                      <h4 className="font-headline text-xl font-bold text-[#031636]">Эскроу хамгаалалттай 🛡️</h4>
-                      <p className="mb-4 mt-2 text-xs text-slate-500">
+                      <h4 className="font-headline text-xl font-bold text-primary">Эскроу хамгаалалттай 🛡️</h4>
+                      <p className="mb-4 mt-2 text-xs text-on-surface/60">
                         Таны бүх төлбөр тооцоо аюулгүй байдлын үүднээс Эскроу системээр дамжина. Ажил 100% баталгаажсаны дараа төлбөрийг чөлөөлөх боломжтой.
                       </p>
-                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/client")} className="text-xs font-bold text-[#13696a] underline underline-offset-4">
+                      <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/client")} className="text-xs font-bold text-secondary underline underline-offset-4">
                         Дэлгэрэнгүй унших
                       </Link>
                     </div>
-                    <div className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-full bg-slate-50 lg:flex">
-                        <svg viewBox="0 0 24 24" className="h-14 w-14 text-[#13696a]" fill="currentColor" aria-hidden="true">
+                    <div className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-full bg-surface-container-low lg:flex">
+                        <svg viewBox="0 0 24 24" className="h-14 w-14 text-secondary" fill="currentColor" aria-hidden="true">
                           <path d="m12 2 8 3v6c0 5-3.4 9.7-8 11-4.6-1.3-8-6-8-11V5l8-3Zm0 5a3 3 0 0 0-3 3v1h-1v2h1v4h2v-4h2v4h2v-4h1v-2h-1v-1a3 3 0 0 0-3-3Z" />
                         </svg>
                       </div>
