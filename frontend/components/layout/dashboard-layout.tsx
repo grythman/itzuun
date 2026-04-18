@@ -30,8 +30,8 @@ function normalizeDashboardPath(pathname: string): string {
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const pathWithoutLocale = normalizeDashboardPath(pathname);
-  const role = dashboardRole(pathWithoutLocale);
   const me = useMe({ enabled: true, retryOnAuth: true });
+  const role = (me.data?.role as "client" | "freelancer" | "admin" | undefined) || dashboardRole(pathWithoutLocale);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const rawName =

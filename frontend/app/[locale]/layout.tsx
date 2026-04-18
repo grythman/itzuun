@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/app-shell";
 import { Providers } from "@/components/shared/providers";
 import { ToastCenter } from "@/components/shared/toast-center";
@@ -30,10 +31,12 @@ export default async function RootLayout({
   params: { locale: string };
 }) {
   const messages = await getMessages({ locale });
+  const cookieStore = cookies();
+  const hasAuthCookies = Boolean(cookieStore.get("access_token")?.value || cookieStore.get("refresh_token")?.value);
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
       <Providers>
-        <AppShell>{children}</AppShell>
+        <AppShell hasAuthCookies={hasAuthCookies}>{children}</AppShell>
         <ToastCenter />
       </Providers>
     </NextIntlClientProvider>

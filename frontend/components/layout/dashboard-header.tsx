@@ -75,27 +75,6 @@ function HeaderIcon({
   return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M4 7h16v2H4V7Zm0 4h16v2H4v-2Zm0 4h10v2H4v-2Z" /></svg>;
 }
 
-const navByRole: Record<DashboardRole, Array<{ href: string; label: string }>> = {
-  client: [
-    { href: "/projects", label: "Browse Projects" },
-    { href: "/freelancers", label: "Talent" },
-    { href: "/client/escrow", label: "Escrow" },
-    { href: "/client", label: "Insights" },
-  ],
-  freelancer: [
-    { href: "/projects", label: "Find Work" },
-    { href: "/freelancer/projects", label: "My Projects" },
-    { href: "/freelancer/finance", label: "Finance" },
-    { href: "/messages", label: "Messages" },
-  ],
-  admin: [
-    { href: "/admin/users", label: "Users" },
-    { href: "/admin/projects", label: "Projects" },
-    { href: "/admin/disputes", label: "Disputes" },
-    { href: "/admin/escrow", label: "Escrow" },
-  ],
-};
-
 export function DashboardTopHeader({
   userName,
   role,
@@ -118,8 +97,9 @@ export function DashboardTopHeader({
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [onlineForMessages, setOnlineForMessages] = useState(true);
-  const navItems = navByRole[role];
   const initials = userName.trim().slice(0, 1).toUpperCase() || "I";
+  const homeHref =
+    role === "admin" ? `${localePrefix}/admin` : role === "freelancer" ? `${localePrefix}/freelancer` : `${localePrefix}/client`;
   const profileHref = role === "freelancer" ? "/freelancer/profile" : role === "client" ? "/client/profile" : "/admin";
   const membershipHref = role === "freelancer" ? "/pro" : "/support";
 
@@ -165,6 +145,14 @@ export function DashboardTopHeader({
             <HeaderIcon icon={sidebarOpen ? "close" : "menu"} />
           </button>
 
+          <Link
+            href={homeHref}
+            className="inline-flex h-11 items-center rounded-2xl bg-surface-container-low px-4 font-headline text-sm font-extrabold tracking-tight text-primary shadow-[0_10px_24px_rgba(3,22,54,0.05)]"
+            aria-label="Go to dashboard home"
+          >
+            ITZuun
+          </Link>
+
           <form
             className="relative min-w-0 flex-1"
             action={`${localePrefix}/projects`}
@@ -189,18 +177,6 @@ export function DashboardTopHeader({
             </div>
           </form>
 
-          <nav className="hidden items-center gap-7 xl:flex" aria-label="Dashboard top navigation">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={`${localePrefix}${item.href}`}
-                className="text-[13px] font-medium text-on-surface/58 transition-colors hover:text-primary"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <button
               type="button"
@@ -215,13 +191,6 @@ export function DashboardTopHeader({
               aria-label="Notifications"
             >
               <HeaderIcon icon="notifications" />
-            </button>
-            <button
-              type="button"
-              className="hidden h-11 w-11 items-center justify-center rounded-2xl bg-surface-container-low text-on-surface/56 shadow-[0_10px_24px_rgba(3,22,54,0.05)] transition-colors hover:text-primary sm:inline-flex"
-              aria-label="Settings"
-            >
-              <HeaderIcon icon="settings" />
             </button>
 
             <div className="relative hidden md:block">
