@@ -24,6 +24,10 @@ function formatMnt(amount: number): string {
   return `${new Intl.NumberFormat("mn-MN").format(amount)} ₮`;
 }
 
+function formatMntInline(amount: number): string {
+  return `₮${new Intl.NumberFormat("mn-MN").format(amount)}`;
+}
+
 function formatRelativeTime(iso?: string): string {
   if (!iso) return "Шинэчлэлийн мэдээлэл алга";
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -264,7 +268,7 @@ export default function ClientDashboardPage() {
             <div className="mx-auto w-full max-w-[1440px] space-y-10 px-4 py-6 md:px-8 md:py-8 2xl:max-w-[1600px]">
               {me.data?.verification_status !== "verified" && <VerificationBanner user={me.data} />}
 
-              <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
                 <div>
                   <h1 className="font-headline text-3xl font-extrabold tracking-tight text-[#031636] md:text-4xl">
                     Өдрийн мэнд, {clientName} 👋
@@ -289,7 +293,11 @@ export default function ClientDashboardPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex shrink-0 gap-4">
+                <div className="flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
+                  <Link href={withLocale("/client/projects/new")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#031636] px-6 py-3 text-sm font-bold text-[#d8e2ff] shadow-lg shadow-[#031636]/10 transition hover:-translate-y-0.5">
+                    <DashboardIcon name="add" className="h-[18px] w-[18px]" />
+                    Төсөл оруулах
+                  </Link>
                   <Link href={withLocale("/freelancers")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#13696a] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
                     <DashboardIcon name="search" className="h-[18px] w-[18px]" />
                     Freelancers хайх
@@ -297,26 +305,32 @@ export default function ClientDashboardPage() {
                 </div>
               </section>
 
-              <section className="grid gap-6 md:grid-cols-3">
-              <div className="primary-gradient grid gap-6 rounded-[2rem] p-8 text-white shadow-ambient md:grid-cols-3">
+              <section className="grid gap-6 lg:grid-cols-12">
+              <div className="primary-gradient grid gap-4 rounded-[2rem] p-6 text-white shadow-ambient sm:p-8 lg:col-span-7 md:grid-cols-3">
                 <div className="flex flex-col justify-between">
                   <div>
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">Нийт зарцуулсан</p>
-                    <h3 className="font-headline text-3xl font-bold">{formatMnt(totalEscrow)}</h3>
+                    <h3 className="font-headline text-[clamp(1.7rem,2.1vw,2.7rem)] font-bold leading-[1.05] tabular-nums whitespace-nowrap">
+                      {formatMntInline(totalEscrow)}
+                    </h3>
                   </div>
                   <span className="mt-4 w-fit rounded bg-white/10 px-2 py-1 text-[10px]">Бүх төсөл</span>
                 </div>
                 <div className="flex flex-col justify-between rounded-xl bg-white/5 px-5 py-4">
                   <div>
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-accent-300">Эскроу дансанд</p>
-                    <h3 className="font-headline text-3xl font-bold text-accent-300">{formatMnt(securedEscrow)}</h3>
+                    <h3 className="font-headline text-[clamp(1.7rem,2.1vw,2.7rem)] font-bold leading-[1.05] text-accent-300 tabular-nums whitespace-nowrap">
+                      {formatMntInline(securedEscrow)}
+                    </h3>
                   </div>
                   <p className="mt-4 text-[10px] text-white/50">Хамгаалалтай хадгалалажсан</p>
                 </div>
                 <div className="flex flex-col justify-between rounded-xl bg-white/5 px-5 py-4">
                   <div>
                     <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">Хүлээгдэж буй</p>
-                    <h3 className="font-headline text-3xl font-bold">{formatMnt(pendingEscrow)}</h3>
+                    <h3 className="font-headline text-[clamp(1.7rem,2.1vw,2.7rem)] font-bold leading-[1.05] tabular-nums whitespace-nowrap">
+                      {formatMntInline(pendingEscrow)}
+                    </h3>
                   </div>
                   <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="mt-4 w-fit text-[10px] font-bold text-accent-300 underline underline-offset-4">
                     Нэхэмжлэх харах
@@ -324,17 +338,17 @@ export default function ClientDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col rounded-[2rem] bg-surface-container-lowest p-6 shadow-sm">
+              <div className="flex flex-col rounded-[2rem] bg-surface-container-lowest p-6 shadow-sm lg:col-span-5">
                 <div className="mb-6 flex items-center justify-between">
                   <h4 className="font-headline text-lg font-bold text-on-surface">Шинэ саналууд</h4>
-                  <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-700">{proposalBadgeCount} ШИНЭ</span>
+                  <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-700">{proposalBadgeCount || 0} ШИНЭ</span>
                 </div>
                 <div className="space-y-3">
-                  {proposalInbox.length ? proposalInbox.length > 0 && proposalInbox.map((proposal) => (
+                  {proposalInbox.length > 0 ? proposalInbox.map((proposal) => (
                     <button
                       key={`hero-proposal-${proposal.id}`}
                       type="button"
-                      onClick={() => activeProjectId && selectMutation.mutate({ projectId: activeProjectId, proposalId: proposal.id })}
+                      onClick={() => (activeProjectId ? focusProposalSection(activeProjectId) : openProject ? focusProposalSection(openProject.id) : null)}
                       className="group flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-surface-container-low"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-low text-xs font-bold text-on-surface">
