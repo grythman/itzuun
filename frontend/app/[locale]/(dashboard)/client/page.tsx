@@ -88,18 +88,18 @@ function DashboardIcon({ name, className = "h-5 w-5" }: { name: "folder" | "add"
 
 function statusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string; escrowLabel: string } {
   if (status === "in_progress") {
-    return { label: "Escrow Held", tone: "success", nextStep: "Гүйцэтгэлийг хянаад шаардлагатай үед маргаан нээ.", escrowLabel: "Мөнгө найдвартай түгжээтэй байна." };
+    return { label: "Эскроу түгжээтэй", tone: "success", nextStep: "Гүйцэтгэлийг хянаад шаардлагатай үед маргаан нээ.", escrowLabel: "Мөнгө найдвартай түгжээтэй байна." };
   }
   if (status === "awaiting_client_review") {
-    return { label: "Completion Pending", tone: "warning", nextStep: "Ажлыг шалгаад дууссаныг баталгаажуул.", escrowLabel: "Баталгаажуулмагц мөнгө freelancer руу шилжинэ." };
+    return { label: "Баталгаажуулалт хүлээгдэж байна", tone: "warning", nextStep: "Ажлыг шалгаад дууссаныг баталгаажуул.", escrowLabel: "Баталгаажуулмагц мөнгө фрилансер руу шилжинэ." };
   }
   if (status === "disputed") {
-    return { label: "Disputed", tone: "danger", nextStep: "Нотолгоогоо шалгаад admin шийдвэрийг хүлээ.", escrowLabel: "Escrow маргааны горимд байна." };
+    return { label: "Маргаантай", tone: "danger", nextStep: "Нотолгоогоо шалгаад админы шийдвэрийг хүлээ.", escrowLabel: "Эскроу маргааны горимд байна." };
   }
   if (status === "completed") {
-    return { label: "Released", tone: "info", nextStep: "Төсөл дууссан. Үнэлгээ үлдээж болно.", escrowLabel: "Escrow амжилттай release хийгдсэн." };
+    return { label: "Шилжүүлсэн", tone: "info", nextStep: "Төсөл дууссан. Үнэлгээ үлдээж болно.", escrowLabel: "Эскроу амжилттай чөлөөлөгдсөн." };
   }
-  return { label: "Open", tone: "info", nextStep: "Саналуудаа харьцуулж freelancer сонго.", escrowLabel: "Escrow эхлээгүй байна." };
+  return { label: "Нээлттэй", tone: "info", nextStep: "Саналуудаа харьцуулж фрилансер сонго.", escrowLabel: "Эскроу эхлээгүй байна." };
 }
 
 export default function ClientDashboardPage() {
@@ -131,14 +131,14 @@ export default function ClientDashboardPage() {
     mutationFn: (projectId: number) => projectsApi.confirmCompletion(projectId),
     onSuccess: () => {
       projects.refetch();
-      toast("success", "Escrow амжилттай release хийгдлээ.");
+      toast("success", "Эскроу амжилттай чөлөөлөгдлөө.");
       setReleaseTarget(null);
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
   const disputeMutation = useMutation({
-    mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: "Client dashboard-аас маргаан нээв" }),
+    mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: "Клиент самбараас маргаан нээв" }),
     onSuccess: () => {
       projects.refetch();
       toast("warning", "Маргаан нээгдлээ.");
@@ -152,7 +152,7 @@ export default function ClientDashboardPage() {
     onSuccess: () => {
       projects.refetch();
       proposals.refetch();
-      toast("success", "Freelancer сонгогдлоо.");
+      toast("success", "Фрилансер сонгогдлоо.");
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -187,10 +187,10 @@ export default function ClientDashboardPage() {
   if (me.isError || !me.data) {
     return (
       <ErrorState
-        label="Please sign in first."
+        label="Нэвтэрч орно уу."
         action={
           <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
-            Go to sign in
+            Нэвтрэх хуудас руу
           </button>
         }
       />
@@ -199,10 +199,10 @@ export default function ClientDashboardPage() {
   if (projects.isError || !projects.data) {
     return (
       <ErrorState
-        label="Could not load projects."
+        label="Төслүүдийг ачаалж чадсангүй."
         action={
           <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
-            Retry
+            Дахин оролдох
           </button>
         }
       />
@@ -222,7 +222,7 @@ export default function ClientDashboardPage() {
   const pendingEscrow = myProjects
     .filter((project) => project.status === "open")
     .reduce((sum, project) => sum + Number(project.budget || 0), 0);
-  const clientName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Client";
+  const clientName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Захиалагч";
 
   const sortedProposalItems = [...proposalItems].sort((a, b) => {
     const aScore = Number(a.price || 0) + Math.max(1, Number(a.timeline_days || 1)) * 1000;
@@ -246,7 +246,7 @@ export default function ClientDashboardPage() {
   } else if (proposalBadgeCount > 0) {
     priorityAction = {
       title: `${proposalBadgeCount} шинэ санал шалгана уу ✨`,
-      desc: openProject ? `"${openProject.title}" төсөлд шинэ санал ирсэн байна.` : "Freelancers-ийн илгээсэн саналуудтай танилцана уу.",
+      desc: openProject ? `"${openProject.title}" төсөлд шинэ санал ирсэн байна.` : "Мэргэжилтнүүдийн илгээсэн саналуудтай танилцана уу.",
       cta: "Саналуудыг харах",
       onClick: () => openProject && focusProposalSection(openProject.id)
     };
@@ -300,7 +300,7 @@ export default function ClientDashboardPage() {
                   </Link>
                   <Link href={withLocale("/freelancers")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#13696a] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-[#13696a]/10 transition hover:-translate-y-0.5">
                     <DashboardIcon name="search" className="h-[18px] w-[18px]" />
-                    Freelancers хайх
+                    Мэргэжилтэн хайх
                   </Link>
                 </div>
               </section>
@@ -404,7 +404,7 @@ export default function ClientDashboardPage() {
                       <thead>
                         <tr className="bg-surface-container-low/50">
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Төслийн нэр</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Escrow</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Эскроу</th>
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Явц</th>
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Төлөв</th>
                           <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-surface-500">Үйлдэл</th>
@@ -495,7 +495,7 @@ export default function ClientDashboardPage() {
                               </button>
                             ) : project.status === "awaiting_client_review" ? (
                               <button className="min-h-11 rounded-xl bg-[#13696a] px-3 text-xs font-bold text-white" onClick={() => setReleaseTarget(project.id)}>
-                                Release хийх
+                                Төлбөр шилжүүлэх
                               </button>
                             ) : (
                               <button className="min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-[#031636] shadow-sm" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
@@ -506,7 +506,7 @@ export default function ClientDashboardPage() {
                               className="min-h-11 rounded-xl bg-white px-3 text-xs font-bold text-[#1e4f78] shadow-sm"
                               onClick={() => (["in_progress", "awaiting_client_review"].includes(project.status) ? setDisputeTarget(project.id) : router.push(withLocale(`/projects/${project.id}/payment`)))}
                             >
-                              {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан" : "Escrow"}
+                              {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан" : "Эскроу"}
                             </button>
                           </div>
                         </li>
@@ -545,7 +545,7 @@ export default function ClientDashboardPage() {
                 <div className="relative z-10">
                   <div className="flex items-center gap-8">
                     <div className="flex-1">
-                      <h4 className="font-headline text-xl font-bold text-[#031636]">Escrow Protected 🛡️</h4>
+                      <h4 className="font-headline text-xl font-bold text-[#031636]">Эскроу хамгаалалттай 🛡️</h4>
                       <p className="mb-4 mt-2 text-xs text-slate-500">
                         Таны бүх төлбөр тооцоо аюулгүй байдлын үүднээс Эскроу системээр дамжина. Ажил 100% баталгаажсаны дараа төлбөрийг чөлөөлөх боломжтой.
                       </p>
@@ -570,13 +570,13 @@ export default function ClientDashboardPage() {
 
         <ConfirmationDialog
           open={releaseTarget !== null}
-          title="Escrow release баталгаажуулах"
+          title="Эскроу чөлөөлөлт баталгаажуулах"
           message={
             releaseProject
-              ? `${releaseProject.title} төслийг дууссан гэж баталгаажуулбал ${formatMnt(Number(releaseProject.budget || 0))} escrow freelancer руу шууд шилжинэ. Буцаах боломжгүй.`
-              : "Та ажил бүрэн дууссан гэдгийг баталгаажуулбал escrow шууд freelancer руу шилжинэ. Буцаах боломжгүй тул ажлыг бүрэн шалгаарай."
+              ? `${releaseProject.title} төслийг дууссан гэж баталгаажуулбал ${formatMnt(Number(releaseProject.budget || 0))} эскроу дүн фрилансер руу шууд шилжинэ. Буцаах боломжгүй.`
+              : "Та ажил бүрэн дууссан гэдгийг баталгаажуулбал эскроу дүн фрилансер руу шууд шилжинэ. Буцаах боломжгүй тул ажлыг бүрэн шалгаарай."
           }
-          confirmLabel="Тийм, release хий"
+          confirmLabel="Тийм, чөлөөлөх"
           confirmTone="success"
           loading={releaseMutation.isPending}
           onCancel={() => setReleaseTarget(null)}
@@ -592,8 +592,8 @@ export default function ClientDashboardPage() {
           title="Маргаан нээх үү?"
           message={
             disputeProject
-              ? `${disputeProject.title} төсөл дээр маргаан нээгдмэгц ${formatMnt(Number(disputeProject.budget || 0))} escrow түр түгжигдэж admin шалгалт эхэлнэ.`
-              : "Маргаан нээгдмэгц escrow түр түгжигдэж admin шалгалт эхэлнэ. Зөвхөн бодит эрсдэлтэй үед энэ үйлдлийг ашигла."
+              ? `${disputeProject.title} төсөл дээр маргаан нээгдмэгц ${formatMnt(Number(disputeProject.budget || 0))} эскроу дүн түр түгжигдэж админы шалгалт эхэлнэ.`
+              : "Маргаан нээгдмэгц эскроу дүн түр түгжигдэж админы шалгалт эхэлнэ. Зөвхөн бодит эрсдэлтэй үед энэ үйлдлийг ашигла."
           }
           confirmLabel="Маргаан нээх"
           confirmTone="warning"
