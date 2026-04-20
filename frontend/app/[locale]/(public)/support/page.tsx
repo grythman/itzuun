@@ -178,48 +178,9 @@ export default function SupportPage() {
         </div>
       </section>
 
-      {/* Main content: sidebar + FAQ */}
-      <section className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-16 md:flex-row md:px-8 md:py-24">
-        {/* Sidebar */}
-        <aside className="w-full shrink-0 md:w-64">
-          <div className="sticky top-24 rounded-[2rem] bg-surface-container-low p-6">
-            <div className="mb-6">
-              <h4 className="font-headline text-xl font-extrabold text-primary">Ангилал</h4>
-              <p className="mt-1 text-sm font-medium text-surface-500">Хайлтаа нарийвчлах</p>
-            </div>
-            <nav className="space-y-1">
-              {SIDEBAR_LINKS.map((link, i) => (
-                <button
-                  key={i}
-                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold transition-all font-headline ${
-                    i === activeCategory
-                      ? "bg-surface-container-lowest text-primary shadow-sm"
-                      : "text-surface-500 hover:bg-surface-container hover:text-primary"
-                  }`}
-                  onClick={() => setActiveCategory(i)}
-                >
-                  <span className="text-base">{link.icon}</span>
-                  {link.label}
-                </button>
-              ))}
-            </nav>
-            {/* Expert card */}
-            <div className="mt-8 overflow-hidden rounded-2xl bg-primary p-6 text-center text-white">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-white">
-                <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden>
-                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12Zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8Z" />
-                </svg>
-              </div>
-              <p className="text-sm font-bold">Мэргэжилтний зөвлөгөө</p>
-              <Link
-                href={`mailto:support@itzuun.mn`}
-                className="mt-4 flex w-full items-center justify-center rounded-xl bg-secondary py-2.5 text-xs font-bold text-white transition-all hover:brightness-110"
-              >
-                Тусламж хүсэх
-              </Link>
-            </div>
-          </div>
-        </aside>
+      {/* Main content: FAQ */}
+      <section className="mx-auto flex max-w-4xl flex-col gap-12 px-6 py-16 md:px-8 md:py-24">
+
 
         {/* FAQ section */}
         <div className="flex-1 space-y-10">

@@ -23,7 +23,7 @@ function isHybridMarketplaceRoute(pathname: string): boolean {
   const pathWithoutLocale =
     parts[0] === "mn" || parts[0] === "en" ? `/${parts.slice(1).join("/")}` : normalized;
 
-  return ["/projects", "/freelancers"].some(
+  return ["/projects", "/freelancers", "/support"].some(
     (prefix) => pathWithoutLocale === prefix || pathWithoutLocale.startsWith(`${prefix}/`),
   );
 }
