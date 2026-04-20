@@ -126,12 +126,11 @@ export function DashboardTopHeader({
   const accountMenuItems = useMemo(
     () => [
       { href: profileHref, label: "Профайл", icon: "profile" as const },
-      { href: role === "admin" ? "/admin" : `/${role}`, label: "Статистик", icon: "trend" as const },
       { href: "/support", label: "Дансны эрүүл байдал", icon: "health" as const },
       { href: membershipHref, label: "Эрхийн төлөвлөгөө", icon: "membership" as const },
       { href: connectsHref, label: "Холболт", icon: "connects" as const },
     ],
-    [connectsHref, membershipHref, profileHref, role],
+    [connectsHref, membershipHref, profileHref],
   );
 
   return (
