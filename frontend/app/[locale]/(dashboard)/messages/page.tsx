@@ -40,10 +40,18 @@ type Thread = {
   unread: number;
 };
 
+type ThreadFilter = "all" | "unread";
+
 function formatMessageTime(value: string) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "";
   return parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatMessageDate(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString("mn-MN", { month: "short", day: "numeric" });
 }
 
 function roleLabel(role: Thread["role"]) {
@@ -59,8 +67,10 @@ export default function MessagesPage() {
 
   const me = useMe();
   const [search, setSearch] = useState("");
+  const [threadFilter, setThreadFilter] = useState<ThreadFilter>("all");
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null);
   const [composer, setComposer] = useState("");
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const inboxQuery = useQuery({
     queryKey: ["globalInbox"],
@@ -96,15 +106,17 @@ export default function MessagesPage() {
 
   const filteredThreads = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return threads;
     return threads.filter((thread) => {
+      const passThreadFilter = threadFilter === "all" || thread.unread > 0;
+      if (!passThreadFilter) return false;
+      if (!keyword) return true;
       return (
         thread.name.toLowerCase().includes(keyword) ||
         thread.title.toLowerCase().includes(keyword) ||
         thread.lastMessage.toLowerCase().includes(keyword)
       );
     });
-  }, [threads, search]);
+  }, [threads, search, threadFilter]);
 
   const unreadThreads = useMemo(
     () => threads.filter((thread) => thread.unread > 0).length,
@@ -140,8 +152,12 @@ export default function MessagesPage() {
     mutationFn: (text: string) => projectsApi.sendMessage(activeThreadId!, text, "text"),
     onSuccess: () => {
       setComposer("");
+      setSendError(null);
       queryClient.invalidateQueries({ queryKey: ["projectMessages", activeThreadId] });
       queryClient.invalidateQueries({ queryKey: ["globalInbox"] });
+    },
+    onError: (error: Error) => {
+      setSendError(error.message || "Мессеж илгээхэд алдаа гарлаа.");
     },
   });
 
@@ -203,9 +219,35 @@ export default function MessagesPage() {
               <p className="mt-1 text-xs font-medium text-on-surface/60">
                 Төслийн харилцааг нэг дэлгэц дээрээс удирдана.
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setThreadFilter("all")}
+                  className={[
+                    "inline-flex min-h-9 items-center rounded-lg px-3 text-[10px] font-black uppercase tracking-[0.14em]",
+                    threadFilter === "all"
+                      ? "bg-primary text-primary-fixed"
+                      : "bg-surface-container-lowest text-on-surface/60",
+                  ].join(" ")}
+                >
+                  Бүгд
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setThreadFilter("unread")}
+                  className={[
+                    "inline-flex min-h-9 items-center rounded-lg px-3 text-[10px] font-black uppercase tracking-[0.14em]",
+                    threadFilter === "unread"
+                      ? "bg-primary text-primary-fixed"
+                      : "bg-surface-container-lowest text-on-surface/60",
+                  ].join(" ")}
+                >
+                  Уншаагүй
+                </button>
+              </div>
               <div className="mt-4">
                 <label htmlFor="thread-search" className="sr-only">
-                  Thread search
+                  Thread хайлт
                 </label>
                 <div className="flex min-h-11 items-center gap-2 rounded-xl bg-surface-container-lowest px-3 shadow-[0_8px_20px_rgba(3,22,54,0.04)]">
                   <svg viewBox="0 0 24 24" className="h-4 w-4 text-on-surface/45" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -222,6 +264,9 @@ export default function MessagesPage() {
                   />
                 </div>
               </div>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">
+                {filteredThreads.length} thread · {totalUnreadMessages} уншаагүй мессеж
+              </p>
             </div>
 
             <div className="mt-3 flex-1 overflow-y-auto rounded-2xl bg-surface-container-low p-2">
@@ -244,11 +289,37 @@ export default function MessagesPage() {
 
               {!inboxQuery.isLoading && !inboxQuery.isError && filteredThreads.length === 0 && (
                 <div className="rounded-xl bg-surface-container-lowest p-4">
-                  <p className="text-sm font-semibold text-primary">Тохирох харилцаа олдсонгүй.</p>
-                  <p className="mt-1 text-xs text-on-surface/60">Шинэ төсөл нээж proposal-ууд авч эхлээрэй.</p>
-                  <Link href={withLocale("/projects")} className="mt-3 inline-flex text-xs font-bold text-secondary underline underline-offset-4">
-                    Ажил хайх хуудас руу очих
-                  </Link>
+                  <p className="text-sm font-semibold text-primary">
+                    {search.trim() ? "Тохирох харилцаа олдсонгүй." : "Мессежийн thread алга."}
+                  </p>
+                  <p className="mt-1 text-xs text-on-surface/60">
+                    {me.data.role === "client"
+                      ? "Шинэ төсөл үүсгэж фрилансеруудтай шууд холбогдоорой."
+                      : "Төсөлд санал илгээгээд харилцаагаа эхлүүлээрэй."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {me.data.role === "client" ? (
+                      <Link href={withLocale("/client/projects/new")} className="ui-btn-ghost">
+                        Шинэ төсөл үүсгэх
+                      </Link>
+                    ) : (
+                      <Link href={withLocale("/projects")} className="ui-btn-ghost">
+                        Ажил хайх
+                      </Link>
+                    )}
+                    {(search.trim() || threadFilter === "unread") && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearch("");
+                          setThreadFilter("all");
+                        }}
+                        className="ui-btn-ghost"
+                      >
+                        Шүүлтүүр цэвэрлэх
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -351,26 +422,39 @@ export default function MessagesPage() {
                   )}
 
                   <div className="space-y-3">
-                    {messages.map((item) => {
+                    {messages.map((item, index) => {
                       const mine = item.sender === me.data?.id;
+                      const currentDate = formatMessageDate(item.created_at);
+                      const prevDate =
+                        index > 0 ? formatMessageDate(messages[index - 1]?.created_at || "") : "";
+                      const showDateDivider = !!currentDate && currentDate !== prevDate;
                       return (
-                        <div key={item.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                          <div
-                            className={[
-                              "max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_12px_22px_rgba(3,22,54,0.06)] sm:max-w-[72%]",
-                              mine
-                                ? "primary-gradient text-primary-fixed"
-                                : "bg-surface-container-lowest text-on-surface",
-                            ].join(" ")}
-                          >
-                            {item.type === "file" ? (
-                              <p className="text-sm font-semibold italic leading-relaxed">[Файл илгээсэн]</p>
-                            ) : (
-                              <p className="text-sm font-medium leading-relaxed">{item.text}</p>
-                            )}
-                            <p className={`mt-2 text-[10px] font-bold tracking-[0.12em] ${mine ? "text-white/65" : "text-on-surface/45"}`}>
-                              {formatMessageTime(item.created_at)}
-                            </p>
+                        <div key={item.id}>
+                          {showDateDivider && (
+                            <div className="my-2 flex justify-center">
+                              <span className="rounded-full bg-surface-container-lowest px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">
+                                {currentDate}
+                              </span>
+                            </div>
+                          )}
+                          <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                            <div
+                              className={[
+                                "max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_12px_22px_rgba(3,22,54,0.06)] sm:max-w-[72%]",
+                                mine
+                                  ? "primary-gradient text-primary-fixed"
+                                  : "bg-surface-container-lowest text-on-surface",
+                              ].join(" ")}
+                            >
+                              {item.type === "file" ? (
+                                <p className="text-sm font-semibold italic leading-relaxed">[Файл илгээсэн]</p>
+                              ) : (
+                                <p className="text-sm font-medium leading-relaxed">{item.text}</p>
+                              )}
+                              <p className={`mt-2 text-[10px] font-bold tracking-[0.12em] ${mine ? "text-white/65" : "text-on-surface/45"}`}>
+                                {formatMessageTime(item.created_at)}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       );
@@ -379,27 +463,35 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="mt-3 rounded-2xl bg-surface-container-low px-3 py-3">
+                  {sendError && (
+                    <div className="mb-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                      {sendError}
+                    </div>
+                  )}
                   <div className="flex items-center gap-3 rounded-xl bg-surface-container-lowest px-3 py-2 shadow-[0_12px_26px_rgba(3,22,54,0.06)]">
                     <label htmlFor="message-input" className="sr-only">
-                      Message input
+                      Мессеж бичих талбар
                     </label>
-                    <input
+                    <textarea
                       id="message-input"
-                      type="text"
                       value={composer}
                       onChange={(event) => setComposer(event.target.value)}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter") sendMessage();
+                        if (event.key === "Enter" && !event.shiftKey) {
+                          event.preventDefault();
+                          sendMessage();
+                        }
                       }}
                       placeholder="Мессеж бичих..."
-                      className="flex-1 bg-transparent px-0 py-0 text-sm font-medium text-on-surface placeholder:text-on-surface/45 focus:ring-0"
+                      rows={1}
+                      className="max-h-28 min-h-8 flex-1 resize-none bg-transparent px-0 py-0 text-sm font-medium text-on-surface placeholder:text-on-surface/45 focus:ring-0"
                     />
                     <button
                       type="button"
                       onClick={sendMessage}
                       disabled={!composer.trim() || sendMutation.isPending}
                       className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-fixed shadow-[0_12px_24px_rgba(3,22,54,0.18)] transition-all hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-40"
-                      aria-label="Send message"
+                      aria-label="Мессеж илгээх"
                     >
                       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                         <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
@@ -407,7 +499,7 @@ export default function MessagesPage() {
                     </button>
                   </div>
                   <div className="mt-2 flex items-center justify-between px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-on-surface/45">
-                    <span>Enter дарж илгээнэ</span>
+                    <span>Enter: илгээх · Shift+Enter: шинэ мөр</span>
                     {sendMutation.isPending && <span className="text-secondary">Илгээж байна...</span>}
                   </div>
                 </div>

@@ -49,28 +49,28 @@ export default function AdminProjectsPage() {
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
       <section className="space-y-5 pb-10">
         <div className="ui-surface p-5">
-          <p className="ui-eyebrow">Project Oversight</p>
+          <p className="ui-eyebrow">{t("kicker")}</p>
           <h1 className="mt-2 font-headline text-[2rem] font-black tracking-tight text-primary">{t("title")}</h1>
           <p className="mt-2 text-sm text-on-surface/65">
-            Нийт {projects.length} төсөл байна. Open: {openCount}, In progress: {activeCount}.
+            {t("summary", { total: projects.length, open: openCount, progress: activeCount })}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-4">
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Open</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("openLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{openCount}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">In progress</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("progressLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{activeCount}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Completed</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("completedLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{completedCount}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Disputed</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("disputedLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{disputedCount}</p>
           </div>
         </div>
@@ -78,10 +78,10 @@ export default function AdminProjectsPage() {
         <AppCard>
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {[
-              { key: "all", label: "Бүгд" },
-              { key: "open", label: "Open" },
-              { key: "progress", label: "Progress" },
-              { key: "completed", label: "Completed" },
+              { key: "all", label: t("filterAll") },
+              { key: "open", label: t("filterOpen") },
+              { key: "progress", label: t("filterProgress") },
+              { key: "completed", label: t("filterCompleted") },
             ].map((filter) => {
               const active = statusFilter === filter.key;
               return (
@@ -105,7 +105,7 @@ export default function AdminProjectsPage() {
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Project title / ID..."
+                placeholder={t("searchPlaceholder")}
                 className="w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface/45 focus:ring-0"
               />
             </div>
@@ -136,7 +136,7 @@ export default function AdminProjectsPage() {
                     {t("status")}: {item.status || "-"} · ID: {item.id}
                   </p>
                   <p className="mt-1 text-on-surface/55">
-                    Budget: {item.budget_min?.toLocaleString?.() ?? "-"} - {item.budget_max?.toLocaleString?.() ?? "-"} ₮
+                    {t("budget")}: {item.budget_min?.toLocaleString?.() ?? "-"} - {item.budget_max?.toLocaleString?.() ?? "-"} ₮
                   </p>
                 </li>
               ))}

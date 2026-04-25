@@ -65,28 +65,28 @@ export default function AdminUsersPage() {
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
       <section className="space-y-5 pb-10">
         <div className="ui-surface p-5">
-          <p className="ui-eyebrow">Operations</p>
+          <p className="ui-eyebrow">{t("kicker")}</p>
           <h1 className="mt-2 font-headline text-[2rem] font-black tracking-tight text-primary">{t("title")}</h1>
           <p className="mt-2 text-sm text-on-surface/65">
-            Нийт {users.length} хэрэглэгчээс {suspendedCount} нь suspended төлөвтэй байна.
+            {t("summary", { total: users.length, suspended: suspendedCount })}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-4">
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Нийт</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("totalLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{users.length}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Pending</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("pendingLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{pendingCount}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Verified</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("verifiedLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{verifiedCount}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Suspended</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("suspendedLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{suspendedCount}</p>
           </div>
         </div>
@@ -94,10 +94,10 @@ export default function AdminUsersPage() {
         <AppCard className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             {[
-              { key: "all", label: "Бүгд" },
-              { key: "pending", label: "Pending" },
-              { key: "verified", label: "Verified" },
-              { key: "suspended", label: "Suspended" },
+              { key: "all", label: t("filterAll") },
+              { key: "pending", label: t("filterPending") },
+              { key: "verified", label: t("filterVerified") },
+              { key: "suspended", label: t("filterSuspended") },
             ].map((filter) => {
               const active = statusFilter === filter.key;
               return (
@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Имэйл эсвэл role..."
+                placeholder={t("searchPlaceholder")}
                 className="w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface/45 focus:ring-0"
               />
             </div>

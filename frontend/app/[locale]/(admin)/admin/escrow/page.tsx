@@ -85,24 +85,24 @@ export default function AdminEscrowPage() {
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
       <section className="mx-auto max-w-7xl space-y-6 pb-10">
         <div className="ui-surface p-5">
-          <p className="ui-eyebrow">Escrow Oversight</p>
+          <p className="ui-eyebrow">{t("kicker")}</p>
           <h1 className="mt-2 font-headline text-[2rem] font-black tracking-tight text-primary">{t("title")}</h1>
           <p className="mt-2 text-sm text-on-surface/65">
-            Pending approval: {records.length}. Санхүүгийн урсгал audit-тайгаа хамт харагдана.
+            {t("summary", { total: records.length })}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Pending records</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("pendingRecordsLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{records.length}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Created status</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("createdStatusLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{createdCount}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Amount at hold</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("amountAtHoldLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{totalPendingAmount.toLocaleString()} ₮</p>
           </div>
         </div>

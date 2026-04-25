@@ -141,24 +141,24 @@ export default function AdminDisputesPage() {
     <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
       <section className="mx-auto max-w-7xl space-y-6 pb-10">
         <div className="ui-surface p-5">
-          <p className="ui-eyebrow">Dispute Desk</p>
+          <p className="ui-eyebrow">{t("kicker")}</p>
           <h1 className="mt-2 font-headline text-[2rem] font-black tracking-tight text-primary">{t("title")}</h1>
           <p className="mt-2 text-sm text-on-surface/65">
-            Open dispute: {disputes.length}. Priority queue-г доороос шийдвэрлэнэ.
+            {t("summary", { total: disputes.length })}
           </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Open disputes</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("openDisputesLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{openDisputes.length}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Resolved</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("resolvedLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{resolvedDisputes.length}</p>
           </div>
           <div className="rounded-2xl bg-surface-container-low p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Escrow at risk</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("atRiskLabel")}</p>
             <p className="mt-1 font-headline text-3xl font-black tracking-tight text-primary">{totalEscrowAtRisk.toLocaleString()} ₮</p>
           </div>
         </div>

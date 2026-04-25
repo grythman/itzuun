@@ -1,85 +1,31 @@
 "use client";
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
-import { useDashboardLayout } from "@/components/layout/dashboard-layout";
-import { RoleSidebar } from "@/components/layout/dashboard-sidebar";
 import { RoleGuard } from "@/components/shared/role-guard";
-import { ActionButton, ConfirmationDialog, DashboardBottomBar, StatusPill, Modal } from "@/components/ui";
+import { ActionButton, AppCard, StatusPill } from "@/components/ui";
 import { adminApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/stores/toast-store";
-import type { AdminPaymentDto, AdminUserDto, DisputeDto, EscrowDto, LedgerEntryDto } from "@/lib/api/types";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import type { AdminUserDto, DisputeDto, EscrowDto, LedgerEntryDto } from "@/lib/api/types";
 
 export default function AdminPage() {
   const toast = useToastStore((s) => s.push);
-  const inDashboardShell = useDashboardLayout();
+  const pathname = usePathname();
+  const pathParts = (pathname || "").split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const me = useMe();
   const { users, projects, escrow, disputes, commission, ledger } = useAdminSnapshot();
-  
-  const [paymentFilter, setPaymentFilter] = useState<"all" | "paid" | "pending" | "failed">("all");
-  const [resolveTarget, setResolveTarget] = useState<{ disputeId: number; projectId: number } | null>(null);
-  const [resolveAction, setResolveAction] = useState<"refund" | "release" | "split">("refund");
-  const [splitReleasePct, setSplitReleasePct] = useState(50);
-  const [resolveNote, setResolveNote] = useState("");
-
-  const payments = useQuery({
-    queryKey: ["admin-payments", paymentFilter],
-    queryFn: () => (paymentFilter === "all" ? adminApi.payments() : adminApi.payments(paymentFilter)),
-  });
 
   const userItems = users.data ? toArray<AdminUserDto>(users.data) : [];
-  const projectItems = projects.data ? toArray<any>(projects.data) : [];
+  const projectItems = projects.data ? toArray<Record<string, unknown>>(projects.data) : [];
   const escrowItems = escrow.data ? toArray<EscrowDto>(escrow.data) : [];
   const disputeItems = disputes.data ? toArray<DisputeDto>(disputes.data) : [];
-  const paymentItems = payments.data ? toArray<AdminPaymentDto>(payments.data) : [];
   const ledgerItems = ledger.data ? toArray<LedgerEntryDto>(ledger.data) : [];
-
-  const verifyMutation = useMutation({
-    mutationFn: ({ userId, action, reason }: { userId: number; action: "approve" | "reject" | "suspend"; reason?: string }) =>
-      adminApi.verifyUser(userId, { action: action, rejection_reason: reason }),
-    onSuccess: () => {
-      users.refetch();
-      toast("success", "Хэрэглэгчийн баталгаажуулалт шинэчлэгдлээ");
-    },
-  });
-
-  const resolveMutation = useMutation({
-    mutationFn: ({ disputeId, projectId }: { disputeId: number; projectId: number }) => {
-      const escrowItem = escrowItems.find((item) => item.project === projectId);
-      if (!escrowItem) {
-        throw new Error("Escrow not found for dispute project");
-      }
-      
-      let release_amount = 0;
-      let refund_amount = 0;
-      
-      if (resolveAction === "refund") {
-        refund_amount = escrowItem.amount;
-      } else if (resolveAction === "release") {
-        release_amount = escrowItem.amount;
-      } else if (resolveAction === "split") {
-        release_amount = Math.floor(escrowItem.amount * (splitReleasePct / 100));
-        refund_amount = escrowItem.amount - release_amount;
-      }
-
-      return adminApi.resolveDispute(disputeId, {
-        action: resolveAction,
-        release_amount,
-        refund_amount,
-        note: resolveNote || "Resolved by admin",
-      });
-    },
-    onSuccess: () => {
-      disputes.refetch();
-      setResolveTarget(null);
-      setResolveNote("");
-      toast("success", "Маргаан шийдвэрлэгдлээ");
-    },
-    onError: (error: Error) => toast("error", error.message),
-  });
 
   const commissionMutation = useMutation({
     mutationFn: (pct: number) => adminApi.setCommission(pct),
@@ -98,280 +44,208 @@ export default function AdminPage() {
     onError: (error: Error) => toast("error", error.message),
   });
 
+  const pendingUsers = userItems.filter((item) => item.verification_status === "pending");
+  const suspendedUsers = userItems.filter((item) => item.verification_status === "suspended");
+  const verifiedUsers = userItems.filter((item) => item.verification_status === "verified");
+  const openDisputes = disputeItems.filter((item) => !item.resolved_at);
+  const createdEscrow = escrowItems.filter((item) => item.status === "created");
+  const heldEscrowAmount = escrowItems
+    .filter((item) => item.status === "created" || item.status === "held")
+    .reduce((total, item) => total + Number(item.amount || 0), 0);
+  const recentLedger = [...ledgerItems]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 8);
+
   if (me.isLoading) return <LoadingState label="Админ эрхийг шалгаж байна..." />;
   if (me.isError || !me.data) return <ErrorState label="Эхлээд нэвтэрнэ үү." />;
 
   return (
-    <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath="/auth">
-      <section className="space-y-6 pb-20">
-        {!inDashboardShell && <h1 className="text-2xl font-semibold">Админ хянах самбар</h1>}
-
-        <div className={inDashboardShell ? "block" : "flex gap-4"}>
-          {!inDashboardShell && <RoleSidebar role="admin" />}
-          <div className="flex-1 space-y-4">
-            
-            {/* KPI Metrics */}
-            <div className="grid gap-3 md:grid-cols-4">
-              <div className="ui-surface p-4">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Нийт хэрэглэгч</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">{users.data ? userItems.length : "..."}</p>
-                <p className="text-[11px] text-surface-500 mt-1">
-                  {users.data ? userItems.filter((u) => u.is_verified).length : 0} Баталгаажсан
-                </p>
-              </div>
-              <div className="ui-surface p-4">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Нийт төсөл</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">{projects.data ? projectItems.length : "..."}</p>
-                <p className="text-[11px] text-surface-500 mt-1">Платформын хэмжээ</p>
-              </div>
-              <div className="ui-surface p-4">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Escrow дүн</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">
-                  {escrow.data ? escrowItems.reduce((acc, item) => acc + item.amount, 0).toLocaleString() : "..."}
-                </p>
-                <p className="text-[11px] text-surface-500 mt-1">MNT Хадгалагдсан</p>
-              </div>
-              <div className="ui-surface p-4">
-                <p className="text-[11px] uppercase tracking-widest text-surface-500">Маргаан</p>
-                <p className="mt-1 text-2xl font-semibold text-surface-900">{disputes.data ? disputeItems.filter((d) => !d.resolved_at).length : "..."}</p>
-                <p className="text-[11px] text-surface-500 mt-1">Идэвхтэй</p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-          <div className="ui-surface p-5">
-            <h2 className="text-lg font-medium text-surface-900">Шимтгэл</h2>
-            {commission.isLoading ? <LoadingState label="Шимтгэл ачааллаж байна..." /> : null}
-            {commission.isError ? <ErrorState label="Шимтгэл ачааллах боломжгүй байна." /> : null}
-            {commission.data ? <p className="mt-2 text-[13px] text-surface-600">Одоогийн: {commission.data.platform_fee_pct}%</p> : null}
-            <ActionButton className="mt-3" onClick={() => commissionMutation.mutate(10)} loading={commissionMutation.isPending}>10% болгох</ActionButton>
-          </div>
-
-          <div className="ui-surface p-5">
-            <h2 className="text-lg font-medium text-surface-900">Escrow систем</h2>
-            {escrow.isLoading ? <LoadingState label="Escrow ачааллаж байна..." /> : null}
-            {escrow.data && escrowItems.length === 0 ? <EmptyState label="Escrow бичлэг алга." /> : null}
-            {escrow.data && escrowItems.length > 0 ? (
-              <ul className="space-y-2 mt-2">
-                {escrowItems.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3 text-[13px]">
-                    <div>
-                      <p className="text-surface-800">Escrow #{item.id} — Төсөл #{item.project}</p>
-                      <p className="text-[11px] text-surface-500">{item.amount?.toLocaleString()} MNT · <StatusPill label={item.status} tone={item.status === "held" ? "success" : item.status === "created" ? "warning" : "neutral"} /></p>
-                    </div>
-                    {item.status === "created" && (
-                      <ActionButton tone="success" loading={approveMutation.isPending} onClick={() => approveMutation.mutate(item.id)}>Батлах</ActionButton>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-            </div>
-
-            <div className="ui-surface p-5">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-medium text-surface-900">Төлбөрүүд</h2>
-            <div className="flex gap-2">
-              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("all")}>Бүгд</button>
-              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("paid")}>Төлөгдсөн</button>
-              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("pending")}>Хүлээгдэж буй</button>
-              <button className="ui-btn-ghost" onClick={() => setPaymentFilter("failed")}>Амжилтгүй</button>
-            </div>
-          </div>
-          <p className="mb-2 text-[11px] uppercase tracking-widest text-surface-500">Шүүлтүүр: {paymentFilter}</p>
-          {payments.isLoading ? <LoadingState label="Төлбөрүүдийг ачааллаж байна..." /> : null}
-          {payments.data && paymentItems.length === 0 ? <EmptyState label="Төлбөр алга." /> : null}
-          {payments.data && paymentItems.length > 0 ? (
-            <ul className="space-y-2">
-              {paymentItems.map((item) => (
-                <li key={item.id} className="rounded-xl bg-surface-container-low p-3 text-[13px]">
-                  <p className="text-surface-800">Нэхэмжлэх: {item.invoice_id}</p>
-                  <p className="mt-1">
-                    <StatusPill
-                      label={item.status}
-                      tone={item.status === "paid" ? "success" : item.status === "failed" ? "danger" : "warning"}
-                    />
-                  </p>
-                  <p className="text-surface-600">Төсөл: {item.project}</p>
-                  <p className="text-surface-600">Төлсөн огноо: {item.paid_at ?? "-"}</p>
-                  <p className="text-surface-600">Escrow: {item.escrow_status ?? "-"}</p>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-            </div>
-
-            <div className="ui-surface p-5">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-medium text-surface-900">Санхүүгийн аудитын бүртгэл (Ledger)</h2>
-              </div>
-              {ledger.isLoading ? <LoadingState label="Ledger ачааллаж байна..." /> : null}
-              {ledger.data && ledgerItems.length === 0 ? <EmptyState label="Ledger бичлэг алга." /> : null}
-              {ledger.data && ledgerItems.length > 0 ? (
-                <ul className="space-y-2">
-                  {ledgerItems.map((entry) => (
-                    <li key={entry.id} className="rounded-xl bg-surface-container-low p-3 flex flex-col gap-1 text-[13px]">
-                      <div className="flex items-center gap-2">
-                        <StatusPill
-                          label={entry.entry_type}
-                          tone={
-                            entry.entry_type === "deposit" || entry.entry_type === "release" ? "success" : 
-                            entry.entry_type === "refund" ? "warning" : "neutral"
-                          }
-                        />
-                        <span className="font-medium text-surface-800">{entry.amount.toLocaleString()} MNT</span>
-                      </div>
-                      <p className="text-surface-600">Escrow #{entry.escrow} • {new Date(entry.created_at).toLocaleString()}</p>
-                      {entry.note ? <p className="text-surface-500 italic">{entry.note}</p> : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-
-            <div className="ui-surface p-5">
-          <h2 className="mb-3 text-lg font-medium text-surface-900">Хэрэглэгчид</h2>
-          {users.isLoading ? <LoadingState label="Хэрэглэгчдийг ачааллаж байна..." /> : null}
-          {users.isError ? <ErrorState label="Хэрэглэгчдийг ачааллах боломжгүй байна." /> : null}
-          {users.data ? (
-            <ul className="space-y-2">
-              {userItems.map((user) => (
-                <li key={user.id} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3 text-[13px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-surface-700">{user.email} ({user.role})</span>
-                    <StatusPill 
-                      label={user.verification_status || "unverified"} 
-                      tone={user.verification_status === "verified" ? "success" : user.verification_status === "pending" ? "warning" : user.verification_status === "suspended" ? "danger" : "neutral"} 
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ActionButton onClick={() => verifyMutation.mutate({ userId: user.id, action: "approve" })} loading={verifyMutation.isPending && verifyMutation.variables?.action === "approve"}>Батлах</ActionButton>
-                    <ActionButton tone="danger" onClick={() => {
-                      const reason = window.prompt("Татгалзах шалтгаан:");
-                      if (reason !== null) {
-                        verifyMutation.mutate({ userId: user.id, action: "reject", reason });
-                      }
-                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "reject"}>Татгалзах</ActionButton>
-                    <ActionButton tone="danger" onClick={() => {
-                      const r = window.prompt("Түр түдгэлзүүлэх шалтгаан:");
-                      if (!r || !r.trim()) return;
-                      verifyMutation.mutate({ userId: user.id, action: "suspend", reason: r.trim() });
-                    }} loading={verifyMutation.isPending && verifyMutation.variables?.action === "suspend"}>Түдгэлзүүлэх</ActionButton>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-          <div className="ui-surface p-5">
-            <h2 className="mb-3 text-lg font-medium text-surface-900">Төслүүд</h2>
-            {projects.isLoading ? <LoadingState label="Төслүүдийг ачааллаж байна..." /> : null}
-            {projects.data ? <p className="text-[13px] text-surface-600">Нийт: {projectItems.length}</p> : null}
-          </div>
-
-          <div className="ui-surface p-5">
-            <h2 className="mb-3 text-lg font-medium text-surface-900">Маргаан</h2>
-            {disputes.isLoading ? <LoadingState label="Маргааныг ачааллаж байна..." /> : null}
-            {disputes.data && disputeItems.length === 0 ? <EmptyState label="Маргаан алга." /> : null}
-            {disputes.data && disputeItems.length > 0 ? (
-              <ul className="space-y-2">
-                {disputeItems.map((item) => (
-                  <li key={item.id} className="flex flex-col gap-2 rounded-xl bg-surface-container-low p-3 text-[13px]">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-surface-800">Маргаан #{item.id} — Төсөл #{item.project}</span>
-                      {item.resolved_at ? (
-                        <StatusPill tone="success" label="Шийдвэрлэгдсэн" />
-                      ) : (
-                        <ActionButton tone="warning" onClick={() => setResolveTarget({ disputeId: item.id, projectId: item.project })}>Одоо шийдвэрлэх</ActionButton>
-                      )}
-                    </div>
-                    <div className="text-surface-600">Шалтгаан: {item.reason}</div>
-                    {item.note && <div className="mt-2 pt-2 text-[12px] text-surface-500">Админы тэмдэглэл: {item.note}</div>}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-            </div>
+    <RoleGuard currentRole={me.data.role} requiredRole="admin" fallbackPath={withLocale("/auth")}>
+      <section className="space-y-6 pb-10">
+        <div className="ui-surface p-5">
+          <p className="ui-eyebrow">Operations Console</p>
+          <h1 className="mt-2 font-headline text-[2rem] font-black tracking-tight text-primary">Админ хянах самбар</h1>
+          <p className="mt-2 text-sm text-on-surface/65">
+            Эрсдэлийн queue, санхүүгийн урсгал, хэрэглэгчийн итгэлцлийн төлөвийг нэг дэлгэцээс хянаж шийдвэрлэнэ.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href={withLocale("/admin/disputes")} className="ui-btn-secondary min-h-10 px-4 text-[11px]">
+              Маргаан шийдвэрлэх
+            </Link>
+            <Link href={withLocale("/admin/escrow")} className="ui-btn-ghost min-h-10 px-4 text-[11px]">
+              Escrow батлах
+            </Link>
+            <Link href={withLocale("/admin/users")} className="ui-btn-ghost min-h-10 px-4 text-[11px]">
+              Хэрэглэгч удирдах
+            </Link>
           </div>
         </div>
 
-        <Modal
-          open={!!resolveTarget}
-          title="Маргааныг шийдвэрлэх"
-          onClose={() => setResolveTarget(null)}
-        >
-          {resolveTarget && (
-            <div className="space-y-4 pt-2">
-              <p className="text-[13px] text-surface-500">
-                Төсөл #{resolveTarget.projectId}-ийн escrow-д хадгалагдаж буй мөнгийг хэрхэн хуваарилахыг сонгоно уу. 
-                Одоогийн Escrow дүн: {
-                  (escrowItems.find((item) => item.project === resolveTarget.projectId)?.amount || 0).toLocaleString()
-                } MNT
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className={`flex-1 rounded-xl px-3 py-2 text-sm ${resolveAction === "refund" ? "bg-primary text-primary-fixed shadow-[0_10px_22px_rgba(3,22,54,0.16)]" : "bg-surface-container-low text-on-surface/70 hover:bg-surface-container"}`}
-                  onClick={() => setResolveAction("refund")}
-                >
-                  100% Буцаах (Захиалагч)
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 rounded-xl px-3 py-2 text-sm ${resolveAction === "release" ? "bg-primary text-primary-fixed shadow-[0_10px_22px_rgba(3,22,54,0.16)]" : "bg-surface-container-low text-on-surface/70 hover:bg-surface-container"}`}
-                  onClick={() => setResolveAction("release")}
-                >
-                  100% Олгох (Фрилансер)
-                </button>
-                <button
-                  type="button"
-                  className={`flex-1 rounded-xl px-3 py-2 text-sm ${resolveAction === "split" ? "bg-primary text-primary-fixed shadow-[0_10px_22px_rgba(3,22,54,0.16)]" : "bg-surface-container-low text-on-surface/70 hover:bg-surface-container"}`}
-                  onClick={() => setResolveAction("split")}
-                >
-                  Мөнгийг хуваах
-                </button>
+        <div className="grid gap-3 md:grid-cols-4">
+          <div className="ui-surface p-4">
+            <p className="ui-eyebrow">Хэрэглэгч</p>
+            <p className="ui-kpi-value mt-2">{userItems.length.toLocaleString()}</p>
+            <p className="mt-2 text-[12px] text-on-surface/60">
+              {pendingUsers.length} pending, {suspendedUsers.length} suspended, {verifiedUsers.length} verified
+            </p>
+          </div>
+          <div className="ui-surface p-4">
+            <p className="ui-eyebrow">Төсөл</p>
+            <p className="ui-kpi-value mt-2">{projectItems.length.toLocaleString()}</p>
+            <p className="mt-2 text-[12px] text-on-surface/60">Нийт төслийн pipeline хэмжээс</p>
+          </div>
+          <div className="ui-surface p-4">
+            <p className="ui-eyebrow">Escrow дүн</p>
+            <p className="ui-kpi-value mt-2">{heldEscrowAmount.toLocaleString()} ₮</p>
+            <p className="mt-2 text-[12px] text-on-surface/60">{createdEscrow.length} батлах хүлээгдэж байна</p>
+          </div>
+          <div className="ui-surface p-4">
+            <p className="ui-eyebrow">Нээлттэй маргаан</p>
+            <p className="ui-kpi-value mt-2">{openDisputes.length.toLocaleString()}</p>
+            <p className="mt-2 text-[12px] text-on-surface/60">Шийдвэр шаардаж буй эрсдэлийн кейс</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+          <AppCard className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="ui-eyebrow">Priority Queue</p>
+                <h2 className="mt-1 font-headline text-xl font-black tracking-tight text-primary">Яаралтай шийдэх зүйлс</h2>
               </div>
+              <Link href={withLocale("/admin/disputes")} className="ui-btn-ghost min-h-10 px-4 text-[11px]">
+                Бүгдийг харах
+              </Link>
+            </div>
 
-              {resolveAction === "split" && (
-                <div className="space-y-2">
-                  <label className="text-[13px] font-medium text-surface-700">Фрилансерт олгох: {splitReleasePct}%</label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={99}
-                    value={splitReleasePct}
-                    onChange={(e) => setSplitReleasePct(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <p className="text-[12px] text-surface-500">Үлдсэн {100 - splitReleasePct}%-ийг захиалагчид буцаана.</p>
-                </div>
-              )}
+            {openDisputes.length === 0 && createdEscrow.length === 0 ? (
+              <EmptyState label="Одоогоор яаралтай queue алга." />
+            ) : (
+              <div className="space-y-2.5">
+                {openDisputes.slice(0, 4).map((item) => (
+                  <article key={`dispute-${item.id}`} className="rounded-xl bg-surface-container-low p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-primary">Маргаан #{item.id} • Төсөл #{item.project}</p>
+                      <StatusPill label="Нээлттэй" tone="warning" />
+                    </div>
+                    <p className="mt-2 text-[13px] text-on-surface/65">{item.reason || "Шалтгаан оруулаагүй"}</p>
+                    <div className="mt-3">
+                      <Link href={withLocale("/admin/disputes")} className="ui-btn-secondary min-h-10 px-4 text-[11px]">
+                        Шийдвэрлэх
+                      </Link>
+                    </div>
+                  </article>
+                ))}
 
-              <textarea
-                placeholder="Шийдвэрийн тэмдэглэл (аудитын бүртгэлд харагдана)..."
-                value={resolveNote}
-                onChange={(e) => setResolveNote(e.target.value)}
-                className="w-full"
-                rows={3}
-              />
+                {createdEscrow.slice(0, 4).map((item) => (
+                  <article key={`escrow-${item.id}`} className="rounded-xl bg-surface-container-low p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-primary">Escrow #{item.id} • Төсөл #{item.project}</p>
+                      <StatusPill label="Үүссэн" tone="info" />
+                    </div>
+                    <p className="mt-2 text-[13px] text-on-surface/65">Дүн: {Number(item.amount || 0).toLocaleString()} ₮</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <ActionButton
+                        tone="success"
+                        className="min-h-10 px-4 text-[11px]"
+                        loading={approveMutation.isPending}
+                        onClick={() => approveMutation.mutate(item.id)}
+                      >
+                        Батлах
+                      </ActionButton>
+                      <Link href={withLocale("/admin/escrow")} className="ui-btn-ghost min-h-10 px-4 text-[11px]">
+                        Дэлгэрэнгүй
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </AppCard>
 
-              <div className="flex justify-end gap-2 mt-4">
-                <button className="ui-btn-ghost" onClick={() => setResolveTarget(null)}>
-                  Цуцлах
-                </button>
-                <ActionButton tone="success" loading={resolveMutation.isPending} onClick={() => resolveTarget && resolveMutation.mutate(resolveTarget)}>
-                  Шийдвэрийг батлах
+          <div className="space-y-4">
+            <AppCard>
+              <p className="ui-eyebrow">Шимтгэлийн тохиргоо</p>
+              <h2 className="mt-1 font-headline text-lg font-bold text-primary">Platform fee</h2>
+              {commission.isLoading ? <LoadingState label="Шимтгэл ачааллаж байна..." /> : null}
+              {commission.isError ? <ErrorState label="Шимтгэл ачааллах боломжгүй байна." /> : null}
+              {commission.data ? (
+                <p className="mt-2 text-sm text-on-surface/70">Одоогийн дүн: {commission.data.platform_fee_pct}%</p>
+              ) : null}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <ActionButton className="min-h-10 px-4 text-[11px]" loading={commissionMutation.isPending} onClick={() => commissionMutation.mutate(8)}>
+                  8% болгох
+                </ActionButton>
+                <ActionButton className="min-h-10 px-4 text-[11px]" loading={commissionMutation.isPending} onClick={() => commissionMutation.mutate(10)}>
+                  10% болгох
                 </ActionButton>
               </div>
-            </div>
-          )}
-        </Modal>
+            </AppCard>
 
-        <DashboardBottomBar role="admin" />
+            <AppCard>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="ui-eyebrow">Verification Queue</p>
+                  <h2 className="mt-1 font-headline text-lg font-bold text-primary">Хүлээгдэж буй хэрэглэгчид</h2>
+                </div>
+                <Link href={withLocale("/admin/users")} className="ui-btn-ghost min-h-10 px-4 text-[11px]">
+                  Хэрэглэгчийн хуудас
+                </Link>
+              </div>
+              {pendingUsers.length === 0 ? (
+                <EmptyState label="Pending verification одоогоор алга." />
+              ) : (
+                <ul className="space-y-2">
+                  {pendingUsers.slice(0, 5).map((item) => (
+                    <li key={item.id} className="rounded-xl bg-surface-container-low p-3">
+                      <p className="text-sm font-semibold text-primary">{item.email}</p>
+                      <p className="mt-1 text-[12px] text-on-surface/60">Эрх: {item.role}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AppCard>
+          </div>
+        </div>
+
+        <AppCard>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="ui-eyebrow">Finance Ledger</p>
+              <h2 className="mt-1 font-headline text-xl font-black tracking-tight text-primary">Сүүлийн санхүүгийн бүртгэл</h2>
+            </div>
+            <Link href={withLocale("/admin/escrow")} className="ui-btn-ghost min-h-10 px-4 text-[11px]">
+              Escrow audit харах
+            </Link>
+          </div>
+          {recentLedger.length === 0 ? (
+            <EmptyState label="Ledger бичлэг алга." />
+          ) : (
+            <ul className="space-y-2">
+              {recentLedger.map((entry) => (
+                <li key={entry.id} className="rounded-xl bg-surface-container-low p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-primary">
+                      Escrow #{entry.escrow} • {entry.amount.toLocaleString()} ₮
+                    </p>
+                    <StatusPill
+                      label={entry.entry_type}
+                      tone={
+                        entry.entry_type === "deposit" || entry.entry_type === "release"
+                          ? "success"
+                          : entry.entry_type === "refund"
+                            ? "warning"
+                            : "neutral"
+                      }
+                    />
+                  </div>
+                  <p className="mt-1 text-[12px] text-on-surface/60">{new Date(entry.created_at).toLocaleString()}</p>
+                  {entry.note ? <p className="mt-1 text-[12px] text-on-surface/55">{entry.note}</p> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </AppCard>
       </section>
     </RoleGuard>
   );

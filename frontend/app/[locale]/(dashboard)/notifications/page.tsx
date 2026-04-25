@@ -118,6 +118,8 @@ export default function NotificationsPage() {
 
   const me = useMe();
   const [filter, setFilter] = useState<NotificationKind>("all");
+  const [search, setSearch] = useState("");
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   const notifQuery = useQuery({
     queryKey: ["notifications"],
@@ -166,12 +168,14 @@ export default function NotificationsPage() {
     );
   }
 
+  const keyword = search.trim().toLowerCase();
   const filteredItems = items.filter((item) => {
-    if (filter === "all") return true;
-    if (filter === "projects") return item.kind === "project" || item.kind === "proposal";
-    if (filter === "payments") return item.kind === "payment";
-    if (filter === "system") return item.kind === "system";
-    return true;
+    if (unreadOnly && item.read) return false;
+    if (filter === "projects" && !(item.kind === "project" || item.kind === "proposal")) return false;
+    if (filter === "payments" && item.kind !== "payment") return false;
+    if (filter === "system" && item.kind !== "system") return false;
+    if (!keyword) return true;
+    return item.title.toLowerCase().includes(keyword) || item.body.toLowerCase().includes(keyword);
   });
 
   const unreadCount = items.filter((item) => !item.read).length;
@@ -186,6 +190,13 @@ export default function NotificationsPage() {
     { label: "Эрт үе", bucket: "earlier" as const, items: filteredItems.filter((item) => item.dayBucket === "earlier") },
   ].filter((group) => group.items.length > 0);
 
+  const resolveHref = (href: string) => {
+    if (/^https?:\/\//i.test(href)) return href;
+    const clean = href.startsWith("/") ? href : `/${href}`;
+    if (/^\/(mn|en)(\/|$)/.test(clean)) return clean;
+    return `/${locale}${clean}`;
+  };
+
   return (
     <section className="space-y-6 pb-10">
       <div className="ui-surface p-4 sm:p-5 lg:p-6">
@@ -197,6 +208,9 @@ export default function NotificationsPage() {
             </h1>
             <p className="mt-2 text-sm font-medium text-on-surface/60">
               Шинэ update-уудаа эрэмбэлж, дараагийн алхмаа хурдан тодорхойлно.
+            </p>
+            <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-on-surface/45">
+              {filteredItems.length} үр дүн
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -218,6 +232,21 @@ export default function NotificationsPage() {
 
         <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,1fr)_290px]">
           <div>
+            <div className="mb-3 flex min-h-11 items-center gap-2 rounded-xl bg-surface-container-low px-3">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 text-on-surface/45" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Гарчиг эсвэл агуулгаар хайх..."
+                className="w-full bg-transparent px-0 py-0 text-sm text-on-surface placeholder:text-on-surface/45 focus:ring-0"
+                aria-label="Мэдэгдэл хайх"
+              />
+            </div>
+
             <div className="flex gap-2 overflow-x-auto pb-1">
               {FILTER_TABS.map((tab) => {
                 const active = tab.key === filter;
@@ -252,6 +281,18 @@ export default function NotificationsPage() {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setUnreadOnly((value) => !value)}
+                className={[
+                  "inline-flex min-h-11 shrink-0 items-center rounded-xl px-4 text-[11px] font-black uppercase tracking-[0.16em] transition-all",
+                  unreadOnly
+                    ? "bg-secondary text-white shadow-[0_12px_24px_rgba(19,105,106,0.25)]"
+                    : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
+                ].join(" ")}
+              >
+                Уншаагүй л
+              </button>
             </div>
 
             {notifQuery.isLoading && <LoadingState label="Мэдэгдэл ачааллаж байна..." />}
@@ -272,11 +313,35 @@ export default function NotificationsPage() {
                     <path d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z" />
                   </svg>
                 </div>
-                <p className="mt-5 text-lg font-black text-primary">Мэдэгдэл алга байна</p>
-                <p className="mt-2 text-sm text-on-surface/60">Шинэ үйл явдал гарахад энд автоматаар нэмэгдэнэ.</p>
-                <Link href={withLocale("/projects")} className="mt-5 ui-btn-secondary">
-                  Төсөл үзэх
-                </Link>
+                <p className="mt-5 text-lg font-black text-primary">
+                  {search.trim() || unreadOnly ? "Тохирох мэдэгдэл олдсонгүй" : "Мэдэгдэл алга байна"}
+                </p>
+                <p className="mt-2 text-sm text-on-surface/60">
+                  {search.trim() || unreadOnly
+                    ? "Хайлтын үг эсвэл шүүлтүүрээ суллаад дахин оролдоно уу."
+                    : "Шинэ үйл явдал гарахад энд автоматаар нэмэгдэнэ."}
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  <Link
+                    href={withLocale(me.data.role === "client" ? "/client/projects" : "/projects")}
+                    className="ui-btn-secondary"
+                  >
+                    {me.data.role === "client" ? "Миний төслүүд" : "Ажил хайх"}
+                  </Link>
+                  {(search.trim() || unreadOnly || filter !== "all") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearch("");
+                        setUnreadOnly(false);
+                        setFilter("all");
+                      }}
+                      className="ui-btn-ghost"
+                    >
+                      Шүүлтүүр цэвэрлэх
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -321,7 +386,9 @@ export default function NotificationsPage() {
                               )}
                               {item.action && (
                                 <Link
-                                  href={withLocale(item.action.href)}
+                                  href={resolveHref(item.action.href)}
+                                  target={/^https?:\/\//i.test(item.action.href) ? "_blank" : undefined}
+                                  rel={/^https?:\/\//i.test(item.action.href) ? "noopener noreferrer" : undefined}
                                   className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-secondary underline underline-offset-4"
                                 >
                                   {item.action.label}
