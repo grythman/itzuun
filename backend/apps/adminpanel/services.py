@@ -4,8 +4,7 @@ from django.db import transaction
 
 from apps.accounts.models import User
 from apps.payments.models import Dispute, FinancialAuditLog
-from apps.payments.services import resolve_dispute
-from apps.payments.services import _build_hash_chain
+from apps.payments.services import _build_hash_chain, resolve_dispute
 from common.exceptions import DomainError
 from common.models import PlatformSetting
 

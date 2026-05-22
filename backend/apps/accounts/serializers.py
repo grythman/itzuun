@@ -1,7 +1,7 @@
 """Serializers for authentication and user profile."""
 
-from datetime import timedelta
 import re
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from common.cache_utils import bump_admin_resource_version, bump_user_public_version
+
 from .models import EmailOTP, User
 from .services import create_email_otp, verify_google_credential
 

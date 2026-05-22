@@ -1,8 +1,9 @@
-from django.test import TestCase
+import json
+from io import StringIO
+
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from io import StringIO
-import json
+from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 

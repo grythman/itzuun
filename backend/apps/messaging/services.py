@@ -1,6 +1,8 @@
 from django.conf import settings
-from .models import ProjectMessage, ProjectFile
+
 from apps.projects.models import Project
+
+from .models import ProjectFile, ProjectMessage
 
 
 class MessageService:

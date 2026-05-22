@@ -1,18 +1,19 @@
 from django.urls import re_path
+
 from .views import (
     CategoryListView,
     ProjectCloseView,
-    ProjectDetailView,
-    ProjectDescriptionSuggestView,
+    ProjectConfirmCompletionView,
     ProjectDeliverableCreateView,
+    ProjectDescriptionSuggestView,
+    ProjectDetailView,
     ProjectListCreateView,
     ProjectProposalListCreateView,
     ProjectSelectFreelancerView,
+    ProjectSubmitResultView,
     ProposalDetailView,
     ProposalMeListView,
     ProposalWithdrawView,
-    ProjectSubmitResultView,
-    ProjectConfirmCompletionView,
 )
 
 urlpatterns = [

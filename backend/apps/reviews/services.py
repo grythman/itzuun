@@ -1,8 +1,10 @@
-from django.db import IntegrityError
 from django.contrib.auth import get_user_model
-from .models import Review
+from django.db import IntegrityError
+
 from apps.projects.models import Project
 from common.exceptions import BusinessLogicError
+
+from .models import Review
 
 User = get_user_model()
 

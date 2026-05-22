@@ -1,7 +1,7 @@
 """Project and proposal views."""
 
-from django.db.models import Q
 from django.core.cache import cache
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status
@@ -19,6 +19,7 @@ from common.cache_utils import (
 
 from .models import Category, Project, ProjectDeliverable, Proposal
 from .permissions import IsClient, IsFreelancer
+from .selectors import ProjectSelector
 from .serializers import (
     CategorySerializer,
     ProjectDeliverableSerializer,
@@ -28,12 +29,11 @@ from .serializers import (
     ProposalSerializer,
 )
 from .services import (
+    ProjectService,
     close_project,
     select_freelancer,
     suggest_project_description,
-    ProjectService,
 )
-from .selectors import ProjectSelector
 
 
 def _proposal_limit_for_user(user) -> int:

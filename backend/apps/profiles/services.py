@@ -1,6 +1,7 @@
-from .models import Profile
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import PermissionDenied
+
+from .models import Profile
 
 User = get_user_model()
 

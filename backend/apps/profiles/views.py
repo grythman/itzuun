@@ -1,7 +1,8 @@
 from rest_framework import generics, permissions
+
 from .models import Profile
-from .serializers import ProfileSerializer
 from .selectors import ProfileSelector
+from .serializers import ProfileSerializer
 from .services import ProfileService
 
 

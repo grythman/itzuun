@@ -1,4 +1,5 @@
 import factory
+
 from apps.accounts.models import User
 from apps.projects.models import Project
 
