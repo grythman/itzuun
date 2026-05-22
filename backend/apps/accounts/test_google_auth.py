@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 from rest_framework import status
@@ -81,8 +81,6 @@ class GoogleAuthApiTests(TestCase):
 
     @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_auth_fails_on_invalid_audience(self, mock_verify):
-        from google.auth.exceptions import GoogleAuthError
-
         mock_verify.side_effect = ValueError("Token has wrong audience")
 
         response = self.client_api.post(
