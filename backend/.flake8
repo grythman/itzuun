@@ -13,7 +13,7 @@ per-file-ignores =
     */tests/*.py: F841
     */test_*.py: F841
     apps/messaging/views.py: E402
-    apps/projects/services.py: E402
+    apps/projects/services.py: E402, E501
     apps/profiles/views.py: F841
     apps/accounts/admin.py: E501
     apps/accounts/management/commands/setup_pilot_cohort.py: E501
