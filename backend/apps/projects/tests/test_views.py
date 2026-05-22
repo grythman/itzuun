@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
-from apps.projects.models import Project, Proposal
+from apps.projects.models import Project
 
 
 class AiDescriptionSuggestTests(TestCase):
