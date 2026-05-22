@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from apps.projects.models import Project
 
 from .models import ProjectFile, ProjectMessage

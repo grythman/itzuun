@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from apps.projects.models import Project
 
-from .models import ProjectFile, ProjectMessage
+from .models import ProjectMessage
 from .selectors import MessageSelector
 from .serializers import ProjectFileSerializer, ProjectMessageSerializer
 from .services import MessageService
