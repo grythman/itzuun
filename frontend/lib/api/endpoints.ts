@@ -19,8 +19,11 @@ import type {
 } from "./types";
 
 // Core Axios instance
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
+
 const apiClient = axios.create({
-  baseURL: "/api/v1",
+  baseURL: API_BASE_URL,
   withCredentials: true, // Crucial for sending/receiving HTTPOnly cookies
   headers: {
     "Content-Type": "application/json",
@@ -38,7 +41,7 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
-export const API_BASE = "/api/v1";
+export const API_BASE = API_BASE_URL;
 
 export function toArray<T>(obj: T[] | PaginatedResponse<T> | null | undefined): T[] {
   if (!obj) return [];
