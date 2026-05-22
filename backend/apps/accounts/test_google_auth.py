@@ -1,7 +1,9 @@
 from unittest.mock import patch
+
 from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from apps.accounts.models import User
 
 

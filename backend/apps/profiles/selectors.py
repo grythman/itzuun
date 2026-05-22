@@ -1,5 +1,6 @@
-from django.db.models import Q, QuerySet, Avg, Count
+from django.db.models import Avg, Count, Q, QuerySet
 from django.db.models.functions import Coalesce
+
 from .models import Profile
 
 

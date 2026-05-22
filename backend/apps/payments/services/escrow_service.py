@@ -2,18 +2,11 @@
 
 import hashlib
 import json
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-
-from common.cache_utils import bump_admin_resource_version, bump_project_version
-from common.exceptions import DomainError
-from common.models import PlatformSetting
-from common.state_guards import guard_escrow_transition, guard_project_transition
-from apps.projects.models import Project
-from apps.projects.models import ProjectDeliverable
 
 from apps.payments.models import (
     Dispute,
@@ -22,6 +15,11 @@ from apps.payments.models import (
     LedgerEntry,
     Payment,
 )
+from apps.projects.models import Project, ProjectDeliverable
+from common.cache_utils import bump_admin_resource_version, bump_project_version
+from common.exceptions import DomainError
+from common.models import PlatformSetting
+from common.state_guards import guard_escrow_transition, guard_project_transition
 
 
 def calculate_commission(amount: int) -> tuple[int, int]:

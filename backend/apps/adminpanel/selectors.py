@@ -1,6 +1,7 @@
 from django.db.models import QuerySet
-from apps.projects.models import Project
+
 from apps.payments.models import Dispute
+from apps.projects.models import Project
 
 
 class AdminSelector:

@@ -1,9 +1,9 @@
-from django.shortcuts import redirect
-from django.http import JsonResponse
-from django.views.generic import TemplateView
-from django.views.decorators.http import require_GET
-from django.db import connection
 from django.core.cache import cache
+from django.db import connection
+from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.views.decorators.http import require_GET
+from django.views.generic import TemplateView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 

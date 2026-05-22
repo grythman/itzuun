@@ -52,8 +52,9 @@ def close_project(project: Project) -> Project:
 
 
 import os
-from google import genai
+
 from django.conf import settings
+from google import genai
 
 
 def suggest_project_description(

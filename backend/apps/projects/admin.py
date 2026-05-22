@@ -1,5 +1,5 @@
-from django.contrib import admin
 from django.apps import apps
+from django.contrib import admin
 
 # Апп доторх бүх моделийг автоматаар бүртгэх
 app_config = apps.get_app_config("projects")

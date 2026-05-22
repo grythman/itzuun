@@ -4,11 +4,11 @@ from django.urls import re_path
 
 from .views import (
     EscrowAdminApproveView,
-    ProjectPaymentCreateView,
-    ProjectPaymentStatusView,
     ProjectConfirmCompletionView,
     ProjectDisputeView,
     ProjectEscrowDepositView,
+    ProjectPaymentCreateView,
+    ProjectPaymentStatusView,
 )
 
 urlpatterns = [

@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from apps.projects.models import Project
 
 from .models import ProjectFile, ProjectMessage
-from .serializers import ProjectFileSerializer, ProjectMessageSerializer
 from .selectors import MessageSelector
+from .serializers import ProjectFileSerializer, ProjectMessageSerializer
 from .services import MessageService
 
 
@@ -97,8 +97,8 @@ class ProjectFileUploadView(generics.CreateAPIView):
         )
 
 
-from rest_framework.views import APIView
 from django.db.models import Q
+from rest_framework.views import APIView
 
 
 class GlobalInboxView(APIView):

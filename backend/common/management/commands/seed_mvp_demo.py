@@ -3,9 +3,9 @@ from django.core.management.base import BaseCommand
 from apps.accounts.models import User
 from apps.messaging.models import ProjectMessage
 from apps.payments.models import Dispute, Escrow, LedgerEntry
+from apps.profiles.models import Profile
 from apps.projects.models import Project, Proposal
 from apps.reviews.models import Review
-from apps.profiles.models import Profile
 from common.models import PlatformSetting
 
 

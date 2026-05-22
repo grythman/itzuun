@@ -1,6 +1,7 @@
 """Auth and user URL routes."""
 
 from django.urls import re_path
+
 from .views import (
     CookieTokenRefreshView,
     GoogleAuthView,

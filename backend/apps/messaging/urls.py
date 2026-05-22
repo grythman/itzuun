@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from .views import ProjectFileUploadView, ProjectMessageListCreateView, GlobalInboxView
+from .views import GlobalInboxView, ProjectFileUploadView, ProjectMessageListCreateView
 
 urlpatterns = [
     path(

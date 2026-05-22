@@ -1,23 +1,23 @@
 """Review views."""
 
-from django.db.models import Avg, Count
 from django.core.cache import cache
+from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.projects.models import Project
 from common.cache_utils import (
     bump_user_public_version,
     rating_summary_cache_key,
     user_reviews_cache_key,
 )
-from apps.projects.models import Project
 
 from .models import Review
-from .serializers import ReviewSerializer
 from .selectors import ReviewSelector
+from .serializers import ReviewSerializer
 from .services import ReviewService
 
 

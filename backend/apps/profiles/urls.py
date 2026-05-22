@@ -1,5 +1,6 @@
 from django.urls import re_path
-from .views import ProfileMeView, ProfileDetailView, ProfileListView
+
+from .views import ProfileDetailView, ProfileListView, ProfileMeView
 
 urlpatterns = [
     re_path(r"^profiles/me/?$", ProfileMeView.as_view(), name="profile-me"),
