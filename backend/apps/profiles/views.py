@@ -25,7 +25,6 @@ class ProfileDetailView(generics.RetrieveAPIView):
     lookup_field = "user_id"
 
     def retrieve(self, request, *args, **kwargs):
-        user_id = self.kwargs.get("user_id")
         return super().retrieve(request, *args, **kwargs)
 
 
