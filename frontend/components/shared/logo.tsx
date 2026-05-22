@@ -49,6 +49,7 @@ export function Logo({
       height={height || defaultHeight}
       className={`h-auto ${className}`}
       priority
+      unoptimized
     />
   );
 
