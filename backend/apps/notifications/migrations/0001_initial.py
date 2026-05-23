@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                 "indexes": [
                     models.Index(
                         fields=["user", "-created_at"],
-                        name="notificatio_user_id_d1e0f8_idx",
+                        name="notificatio_user_id_05b4bc_idx",
                     ),
                 ],
             },
