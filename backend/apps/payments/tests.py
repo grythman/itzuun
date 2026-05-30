@@ -414,6 +414,30 @@ class ProjectPaymentEndpointsTests(TestCase):
         self.assertEqual(response.json()["payment"]["status"], Payment.STATUS_PENDING)
         self.assertIn("expires_in_seconds", response.json())
 
+    def test_payment_status_without_invoice_returns_not_created(self):
+        response = self.client_api.get(
+            f"/api/v1/payments/project/{self.project.id}/status"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["status"], "not_created")
+        self.assertIsNone(response.json()["payment"])
+
+    @patch("apps.payments.views.create_invoice")
+    def test_payment_create_qpay_unavailable_returns_manual_message(
+        self, mock_create_invoice
+    ):
+        mock_create_invoice.side_effect = DomainError("qpay_unavailable")
+
+        response = self.client_api.post(
+            f"/api/v1/payments/project/{self.project.id}/create", format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(response.json()["error_code"], "qpay_unavailable")
+        self.assertIn("админтай холбогдож", response.json()["error"])
+        self.assertNotIn("qpay_unavailable", response.json()["error"])
+
     @patch("apps.payments.views.get_invoice_status")
     @patch("apps.payments.views.create_invoice")
     def test_payment_status_marks_paid_and_holds_escrow(
