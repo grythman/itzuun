@@ -1,8 +1,9 @@
 import uuid
 from unittest.mock import patch
 
+import requests
 from django.core.cache import caches
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -366,6 +367,9 @@ class CacheInvalidationSmokeTests(TestCase):
 
 class ProjectPaymentEndpointsTests(TestCase):
     def setUp(self):
+        for cache_alias in caches:
+            caches[cache_alias].clear()
+
         self.client_api = APIClient()
         self.owner = User.objects.create_user(
             email="owner-pay@test.com", role="client", password="pass1234"
@@ -413,6 +417,35 @@ class ProjectPaymentEndpointsTests(TestCase):
         self.assertEqual(response.json()["invoice_id"], "inv-123")
         self.assertEqual(response.json()["payment"]["status"], Payment.STATUS_PENDING)
         self.assertIn("expires_in_seconds", response.json())
+
+    def test_payment_status_without_payment_returns_not_created(self):
+        response = self.client_api.get(
+            f"/api/v1/payments/project/{self.project.id}/status"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["status"], "not_created")
+        self.assertIsNone(response.json()["invoice_id"])
+        self.assertIsNone(response.json()["payment"])
+
+    @override_settings(
+        DEBUG=False,
+        QPAY_BASE_URL="https://qpay.invalid",
+        QPAY_USERNAME="merchant",
+        QPAY_PASSWORD="secret",
+        QPAY_MERCHANT_CODE="ITZUUN_ESCROW",
+    )
+    @patch("apps.payments.services.qpay_service.requests.post")
+    def test_qpay_transport_error_returns_manual_payment_contract(self, mock_post):
+        mock_post.side_effect = requests.RequestException("network down")
+
+        response = self.client_api.post(
+            f"/api/v1/payments/project/{self.project.id}/create", format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+        self.assertEqual(response.json()["error_code"], "qpay_unavailable")
+        self.assertIn("админтай холбогдож", response.json()["error"])
 
     @patch("apps.payments.views.get_invoice_status")
     @patch("apps.payments.views.create_invoice")

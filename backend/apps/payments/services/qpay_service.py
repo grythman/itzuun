@@ -18,6 +18,13 @@ TOKEN_CACHE_KEY = "qpay:access_token"
 TOKEN_TTL_SECONDS = 3600
 
 
+def _qpay_unavailable(message: str) -> DomainError:
+    """Return a DomainError that views can map to manual-payment UX."""
+    err = DomainError(message)
+    err.error_code = "qpay_unavailable"  # type: ignore[attr-defined]
+    return err
+
+
 @dataclass
 class QPayInvoice:
     invoice_id: str
@@ -61,9 +68,7 @@ def authenticate() -> str:
             return "mock_token"
         # Raise with a machine-readable code so views can show a
         # friendly message instead of raw technical text.
-        err = DomainError("qpay_unavailable")
-        err.error_code = "qpay_unavailable"  # type: ignore[attr-defined]
-        raise err
+        raise _qpay_unavailable("qpay_unavailable")
 
     cached_token = cache.get(TOKEN_CACHE_KEY)
     if cached_token:
@@ -76,17 +81,17 @@ def authenticate() -> str:
     try:
         response = requests.post(_auth_url(), json=payload, timeout=10)
     except requests.RequestException as exc:
-        raise DomainError("Unable to reach QPay authentication endpoint") from exc
+        raise _qpay_unavailable("Unable to reach QPay authentication endpoint") from exc
     if response.status_code >= 400:
-        raise DomainError("QPay authentication failed")
+        raise _qpay_unavailable("QPay authentication failed")
 
     try:
         data = response.json()
     except ValueError as exc:
-        raise DomainError("QPay auth response was not valid JSON") from exc
+        raise _qpay_unavailable("QPay auth response was not valid JSON") from exc
     token = data.get("access_token") or data.get("token")
     if not token:
-        raise DomainError("QPay auth response missing access token")
+        raise _qpay_unavailable("QPay auth response missing access token")
 
     cache.set(TOKEN_CACHE_KEY, token, timeout=TOKEN_TTL_SECONDS)
     return token
@@ -108,7 +113,7 @@ def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
         )
 
     if not settings.QPAY_MERCHANT_CODE:
-        raise DomainError("QPAY_MERCHANT_CODE is missing")
+        raise _qpay_unavailable("QPAY_MERCHANT_CODE is missing")
 
     payload = {
         "invoice_code": settings.QPAY_MERCHANT_CODE,
@@ -123,17 +128,17 @@ def create_invoice(*, project, amount: int, callback_url: str) -> QPayInvoice:
             _invoice_url(), headers=_headers(token), json=payload, timeout=12
         )
     except requests.RequestException as exc:
-        raise DomainError("Unable to reach QPay invoice endpoint") from exc
+        raise _qpay_unavailable("Unable to reach QPay invoice endpoint") from exc
     if response.status_code >= 400:
-        raise DomainError("QPay invoice creation failed")
+        raise _qpay_unavailable("QPay invoice creation failed")
 
     try:
         data = response.json()
     except ValueError as exc:
-        raise DomainError("QPay invoice response was not valid JSON") from exc
+        raise _qpay_unavailable("QPay invoice response was not valid JSON") from exc
     invoice_id = data.get("invoice_id") or data.get("invoiceId")
     if not invoice_id:
-        raise DomainError("QPay invoice response missing invoice_id")
+        raise _qpay_unavailable("QPay invoice response missing invoice_id")
 
     return QPayInvoice(
         invoice_id=invoice_id,
@@ -162,13 +167,13 @@ def get_invoice_status(invoice_id: str) -> dict:
             timeout=12,
         )
     except requests.RequestException as exc:
-        raise DomainError("Unable to reach QPay payment check endpoint") from exc
+        raise _qpay_unavailable("Unable to reach QPay payment check endpoint") from exc
     if response.status_code >= 400:
-        raise DomainError("QPay payment verification failed")
+        raise _qpay_unavailable("QPay payment verification failed")
     try:
         return response.json()
     except ValueError as exc:
-        raise DomainError(
+        raise _qpay_unavailable(
             "QPay payment verification response was not valid JSON"
         ) from exc
 
