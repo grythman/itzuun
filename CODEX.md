@@ -443,3 +443,129 @@ push / PR → main
 | Sentry | `SENTRY_DSN` env var тохируулах хэрэгтэй |
 | AI suggest | `GOOGLE_GENAI_API_KEY` env var шаардлагатай (`projects/services.py`) |
 | Verification KYC | Admin panel-д `verify/unsuspend` endpoint бэлэн; ID upload UI байхгүй |
+
+
+
+---
+
+## 14. Branch нэгтгэлт + CI алдаа засвар (2026-05-30)
+
+### Асуудлын гарал
+
+Production-д гаргахад **3 хагацсан branch** үлдсэн байсан:
+
+| Branch | Юу агуулж байсан | Статус |
+|--------|------------------|--------|
+| `main` | Зөвхөн PR #10/#11 (API base URL) | Production |
+| `fix/isort-black-formatting` (PR #12) | Lint config + `google-auth` library | Merge хийгдээгүй |
+| `hotfix/notifications-migration` (PR #13) | Notifications + profile + payment + QPay UX | Merge хийгдээгүй |
+
+### Гол эрсдэл
+
+`hotfix` branch нь **main-аас** үүссэн (PR #12-аас биш) тул дараах **критик зөрчил** үүссэн:
+
+```python
+# apps/accounts/services.py — hotfix branch дээр
+from google.oauth2 import id_token   # 👈 ашиглаж байна
+```
+
+```text
+# requirements.txt — hotfix branch дээр
+google-genai             # 👈 google-auth БАЙХГҮЙ!
+```
+
+Хэрэв PR #13-ыг merge хийсэн бол production deploy дээр `ImportError: No module
+named 'google.oauth2'` алдаа гарч сервер бутрах байсан.
+
+### Засвар
+
+`fix/isort-black-formatting` (PR #12) branch-ийг `hotfix/notifications-migration`
+руу `git merge` ашиглан нэгтгэсэн.
+
+**Conflict-уудын шийдэл:**
+
+| Файл | Хувилбар сонгосон | Шалтгаан |
+|------|-------------------|----------|
+| `notifications/migrations/0001_initial.py` | HEAD (`05b4bc_idx`) | `models.py`-тай таарах explicit нэр |
+| `profiles/views.py` | HEAD (`get_or_create` хувилбар) | Auto-create logic шинэ функционал |
+
+**hotfix branch-д нэмэгдсэн зүйлс (PR #12-ээс):**
+- ✅ `backend/.flake8` (CI flake8 config)
+- ✅ `backend/requirements.txt` → `google-auth>=2.0`
+- ✅ `apps/accounts/services.py` → `google.oauth2.id_token.verify_oauth2_token`
+- ✅ `apps/accounts/test_google_auth.py` → шинэ mock
+- ✅ 50+ файлын isort/black formatting
+- ✅ 15 файлаас `F401` unused import цэвэрлэгдсэн
+
+### Зэрэгцээ ажил — GitHub Copilot agent
+
+Хэрэглэгч `@copilot resolve the merge conflicts` гэж бичсэнээс хойш Copilot bot
+зэрэгцээ `Merge branch 'main' into hotfix/notifications-migration` (`85ec84a`)
+хийсэн. Local merge `d0f0109`-тэй давхцал болсон тул `git pull` нь auto-merge
+хийж `4d29ceb` commit үүссэн.
+
+---
+
+## 15. Frontend TypeScript алдаа засвар (PR #13)
+
+CI дээр `tsc --noEmit` step fail болсон. Гарал нь хоёр газраас:
+
+### 15.1 `client/escrow/page.tsx` (шинэ файл)
+
+| Алдаа | Шалтгаан | Засвар |
+|-------|----------|--------|
+| `useTranslations`, `projectsApi`, `useMe`, `AppCard` unused | Эхний draft-д импорт хийгдсэн ч ашиглагдаагүй | Бүгдийг устгасан |
+| `locale` variable unused | Tailgaal зориулж тооцоолсон ч хэрэг болоогүй | Устгасан |
+| `<StatusPill status={...} />` | `StatusPill` нь `label` + `tone` авдаг, `status` биш | `<StatusPill label={...} tone={statusTone(...)} />` |
+| `project: any` | TS strict mode-д унадаг | `project: ProjectDto` |
+
+### 15.2 `lib/api/types.ts` — `PaymentStatusResponse`
+
+Backend нь Payment row байхгүй үед `{status: "not_created", payment: null,
+invoice_id: null}` буцаадаг болсон (Section #7). Гэтэл frontend type нь:
+
+```ts
+// Хуучин — narrow
+status: "pending" | "paid" | "failed";
+payment: PaymentDto;       // null биш гэж тооцсон
+invoice_id: string;        // null биш гэж тооцсон
+```
+
+→ TypeScript-ийн `not_created` literal болон null утга-уудтай зөрчилдсөн.
+
+```ts
+// Шинэ
+status: "not_created" | "pending" | "paid" | "failed";
+payment: PaymentDto | null;
+invoice_id: string | null;
+```
+
+---
+
+## 16. Хийгдсэн ажлын товчлол
+
+| # | Категори | Файл/Хэсэг |
+|---|----------|------------|
+| 1 | API клиент | `frontend/lib/api/endpoints.ts` |
+| 2 | Image SVG | `frontend/components/shared/logo.tsx` |
+| 3 | CI lint | `backend/pyproject.toml`, `backend/.flake8` |
+| 4 | Google Auth | `backend/apps/accounts/services.py`, `requirements.txt` |
+| 5 | Notifications | `apps/notifications/migrations/0001_initial.py` |
+| 6 | Profile auto-create | `apps/profiles/signals.py`, `apps.py`, `views.py` |
+| 7 | Payment 404→200 | `apps/payments/views.py` |
+| 8 | QPay UX | `qpay_service.py`, `payment/page.tsx` |
+| 9 | Client escrow page | `(dashboard)/client/escrow/page.tsx` |
+| 14 | Branch merge | `fix/isort-black-formatting` → `hotfix` |
+| 15 | TypeScript fix | `escrow/page.tsx`, `types.ts` |
+
+---
+
+## 17. Production checklist
+
+Merge хийхээс өмнө шалгах:
+
+- [ ] CI green: `actionlint`, `isort`, `black`, `flake8`, Django checks, migration drift, KPI smoke, backend tests, ESLint, `tsc --noEmit`, frontend tests, `next build`
+- [ ] Render env: `DJANGO_SECRET_KEY`, DB env vars, `REDIS_URL`, `GOOGLE_CLIENT_ID`/`SECRET`, optional `QPAY_*`, optional `SENTRY_DSN`
+- [ ] Vercel env: `NEXT_PUBLIC_API_BASE_URL=https://api.itzuun.works/api/v1`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+- [ ] Migration: `python manage.py migrate --noinput` (notifications, payments, profiles, etc.)
+- [ ] Smoke test: `/api/v1/auth/me/`, `/api/v1/projects/`, `/api/v1/profiles/me/`, `/api/v1/notifications/`
