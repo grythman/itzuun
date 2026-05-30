@@ -1,8 +1,9 @@
 import uuid
 from unittest.mock import patch
 
+import requests
 from django.core.cache import caches
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -366,6 +367,9 @@ class CacheInvalidationSmokeTests(TestCase):
 
 class ProjectPaymentEndpointsTests(TestCase):
     def setUp(self):
+        for cache_alias in caches:
+            caches[cache_alias].clear()
+
         self.client_api = APIClient()
         self.owner = User.objects.create_user(
             email="owner-pay@test.com", role="client", password="pass1234"

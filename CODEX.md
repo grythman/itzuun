@@ -667,3 +667,28 @@ $ git log hotfix/notifications-migration..fix/isort-black-formatting --oneline
 4. Render auto-deploy: `migrate --noinput && gunicorn`
 5. Vercel auto-deploy: `next build`
 6. Smoke test: `/api/v1/auth/me/`, `/api/v1/notifications/`, `/api/v1/profiles/me/`
+
+---
+
+## 16. Stage 2 completion summary — production smoke note (2026-05-30)
+
+Stage 2-ийн operational smoke evidence-г `docs/evidence/production_smoke_stage2_20260530.md` файлд богино markdown note хэлбэрээр хадгалсан.
+
+### Smoke үр дүн
+
+| Target | Result | Тайлбар |
+|--------|:------:|---------|
+| `https://itzuun.works` | PASS | Public homepage web fetch-ээр `https://itzuun.works/en` рүү redirect хийж render болсон. |
+| `https://api.itzuun.works/api/v1/projects/` | FAIL | Codex runner-аас direct `curl` хийхэд proxy/TLS CONNECT шатанд `403`, `http_code=000`; frontend projects page `Loading projects...` төлөвт үлдсэн. |
+| `/profiles/me` | FAIL | Auth/session smoke хийх боломжгүй; runner direct API request HTTP response авахаас өмнө CONNECT 403 болсон. |
+| `/notifications/` | FAIL | Auth/session smoke хийх боломжгүй; runner direct API request HTTP response авахаас өмнө CONNECT 403 болсон. |
+| project detail page | FAIL | Project list hydrate болоогүй тул valid production project id баталгаажуулж чадсангүй. |
+| payment page | FAIL | Valid project/payment context болон authenticated session баталгаажаагүй тул manual payment banner path шалгагдаагүй. |
+
+### Screenshot шийдвэр
+
+Payment manual banner болон profile page screenshot энэ run-д аваагүй. Эдгээр нь authenticated session эсвэл valid project/payment context шаарддаг тул дараагийн privileged/manual smoke run дээр screenshot evidence болгон авах нь зөв.
+
+### Release note шийдвэр
+
+Stage 2 completion summary-г `docs/RELEASE_NOTES_RC1.md`-д биш `CODEX.md`-д нэмсэн. Шалтгаан: энэ нь RC1 artifact-ийн release note биш, production smoke/follow-up operational evidence юм.
