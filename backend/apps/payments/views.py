@@ -48,7 +48,12 @@ class ProjectPaymentCreateView(APIView):
 
         if not project.selected_proposal:
             return Response(
-                {"error": "No selected proposal for this project."},
+                {
+                    "error": "Эхлээд фрилансер сонгоно уу.",
+                    "error_code": "no_selected_proposal",
+                    "detail": "This project has no selected freelancer yet. "
+                    "Go back to the project page and select a proposal first.",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -120,9 +125,16 @@ class ProjectPaymentStatusView(APIView):
             Payment.objects.filter(project=project).order_by("-created_at").first()
         )
         if not payment:
+            # No payment created yet — return safe empty state instead of 404
+            # so the frontend can distinguish "not started" from a real error.
             return Response(
-                {"error": "Payment not found for this project."},
-                status=status.HTTP_404_NOT_FOUND,
+                {
+                    "invoice_id": None,
+                    "status": "not_started",
+                    "payment": None,
+                    "verification": {},
+                },
+                status=status.HTTP_200_OK,
             )
 
         verification_payload = {}

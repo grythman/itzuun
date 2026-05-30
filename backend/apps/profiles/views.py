@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from rest_framework.response import Response
 
 from .models import Profile
 from .selectors import ProfileSelector
@@ -17,16 +18,21 @@ class ProfileListView(generics.ListAPIView):
 
 
 class ProfileDetailView(generics.RetrieveAPIView):
-    """Retrieres a single profile by user ID."""
+    """Retrieves a single profile by user ID.
 
-    queryset = Profile.objects.all()
+    Uses get_or_create so that freshly registered users always have a
+    profile row even if the post_save signal fired before the migration
+    ran (e.g. data migrated from a previous database).
+    """
+
     serializer_class = ProfileSerializer
     permission_classes = [permissions.AllowAny]
-    lookup_field = "user_id"
 
     def retrieve(self, request, *args, **kwargs):
         user_id = self.kwargs.get("user_id")
-        return super().retrieve(request, *args, **kwargs)
+        profile, _ = Profile.objects.get_or_create(user_id=user_id)
+        serializer = self.get_serializer(profile)
+        return Response(serializer.data)
 
 
 class ProfileMeView(generics.RetrieveUpdateAPIView):
@@ -37,8 +43,7 @@ class ProfileMeView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
-        # Use get_or_create to ensure a profile exists for the user
-        profile, created = Profile.objects.get_or_create(user=self.request.user)
+        profile, _ = Profile.objects.get_or_create(user=self.request.user)
         return profile
 
     def perform_update(self, serializer):

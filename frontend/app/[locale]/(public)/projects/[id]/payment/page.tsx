@@ -100,22 +100,40 @@ export default function ProjectPaymentPage() {
       setExpiresAt(Date.now() + data.expires_in_seconds * 1000);
       toast("success", "QPay invoice created");
     },
-    onError: (error: Error) => toast("error", extractApiErrorMessage(error, "Unable to create payment invoice.")),
+    onError: (error: Error) => {
+      const msg = extractApiErrorMessage(error, "Unable to create payment invoice.");
+      // Check for the specific "no selected proposal" error code
+      const payload = (error as any)?.response?.data;
+      if (payload?.error_code === "no_selected_proposal") {
+        toast("error", "Эхлээд фрилансер сонгоно уу. Төслийн хуудас руу буцаж санал сонгоно уу.");
+      } else {
+        toast("error", msg);
+      }
+    },
   });
+
+  // Only poll once an invoice has been created — avoids 404 spam on fresh projects.
+  const hasActiveInvoice = !!createPaymentMutation.data;
 
   const paymentStatusQuery = useQuery({
     queryKey: ["payment-status", projectId],
     queryFn: () => projectsApi.paymentStatus(projectId),
-    enabled: !!projectId,
+    enabled: hasActiveInvoice,
     retry: false,
     refetchInterval: (query) => {
       const value = query.state.data?.status;
+      if (!value || value === "not_started") return false;
       return value === "paid" || value === "failed" ? false : 5000;
     },
   });
 
   const paymentData = createPaymentMutation.data;
-  const statusValue = paymentStatusQuery.data?.status ?? paymentData?.payment.status ?? "pending";
+  // "not_started" means backend has no payment row yet — treat as pending UI state
+  const rawStatus = paymentStatusQuery.data?.status;
+  const statusValue =
+    rawStatus && rawStatus !== "not_started"
+      ? rawStatus
+      : (paymentData?.payment?.status ?? "pending");
   const escrowState = mapEscrowState(paymentData?.payment.escrow_status || statusValue);
 
   const total = Number(paymentData?.payment.amount || projectQuery.data?.budget || 0);
@@ -136,6 +154,10 @@ export default function ProjectPaymentPage() {
 
   const createErrorLabel = useMemo(() => {
     if (!createPaymentMutation.error) return "Unable to create payment invoice.";
+    const payload = (createPaymentMutation.error as any)?.response?.data;
+    if (payload?.error_code === "no_selected_proposal") {
+      return "Эхлээд фрилансер сонгоно уу. Төслийн хуудас руу буцаж санал сонгоно уу.";
+    }
     return extractApiErrorMessage(createPaymentMutation.error, "Unable to create payment invoice.");
   }, [createPaymentMutation.error]);
 
