@@ -5,7 +5,6 @@ import random
 import secrets
 from datetime import timedelta
 
-import requests
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
@@ -57,25 +56,21 @@ def verify_google_credential(credential: str) -> dict:
         raise DomainError("Google auth is not configured")
 
     try:
-        response = requests.get(
-            "https://oauth2.googleapis.com/tokeninfo",
-            params={"id_token": credential},
-            timeout=10,
+        from google.auth.transport import requests as google_requests
+        from google.oauth2 import id_token
+
+        request = google_requests.Request()
+        payload = id_token.verify_oauth2_token(
+            credential,
+            request,
+            settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=10,
         )
-    except requests.RequestException as exc:
-        raise DomainError("Unable to reach Google auth service") from exc
-
-    if response.status_code >= 400:
-        raise DomainError("Google credential is invalid")
-
-    try:
-        payload = response.json()
     except ValueError as exc:
-        raise DomainError("Google auth response was not valid JSON") from exc
-
-    audience = payload.get("aud")
-    if audience != settings.GOOGLE_CLIENT_ID:
-        raise DomainError("Google credential audience mismatch")
+        raise DomainError("Google credential is invalid") from exc
+    except Exception as exc:
+        logger.exception("Google token verification failed")
+        raise DomainError("Unable to verify Google credential") from exc
 
     if payload.get("email_verified") not in {"true", True}:
         raise DomainError("Google email is not verified")
