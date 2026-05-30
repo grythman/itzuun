@@ -35,6 +35,20 @@ def _ensure_project_owner_or_403(request, project: Project):
     return None
 
 
+_QPAY_UNAVAILABLE_RESPONSE = {
+    "error_code": "qpay_unavailable",
+    "error": "Төлбөрийн систем одоогоор туршилтын горимд байна. "
+    "Төлбөрийн мэдээллийг админтай холбогдож авна уу.",
+}
+
+
+def _is_qpay_unavailable_error(exc: DomainError) -> bool:
+    return (
+        getattr(exc, "error_code", None) == "qpay_unavailable"
+        or str(exc) == "qpay_unavailable"
+    )
+
+
 class ProjectPaymentCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsProjectOwnerForPayment]
 
@@ -84,6 +98,11 @@ class ProjectPaymentCreateView(APIView):
                 project=project, amount=amount, callback_url=callback_url
             )
         except DomainError as e:
+            if _is_qpay_unavailable_error(e):
+                return Response(
+                    _QPAY_UNAVAILABLE_RESPONSE,
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         payment = Payment.objects.create(
@@ -125,12 +144,11 @@ class ProjectPaymentStatusView(APIView):
             Payment.objects.filter(project=project).order_by("-created_at").first()
         )
         if not payment:
-            # No payment created yet — return safe empty state instead of 404
-            # so the frontend can distinguish "not started" from a real error.
+            # No payment created yet — safe empty state, stop frontend polling.
             return Response(
                 {
                     "invoice_id": None,
-                    "status": "not_started",
+                    "status": "not_created",
                     "payment": None,
                     "verification": {},
                 },
@@ -142,6 +160,11 @@ class ProjectPaymentStatusView(APIView):
             try:
                 verification_payload = get_invoice_status(payment.invoice_id)
             except DomainError as e:
+                if _is_qpay_unavailable_error(e):
+                    return Response(
+                        _QPAY_UNAVAILABLE_RESPONSE,
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    )
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             payment_flag = str(

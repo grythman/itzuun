@@ -46,15 +46,24 @@ def _payment_check_url() -> str:
     return f"{settings.QPAY_BASE_URL.rstrip('/')}/v2/payment/check"
 
 
+def is_qpay_configured() -> bool:
+    """Returns True only when all required QPay env vars are set."""
+    return bool(
+        getattr(settings, "QPAY_BASE_URL", None)
+        and getattr(settings, "QPAY_USERNAME", None)
+        and getattr(settings, "QPAY_PASSWORD", None)
+    )
+
+
 def authenticate() -> str:
-    if (
-        not settings.QPAY_BASE_URL
-        or not settings.QPAY_USERNAME
-        or not settings.QPAY_PASSWORD
-    ):
+    if not is_qpay_configured():
         if getattr(settings, "DEBUG", False):
             return "mock_token"
-        raise DomainError("QPay environment configuration is incomplete")
+        # Raise with a machine-readable code so views can show a
+        # friendly message instead of raw technical text.
+        err = DomainError("qpay_unavailable")
+        err.error_code = "qpay_unavailable"  # type: ignore[attr-defined]
+        raise err
 
     cached_token = cache.get(TOKEN_CACHE_KEY)
     if cached_token:
