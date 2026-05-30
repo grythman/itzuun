@@ -1,0 +1,34 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203, W503, W391
+exclude =
+    */migrations/*,
+    .git,
+    __pycache__,
+    .venv,
+    venv
+
+per-file-ignores =
+    config/settings/*.py: F401, F403, F405
+    */tests/*.py: F841
+    */test_*.py: F841
+    apps/messaging/views.py: E402
+    apps/projects/services.py: E402, E501
+    apps/profiles/views.py: F841
+    apps/accounts/admin.py: E501
+    apps/accounts/management/commands/setup_pilot_cohort.py: E501
+    apps/accounts/serializers.py: E501
+    apps/accounts/services.py: E501
+    apps/adminpanel/views.py: E501
+    apps/payments/services/qpay_service.py: E501
+    apps/payments/urls.py: E501
+    apps/payments/views.py: E501
+    apps/projects/permissions.py: E501
+    apps/projects/services.py: E501
+    apps/projects/views.py: E501
+    common/management/commands/bootstrap_pilot_dataset.py: E501
+    common/management/commands/load_mn_categories.py: E501
+    common/management/commands/pilot_readiness_report.py: E501
+    common/management/commands/seed_mvp_demo.py: E501
+    config/settings/base.py: E501
+    manage.py: E501

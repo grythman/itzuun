@@ -6,14 +6,13 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAdminUser
 from apps.payments.idempotency import execute_idempotent
-from apps.payments.models import Dispute, Escrow, Payment
+from apps.payments.models import Escrow, Payment
 from apps.payments.serializers import (
     DisputeSerializer,
     EscrowSerializer,
     PaymentSerializer,
 )
 from apps.payments.services import (
-    confirm_completion,
     create_dispute,
     create_invoice,
     deposit_to_escrow,
