@@ -19,20 +19,19 @@ class ProfileMeApiTests(TestCase):
         self.client_api.force_authenticate(self.user)
 
     def test_get_profile_me_creates_profile_if_missing(self):
-        self.assertFalse(Profile.objects.filter(user=self.user).exists())
-
+        # post_save signal now auto-creates, so profile already exists.
+        # This test verifies the /me endpoint returns 200 regardless.
         response = self.client_api.get("/api/v1/profiles/me")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(Profile.objects.filter(user=self.user).exists())
 
     def test_get_profile_me_returns_fields(self):
-        Profile.objects.create(
-            user=self.user,
-            full_name="Bat-Erdene",
-            bio="Full-stack developer",
-            skills=["React", "Python"],
-            hourly_rate=50000,
-        )
+        profile, _ = Profile.objects.get_or_create(user=self.user)
+        profile.full_name = "Bat-Erdene"
+        profile.bio = "Full-stack developer"
+        profile.skills = ["React", "Python"]
+        profile.hourly_rate = 50000
+        profile.save()
 
         response = self.client_api.get("/api/v1/profiles/me")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -43,7 +42,10 @@ class ProfileMeApiTests(TestCase):
         self.assertEqual(data["hourly_rate"], 50000)
 
     def test_patch_profile_me_updates_fields(self):
-        Profile.objects.create(user=self.user, full_name="Old Name", bio="old bio")
+        profile, _ = Profile.objects.get_or_create(user=self.user)
+        profile.full_name = "Old Name"
+        profile.bio = "old bio"
+        profile.save()
 
         response = self.client_api.patch(
             "/api/v1/profiles/me",
@@ -57,16 +59,18 @@ class ProfileMeApiTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        profile = Profile.objects.get(user=self.user)
+        profile.refresh_from_db()
         self.assertEqual(profile.full_name, "New Name")
         self.assertEqual(profile.bio, "New bio")
         self.assertEqual(profile.skills, ["Django", "TypeScript"])
         self.assertEqual(profile.hourly_rate, 75000)
 
     def test_partial_update_only_changes_provided_fields(self):
-        Profile.objects.create(
-            user=self.user, full_name="Original", bio="Original bio", hourly_rate=10000
-        )
+        profile, _ = Profile.objects.get_or_create(user=self.user)
+        profile.full_name = "Original"
+        profile.bio = "Original bio"
+        profile.hourly_rate = 10000
+        profile.save()
 
         response = self.client_api.patch(
             "/api/v1/profiles/me",
@@ -75,7 +79,7 @@ class ProfileMeApiTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        profile = Profile.objects.get(user=self.user)
+        profile.refresh_from_db()
         self.assertEqual(profile.full_name, "Original")
         self.assertEqual(profile.bio, "Updated bio only")
         self.assertEqual(profile.hourly_rate, 10000)
@@ -99,13 +103,13 @@ class ProfileDetailApiTests(TestCase):
         self.viewer = User.objects.create_user(
             email="viewer@test.com", role="client", password="pass1234"
         )
-        Profile.objects.create(
-            user=self.user,
-            full_name="Public Freelancer",
-            bio="Available for hire",
-            skills=["React", "Node"],
-            hourly_rate=60000,
-        )
+        # Signal auto-creates profile; update it with test data
+        profile, _ = Profile.objects.get_or_create(user=self.user)
+        profile.full_name = "Public Freelancer"
+        profile.bio = "Available for hire"
+        profile.skills = ["React", "Node"]
+        profile.hourly_rate = 60000
+        profile.save()
 
     def test_get_profile_by_user_id(self):
         self.client_api.force_authenticate(self.viewer)
@@ -142,15 +146,21 @@ class ProfileListFilterApiTests(TestCase):
         self.f3.verification_status = User.VERIFICATION_VERIFIED
         self.f3.save(update_fields=["verification_status", "is_verified"])
 
-        Profile.objects.create(
-            user=self.f1, full_name="React Pro", skills=["react", "nextjs"]
-        )
-        Profile.objects.create(
-            user=self.f2, full_name="Python Dev", skills=["python", "django"]
-        )
-        Profile.objects.create(
-            user=self.f3, full_name="Senior React", skills=["react", "django"]
-        )
+        # Signal auto-creates profiles; update them with test data
+        p1, _ = Profile.objects.get_or_create(user=self.f1)
+        p1.full_name = "React Pro"
+        p1.skills = ["react", "nextjs"]
+        p1.save()
+
+        p2, _ = Profile.objects.get_or_create(user=self.f2)
+        p2.full_name = "Python Dev"
+        p2.skills = ["python", "django"]
+        p2.save()
+
+        p3, _ = Profile.objects.get_or_create(user=self.f3)
+        p3.full_name = "Senior React"
+        p3.skills = ["react", "django"]
+        p3.save()
 
         project = Project.objects.create(
             owner=self.client_user,

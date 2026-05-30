@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
 from .models import Profile
@@ -29,7 +29,14 @@ class ProfileDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
         user_id = self.kwargs.get("user_id")
+        if not User.objects.filter(id=user_id).exists():
+            return Response(
+                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
         profile, _ = Profile.objects.get_or_create(user_id=user_id)
         serializer = self.get_serializer(profile)
         return Response(serializer.data)
