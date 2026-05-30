@@ -1,13 +1,14 @@
 "use client";
 export const dynamic = "force-dynamic";
 
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
 import { RoleGuard } from "@/components/shared/role-guard";
-import { EmptyState, LoadingState } from "@/components/shared/states";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { StatusPill } from "@/components/ui";
-import { escrowApi, toArray } from "@/lib/api/endpoints";
-import { useProjects } from "@/lib/hooks";
+import { escrowApi } from "@/lib/api/endpoints";
+import { useMe, useProjects } from "@/lib/hooks";
 import type { ProjectDto } from "@/lib/api/types";
 
 function formatMnt(amount: number): string {
@@ -25,17 +26,33 @@ function statusTone(status: string): EscrowTone {
 }
 
 export default function ClientEscrowPage() {
-  const projectsQuery = useProjects("client");
-  const projects = toArray<ProjectDto>(projectsQuery.data);
+  const pathname = usePathname();
+  const pathParts = (pathname || "").split("/").filter(Boolean);
+  const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
 
-  if (projectsQuery.isLoading) return <LoadingState />;
+  const me = useMe();
+  const projects = useProjects(1);
 
-  const activeProjects = projects.filter(
+  if (me.isLoading || projects.isLoading)
+    return <LoadingState label="Эскроу мэдээлэл ачааллаж байна..." />;
+  if (me.isError || !me.data) return <ErrorState label="Эхлээд нэвтэрнэ үү." />;
+  if (projects.isError || !projects.data)
+    return <ErrorState label="Төслүүдийг ачааллаж чадсангүй." />;
+
+  const myProjects: ProjectDto[] = projects.data.results.filter(
+    (p: ProjectDto) => p.owner === me.data?.id,
+  );
+  const activeProjects = myProjects.filter(
     (p) => p.status === "in_progress" || p.status === "awaiting_client_review",
   );
 
   return (
-    <RoleGuard allowed={["client"]}>
+    <RoleGuard
+      currentRole={me.data.role}
+      requiredRole="client"
+      fallbackPath={withLocale("/auth")}
+    >
       <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
         <h1 className="text-2xl font-bold">Санхүү &amp; Эскроу</h1>
         <p className="text-on-surface-variant">
@@ -44,7 +61,7 @@ export default function ClientEscrowPage() {
 
         {activeProjects.length === 0 ? (
           <EmptyState
-            title="Идэвхтэй эскроу байхгүй"
+            label="Идэвхтэй эскроу байхгүй"
             description="Одоогоор эскроу түгжээтэй төсөл байхгүй байна."
           />
         ) : (

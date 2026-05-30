@@ -34,9 +34,7 @@ class ProfileDetailView(generics.RetrieveAPIView):
         User = get_user_model()
         user_id = self.kwargs.get("user_id")
         if not User.objects.filter(id=user_id).exists():
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         profile, _ = Profile.objects.get_or_create(user_id=user_id)
         serializer = self.get_serializer(profile)
         return Response(serializer.data)

@@ -206,7 +206,7 @@ export default function ProjectPaymentPage() {
     refetchInterval: (query) => {
       const s = query.state.data?.status;
       // Stop polling when terminal or not yet created
-      if (!s || s === "not_created" || s === "not_started") return false;
+      if (!s || s === "not_created") return false;
       if (s === "paid" || s === "failed") return false;
       return 5000;
     },
@@ -221,7 +221,7 @@ export default function ProjectPaymentPage() {
   const showManualBanner = qpayUnavailableFromCreate || qpayUnavailableFromStatus;
 
   const statusValue =
-    rawStatus && rawStatus !== "not_created" && rawStatus !== "not_started"
+    rawStatus && rawStatus !== "not_created"
       ? rawStatus
       : (paymentData?.payment?.status ?? "pending");
 
