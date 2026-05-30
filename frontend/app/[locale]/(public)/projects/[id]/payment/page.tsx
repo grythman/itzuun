@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -61,7 +62,13 @@ function isQpayUnavailable(error: unknown): boolean {
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 /** Shown when QPay is not configured — user-friendly, no technical text. */
-function ManualPaymentBanner({ projectId }: { projectId: string }) {
+function ManualPaymentBanner({
+  projectId,
+  supportHref,
+}: {
+  projectId: string;
+  supportHref: string;
+}) {
   return (
     <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
       <div className="flex items-start gap-3">
@@ -79,17 +86,17 @@ function ManualPaymentBanner({ projectId }: { projectId: string }) {
       </div>
       <div className="flex flex-wrap gap-3">
         <a
-          href="mailto:support@itzuun.mn?subject=Escrow payment - Project%20#{projectId}"
+          href={`mailto:support@itzuun.mn?subject=Escrow%20payment%20-%20Project%20%23${projectId}`}
           className="inline-flex min-h-11 items-center rounded-xl bg-amber-600 px-5 text-[13px] font-semibold text-white hover:bg-amber-700"
         >
           Админтай холбогдох
         </a>
-        <a
-          href="/support"
+        <Link
+          href={supportHref}
           className="inline-flex min-h-11 items-center rounded-xl border border-amber-300 bg-white px-5 text-[13px] font-semibold text-amber-800"
         >
           Дэмжлэгийн хуудас
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -159,8 +166,10 @@ const lifecycleMeta: Record<
 };
 
 export default function ProjectPaymentPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ id: string; locale: string }>();
   const projectId = params.id;
+  const locale = params.locale || "mn";
+  const withLocale = (href: string) => `/${locale}${href}`;
   const router = useRouter();
   const toast = useToastStore((s) => s.push);
 
@@ -286,7 +295,10 @@ export default function ProjectPaymentPage() {
 
       {/* QPay unavailable — show friendly banner, hide all QPay UI */}
       {showManualBanner ? (
-        <ManualPaymentBanner projectId={projectId} />
+        <ManualPaymentBanner
+          projectId={projectId}
+          supportHref={withLocale("/support")}
+        />
       ) : (
         <>
           {/* Breakdown + Escrow state */}
@@ -439,12 +451,12 @@ export default function ProjectPaymentPage() {
                   >
                     {copied ? "Invoice ID хуулсан ✓" : "Invoice ID хуулах"}
                   </button>
-                  <a
-                    href="/support"
+                  <Link
+                    href={withLocale("/support")}
                     className="inline-flex min-h-11 items-center rounded-xl border border-surface-200 bg-white px-4 text-[13px] font-semibold text-surface-700"
                   >
                     Дэмжлэг авах
-                  </a>
+                  </Link>
                 </div>
 
                 {(secondsLeft === 0 || statusValue === "failed") &&
@@ -498,12 +510,12 @@ export default function ProjectPaymentPage() {
                   >
                     Дахин оролдох
                   </button>
-                  <a
-                    href="/support"
+                  <Link
+                    href={withLocale("/support")}
                     className="inline-flex min-h-11 items-center rounded-lg bg-white px-4 py-2 text-xs font-semibold text-red-700"
                   >
                     Дэмжлэг авах
-                  </a>
+                  </Link>
                 </div>
               }
             />
@@ -515,7 +527,7 @@ export default function ProjectPaymentPage() {
               Төлбөр баталгаажлаа. Escrow түгжигдсэн.{" "}
               <button
                 className="ml-1 font-semibold underline"
-                onClick={() => router.push(`/projects/${projectId}`)}
+                onClick={() => router.push(withLocale(`/projects/${projectId}`))}
               >
                 Төслийн хуудас руу буцах
               </button>
