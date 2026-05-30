@@ -569,3 +569,101 @@ Merge хийхээс өмнө шалгах:
 - [ ] Vercel env: `NEXT_PUBLIC_API_BASE_URL=https://api.itzuun.works/api/v1`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
 - [ ] Migration: `python manage.py migrate --noinput` (notifications, payments, profiles, etc.)
 - [ ] Smoke test: `/api/v1/auth/me/`, `/api/v1/projects/`, `/api/v1/profiles/me/`, `/api/v1/notifications/`
+
+---
+
+## 18. Сүүлийн CI засварууд (2026-05-30, хоёр дахь шат)
+
+### 18.1 Backend: `black --check .` fail — `profiles/views.py`
+
+**Шалтгаан:** `ProfileDetailView.retrieve()` дотор multi-line `Response(...)` call нь
+black-ийн format-д нийцэхгүй байсан.
+
+**Засвар:** `black apps/profiles/views.py` ажиллуулж нэг мөр болгосон:
+```python
+return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+```
+
+### 18.2 Frontend: ESLint `react/no-unescaped-entities` — `payment/page.tsx`
+
+**Шалтгаан:** JSX дотор `"Шинэчлэх"` гэж шууд `"` тэмдэгт ашигласан.
+
+**Засвар:** `&ldquo;Шинэчлэх&rdquo;` болгосон.
+
+### 18.3 Frontend: TypeScript `tsc --noEmit` — `client/escrow/page.tsx`
+
+| TS алдаа | Шалтгаан | Засвар |
+|----------|----------|--------|
+| TS2345 (line 28) | `useProjects("client")` — string param, гэхдээ hook нь `page: number` хүлээдэг | `useProjects(1)` + `owner === me.data.id` filter |
+| TS2322 (line 38) | `<RoleGuard allowed={[...]}>` — prop байхгүй | `currentRole={me.data.role} requiredRole="client"` |
+| TS2322 (line 47) | `<EmptyState title={...}>` — prop байхгүй | `label={...}` ашиглах |
+
+### 18.4 Frontend: TypeScript `tsc --noEmit` — `payment/page.tsx`
+
+| TS алдаа | Шалтгаан | Засвар |
+|----------|----------|--------|
+| TS2367 (line 209) | `"not_started"` literal нь `PaymentStatusResponse.status` type-д байхгүй | `"not_started"` харьцуулалтыг устгасан — зөвхөн `"not_created"` ашиглана |
+| TS2367 (line 224) | Ижил шалтгаан | Ижил засвар |
+
+### 18.5 Backend: Profile tests — UNIQUE constraint (7 ERROR + 1 FAIL)
+
+**Шалтгаан:** `post_save` signal нэмэгдсэний дараа `User.objects.create_user()`
+автоматаар Profile үүсгэдэг болсон. Тест файл `Profile.objects.create(user=...)`
+гэж давхар үүсгэхэд `UNIQUE constraint failed: profiles_profile.user_id`.
+
+**Засвар:** Бүх тестэд `Profile.objects.create()` → `Profile.objects.get_or_create()`
+болгож, дараа нь field-үүдийг update + save хийсэн.
+
+**`test_get_nonexistent_profile_returns_404`** тест мөн засагдсан:
+- `ProfileDetailView` одоо `User.objects.filter(id=user_id).exists()` шалгаад
+  user байхгүй бол 404 буцаадаг (IntegrityError сэргийлэх).
+
+---
+
+## 19. PR #14 (`fix/isort-black-formatting`) — хаах ёстой
+
+PR #14 нь `fix/isort-black-formatting` branch дээр суурилсан. Энэ branch-ийн
+**бүх commit** аль хэдийн PR #13 (`hotfix/notifications-migration`) руу merge
+хийгдсэн (`d0f0109 merge: bring in PR #12`).
+
+**Баталгаа:**
+```
+$ git log hotfix/notifications-migration..fix/isort-black-formatting --oneline
+(хоосон — бүх commit PR #13-д орсон)
+```
+
+**Зөвлөмж:**
+- ✅ PR #13-ийг merge хий — бүх ажлыг агуулна
+- ❌ PR #14-ийг close (without merge) хий — давхардсан
+
+---
+
+## 20. Эцсийн статус (2026-05-30)
+
+### Branch-ууд:
+| Branch | PR | Статус |
+|--------|-----|--------|
+| `main` | — | Production (PR #10, #11 merge хийгдсэн) |
+| `hotfix/notifications-migration` | #13 | **Merge хийхэд бэлэн** — бүх CI засвар орсон |
+| `fix/isort-black-formatting` | #14 | **Close хийх** — PR #13-д бүрэн орсон |
+
+### CI check status (PR #13 дээр хүлээгдэж буй):
+- [ ] `actionlint` (workflow lint)
+- [ ] `isort --check-only .` → PASS (pyproject.toml profile=black)
+- [ ] `black --check .` → PASS (views.py reformat хийгдсэн)
+- [ ] `flake8 .` → PASS (.flake8 config max-line-length=88)
+- [ ] Django system checks
+- [ ] `makemigrations --check --dry-run` → PASS (notifications index pinned)
+- [ ] Backend tests (89 tests) → PASS (profile tests get_or_create болгосон)
+- [ ] ESLint → PASS (&ldquo; entities escaped)
+- [ ] `tsc --noEmit` → PASS (TS errors fixed)
+- [ ] Frontend tests
+- [ ] `next build` → PASS
+
+### Production deploy дараалал:
+1. PR #13 merge → main
+2. PR #14 close (without merge)
+3. `fix/isort-black-formatting` branch delete
+4. Render auto-deploy: `migrate --noinput && gunicorn`
+5. Vercel auto-deploy: `next build`
+6. Smoke test: `/api/v1/auth/me/`, `/api/v1/notifications/`, `/api/v1/profiles/me/`
