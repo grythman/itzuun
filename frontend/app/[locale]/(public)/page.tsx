@@ -27,7 +27,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  href={withLocale("/projects")}
+                  href={withLocale("/client/projects/new")}
                   className="rounded-xl bg-gradient-to-br from-[#13696a] to-[#0e5254] px-10 py-5 text-lg font-bold text-white shadow-[0_16px_40px_rgba(19,105,106,0.28)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(19,105,106,0.35)] active:scale-95"
                 >
                   {t("landingPrimaryCta")}
@@ -86,44 +86,22 @@ export default function HomePage() {
               <span className="mb-3 block text-xs font-bold uppercase tracking-[0.2em] text-secondary">{t("categorySectionEyebrow")}</span>
               <h2 className="text-4xl font-bold text-primary">{t("categorySectionTitle")}</h2>
             </div>
-            <Link href={withLocale("/projects")} className="border-b border-primary/20 pb-1 font-bold text-primary transition-all hover:border-primary">
+            <Link href={withLocale("/client/projects/new")} className="border-b border-primary/20 pb-1 font-bold text-primary transition-all hover:border-primary">
               {t("categorySectionLink")}
             </Link>
           </div>
 
-          <div className="grid h-auto gap-6 md:grid-cols-4 md:grid-rows-2 lg:h-[700px]">
-            <div className="group relative overflow-hidden rounded-xl bg-surface-container-lowest p-10 shadow-sm transition-all hover:shadow-xl md:col-span-2 md:row-span-2">
-              <div className="relative z-10 flex h-full flex-col">
-                <span className="mb-6 text-4xl text-secondary">▣</span>
-                <h3 className="mb-4 text-3xl font-bold text-primary">{t("categoryTitle1")}</h3>
-                <p className="max-w-xs text-on-surface-variant">{t("f1Text")}</p>
-                <div className="mt-auto">
-                  <span className="flex items-center gap-2 text-sm font-bold text-primary transition-transform group-hover:translate-x-2">Цааш үзэх →</span>
-                </div>
-              </div>
-              <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-surface-container opacity-20 transition-transform duration-700 group-hover:scale-125" />
-            </div>
-
-            <div className="group relative overflow-hidden rounded-xl bg-primary p-8 text-white">
-              <span className="mb-4 block text-3xl text-tertiary-fixed">▯</span>
-              <h3 className="mb-2 text-xl font-bold">{t("categoryTitle2")}</h3>
-              <p className="text-sm text-white/60">iOS болон Android шийдлүүд.</p>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-xl bg-secondary p-8 text-white">
-              <span className="mb-4 block text-3xl">△</span>
-              <h3 className="mb-2 text-xl font-bold">{t("categoryTitle3")}</h3>
-              <p className="text-sm text-white/60">Архитектурт суурилсан загвар.</p>
-            </div>
-
-            <div className="group flex items-center justify-between rounded-xl bg-surface-container-low p-8 transition-colors hover:bg-surface-container-high md:col-span-2">
-              <div>
-                <span className="mb-4 block text-3xl text-primary">▤</span>
-                <h3 className="mb-2 text-xl font-bold text-primary">{t("categoryTitle4")}</h3>
-                <p className="text-sm text-on-surface-variant">Бизнесийн ухаалаг шийдлүүд.</p>
-              </div>
-              <span className="text-4xl text-primary/10 transition-colors group-hover:text-primary/30">◍</span>
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {["▣", "◩", "◐", "◇", "▤", "✦", "◧", "⌘"].map((icon, index) => (
+              <Link
+                key={icon}
+                href={withLocale("/client/projects/new")}
+                className="group flex min-h-36 flex-col justify-between rounded-2xl border border-surface-200 bg-surface-container-lowest p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/30 hover:shadow-xl"
+              >
+                <span className="text-3xl text-secondary transition-transform group-hover:scale-110">{icon}</span>
+                <h3 className="mn-text mt-8 text-xl font-bold text-primary">{t(`categoryTitle${index + 1}`)}</h3>
+              </Link>
+            ))}
           </div>
         </section>
 
@@ -218,7 +196,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-4xl">
             <h2 className="mb-8 text-5xl font-black tracking-tighter text-primary md:text-6xl">{t("finalTitle")}</h2>
             <div className="mt-12 flex justify-center">
-              <Link href={withLocale("/auth?tab=register")} className="rounded-md bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-16 py-6 text-xl font-bold text-white transition-all hover:shadow-[0_20px_50px_rgba(3,22,54,0.2)] active:scale-95">
+              <Link href={withLocale("/client/projects/new")} className="rounded-md bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-16 py-6 text-xl font-bold text-white transition-all hover:shadow-[0_20px_50px_rgba(3,22,54,0.2)] active:scale-95">
                 {t("finalPrimaryCta")}
               </Link>
             </div>
