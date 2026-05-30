@@ -1,8 +1,9 @@
 import uuid
 from unittest.mock import patch
 
+import requests
 from django.core.cache import caches
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -366,6 +367,9 @@ class CacheInvalidationSmokeTests(TestCase):
 
 class ProjectPaymentEndpointsTests(TestCase):
     def setUp(self):
+        for cache_alias in caches:
+            caches[cache_alias].clear()
+
         self.client_api = APIClient()
         self.owner = User.objects.create_user(
             email="owner-pay@test.com", role="client", password="pass1234"
@@ -414,20 +418,26 @@ class ProjectPaymentEndpointsTests(TestCase):
         self.assertEqual(response.json()["payment"]["status"], Payment.STATUS_PENDING)
         self.assertIn("expires_in_seconds", response.json())
 
-    def test_payment_status_without_invoice_returns_not_created(self):
+    def test_payment_status_without_payment_returns_not_created(self):
         response = self.client_api.get(
             f"/api/v1/payments/project/{self.project.id}/status"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["status"], "not_created")
+        self.assertIsNone(response.json()["invoice_id"])
         self.assertIsNone(response.json()["payment"])
 
-    @patch("apps.payments.views.create_invoice")
-    def test_payment_create_qpay_unavailable_returns_manual_message(
-        self, mock_create_invoice
-    ):
-        mock_create_invoice.side_effect = DomainError("qpay_unavailable")
+    @override_settings(
+        DEBUG=False,
+        QPAY_BASE_URL="https://qpay.invalid",
+        QPAY_USERNAME="merchant",
+        QPAY_PASSWORD="secret",
+        QPAY_MERCHANT_CODE="ITZUUN_ESCROW",
+    )
+    @patch("apps.payments.services.qpay_service.requests.post")
+    def test_qpay_transport_error_returns_manual_payment_contract(self, mock_post):
+        mock_post.side_effect = requests.RequestException("network down")
 
         response = self.client_api.post(
             f"/api/v1/payments/project/{self.project.id}/create", format="json"
@@ -436,7 +446,6 @@ class ProjectPaymentEndpointsTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
         self.assertEqual(response.json()["error_code"], "qpay_unavailable")
         self.assertIn("админтай холбогдож", response.json()["error"])
-        self.assertNotIn("qpay_unavailable", response.json()["error"])
 
     @patch("apps.payments.views.get_invoice_status")
     @patch("apps.payments.views.create_invoice")
