@@ -136,9 +136,10 @@ export interface PaymentCreateResponse {
 }
 
 export interface PaymentStatusResponse {
-  invoice_id: string;
-  status: "pending" | "paid" | "failed";
-  payment: PaymentDto;
+  invoice_id: string | null;
+  // "not_created" — backend хариу: project дээр хараахан Payment row үүсээгүй.
+  status: "not_created" | "pending" | "paid" | "failed";
+  payment: PaymentDto | null;
   verification?: Record<string, unknown>;
 }
 
