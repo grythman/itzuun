@@ -4,12 +4,14 @@
 - Workflow: `.github/workflows/kpi-weekly.yml`
 - Job: `kpi-report`
 - Outputs: `kpi_report.json`, `pilot_readiness_report.json`, `kpi_alerts_report.json`, `kpi_run_summary.json`, `tracker_update_snippet.md`, artifacts `weekly-kpi-report` + `pilot-readiness-report` + `kpi-alerts-report` + `kpi-run-summary`, optional Slack message
-- CI guardrail: `.github/workflows/ci.yml` runs `workflow-lint` (`rhysd/actionlint@v1`) to catch YAML/workflow syntax issues before deploy.
+- CI guardrail: `.github/workflows/itzuun-ci-vercel-render.yml` runs `workflow-lint` to catch YAML/workflow syntax issues before Vercel/Render auto-deploy proceeds from Git integration.
 - KPI alert evaluator supports threshold profiles by `cohort_label` (`production` vs `synthetic`).
+
+> **Deployment note:** this workflow is operational reporting only. Application deployment is handled by Vercel + Render Git auto-deploy; do not add VPS/SSH application deployment steps here. See `docs/DEPLOYMENT_WORKFLOW_AUDIT.md` for the current workflow decision.
 
 ## End-to-End Verify Checklist
 1. GitHub `Settings -> Secrets and variables -> Actions`:
-- Required: `SERVER_HOST`, `SERVER_USER`, `SERVER_KEY`
+- Required while this legacy KPI collector still reaches production over SSH: `SERVER_HOST`, `SERVER_USER`, `SERVER_KEY`
 - Optional: `SLACK_WEBHOOK_URL`
 2. Open `Actions -> Weekly KPI Report -> Run workflow`
 3. Input `days=1` (smoke) or `days=7` (normal), click `Run workflow`
