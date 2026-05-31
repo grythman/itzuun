@@ -38,11 +38,15 @@ class ProjectSerializer(serializers.ModelSerializer):
             "category_id",
             "category_obj",
             "required_skills",
-            "contact_info",
             "status",
             "selected_proposal",
         )
         read_only_fields = ("id", "owner", "status", "selected_proposal")
+
+
+class ProjectPrivateSerializer(ProjectSerializer):
+    class Meta(ProjectSerializer.Meta):
+        fields = ProjectSerializer.Meta.fields + ("contact_info",)
 
 
 class ProposalSerializer(serializers.ModelSerializer):

@@ -207,3 +207,60 @@ class ProposalLimitTests(TestCase):
         self.assertEqual(blocked.status_code, status.HTTP_400_BAD_REQUEST)
         self.freelancer.refresh_from_db()
         self.assertFalse(self.freelancer.is_premium)
+
+
+class ProjectContactInfoVisibilityTests(TestCase):
+    def setUp(self):
+        self.client_api = APIClient()
+        self.owner = User.objects.create_user(
+            email="contact-owner@test.com", password="Pass12345", role="client"
+        )
+        self.other_client = User.objects.create_user(
+            email="contact-other@test.com", password="Pass12345", role="client"
+        )
+        self.admin = User.objects.create_user(
+            email="contact-admin@test.com", password="Pass12345", role="admin"
+        )
+        self.project = Project.objects.create(
+            owner=self.owner,
+            title="Private contact project",
+            description="desc",
+            budget=100000,
+            timeline_days=7,
+            category="web",
+            required_skills=["django"],
+            contact_info="owner@example.com / @owner",
+        )
+
+    def test_public_project_list_omits_contact_info(self):
+        response = self.client_api.get("/api/v1/projects")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rows = response.json()["results"]
+        project_payload = next(row for row in rows if row["id"] == self.project.id)
+        self.assertNotIn("contact_info", project_payload)
+
+    def test_public_project_detail_omits_contact_info(self):
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("contact_info", response.json())
+
+    def test_non_owner_project_detail_omits_contact_info(self):
+        self.client_api.force_authenticate(self.other_client)
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("contact_info", response.json())
+
+    def test_owner_project_detail_includes_contact_info_after_public_cache(self):
+        public_response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
+        self.assertEqual(public_response.status_code, status.HTTP_200_OK)
+
+        self.client_api.force_authenticate(self.owner)
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["contact_info"], self.project.contact_info)
+
+    def test_admin_project_detail_includes_contact_info(self):
+        self.client_api.force_authenticate(self.admin)
+        response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["contact_info"], self.project.contact_info)
