@@ -38,6 +38,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "category_id",
             "category_obj",
             "required_skills",
+            "contact_info",
             "status",
             "selected_proposal",
         )

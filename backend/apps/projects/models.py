@@ -46,6 +46,7 @@ class Project(models.Model):
         Category, null=True, blank=True, on_delete=models.SET_NULL
     )
     required_skills = models.JSONField(default=list, blank=True)
+    contact_info = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         max_length=32, choices=STATUS_CHOICES, default=STATUS_OPEN
     )
