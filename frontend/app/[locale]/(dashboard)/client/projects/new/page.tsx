@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { KeyboardEvent, useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
@@ -12,6 +12,7 @@ import { useCategories, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/stores/toast-store";
 import { createProjectSchema } from "@/lib/validators";
 
+import type { CategoryDto } from "@/lib/api/types";
 import type { z } from "zod";
 
 type FormValues = z.infer<typeof createProjectSchema>;
@@ -19,6 +20,64 @@ type FormValues = z.infer<typeof createProjectSchema>;
 type StepKey = "basics" | "scope" | "budget" | "preview";
 type ProjectType = "fixed" | "hourly";
 type ExperienceLevel = "junior" | "mid" | "senior";
+
+const homepageCategoryLabelKeys = {
+	website: "homepageCategoryWebsite",
+	"landing-page": "homepageCategoryLandingPage",
+	"poster-design": "homepageCategoryPosterDesign",
+	"logo-design": "homepageCategoryLogoDesign",
+	"document-cleanup": "homepageCategoryDocumentCleanup",
+	"cv-document": "homepageCategoryCvDocument",
+	"template-customization": "homepageCategoryTemplateCustomization",
+	"it-support": "homepageCategoryItSupport",
+} as const;
+
+type HomepageCategorySlug = keyof typeof homepageCategoryLabelKeys;
+
+const categorySlugAliases: Record<HomepageCategorySlug, string[]> = {
+	website: ["website", "web"],
+	"landing-page": ["landing-page", "landing", "web"],
+	"poster-design": ["poster-design", "poster", "social-media-design", "design"],
+	"logo-design": ["logo-design", "logo", "brand-design", "design"],
+	"document-cleanup": ["document-cleanup", "document", "documents", "other"],
+	"cv-document": ["cv-document", "cv", "resume", "documents", "other"],
+	"template-customization": ["template-customization", "template", "theme", "design"],
+	"it-support": ["it-support", "support", "sysadmin"],
+};
+
+function normalizeHomepageCategory(value: string | null): HomepageCategorySlug | null {
+	if (!value) return null;
+	const normalized = value.trim().toLowerCase();
+	return normalized in homepageCategoryLabelKeys
+		? (normalized as HomepageCategorySlug)
+		: null;
+}
+
+function normalizeCategoryValue(value?: string | number | null): string {
+	return String(value || "")
+		.trim()
+		.toLowerCase()
+		.replace(/&/g, "and")
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+}
+
+function findCategoryByHomepageSlug(
+	categories: CategoryDto[],
+	homepageSlug: HomepageCategorySlug,
+): CategoryDto | undefined {
+	const aliases = categorySlugAliases[homepageSlug];
+	return categories.find((category) => {
+		const values = [
+			category.slug,
+			category.name,
+			category.name_en,
+			category.name_mn,
+			category.id,
+		].map(normalizeCategoryValue);
+		return aliases.some((alias) => values.includes(normalizeCategoryValue(alias)));
+	});
+}
 
 function formatMnt(value: number): string {
 	return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
@@ -177,10 +236,15 @@ export default function NewProjectPage() {
 	const t = useTranslations("ProjectNew");
 	const router = useRouter();
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const pathParts = (pathname || "").split("/").filter(Boolean);
 	const locale =
 		pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
 	const withLocale = (href: string) => `/${locale}${href}`;
+	const requestedCategory = normalizeHomepageCategory(searchParams.get("category"));
+	const requestedCategoryLabel = requestedCategory
+		? t(homepageCategoryLabelKeys[requestedCategory])
+		: "";
 
 	const toast = useToastStore((s) => s.push);
 	const [skillsInput, setSkillsInput] = useState("");
@@ -232,7 +296,7 @@ export default function NewProjectPage() {
 			description: "",
 			budget: 1000000,
 			timeline_days: 14,
-			category: "other",
+			category: requestedCategory || "other",
 			category_id: "",
 		},
 		mode: "onSubmit",
@@ -257,6 +321,25 @@ export default function NewProjectPage() {
 				selectedCategory.name ||
 				"Бусад"
 		: "Ангилал сонгоогүй";
+
+	useEffect(() => {
+		if (!requestedCategory) return;
+
+		const matchingCategory = findCategoryByHomepageSlug(
+			categoryOptions,
+			requestedCategory,
+		);
+		form.setValue("category", requestedCategory, {
+			shouldDirty: false,
+			shouldValidate: true,
+		});
+		if (matchingCategory) {
+			form.setValue("category_id", String(matchingCategory.id), {
+				shouldDirty: false,
+				shouldValidate: true,
+			});
+		}
+	}, [categoryOptions, form, requestedCategory]);
 
 	const mutation = useMutation({
 		mutationFn: (values: FormValues) =>
@@ -313,7 +396,7 @@ export default function NewProjectPage() {
 			shouldDirty: true,
 			shouldValidate: true,
 		});
-		form.setValue("category", label.toLowerCase(), { shouldDirty: true });
+		form.setValue("category", category?.slug || label.toLowerCase(), { shouldDirty: true });
 	}
 
 	function addSkill(rawValue: string) {
@@ -529,6 +612,11 @@ export default function NewProjectPage() {
 												<DashboardIcon name="expand" className="h-5 w-5" />
 											</span>
 										</div>
+										{requestedCategoryLabel ? (
+											<p className="text-[11px] font-medium text-surface-400 uppercase tracking-widest font-headline">
+												{t("homepageCategorySelected", { category: requestedCategoryLabel })}
+											</p>
+										) : null}
 									</div>
 
 									<div className="space-y-4">

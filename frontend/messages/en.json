@@ -229,7 +229,16 @@
     "why2": "Secure QPay payments with escrow",
     "why3": "Workflow optimized for local market",
     "proTip": "Pro Tip",
-    "proTipText": "Projects with specific titles attract more qualified applications in the first 24 hours."
+    "proTipText": "Projects with specific titles attract more qualified applications in the first 24 hours.",
+    "homepageCategorySelected": "Selected from homepage: {category}",
+    "homepageCategoryWebsite": "Website",
+    "homepageCategoryLandingPage": "Landing page",
+    "homepageCategoryPosterDesign": "Poster / social media design",
+    "homepageCategoryLogoDesign": "Logo design",
+    "homepageCategoryDocumentCleanup": "Word / PDF cleanup",
+    "homepageCategoryCvDocument": "CV / document",
+    "homepageCategoryTemplateCustomization": "Template customization",
+    "homepageCategoryItSupport": "Computer / software support"
   },
   "ClientDash": {
     "title": "Client Dashboard",

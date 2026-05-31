@@ -229,7 +229,16 @@
     "why2": "QPay + Escrow хамгаалалттай төлбөр",
     "why3": "Орон нутгийн workflow-д тохирсон урсгал",
     "proTip": "Зөвлөмж",
-    "proTipText": "Тодорхой гарчигтай төсөл эхний 24 цагт илүү чанартай санал татдаг."
+    "proTipText": "Тодорхой гарчигтай төсөл эхний 24 цагт илүү чанартай санал татдаг.",
+    "homepageCategorySelected": "Нүүр хуудаснаас сонгосон: {category}",
+    "homepageCategoryWebsite": "Website хийх",
+    "homepageCategoryLandingPage": "Landing page хийх",
+    "homepageCategoryPosterDesign": "Poster / social media design",
+    "homepageCategoryLogoDesign": "Logo design",
+    "homepageCategoryDocumentCleanup": "Word / PDF янзлах",
+    "homepageCategoryCvDocument": "CV / бичиг баримт",
+    "homepageCategoryTemplateCustomization": "Template customization",
+    "homepageCategoryItSupport": "Computer / software support"
   },
   "ClientDash": {
     "title": "Клиент хянах самбар",
