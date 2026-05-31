@@ -272,3 +272,30 @@ class ProjectContactInfoVisibilityTests(TestCase):
         response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["contact_info"], self.project.contact_info)
+
+    def test_create_response_includes_contact_info_but_public_detail_stays_redacted(self):
+        self.client_api.force_authenticate(self.owner)
+        response = self.client_api.post(
+            "/api/v1/projects",
+            {
+                "title": "New private contact project",
+                "description": "desc",
+                "budget": 100000,
+                "timeline_days": 7,
+                "category": "web",
+                "required_skills": ["django"],
+                "contact_info": "new-owner@example.com / @newowner",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response.json()["contact_info"], "new-owner@example.com / @newowner"
+        )
+
+        self.client_api.force_authenticate(user=None)
+        public_response = self.client_api.get(
+            f"/api/v1/projects/{response.json()['id']}"
+        )
+        self.assertEqual(public_response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("contact_info", public_response.json())
