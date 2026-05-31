@@ -24,6 +24,7 @@ from .serializers import (
     ProjectDeliverableSerializer,
     ProjectDescriptionSuggestResponseSerializer,
     ProjectDescriptionSuggestSerializer,
+    ProjectPrivateSerializer,
     ProjectSerializer,
     ProposalSerializer,
 )
@@ -67,6 +68,11 @@ class CategoryListView(generics.ListAPIView):
 class ProjectListCreateView(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
 
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ProjectPrivateSerializer
+        return ProjectSerializer
+
     def get_queryset(self):
         return ProjectSelector.get_projects(self.request.query_params)
 
@@ -97,10 +103,23 @@ class ProjectDetailView(generics.RetrieveUpdateAPIView):
         "owner", "selected_proposal__freelancer"
     ).prefetch_related("proposals")
 
+    def get_serializer_class(self):
+        if self.request.method in {"PATCH", "PUT"}:
+            return ProjectPrivateSerializer
+        return ProjectSerializer
+
     def get_permissions(self):
         if self.request.method == "GET":
             return [permissions.AllowAny()]
         return super().get_permissions()
+
+    def _can_view_contact_info(self, project):
+        user = self.request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and (project.owner_id == user.id or user.role == "admin")
+        )
 
     def patch(self, request, *args, **kwargs):
         project = self.get_object()
@@ -116,15 +135,21 @@ class ProjectDetailView(generics.RetrieveUpdateAPIView):
         return response
 
     def retrieve(self, request, *args, **kwargs):
-        project_id = kwargs["pk"]
-        cache_key = project_detail_cache_key(project_id)
+        project = self.get_object()
+        if self._can_view_contact_info(project):
+            serializer = ProjectPrivateSerializer(
+                project, context=self.get_serializer_context()
+            )
+            return Response(serializer.data)
+
+        cache_key = project_detail_cache_key(project.id)
         cached_payload = cache.get(cache_key)
         if cached_payload is not None:
             return Response(cached_payload)
 
-        response = super().retrieve(request, *args, **kwargs)
-        cache.set(cache_key, response.data, timeout=60)
-        return response
+        serializer = ProjectSerializer(project, context=self.get_serializer_context())
+        cache.set(cache_key, serializer.data, timeout=60)
+        return Response(serializer.data)
 
 
 class ProjectCloseView(APIView):
@@ -145,7 +170,7 @@ class ProjectSelectFreelancerView(APIView):
             Proposal, id=request.data.get("proposal_id"), project=project
         )
         select_freelancer(project, proposal)
-        return Response(ProjectSerializer(project).data)
+        return Response(ProjectPrivateSerializer(project).data)
 
 
 class ProjectProposalListCreateView(generics.ListCreateAPIView):

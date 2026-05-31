@@ -25,7 +25,7 @@ from apps.payments.serializers import (
     PaymentSerializer,
 )
 from apps.projects.models import Project
-from apps.projects.serializers import ProjectSerializer
+from apps.projects.serializers import ProjectPrivateSerializer
 from common.cache_utils import (
     admin_detail_cache_key,
     admin_list_cache_key,
@@ -138,7 +138,9 @@ class AdminProjectListView(APIView):
         queryset = Project.objects.all().order_by("-created_at")
         if status_param:
             queryset = queryset.filter(status=status_param)
-        response = _paginated_response(request, queryset, ProjectSerializer, self)
+        response = _paginated_response(
+            request, queryset, ProjectPrivateSerializer, self
+        )
         cache.set(cache_key, response.data, timeout=60)
         return response
 
