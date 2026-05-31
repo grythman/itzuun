@@ -5,7 +5,16 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-const categoryIcons = ["▣", "◩", "◐", "◇", "▤", "✦", "◧", "⌘"];
+const homepageCategories = [
+  { icon: "▣", slug: "website" },
+  { icon: "◩", slug: "landing-page" },
+  { icon: "◐", slug: "poster-design" },
+  { icon: "◇", slug: "logo-design" },
+  { icon: "▤", slug: "document-cleanup" },
+  { icon: "✦", slug: "cv-document" },
+  { icon: "◧", slug: "template-customization" },
+  { icon: "⌘", slug: "it-support" },
+];
 const serviceCount = 5;
 
 export default function HomePage() {
@@ -29,9 +38,9 @@ export default function HomePage() {
                 {t("landingSubtitle")}
               </p>
               <div className="mb-10 flex flex-wrap gap-3">
-                {categoryIcons.slice(0, 4).map((icon, index) => (
-                  <span key={icon} className="inline-flex items-center gap-2 rounded-full border border-secondary/15 bg-secondary/5 px-4 py-2 text-sm font-semibold text-primary">
-                    <span className="text-secondary">{icon}</span>
+                {homepageCategories.slice(0, 4).map((category, index) => (
+                  <span key={category.slug} className="inline-flex items-center gap-2 rounded-full border border-secondary/15 bg-secondary/5 px-4 py-2 text-sm font-semibold text-primary">
+                    <span className="text-secondary">{category.icon}</span>
                     {t(`categoryTitle${index + 1}`)}
                   </span>
                 ))}
@@ -107,14 +116,14 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {categoryIcons.map((icon, index) => (
+            {homepageCategories.map((category, index) => (
               <Link
-                key={icon}
-                href={withLocale("/client/projects/new")}
+                key={category.slug}
+                href={withLocale(`/client/projects/new?category=${category.slug}`)}
                 className="group flex min-h-48 flex-col justify-between rounded-2xl border border-surface-200 bg-surface-container-lowest p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/30 hover:shadow-xl"
               >
                 <div>
-                  <span className="text-3xl text-secondary transition-transform group-hover:scale-110">{icon}</span>
+                  <span className="text-3xl text-secondary transition-transform group-hover:scale-110">{category.icon}</span>
                   <h3 className="mn-text mt-8 text-xl font-bold text-primary">{t(`categoryTitle${index + 1}`)}</h3>
                 </div>
                 <p className="mt-4 text-sm leading-6 text-on-surface-variant">{t(`categoryDescription${index + 1}`)}</p>
