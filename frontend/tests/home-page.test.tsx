@@ -61,4 +61,24 @@ describe("HomePage", () => {
       expect(screen.getAllByRole("link", { name: new RegExp(name) }).some((link) => link.getAttribute("href") === href)).toBe(true);
     });
   });
+
+  it("links each demo service card to the localized order route with a service query", () => {
+    render(
+      <NextIntlClientProvider messages={messages} locale="mn">
+        <HomePage />
+      </NextIntlClientProvider>
+    );
+
+    const expectedServiceLinks = [
+      [messages.Home.serviceTitle1, "/mn/client/projects/new?service=small-business-website"],
+      [messages.Home.serviceTitle2, "/mn/client/projects/new?service=landing-page"],
+      [messages.Home.serviceTitle3, "/mn/client/projects/new?service=social-poster-pack"],
+      [messages.Home.serviceTitle4, "/mn/client/projects/new?service=cv-document-cleanup"],
+      [messages.Home.serviceTitle5, "/mn/client/projects/new?service=computer-software-support"],
+    ] as const;
+
+    expectedServiceLinks.forEach(([name, href]) => {
+      expect(screen.getAllByRole("link", { name: new RegExp(name) }).some((link) => link.getAttribute("href") === href)).toBe(true);
+    });
+  });
 });

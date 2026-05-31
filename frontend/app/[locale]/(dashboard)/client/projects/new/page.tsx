@@ -79,6 +79,59 @@ function findCategoryByHomepageSlug(
 	});
 }
 
+const homepageServiceTemplates = {
+	"small-business-website": {
+		category: "website",
+		labelKey: "serviceTemplateLabelSmallBusinessWebsite",
+		titleKey: "serviceTemplateTitleSmallBusinessWebsite",
+		descriptionKey: "serviceTemplateDescriptionSmallBusinessWebsite",
+		budget: 1500000,
+		timelineDays: 21,
+	},
+	"landing-page": {
+		category: "landing-page",
+		labelKey: "serviceTemplateLabelLandingPage",
+		titleKey: "serviceTemplateTitleLandingPage",
+		descriptionKey: "serviceTemplateDescriptionLandingPage",
+		budget: 800000,
+		timelineDays: 10,
+	},
+	"social-poster-pack": {
+		category: "poster-design",
+		labelKey: "serviceTemplateLabelSocialPosterPack",
+		titleKey: "serviceTemplateTitleSocialPosterPack",
+		descriptionKey: "serviceTemplateDescriptionSocialPosterPack",
+		budget: 350000,
+		timelineDays: 7,
+	},
+	"cv-document-cleanup": {
+		category: "cv-document",
+		labelKey: "serviceTemplateLabelCvDocumentCleanup",
+		titleKey: "serviceTemplateTitleCvDocumentCleanup",
+		descriptionKey: "serviceTemplateDescriptionCvDocumentCleanup",
+		budget: 120000,
+		timelineDays: 3,
+	},
+	"computer-software-support": {
+		category: "it-support",
+		labelKey: "serviceTemplateLabelComputerSoftwareSupport",
+		titleKey: "serviceTemplateTitleComputerSoftwareSupport",
+		descriptionKey: "serviceTemplateDescriptionComputerSoftwareSupport",
+		budget: 150000,
+		timelineDays: 5,
+	},
+} as const;
+
+type HomepageServiceSlug = keyof typeof homepageServiceTemplates;
+
+function normalizeHomepageService(value: string | null): HomepageServiceSlug | null {
+	if (!value) return null;
+	const normalized = value.trim().toLowerCase();
+	return normalized in homepageServiceTemplates
+		? (normalized as HomepageServiceSlug)
+		: null;
+}
+
 function formatMnt(value: number): string {
 	return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
 }
@@ -245,6 +298,11 @@ export default function NewProjectPage() {
 	const requestedCategoryLabel = requestedCategory
 		? t(homepageCategoryLabelKeys[requestedCategory])
 		: "";
+	const requestedService = normalizeHomepageService(searchParams.get("service"));
+	const serviceTemplate = requestedService
+		? homepageServiceTemplates[requestedService]
+		: null;
+	const requestedServiceLabel = serviceTemplate ? t(serviceTemplate.labelKey) : "";
 
 	const toast = useToastStore((s) => s.push);
 	const [skillsInput, setSkillsInput] = useState("");
@@ -292,11 +350,13 @@ export default function NewProjectPage() {
 	const form = useForm<FormValues>({
 		resolver: zodResolver(createProjectSchema),
 		defaultValues: {
-			title: "",
-			description: "",
-			budget: 1000000,
-			timeline_days: 14,
-			category: requestedCategory || "other",
+			title: serviceTemplate ? t(serviceTemplate.titleKey) : "",
+			description: serviceTemplate ? t(serviceTemplate.descriptionKey) : "",
+			budget: serviceTemplate ? serviceTemplate.budget : 1000000,
+			timeline_days: serviceTemplate ? serviceTemplate.timelineDays : 14,
+			category: serviceTemplate
+				? serviceTemplate.category
+				: requestedCategory || "other",
 			category_id: "",
 		},
 		mode: "onSubmit",
@@ -340,6 +400,26 @@ export default function NewProjectPage() {
 			});
 		}
 	}, [categoryOptions, form, requestedCategory]);
+
+	useEffect(() => {
+		if (!requestedService) return;
+
+		const template = homepageServiceTemplates[requestedService];
+		const matchingCategory = findCategoryByHomepageSlug(
+			categoryOptions,
+			template.category,
+		);
+		form.setValue("category", template.category, {
+			shouldDirty: false,
+			shouldValidate: true,
+		});
+		if (matchingCategory) {
+			form.setValue("category_id", String(matchingCategory.id), {
+				shouldDirty: false,
+				shouldValidate: true,
+			});
+		}
+	}, [categoryOptions, form, requestedService]);
 
 	const mutation = useMutation({
 		mutationFn: (values: FormValues) =>
@@ -446,6 +526,8 @@ export default function NewProjectPage() {
 
 	// Form auto-save draft effect
 	useEffect(() => {
+		// Honor an explicit homepage selection (service/category) over a stale draft.
+		if (requestedService || requestedCategory) return;
 		try {
 			const draft = localStorage.getItem("itzuun_new_project_draft");
 			if (draft) {
@@ -461,7 +543,7 @@ export default function NewProjectPage() {
 				if (parsed.experienceLevel) setExperienceLevel(parsed.experienceLevel);
 			}
 		} catch (e) {}
-	}, [form]);
+	}, [form, requestedService, requestedCategory]);
 
 	return (
 		<div className="pb-20 text-on-surface">
@@ -615,6 +697,11 @@ export default function NewProjectPage() {
 										{requestedCategoryLabel ? (
 											<p className="text-[11px] font-medium text-surface-400 uppercase tracking-widest font-headline">
 												{t("homepageCategorySelected", { category: requestedCategoryLabel })}
+											</p>
+										) : null}
+										{requestedServiceLabel ? (
+											<p className="text-[11px] font-medium text-secondary uppercase tracking-widest font-headline">
+												{t("homepageServiceSelected", { service: requestedServiceLabel })}
 											</p>
 										) : null}
 									</div>

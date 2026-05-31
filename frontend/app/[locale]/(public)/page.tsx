@@ -15,7 +15,13 @@ const homepageCategories = [
   { icon: "◧", slug: "template-customization" },
   { icon: "⌘", slug: "it-support" },
 ];
-const serviceCount = 5;
+const homepageServices = [
+  { slug: "small-business-website" },
+  { slug: "landing-page" },
+  { slug: "social-poster-pack" },
+  { slug: "cv-document-cleanup" },
+  { slug: "computer-software-support" },
+];
 
 export default function HomePage() {
   const t = useTranslations("Home");
@@ -140,10 +146,10 @@ export default function HomePage() {
               <p className="mt-4 text-lg text-on-surface-variant">{t("servicesSubtitle")}</p>
             </div>
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-              {Array.from({ length: serviceCount }, (_, index) => (
+              {homepageServices.map((service, index) => (
                 <Link
-                  key={index}
-                  href={withLocale("/client/projects/new")}
+                  key={service.slug}
+                  href={withLocale(`/client/projects/new?service=${service.slug}`)}
                   className="flex min-h-64 flex-col justify-between rounded-3xl border border-surface-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-secondary/30 hover:shadow-xl"
                 >
                   <div>
