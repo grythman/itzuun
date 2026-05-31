@@ -38,4 +38,27 @@ describe("HomePage", () => {
     expect(screen.getAllByText(messages.Home.serviceTitle5)[0]).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: messages.Home.landingSecondaryCta })[0]).toHaveAttribute("href", "/mn/support");
   });
+
+  it("links each category CTA to the localized order route with a category query", () => {
+    render(
+      <NextIntlClientProvider messages={messages} locale="mn">
+        <HomePage />
+      </NextIntlClientProvider>
+    );
+
+    const expectedCategoryLinks = [
+      [messages.Home.categoryTitle1, "/mn/client/projects/new?category=website"],
+      [messages.Home.categoryTitle2, "/mn/client/projects/new?category=landing-page"],
+      [messages.Home.categoryTitle3, "/mn/client/projects/new?category=poster-design"],
+      [messages.Home.categoryTitle4, "/mn/client/projects/new?category=logo-design"],
+      [messages.Home.categoryTitle5, "/mn/client/projects/new?category=document-cleanup"],
+      [messages.Home.categoryTitle6, "/mn/client/projects/new?category=cv-document"],
+      [messages.Home.categoryTitle7, "/mn/client/projects/new?category=template-customization"],
+      [messages.Home.categoryTitle8, "/mn/client/projects/new?category=it-support"],
+    ] as const;
+
+    expectedCategoryLinks.forEach(([name, href]) => {
+      expect(screen.getAllByRole("link", { name: new RegExp(name) }).some((link) => link.getAttribute("href") === href)).toBe(true);
+    });
+  });
 });

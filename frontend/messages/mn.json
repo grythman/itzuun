@@ -209,6 +209,8 @@
     "step3": "Хянах ба батлах",
     "headline": "Хийлгэх ажлынхаа brief-ийг илгээнэ үү",
     "sub": "Үйлчилгээний төрөл, ажлын тайлбар, төсөв, хугацаа, холбоо барих мэдээллээ оруулна уу. Админ захиалгыг шалгаад дараагийн алхмаар холбогдоно.",
+    "headline": "Төслийн гарчгаас эхэлье",
+    "sub": "Ингэснээр танд тохирох Монгол технологийн мэргэжилтнийг хурдан олоход тусална.",
     "projectTitle": "Төслийн гарчиг",
     "titlePlaceholder": "ж: Захиалгын систем шинэчлэх",
     "selectCategory": "Үйлчилгээ / ангилал",
@@ -227,7 +229,7 @@
     "whyPost": "Яагаад ITZuun дээр төсөл нийтлэх вэ?",
     "why1": "Монголын баталгаажсан мэргэжилтнүүд",
     "why2": "QPay + Escrow хамгаалалттай төлбөр",
-    "why3": "Орон нутгийн workflow-д тохирсон урсгал",
+    "why3": "Орон нутгийн ажлын урсгалд тохирсон процесс",
     "proTip": "Зөвлөмж",
     "proTipText": "Тодорхой гарчигтай төсөл эхний 24 цагт илүү чанартай санал татдаг.",
     "fallbackCategory": "Сонгоогүй",
@@ -248,6 +250,15 @@
     "summaryTimeline": "Хугацаа",
     "days": "хоног",
     "successToast": "Brief илгээгдлээ. Админ шалгаад тантай холбогдоно."
+    "homepageCategorySelected": "Нүүр хуудаснаас сонгосон: {category}",
+    "homepageCategoryWebsite": "Вебсайт хийх",
+    "homepageCategoryLandingPage": "Танилцуулга хуудас хийх",
+    "homepageCategoryPosterDesign": "Постер / сошиал медиа дизайн",
+    "homepageCategoryLogoDesign": "Лого дизайн",
+    "homepageCategoryDocumentCleanup": "Word / PDF янзлах",
+    "homepageCategoryCvDocument": "CV / бичиг баримт",
+    "homepageCategoryTemplateCustomization": "Загвар тохируулах",
+    "homepageCategoryItSupport": "Компьютер / програм хангамжийн тусламж"
   },
   "ClientDash": {
     "title": "Клиент хянах самбар",
