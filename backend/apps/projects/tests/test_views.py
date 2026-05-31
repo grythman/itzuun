@@ -239,6 +239,14 @@ class ProjectContactInfoVisibilityTests(TestCase):
         project_payload = next(row for row in rows if row["id"] == self.project.id)
         self.assertNotIn("contact_info", project_payload)
 
+    def test_authenticated_owner_project_list_omits_contact_info(self):
+        self.client_api.force_authenticate(self.owner)
+        response = self.client_api.get("/api/v1/projects")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rows = response.json()["results"]
+        project_payload = next(row for row in rows if row["id"] == self.project.id)
+        self.assertNotIn("contact_info", project_payload)
+
     def test_public_project_detail_omits_contact_info(self):
         response = self.client_api.get(f"/api/v1/projects/{self.project.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
