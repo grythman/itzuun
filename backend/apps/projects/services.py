@@ -35,9 +35,32 @@ class ProjectService:
 
 
 @transaction.atomic
+def transition_project_status(project: Project, next_status: str, actor) -> Project:
+    """Transition a project to a new status with guards, cache busting, and notifications."""
+    guard_project_transition(project.status, next_status)
+    project.status = next_status
+    project.save(update_fields=["status"])
+    bump_project_version(project.id)
+    bump_admin_resource_version("projects")
+
+    try:
+        from apps.notifications.services import notify_project_status_change
+
+        notify_project_status_change(project, next_status, actor)
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).exception(
+            "Failed to send status change notification for project %s", project.id
+        )
+
+    return project
+
+
+@transaction.atomic
 def select_freelancer(project: Project, proposal: Proposal) -> Project:
-    if project.status != Project.STATUS_OPEN:
-        raise DomainError("Project is not open")
+    if project.status != Project.STATUS_PAID:
+        raise DomainError("Project is not paid")
     if proposal.project_id != project.id:
         raise DomainError("Selected proposal must belong to the project")
     guard_project_transition(project.status, Project.STATUS_IN_PROGRESS)

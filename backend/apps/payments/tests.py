@@ -384,7 +384,7 @@ class ProjectPaymentEndpointsTests(TestCase):
             budget=250000,
             timeline_days=5,
             category="web",
-            status=Project.STATUS_OPEN,
+            status=Project.STATUS_AGREED,
         )
         proposal = Proposal.objects.create(
             project=self.project,
@@ -535,6 +535,18 @@ class MvPHappyPathApiTests(TestCase):
         )
         self.assertEqual(submit_proposal.status_code, status.HTTP_201_CREATED)
         proposal_id = submit_proposal.json()["id"]
+
+        # Admin transitions: open -> reviewing -> agreed -> paid
+        self.client_api.force_authenticate(self.admin)
+        transition_url = f"/api/v1/admin/projects/{project_id}/transition"
+        resp = self.client_api.post(
+            transition_url, {"action": "reviewing"}, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        resp = self.client_api.post(transition_url, {"action": "agreed"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        resp = self.client_api.post(transition_url, {"action": "paid"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         self.client_api.force_authenticate(self.client_user)
         select_resp = self.client_api.post(

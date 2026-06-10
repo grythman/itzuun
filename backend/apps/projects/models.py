@@ -19,6 +19,10 @@ class Category(models.Model):
 
 class Project(models.Model):
     STATUS_OPEN = "open"
+    STATUS_REVIEWING = "reviewing"
+    STATUS_AGREED = "agreed"
+    STATUS_PAID = "paid"
+    STATUS_DELIVERED = "delivered"
     STATUS_IN_PROGRESS = "in_progress"
     STATUS_AWAITING_REVIEW = "awaiting_client_review"
     STATUS_COMPLETED = "completed"
@@ -27,6 +31,10 @@ class Project(models.Model):
 
     STATUS_CHOICES = (
         (STATUS_OPEN, "Open"),
+        (STATUS_REVIEWING, "Reviewing"),
+        (STATUS_AGREED, "Agreed"),
+        (STATUS_PAID, "Paid"),
+        (STATUS_DELIVERED, "Delivered"),
         (STATUS_IN_PROGRESS, "In progress"),
         (STATUS_AWAITING_REVIEW, "Awaiting review"),
         (STATUS_COMPLETED, "Completed"),
@@ -66,6 +74,10 @@ class Project(models.Model):
                 check=Q(
                     status__in=[
                         "open",
+                        "reviewing",
+                        "agreed",
+                        "paid",
+                        "delivered",
                         "in_progress",
                         "awaiting_client_review",
                         "completed",

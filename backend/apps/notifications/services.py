@@ -49,3 +49,59 @@ def notify_admins_new_brief(project) -> int:
         project.id,
     )
     return len(created)
+
+
+def notify_project_status_change(project, new_status: str, actor=None) -> int:
+    """
+    Create notifications when a project status changes.
+    Notifies the project owner and, if the actor is not the owner, also notifies admins.
+    Returns the count of notifications created.
+    """
+    notifications = []
+
+    # Always notify the project owner
+    notifications.append(
+        Notification(
+            user=project.owner,
+            type="STATUS_CHANGE",
+            title=f"Төслийн төлөв шинэчлэгдлээ: {new_status}",
+            description=(
+                f"Таны '{project.title or 'Untitled'}' төслийн төлөв "
+                f"'{new_status}' болж өөрчлөгдлөө."
+            ),
+            metadata={
+                "project_id": project.id,
+                "new_status": new_status,
+            },
+        )
+    )
+
+    # Notify admins if the actor is not the owner (or no actor)
+    if actor and actor != project.owner:
+        admins = User.objects.filter(role=User.ROLE_ADMIN, is_active=True).exclude(
+            id=actor.id
+        )
+        for admin in admins:
+            notifications.append(
+                Notification(
+                    user=admin,
+                    type="STATUS_CHANGE",
+                    title=f"Төслийн төлөв шинэчлэгдлээ: {new_status}",
+                    description=(
+                        f"'{project.title or 'Untitled'}' төслийн төлөв "
+                        f"'{new_status}' болж өөрчлөгдлөө."
+                    ),
+                    metadata={
+                        "project_id": project.id,
+                        "new_status": new_status,
+                    },
+                )
+            )
+
+    created = Notification.objects.bulk_create(notifications)
+    logger.info(
+        "Created %d status change notifications for project %s",
+        len(created),
+        project.id,
+    )
+    return len(created)

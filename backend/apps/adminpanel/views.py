@@ -26,6 +26,7 @@ from apps.payments.serializers import (
 )
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectPrivateSerializer
+from apps.projects.services import transition_project_status
 from common.cache_utils import (
     admin_detail_cache_key,
     admin_list_cache_key,
@@ -333,3 +334,27 @@ class AdminCommissionDetailView(APIView):
         payload = {"platform_fee_pct": setting.platform_fee_pct}
         cache.set(cache_key, payload, timeout=300)
         return Response(payload)
+
+
+class AdminProjectTransitionView(APIView):
+    permission_classes = [IsAdminUser]
+
+    ALLOWED_ACTIONS = {"reviewing", "agreed", "paid", "delivered"}
+
+    def post(self, request, project_id):
+        action = request.data.get("action")
+        if action not in self.ALLOWED_ACTIONS:
+            return Response(
+                {
+                    "detail": f"Invalid action. Must be one of: {sorted(self.ALLOWED_ACTIONS)}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        project = get_object_or_404(Project, id=project_id)
+        try:
+            project = transition_project_status(project, action, request.user)
+        except DomainError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(ProjectPrivateSerializer(project).data)

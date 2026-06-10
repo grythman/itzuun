@@ -275,9 +275,9 @@ def mark_payment_paid_and_hold_escrow(
             note=f"QPay invoice {invoice_id}",
         )
 
-    if project.status == Project.STATUS_OPEN:
-        guard_project_transition(project.status, Project.STATUS_IN_PROGRESS)
-        project.status = Project.STATUS_IN_PROGRESS
+    if project.status == Project.STATUS_AGREED:
+        guard_project_transition(project.status, Project.STATUS_PAID)
+        project.status = Project.STATUS_PAID
         project.save(update_fields=["status", "updated_at"])
 
     _log_financial_event(

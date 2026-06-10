@@ -3,8 +3,12 @@
 from common.exceptions import DomainError
 
 ALLOWED_PROJECT_TRANSITIONS = {
-    "open": {"in_progress", "closed_refunded"},
-    "in_progress": {"awaiting_client_review", "disputed"},
+    "open": {"reviewing", "closed_refunded"},
+    "reviewing": {"agreed", "closed_refunded"},
+    "agreed": {"paid", "closed_refunded"},
+    "paid": {"in_progress"},
+    "in_progress": {"delivered", "disputed"},
+    "delivered": {"awaiting_client_review", "completed", "disputed"},
     "awaiting_client_review": {"completed", "disputed"},
     "disputed": {"completed", "closed_refunded"},
     "completed": set(),
