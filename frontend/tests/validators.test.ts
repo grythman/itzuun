@@ -1,5 +1,6 @@
 import {
   createProjectSchema,
+  editProjectSchema,
   loginSchema,
   otpRequestSchema,
   otpVerifySchema,
@@ -142,6 +143,40 @@ describe("createProjectSchema", () => {
       expect(result.data.budget).toBe(500000);
       expect(result.data.timeline_days).toBe(30);
     }
+  });
+});
+
+describe("editProjectSchema", () => {
+  it("accepts valid edit without contact_info", () => {
+    const result = editProjectSchema.safeParse({
+      title: "Website",
+      description: "Build a website for my business",
+      budget: 500000,
+      timeline_days: 30,
+      category: "web",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("does not require contact_info", () => {
+    const result = editProjectSchema.safeParse({
+      title: "Website",
+      description: "Build a website for my business",
+      budget: 500000,
+      timeline_days: 30,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects short title", () => {
+    expect(
+      editProjectSchema.safeParse({
+        title: "ab",
+        description: "Build a website for my business",
+        budget: 500000,
+        timeline_days: 30,
+      }).success,
+    ).toBe(false);
   });
 });
 

@@ -10,12 +10,12 @@ import { AppCard, StepProgress, TrustPanel } from "@/components/ui";
 import { projectsApi } from "@/lib/api/endpoints";
 import { useMe, useMutation, useProjectDetail } from "@/lib/hooks";
 import { useToastStore } from "@/lib/stores/toast-store";
-import { createProjectSchema } from "@/lib/validators";
+import { editProjectSchema } from "@/lib/validators";
 import { ErrorState, LoadingState } from "@/components/shared/states";
 
 import type { z } from "zod";
 
-type FormValues = z.infer<typeof createProjectSchema>;
+type FormValues = z.infer<typeof editProjectSchema>;
 
 export default function EditProjectPage() {
   const params = useParams<{ id: string }>();
@@ -30,7 +30,7 @@ export default function EditProjectPage() {
   const steps = ["Basic Info", "Budget & Timeline", "Review & Confirm"];
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(createProjectSchema),
+    resolver: zodResolver(editProjectSchema),
     defaultValues: { title: "", description: "", budget: 1000000, timeline_days: 14, category: "web" },
   });
 
