@@ -79,6 +79,70 @@ function findCategoryByHomepageSlug(
 	});
 }
 
+type HomepageServiceTemplate = {
+	category: HomepageCategorySlug;
+	labelKey: string;
+	titleKey: string;
+	briefKey: string;
+	budget: number;
+	timelineDays: number;
+	skills: string[];
+};
+
+const homepageServiceTemplates: Record<string, HomepageServiceTemplate> = {
+	"small-business-website": {
+		category: "website",
+		labelKey: "homepageServiceSmallBusinessWebsiteLabel",
+		titleKey: "homepageServiceSmallBusinessWebsiteTitle",
+		briefKey: "homepageServiceSmallBusinessWebsiteBrief",
+		budget: 1500000,
+		timelineDays: 21,
+		skills: ["Web Design", "Frontend", "Responsive"],
+	},
+	"landing-page": {
+		category: "landing-page",
+		labelKey: "homepageServiceLandingPageLabel",
+		titleKey: "homepageServiceLandingPageTitle",
+		briefKey: "homepageServiceLandingPageBrief",
+		budget: 800000,
+		timelineDays: 10,
+		skills: ["Landing Page", "Web Design", "Copywriting"],
+	},
+	"social-poster-pack": {
+		category: "poster-design",
+		labelKey: "homepageServiceSocialPosterPackLabel",
+		titleKey: "homepageServiceSocialPosterPackTitle",
+		briefKey: "homepageServiceSocialPosterPackBrief",
+		budget: 350000,
+		timelineDays: 5,
+		skills: ["Graphic Design", "Social Media", "Branding"],
+	},
+	"cv-document-cleanup": {
+		category: "cv-document",
+		labelKey: "homepageServiceCvDocumentLabel",
+		titleKey: "homepageServiceCvDocumentTitle",
+		briefKey: "homepageServiceCvDocumentBrief",
+		budget: 150000,
+		timelineDays: 3,
+		skills: ["Document Design", "Formatting", "Typography"],
+	},
+	"computer-software-support": {
+		category: "it-support",
+		labelKey: "homepageServiceComputerSupportLabel",
+		titleKey: "homepageServiceComputerSupportTitle",
+		briefKey: "homepageServiceComputerSupportBrief",
+		budget: 200000,
+		timelineDays: 3,
+		skills: ["IT Support", "Troubleshooting", "Software"],
+	},
+};
+
+function normalizeHomepageService(value: string | null): string | null {
+	if (!value) return null;
+	const normalized = value.trim().toLowerCase();
+	return normalized in homepageServiceTemplates ? normalized : null;
+}
+
 function formatMnt(value: number): string {
 	return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
 }
@@ -242,8 +306,15 @@ export default function NewProjectPage() {
 		pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
 	const withLocale = (href: string) => `/${locale}${href}`;
 	const requestedCategory = normalizeHomepageCategory(searchParams.get("category"));
-	const requestedCategoryLabel = requestedCategory
-		? t(homepageCategoryLabelKeys[requestedCategory])
+	const requestedService = normalizeHomepageService(searchParams.get("service"));
+	const serviceTemplate = requestedService
+		? homepageServiceTemplates[requestedService]
+		: null;
+	const requestedServiceLabel = serviceTemplate ? t(serviceTemplate.labelKey) : "";
+	const effectiveCategory: HomepageCategorySlug | null =
+		requestedCategory ?? serviceTemplate?.category ?? null;
+	const requestedCategoryLabel = effectiveCategory
+		? t(homepageCategoryLabelKeys[effectiveCategory])
 		: "";
 
 	const toast = useToastStore((s) => s.push);
@@ -292,11 +363,11 @@ export default function NewProjectPage() {
 	const form = useForm<FormValues>({
 		resolver: zodResolver(createProjectSchema),
 		defaultValues: {
-			title: "",
-			description: "",
-			budget: 1000000,
-			timeline_days: 14,
-			category: requestedCategory || "other",
+			title: serviceTemplate ? t(serviceTemplate.titleKey) : "",
+			description: serviceTemplate ? t(serviceTemplate.briefKey) : "",
+			budget: serviceTemplate ? serviceTemplate.budget : 1000000,
+			timeline_days: serviceTemplate ? serviceTemplate.timelineDays : 14,
+			category: effectiveCategory || "other",
 			category_id: "",
 		},
 		mode: "onSubmit",
@@ -323,13 +394,13 @@ export default function NewProjectPage() {
 		: "Ангилал сонгоогүй";
 
 	useEffect(() => {
-		if (!requestedCategory) return;
+		if (!effectiveCategory) return;
 
 		const matchingCategory = findCategoryByHomepageSlug(
 			categoryOptions,
-			requestedCategory,
+			effectiveCategory,
 		);
-		form.setValue("category", requestedCategory, {
+		form.setValue("category", effectiveCategory, {
 			shouldDirty: false,
 			shouldValidate: true,
 		});
@@ -339,7 +410,14 @@ export default function NewProjectPage() {
 				shouldValidate: true,
 			});
 		}
-	}, [categoryOptions, form, requestedCategory]);
+	}, [categoryOptions, form, effectiveCategory]);
+
+	// Prefill required skills from a homepage service starter template (once on mount).
+	useEffect(() => {
+		if (!serviceTemplate) return;
+		setSkills(serviceTemplate.skills);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const mutation = useMutation({
 		mutationFn: (values: FormValues) =>
@@ -446,6 +524,8 @@ export default function NewProjectPage() {
 
 	// Form auto-save draft effect
 	useEffect(() => {
+		// Honor an explicit homepage selection (service/category) over a stale draft.
+		if (requestedService || requestedCategory) return;
 		try {
 			const draft = localStorage.getItem("itzuun_new_project_draft");
 			if (draft) {
@@ -461,7 +541,7 @@ export default function NewProjectPage() {
 				if (parsed.experienceLevel) setExperienceLevel(parsed.experienceLevel);
 			}
 		} catch (e) {}
-	}, [form]);
+	}, [form, requestedService, requestedCategory]);
 
 	return (
 		<div className="pb-20 text-on-surface">
@@ -615,6 +695,11 @@ export default function NewProjectPage() {
 										{requestedCategoryLabel ? (
 											<p className="text-[11px] font-medium text-surface-400 uppercase tracking-widest font-headline">
 												{t("homepageCategorySelected", { category: requestedCategoryLabel })}
+											</p>
+										) : null}
+										{requestedServiceLabel ? (
+											<p className="text-[11px] font-medium text-surface-400 uppercase tracking-widest font-headline">
+												{t("homepageServiceSelected", { service: requestedServiceLabel })}
 											</p>
 										) : null}
 									</div>
