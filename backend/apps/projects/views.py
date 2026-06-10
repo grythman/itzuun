@@ -347,7 +347,7 @@ class ProjectSubmitResultView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        project.status = Project.STATUS_AWAITING_REVIEW
+        project.status = Project.STATUS_DELIVERED
         project.save(update_fields=["status"])
         bump_project_version(project.id)
         bump_admin_resource_version("projects")

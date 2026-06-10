@@ -1,5 +1,7 @@
 """Project domain services."""
 
+import logging
+
 from django.db import transaction
 
 from common.cache_utils import bump_admin_resource_version, bump_project_version
@@ -7,6 +9,8 @@ from common.exceptions import DomainError
 from common.state_guards import guard_project_transition
 
 from .models import Project, Proposal
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectService:
@@ -34,6 +38,25 @@ class ProjectService:
         return project
 
 
+def _fire_notification(project_id: int, next_status: str, actor_id: int) -> None:
+    """Fire notification outside the transaction boundary."""
+    try:
+        from apps.notifications.services import notify_project_status_change
+        from apps.projects.models import Project as ProjectModel
+
+        project = ProjectModel.objects.get(id=project_id)
+        actor = None
+        if actor_id:
+            from apps.accounts.models import User
+
+            actor = User.objects.get(id=actor_id)
+        notify_project_status_change(project, next_status, actor)
+    except Exception:
+        logger.exception(
+            "Failed to send status change notification for project %s", project_id
+        )
+
+
 @transaction.atomic
 def transition_project_status(project: Project, next_status: str, actor) -> Project:
     """Transition a project to a new status with guards, cache busting, and notifications."""
@@ -43,16 +66,9 @@ def transition_project_status(project: Project, next_status: str, actor) -> Proj
     bump_project_version(project.id)
     bump_admin_resource_version("projects")
 
-    try:
-        from apps.notifications.services import notify_project_status_change
-
-        notify_project_status_change(project, next_status, actor)
-    except Exception:
-        import logging
-
-        logging.getLogger(__name__).exception(
-            "Failed to send status change notification for project %s", project.id
-        )
+    project_id = project.id
+    actor_id = getattr(actor, "id", None)
+    transaction.on_commit(lambda: _fire_notification(project_id, next_status, actor_id))
 
     return project
 

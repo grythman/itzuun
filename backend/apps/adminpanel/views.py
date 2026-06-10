@@ -339,7 +339,7 @@ class AdminCommissionDetailView(APIView):
 class AdminProjectTransitionView(APIView):
     permission_classes = [IsAdminUser]
 
-    ALLOWED_ACTIONS = {"reviewing", "agreed", "paid", "delivered"}
+    ALLOWED_ACTIONS = {"reviewing", "agreed", "paid"}
 
     def post(self, request, project_id):
         action = request.data.get("action")

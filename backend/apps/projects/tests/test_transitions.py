@@ -95,7 +95,8 @@ class AdminProjectTransitionViewTests(TestCase):
 
     def test_notifications_created_on_transition(self):
         url = self._transition_url(self.project.id)
-        self.api_client.post(url, {"action": "reviewing"}, format="json")
+        with self.captureOnCommitCallbacks(execute=True):
+            self.api_client.post(url, {"action": "reviewing"}, format="json")
 
         notifications = Notification.objects.filter(
             user=self.client_user, type="STATUS_CHANGE"
@@ -182,7 +183,8 @@ class TransitionProjectStatusServiceTests(TestCase):
             transition_project_status(self.project, "completed", self.admin)
 
     def test_transition_creates_notification_for_owner(self):
-        transition_project_status(self.project, "reviewing", self.admin)
+        with self.captureOnCommitCallbacks(execute=True):
+            transition_project_status(self.project, "reviewing", self.admin)
         notifications = Notification.objects.filter(
             user=self.client_user, type="STATUS_CHANGE"
         )

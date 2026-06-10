@@ -349,8 +349,8 @@ def submit_result(project: Project, submitter) -> Project:
             "At least one deliverable is required before submitting result."
         )
 
-    guard_project_transition(project.status, Project.STATUS_AWAITING_REVIEW)
-    project.status = Project.STATUS_AWAITING_REVIEW
+    guard_project_transition(project.status, Project.STATUS_DELIVERED)
+    project.status = Project.STATUS_DELIVERED
     project.save(update_fields=["status"])
     bump_project_version(project.id)
     bump_admin_resource_version("projects")
@@ -362,8 +362,8 @@ def confirm_completion(project: Project, approved_by) -> Escrow:
     project = _lock_project(project)
     if project.owner_id != approved_by.id:
         raise DomainError("Only the project owner can confirm completion.")
-    if project.status != Project.STATUS_AWAITING_REVIEW:
-        raise DomainError("Project is not awaiting review.")
+    if project.status not in (Project.STATUS_AWAITING_REVIEW, Project.STATUS_DELIVERED):
+        raise DomainError("Project is not awaiting review or delivered.")
     if not hasattr(project, "escrow"):
         raise DomainError("Escrow not found for this project.")
     escrow = _lock_escrow(project.escrow)
@@ -457,9 +457,10 @@ def create_dispute(
     if project.status not in {
         Project.STATUS_IN_PROGRESS,
         Project.STATUS_AWAITING_REVIEW,
+        Project.STATUS_DELIVERED,
     }:
         raise DomainError(
-            "Dispute can only be raised while work is in progress or under review."
+            "Dispute can only be raised while work is in progress, delivered, or under review."
         )
     if not hasattr(project, "escrow"):
         raise DomainError("Escrow not found for this project.")

@@ -33,7 +33,6 @@ const ADMIN_TRANSITIONS: Partial<Record<StatusFlowItem, { next: StatusFlowItem; 
   open: { next: "reviewing", actionKey: "actionMarkReviewing" },
   reviewing: { next: "agreed", actionKey: "actionMarkAgreed" },
   agreed: { next: "paid", actionKey: "actionMarkPaid" },
-  in_progress: { next: "delivered", actionKey: "actionMarkDelivered" },
 };
 
 interface OrderStatusTrackerProps {
