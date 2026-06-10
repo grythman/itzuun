@@ -302,6 +302,10 @@ export const adminApi = {
   approveEscrow: async (escrowId: string | number) => {
     const res = await apiClient.post(`/escrow/${escrowId}/admin/approve/`);
     return res.data;
+  },
+  transitionProject: async (projectId: string | number, action: string) => {
+    const res = await apiClient.post(`/admin/projects/${projectId}/transition`, { action });
+    return res.data;
   }
 }
 

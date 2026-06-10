@@ -454,7 +454,21 @@
     "manualContactTitle": "Brief received — admin contact comes next",
     "manualContactText": "Your order is in the manual MVP review flow. An admin will check the brief, clarify scope, budget, contact preference, and get in touch.",
     "contactPreference": "Preferred contact",
-    "contactMissing": "Not provided yet"
+    "contactMissing": "Not provided yet",
+    "statusTrackerTitle": "Order Progress",
+    "statusOpen": "Brief Submitted",
+    "statusReviewing": "Admin Reviewing",
+    "statusAgreed": "Scope Agreed",
+    "statusPaid": "Payment Confirmed",
+    "statusInProgress": "Work In Progress",
+    "statusDelivered": "Work Delivered",
+    "statusCompleted": "Completed",
+    "actionMarkReviewing": "Mark as Reviewing",
+    "actionMarkAgreed": "Mark as Agreed",
+    "actionMarkPaid": "Mark as Paid",
+    "actionMarkDelivered": "Mark as Delivered",
+    "transitionSuccess": "Status updated successfully",
+    "transitionError": "Failed to update status"
   },
   "ManualFlow": {
     "bannerTitle": "Payment is currently confirmed by contacting an admin",

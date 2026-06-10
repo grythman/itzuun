@@ -454,7 +454,21 @@
     "manualContactTitle": "Brief хүлээн авлаа — админ дараагийн алхмаар холбогдоно",
     "manualContactText": "Таны захиалга MVP-ийн гараар шалгах урсгалд орлоо. Админ brief-ийг шалгаад ажлын хүрээ, төсөв, холбоо барих сонголтыг тодруулж тантай холбогдоно.",
     "contactPreference": "Холбоо барих сонголт",
-    "contactMissing": "Одоогоор оруулаагүй"
+    "contactMissing": "Одоогоор оруулаагүй",
+    "statusTrackerTitle": "Захиалгын явц",
+    "statusOpen": "Brief илгээгдсэн",
+    "statusReviewing": "Админ шалгаж байна",
+    "statusAgreed": "Хүрээ тохирсон",
+    "statusPaid": "Төлбөр баталгаажсан",
+    "statusInProgress": "Ажил хийгдэж байна",
+    "statusDelivered": "Ажил хүлээлгэн өгсөн",
+    "statusCompleted": "Дууссан",
+    "actionMarkReviewing": "Шалгаж байна гэж тэмдэглэх",
+    "actionMarkAgreed": "Тохирсон гэж тэмдэглэх",
+    "actionMarkPaid": "Төлбөр баталгаажсан гэж тэмдэглэх",
+    "actionMarkDelivered": "Хүлээлгэн өгсөн гэж тэмдэглэх",
+    "transitionSuccess": "Төлөв амжилттай шинэчлэгдлээ",
+    "transitionError": "Төлөв шинэчлэхэд алдаа гарлаа"
   },
   "ManualFlow": {
     "bannerTitle": "Одоогоор төлбөрийг админтай холбогдож баталгаажуулна",

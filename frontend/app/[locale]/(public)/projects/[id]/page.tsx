@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { ActionButton, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import ProjectChat from "@/components/features/projects/project-chat";
+import OrderStatusTracker from "@/components/features/projects/order-status-tracker";
 import { projectsApi, toArray } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useMe, useMutation, useProjectDetail, useProjectProposals, useQuery } from "@/lib/hooks";
@@ -533,6 +534,14 @@ export default function ProjectDetailPage() {
 
         {/* ── RIGHT STICKY SIDEBAR ── */}
         <aside className="space-y-5 xl:sticky xl:top-24">
+
+          {/* Order Status Tracker */}
+          <OrderStatusTracker
+            status={status}
+            userRole={me.data.role}
+            projectId={id}
+            onTransitionSuccess={() => detail.refetch()}
+          />
 
           {/* Budget + CTA */}
           <div className="rounded-[2.5rem] primary-gradient p-8 text-primary-fixed shadow-ambient">
