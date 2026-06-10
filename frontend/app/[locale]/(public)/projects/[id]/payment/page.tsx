@@ -18,6 +18,8 @@ import {
   TrustPanel,
 } from "@/components/ui";
 import { ErrorState, LoadingState } from "@/components/shared/states";
+import { useTranslations } from "next-intl";
+
 import { projectsApi } from "@/lib/api/endpoints";
 import { extractApiErrorMessage } from "@/lib/api/errors";
 import { useProjectDetail } from "@/lib/hooks";
@@ -69,18 +71,17 @@ function ManualPaymentBanner({
   projectId: string;
   supportHref: string;
 }) {
+  const m = useTranslations("ManualFlow");
   return (
     <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 text-2xl">💳</span>
         <div>
           <p className="font-semibold text-amber-900">
-            Төлбөрийн систем одоогоор туршилтын горимд байна
+            {m("bannerTitle")}
           </p>
           <p className="mt-1 text-sm text-amber-800">
-            Төлбөрийн мэдээллийг админтай холбогдож авна уу.
-            Таны захиалга бүртгэгдсэн бөгөөд эскроу горим ажиллаж эхлэхэд
-            автоматаар идэвхжинэ.
+            {m("bannerText")}
           </p>
         </div>
       </div>
@@ -89,13 +90,13 @@ function ManualPaymentBanner({
           href={`mailto:support@itzuun.mn?subject=Escrow%20payment%20-%20Project%20%23${projectId}`}
           className="inline-flex min-h-11 items-center rounded-xl bg-amber-600 px-5 text-[13px] font-semibold text-white hover:bg-amber-700"
         >
-          Админтай холбогдох
+          {m("adminCta")}
         </a>
         <Link
           href={supportHref}
           className="inline-flex min-h-11 items-center rounded-xl border border-amber-300 bg-white px-5 text-[13px] font-semibold text-amber-800"
         >
-          Дэмжлэгийн хуудас
+          {m("supportCta")}
         </Link>
       </div>
     </div>

@@ -298,6 +298,7 @@ function DashboardIcon({
 
 export default function NewProjectPage() {
 	const t = useTranslations("ProjectNew");
+	const mf = useTranslations("ManualFlow");
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -428,7 +429,7 @@ export default function NewProjectPage() {
 				required_skills: skills,
 			}),
 		onSuccess: (data) => {
-			toast("success", t("successToast"));
+			toast("success", mf("briefSuccess"));
 			router.push(withLocale(`/projects/${data.id}`));
 		},
 		onError: (error: Error) => toast("error", error.message),
@@ -778,13 +779,13 @@ export default function NewProjectPage() {
 								{/* MVP manual flow notice */}
 								<div className="rounded-2xl bg-secondary-fixed/20 p-6">
 									<p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary font-headline">
-										{t("mvpNoticeLabel")}
+										{mf("mvpNoticeLabel")}
 									</p>
 									<p className="mt-2 font-headline text-sm font-bold text-primary">
-										{t("mvpNoticeTitle")}
+										{mf("mvpNoticeTitle")}
 									</p>
 									<p className="mt-1 text-sm leading-relaxed text-surface-500">
-										{t("mvpNoticeText")}
+										{mf("mvpNoticeText")}
 									</p>
 								</div>
 							</>

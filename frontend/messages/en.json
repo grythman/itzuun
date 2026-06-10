@@ -28,7 +28,7 @@
     "statValue2": "5",
     "statLabel2": "Demo services ready to order",
     "statValue3": "1",
-    "statLabel3": "Manual admin payment flow",
+    "statLabel3": "Payment confirmed through admin contact",
     "categorySectionEyebrow": "Categories",
     "categorySectionTitle": "Website, design, document, and IT support categories",
     "categorySectionLink": "Create an order",
@@ -128,8 +128,8 @@
     "serviceDescription5": "Help with software installs, email/account setup, and error troubleshooting.",
     "serviceCardCta": "Order this",
     "adminCardEyebrow": "Manual admin flow",
-    "adminCardTitle": "When QPay is not automatic, contact an admin",
-    "adminCardText": "After an order is posted, an admin clarifies scope, price, payment channel, and the next step in plain language.",
+    "adminCardTitle": "Payment is currently confirmed by contacting an admin",
+    "adminCardText": "Submit your order details and we will get in touch. We will clarify scope, price, and next steps.",
     "adminCardCta": "Contact an admin",
     "trustSupportCta": "Support page",
     "finalSecondaryCta": "Get Support"
@@ -455,5 +455,16 @@
     "manualContactText": "Your order is in the manual MVP review flow. An admin will check the brief, clarify scope, budget, contact preference, and get in touch.",
     "contactPreference": "Preferred contact",
     "contactMissing": "Not provided yet"
+  },
+  "ManualFlow": {
+    "bannerTitle": "Payment is currently confirmed by contacting an admin",
+    "bannerText": "Submit your order details and we will get in touch. Automatic QPay payment is coming soon.",
+    "adminCta": "Contact an admin",
+    "supportCta": "Support page",
+    "mvpNoticeLabel": "Manual MVP flow",
+    "mvpNoticeTitle": "An admin will review and contact you",
+    "mvpNoticeText": "An admin will review your order, clarify scope, price, payment channel, and contact you.",
+    "briefSuccess": "Brief submitted. An admin will contact you after review.",
+    "contactPrompt": "After your order is posted, an admin will clarify the next steps and get in touch."
   }
 }

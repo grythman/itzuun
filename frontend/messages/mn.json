@@ -28,7 +28,7 @@
     "statValue2": "5",
     "statLabel2": "Шууд захиалж болох demo service",
     "statValue3": "1",
-    "statLabel3": "Админтай холбогдож шийдэх manual payment урсгал",
+    "statLabel3": "Админтай холбогдож баталгаажуулах төлбөрийн урсгал",
     "categorySectionEyebrow": "Чиглэлүүд",
     "categorySectionTitle": "Website, design, document, IT support ангиллууд",
     "categorySectionLink": "Захиалга өгөх",
@@ -128,8 +128,8 @@
     "serviceDescription5": "Software install, email/account тохиргоо, error troubleshooting тусламж.",
     "serviceCardCta": "Захиалах",
     "adminCardEyebrow": "Manual admin flow",
-    "adminCardTitle": "QPay автомат биш үед админтай холбогдоно",
-    "adminCardText": "Захиалгын дараа админ scope, үнэ, төлбөрийн сувгийг тодруулж, дараагийн алхмыг ойлгомжтой хэлнэ.",
+    "adminCardTitle": "Одоогоор төлбөрийг админтай холбогдож баталгаажуулна",
+    "adminCardText": "Захиалгын мэдээллийг илгээгээд бид тантай холбогдоно. Scope, үнэ, дараагийн алхмыг тодруулж хэлнэ.",
     "adminCardCta": "Админтай холбогдох",
     "trustSupportCta": "Дэмжлэгийн хуудас",
     "finalSecondaryCta": "Дэмжлэг авах"
@@ -455,5 +455,16 @@
     "manualContactText": "Таны захиалга MVP-ийн гараар шалгах урсгалд орлоо. Админ brief-ийг шалгаад ажлын хүрээ, төсөв, холбоо барих сонголтыг тодруулж тантай холбогдоно.",
     "contactPreference": "Холбоо барих сонголт",
     "contactMissing": "Одоогоор оруулаагүй"
+  },
+  "ManualFlow": {
+    "bannerTitle": "Одоогоор төлбөрийг админтай холбогдож баталгаажуулна",
+    "bannerText": "Захиалгын мэдээллийг илгээгээд бид тантай холбогдоно. QPay автомат төлбөр удахгүй нэмэгдэнэ.",
+    "adminCta": "Админтай холбогдох",
+    "supportCta": "Дэмжлэгийн хуудас",
+    "mvpNoticeLabel": "Гараар зохицуулах MVP урсгал",
+    "mvpNoticeTitle": "Админ шалгаад тантай холбогдоно",
+    "mvpNoticeText": "Админ захиалгыг шалгаад scope, үнэ, төлбөрийн сувгийг тодруулж холбогдоно.",
+    "briefSuccess": "Brief илгээгдлээ. Админ шалгаад тантай холбогдоно.",
+    "contactPrompt": "Таны захиалгын дараа админ дараагийн алхмыг тодруулж холбогдоно."
   }
 }
