@@ -13,13 +13,24 @@ class ProjectService:
     @staticmethod
     def create_project(owner, validated_data: dict) -> Project:
         """
-        Creates a new project.
+        Creates a new project and notifies admin users.
         """
-        # In the user's example, status is 'draft', but the model has no 'draft' status.
-        # Default status is 'open', so we don't need to set it.
         project = Project.objects.create(owner=owner, **validated_data)
         bump_project_version(project.id)
         bump_admin_resource_version("projects")
+
+        # Notify admins about the new brief (fire-and-forget, never block creation)
+        try:
+            from apps.notifications.services import notify_admins_new_brief
+
+            notify_admins_new_brief(project)
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception(
+                "Failed to notify admins for project %s", project.id
+            )
+
         return project
 
 
