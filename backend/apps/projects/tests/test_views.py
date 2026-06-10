@@ -273,7 +273,9 @@ class ProjectContactInfoVisibilityTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["contact_info"], self.project.contact_info)
 
-    def test_create_response_includes_contact_info_but_public_detail_stays_redacted(self):
+    def test_create_response_includes_contact_info_but_public_detail_stays_redacted(
+        self,
+    ):
         self.client_api.force_authenticate(self.owner)
         response = self.client_api.post(
             "/api/v1/projects",
