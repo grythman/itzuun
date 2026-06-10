@@ -23,12 +23,13 @@ export const otpVerifySchema = z.object({
 });
 
 export const createProjectSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
+  title: z.union([z.string().min(3, "Title must be at least 3 characters"), z.literal("")]).optional().default(""),
   description: z.string().min(10, "Description must be at least 10 characters"),
   budget: z.coerce.number().min(1, "Budget must be greater than 0"),
   timeline_days: z.coerce.number().min(1, "Timeline must be at least 1 day"),
   category: z.string().min(1, "Category is required").optional().default("other"),
   category_id: z.union([z.string(), z.number()]).optional(),
+  contact_info: z.string().min(3, "Contact information is required"),
 });
 
 export const proposalSchema = z.object({

@@ -44,6 +44,11 @@ class ProjectSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "owner", "status", "selected_proposal")
 
 
+class ProjectPrivateSerializer(ProjectSerializer):
+    class Meta(ProjectSerializer.Meta):
+        fields = ProjectSerializer.Meta.fields + ("contact_info",)
+
+
 class ProposalSerializer(serializers.ModelSerializer):
     freelancer_verification_status = serializers.CharField(
         source="freelancer.verification_status", read_only=True

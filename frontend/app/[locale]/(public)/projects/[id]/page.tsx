@@ -6,6 +6,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { ActionButton, ConfirmationDialog, EscrowStatusBadge, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
@@ -162,6 +163,7 @@ function ProposalTrustMeta({ freelancerId, verificationStatus, fallbackVerified 
 }
 
 export default function ProjectDetailPage() {
+  const t = useTranslations("ProjectDetail");
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
   const router = useRouter();
@@ -279,6 +281,17 @@ export default function ProjectDetailPage() {
               <StatusPill label={statusLabel(status)} tone={status === "open" ? "success" : status === "completed" ? "info" : "warning"} />
             </div>
           </div>
+
+          {isClientOwner && (
+            <div className="rounded-[2.5rem] bg-primary-fixed p-8 text-primary md:p-10">
+              <p className="font-headline text-[13px] font-black uppercase tracking-[0.2em] opacity-65">{t("manualContactTitle")}</p>
+              <p className="mt-4 text-[15px] font-semibold leading-relaxed opacity-80">{t("manualContactText")}</p>
+              <div className="mt-6 rounded-2xl bg-white/35 p-5">
+                <p className="font-headline text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{t("contactPreference")}</p>
+                <p className="mt-2 text-sm font-black">{project.contact_info || t("contactMissing")}</p>
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           <div className="rounded-[2.5rem] bg-surface-container-low p-8 md:p-10">

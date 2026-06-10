@@ -369,6 +369,7 @@ export default function NewProjectPage() {
 			timeline_days: serviceTemplate ? serviceTemplate.timelineDays : 14,
 			category: effectiveCategory || "other",
 			category_id: "",
+			contact_info: "",
 		},
 		mode: "onSubmit",
 	});
@@ -427,7 +428,7 @@ export default function NewProjectPage() {
 				required_skills: skills,
 			}),
 		onSuccess: (data) => {
-			toast("success", "Төсөл амжилттай нийтлэгдлээ.");
+			toast("success", t("successToast"));
 			router.push(withLocale(`/projects/${data.id}`));
 		},
 		onError: (error: Error) => toast("error", error.message),
@@ -751,6 +752,40 @@ export default function NewProjectPage() {
 											</button>
 										</div>
 									</div>
+								</div>
+
+								{/* Contact info for admin follow-up */}
+								<div className="space-y-4">
+									<label className="block text-sm font-bold uppercase tracking-widest text-primary font-headline">
+										{t("contact")}
+									</label>
+									<input
+										{...form.register("contact_info")}
+										className="w-full rounded-2xl border-none bg-surface-container-low px-6 py-5 text-lg font-bold text-on-surface transition-all placeholder:text-surface-400 focus:bg-surface-container-lowest focus:shadow-ambient focus:ring-0"
+										placeholder={t("contactPlaceholder")}
+									/>
+									{form.formState.errors.contact_info ? (
+										<p className="text-xs text-red-600">
+											{form.formState.errors.contact_info.message}
+										</p>
+									) : (
+										<p className="text-[11px] font-medium text-surface-400 uppercase tracking-widest font-headline">
+											{t("contactHelper")}
+										</p>
+									)}
+								</div>
+
+								{/* MVP manual flow notice */}
+								<div className="rounded-2xl bg-secondary-fixed/20 p-6">
+									<p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary font-headline">
+										{t("mvpNoticeLabel")}
+									</p>
+									<p className="mt-2 font-headline text-sm font-bold text-primary">
+										{t("mvpNoticeTitle")}
+									</p>
+									<p className="mt-1 text-sm leading-relaxed text-surface-500">
+										{t("mvpNoticeText")}
+									</p>
 								</div>
 							</>
 						) : null}

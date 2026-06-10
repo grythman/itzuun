@@ -254,7 +254,25 @@
     "homepageServiceCvDocumentBrief": "CV, PDF, proposal эсвэл албан бичгийн format, spacing, visual hierarchy засуулах. Одоогийн файл болон хүссэн загвараа хавсаргаж тайлбарлана уу.",
     "homepageServiceComputerSupportLabel": "Компьютер / програм хангамжийн тусламж",
     "homepageServiceComputerSupportTitle": "Компьютер / програм хангамжийн тусламж",
-    "homepageServiceComputerSupportBrief": "Software install, email/account тохиргоо эсвэл error troubleshooting тусламж. Гарч буй алдаа, төхөөрөмж, үйлдлийн системээ дэлгэрэнгүй бичнэ үү."
+    "homepageServiceComputerSupportBrief": "Software install, email/account тохиргоо эсвэл error troubleshooting тусламж. Гарч буй алдаа, төхөөрөмж, үйлдлийн системээ дэлгэрэнгүй бичнэ үү.",
+    "contact": "Холбоо барих мэдээлэл / сувгийн сонголт",
+    "contactHelper": "Brief шалгасны дараа админ тантай хэрхэн холбогдохыг оруулна уу.",
+    "contactPlaceholder": "Утас, имэйл, Telegram эсвэл тохиромжтой цаг",
+    "categoryHelper": "Хийлгэх ажилд хамгийн ойр үйлчилгээг сонгоно уу.",
+    "descriptionHelper": "Та ямар ажил хийлгэхээ товч бичнэ үү",
+    "descriptionPlaceholder": "Ямар ажил хийлгэх, засуулах, дизайн гаргуулах эсвэл гүйцэтгүүлэхээ товч бичнэ үү...",
+    "budgetHelper": "Ойролцоо төсвөө оруулна уу. Эцсийн дүнг админ тантай тодруулж болно.",
+    "timelineHelper": "Ажлыг хэдий хугацаанд дуусгуулахыг хүсэж байгаагаа бичнэ үү.",
+    "fallbackCategory": "Сонгоогүй",
+    "mvpNoticeLabel": "Гараар зохицуулах MVP урсгал",
+    "mvpNoticeTitle": "Админ шалгаад тантай холбогдоно",
+    "mvpNoticeText": "Админ захиалгыг шалгаад холбогдоно. Энэ маягтад QPay, escrow болон автомат төлбөрийн алхмыг голчлохгүй.",
+    "summary": "Brief хураангуй",
+    "summaryCategory": "Үйлчилгээ",
+    "summaryBudget": "Төсөв",
+    "summaryTimeline": "Хугацаа",
+    "days": "хоног",
+    "successToast": "Brief илгээгдлээ. Админ шалгаад тантай холбогдоно."
   },
   "ClientDash": {
     "title": "Клиент хянах самбар",
@@ -431,5 +449,11 @@
     "auditActionDeposit": "Орлого",
     "auditActionRelease": "Олголт",
     "auditActionRefund": "Буцаалт"
+  },
+  "ProjectDetail": {
+    "manualContactTitle": "Brief хүлээн авлаа — админ дараагийн алхмаар холбогдоно",
+    "manualContactText": "Таны захиалга MVP-ийн гараар шалгах урсгалд орлоо. Админ brief-ийг шалгаад ажлын хүрээ, төсөв, холбоо барих сонголтыг тодруулж тантай холбогдоно.",
+    "contactPreference": "Холбоо барих сонголт",
+    "contactMissing": "Одоогоор оруулаагүй"
   }
 }

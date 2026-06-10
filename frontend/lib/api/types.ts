@@ -40,6 +40,7 @@ export interface ProjectDto {
   category: string;
   category_obj?: CategoryDto | null;
   required_skills?: string[];
+  contact_info?: string;
   status: string;
   selected_proposal?: number | null;
   [key: string]: unknown;

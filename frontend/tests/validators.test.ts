@@ -97,6 +97,7 @@ describe("createProjectSchema", () => {
       budget: 500000,
       timeline_days: 30,
       category: "web",
+      contact_info: "client@example.com",
     });
     expect(result.success).toBe(true);
   });
@@ -109,6 +110,7 @@ describe("createProjectSchema", () => {
         budget: 500000,
         timeline_days: 30,
         category: "web",
+        contact_info: "client@example.com",
       }).success,
     ).toBe(false);
   });
@@ -121,6 +123,7 @@ describe("createProjectSchema", () => {
         budget: 0,
         timeline_days: 30,
         category: "web",
+        contact_info: "client@example.com",
       }).success,
     ).toBe(false);
   });
@@ -132,6 +135,7 @@ describe("createProjectSchema", () => {
       budget: "500000",
       timeline_days: "30",
       category: "web",
+      contact_info: "client@example.com",
     });
     expect(result.success).toBe(true);
     if (result.success) {

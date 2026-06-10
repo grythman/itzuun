@@ -254,7 +254,25 @@
     "homepageServiceCvDocumentBrief": "Clean up the format, spacing, and visual hierarchy of a CV, PDF, proposal, or official document. Attach the current file and describe your preferred style.",
     "homepageServiceComputerSupportLabel": "Computer / software support",
     "homepageServiceComputerSupportTitle": "Computer / software support",
-    "homepageServiceComputerSupportBrief": "Help with software install, email/account setup, or error troubleshooting. Describe the error, your device, and operating system in detail."
+    "homepageServiceComputerSupportBrief": "Help with software install, email/account setup, or error troubleshooting. Describe the error, your device, and operating system in detail.",
+    "contact": "Contact information / preferred contact",
+    "contactHelper": "Share how the admin should contact you after reviewing the brief.",
+    "contactPlaceholder": "Phone, email, Telegram, or preferred contact time",
+    "categoryHelper": "Choose the service that best matches the work you need.",
+    "descriptionHelper": "Briefly describe what work you need done.",
+    "descriptionPlaceholder": "Briefly describe what you need built, fixed, designed, or delivered...",
+    "budgetHelper": "Enter an estimated budget. The admin can clarify the final amount with you.",
+    "timelineHelper": "Tell us when you would like the work completed.",
+    "fallbackCategory": "Not selected",
+    "mvpNoticeLabel": "Manual MVP flow",
+    "mvpNoticeTitle": "An admin will review and contact you",
+    "mvpNoticeText": "An admin will review the order and contact you. QPay, escrow, and automatic payment steps are not required in this form.",
+    "summary": "Brief summary",
+    "summaryCategory": "Service",
+    "summaryBudget": "Budget",
+    "summaryTimeline": "Timeline",
+    "days": "days",
+    "successToast": "Brief submitted. An admin will contact you after review."
   },
   "ClientDash": {
     "title": "Client Dashboard",
@@ -431,5 +449,11 @@
     "auditActionDeposit": "Deposit",
     "auditActionRelease": "Release",
     "auditActionRefund": "Refund"
+  },
+  "ProjectDetail": {
+    "manualContactTitle": "Brief received — admin contact comes next",
+    "manualContactText": "Your order is in the manual MVP review flow. An admin will check the brief, clarify scope, budget, contact preference, and get in touch.",
+    "contactPreference": "Preferred contact",
+    "contactMissing": "Not provided yet"
   }
 }
