@@ -460,7 +460,8 @@ def create_dispute(
         Project.STATUS_DELIVERED,
     }:
         raise DomainError(
-            "Dispute can only be raised while work is in progress, delivered, or under review."
+            "Dispute can only be raised while work is "
+            "in progress, delivered, or under review."
         )
     if not hasattr(project, "escrow"):
         raise DomainError("Escrow not found for this project.")
