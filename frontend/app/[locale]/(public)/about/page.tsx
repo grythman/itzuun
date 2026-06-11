@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+
+export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
+  const meta = {
+    mn: { title: "Бидний тухай", description: "ITZuun — Монголын IT фрийланс платформын тухай. Бид дижитал инновацийг төгс гүйцэтгэлтэй хослуулсан платформ бүтээж байна." },
+    en: { title: "About Us", description: "About ITZuun — Mongolia's IT freelance platform. We build a platform that combines digital innovation with perfect execution." },
+  };
+  const { title, description } = meta[locale as keyof typeof meta] || meta.mn;
+  return { title, description, openGraph: { title, description } };
+}
 
 export default async function AboutPage() {
   const t = await getTranslations("AboutPage");

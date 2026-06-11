@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+
+export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
+  const meta = {
+    mn: { title: "Нууцлалын бодлого", description: "ITZuun платформын нууцлалын бодлого — таны мэдээллийг хэрхэн хамгаалдаг." },
+    en: { title: "Privacy Policy", description: "ITZuun platform privacy policy — how we protect your information." },
+  };
+  const { title, description } = meta[locale as keyof typeof meta] || meta.mn;
+  return { title, description };
+}
 
 export default async function PrivacyPage() {
   const t = await getTranslations("PrivacyPage");

@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+
+export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
+  const meta = {
+    mn: { title: "Үйлчилгээний нөхцөл", description: "ITZuun платформын үйлчилгээний нөхцөл." },
+    en: { title: "Terms of Service", description: "ITZuun platform terms of service." },
+  };
+  const { title, description } = meta[locale as keyof typeof meta] || meta.mn;
+  return { title, description };
+}
 
 export default async function TermsPage() {
   const t = await getTranslations("TermsPage");
