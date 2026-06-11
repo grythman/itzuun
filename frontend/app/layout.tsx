@@ -23,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html className={`${inter.variable} ${manrope.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/images/icon-192.png" />
         <meta name="theme-color" content="#4f46e5" />
       </head>
       <body>
