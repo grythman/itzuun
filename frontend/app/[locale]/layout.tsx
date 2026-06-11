@@ -69,12 +69,45 @@ export default async function RootLayout({
   const messages = await getMessages({ locale });
   const cookieStore = cookies();
   const hasAuthCookies = Boolean(cookieStore.get("access_token")?.value || cookieStore.get("refresh_token")?.value);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "ITZuun",
+        url: BASE_URL,
+        logo: `${BASE_URL}/images/logo-icon.svg`,
+        description: locale === "mn"
+          ? "Монголын IT фрийланс платформ"
+          : "Mongolia's IT Freelance Platform",
+      },
+      {
+        "@type": "WebSite",
+        name: "ITZuun",
+        url: BASE_URL,
+        inLanguage: locale === "mn" ? "mn-MN" : "en-US",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${BASE_URL}/${locale}/projects?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
-    <NextIntlClientProvider messages={messages} locale={locale}>
-      <Providers>
-        <AppShell hasAuthCookies={hasAuthCookies}>{children}</AppShell>
-        <ToastCenter />
-      </Providers>
-    </NextIntlClientProvider>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <NextIntlClientProvider messages={messages} locale={locale}>
+        <Providers>
+          <AppShell hasAuthCookies={hasAuthCookies}>{children}</AppShell>
+          <ToastCenter />
+        </Providers>
+      </NextIntlClientProvider>
+    </>
   );
 }
