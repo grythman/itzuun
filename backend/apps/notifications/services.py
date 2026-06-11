@@ -3,7 +3,9 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
+from .email_service import send_brief_email, send_status_change_email
 from .models import Notification
 
 logger = logging.getLogger(__name__)
@@ -13,6 +15,7 @@ User = get_user_model()
 def notify_admins_new_brief(project) -> int:
     """
     Create a notification for every admin user when a new project brief is submitted.
+    Also queues an email via on_commit.
     Returns the number of notifications created.
     """
     admins = User.objects.filter(role=User.ROLE_ADMIN, is_active=True)
@@ -43,6 +46,7 @@ def notify_admins_new_brief(project) -> int:
         )
 
     created = Notification.objects.bulk_create(notifications)
+    transaction.on_commit(lambda: send_brief_email(project))
     logger.info(
         "Created %d admin notifications for new brief (project %s)",
         len(created),
@@ -118,6 +122,7 @@ def notify_project_status_change(project, new_status: str, actor=None) -> int:
             )
 
     created = Notification.objects.bulk_create(notifications)
+    transaction.on_commit(lambda: send_status_change_email(project, new_status))
     logger.info(
         "Created %d status change notifications for project %s",
         len(created),
