@@ -94,7 +94,8 @@ EMAIL_PORT = env.int("EMAIL_PORT", 587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", True)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@itzuun.mn")
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", False)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@itzuun.works")
 
 # Sentry
 if SENTRY_DSN:
