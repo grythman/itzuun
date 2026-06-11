@@ -54,20 +54,20 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-4">
                 <Link
                   href={withLocale("/client/projects/new")}
-                  className="rounded-xl bg-gradient-to-br from-[#13696a] to-[#0e5254] px-10 py-5 text-lg font-bold text-white shadow-[0_16px_40px_rgba(19,105,106,0.28)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(19,105,106,0.35)] active:scale-95"
+                  className="rounded-xl bg-gradient-to-br from-[#13696a] to-[#0e5254] px-6 py-4 text-base font-bold text-white shadow-[0_16px_40px_rgba(19,105,106,0.28)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(19,105,106,0.35)] active:scale-95 md:px-10 md:py-5 md:text-lg"
                 >
                   {t("landingPrimaryCta")}
                 </Link>
                 <Link
                   href={withLocale("/support")}
-                  className="rounded-xl border border-surface-200 bg-white/60 px-10 py-5 text-lg font-bold text-primary backdrop-blur-sm transition-all duration-150 hover:bg-white hover:shadow-[0_8px_24px_rgba(3,22,54,0.08)] active:scale-95"
+                  className="rounded-xl border border-surface-200 bg-white/60 px-6 py-4 text-base font-bold text-primary backdrop-blur-sm transition-all duration-150 hover:bg-white hover:shadow-[0_8px_24px_rgba(3,22,54,0.08)] active:scale-95 md:px-10 md:py-5 md:text-lg"
                 >
                   {t("landingSecondaryCta")}
                 </Link>
               </div>
             </div>
 
-            <div className="relative h-[520px] lg:col-span-5 lg:h-[600px]">
+            <div className="relative h-[320px] sm:h-[420px] lg:col-span-5 lg:h-[600px]">
               <div className="absolute inset-0 scale-105 rotate-3 rounded-3xl bg-secondary/5" />
               <Image
                 fill
@@ -77,7 +77,7 @@ export default function HomePage() {
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOT2zxw3JU8x2NoyJTfp6ypWiZE2vvWToLlMhfTwFXzTrQdq9Mgv1Pv19HleG_DfyvbepvSjp2hd19b5QJegn2titT_3DildMpk109034vpFMbwRPOgez_k5rS3FCOeLSagV-uZRtOwJqcER84HPV8iQAFCCOaPsPw2u17xe_kSq83jSHF-MP4_0liYUVKf86f3Im8l_Cu80aXEzmSNR9p_4tQmkolEBg1K366KodzLcM8yZ1m_3flr9ZZFGueFwPvJEonix68qWw"
                 alt="Modern service workspace"
               />
-              <div className="glass-panel absolute -bottom-8 -left-8 z-20 max-w-[280px] rounded-xl p-6 shadow-2xl">
+              <div className="glass-panel absolute -bottom-8 -left-8 z-20 hidden max-w-[280px] rounded-xl p-6 shadow-2xl md:block">
                 <div className="mb-2 flex gap-2">
                   <span className="text-secondary">✦</span>
                   <span className="text-xs font-bold uppercase text-primary">{t("heroBadge")}</span>
@@ -269,10 +269,10 @@ export default function HomePage() {
             <h2 className="mb-6 text-5xl font-black tracking-tighter text-primary md:text-6xl">{t("finalTitle")}</h2>
             <p className="mx-auto max-w-2xl text-lg text-on-surface-variant">{t("finalSubtitle")}</p>
             <div className="mt-12 flex flex-wrap justify-center gap-4">
-              <Link href={withLocale("/client/projects/new")} className="rounded-md bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-16 py-6 text-xl font-bold text-white transition-all hover:shadow-[0_20px_50px_rgba(3,22,54,0.2)] active:scale-95">
+              <Link href={withLocale("/client/projects/new")} className="rounded-md bg-gradient-to-br from-[#031636] to-[#1a2b4c] px-8 py-4 text-base font-bold text-white transition-all hover:shadow-[0_20px_50px_rgba(3,22,54,0.2)] active:scale-95 md:px-16 md:py-6 md:text-xl">
                 {t("finalPrimaryCta")}
               </Link>
-              <Link href={withLocale("/support")} className="rounded-md border border-surface-200 px-16 py-6 text-xl font-bold text-primary transition-all hover:border-primary/30 hover:bg-surface-container-low">
+              <Link href={withLocale("/support")} className="rounded-md border border-surface-200 px-8 py-4 text-base font-bold text-primary transition-all hover:border-primary/30 hover:bg-surface-container-low md:px-16 md:py-6 md:text-xl">
                 {t("finalSecondaryCta")}
               </Link>
             </div>
