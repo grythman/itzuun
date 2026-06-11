@@ -6,5 +6,5 @@ export default createMiddleware({
 });
 
 export const config = {
-  matcher: ['/((?!_next|.*\\..*|api).*)'],
+  matcher: ['/((?!_next|.*\\..*|api|opengraph-image|robots|sitemap).*)'],
 };
