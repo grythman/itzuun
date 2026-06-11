@@ -55,26 +55,45 @@ def notify_project_status_change(project, new_status: str, actor=None) -> int:
     """
     Create notifications when a project status changes.
     Notifies the project owner and, if the actor is not the owner, also notifies admins.
+    Sends a PAYMENT_REQUIRED notification when status becomes 'agreed'.
     Returns the count of notifications created.
     """
     notifications = []
 
-    # Always notify the project owner
-    notifications.append(
-        Notification(
-            user=project.owner,
-            type="STATUS_CHANGE",
-            title=f"Төслийн төлөв шинэчлэгдлээ: {new_status}",
-            description=(
-                f"Таны '{project.title or 'Untitled'}' төслийн төлөв "
-                f"'{new_status}' болж өөрчлөгдлөө."
-            ),
-            metadata={
-                "project_id": project.id,
-                "new_status": new_status,
-            },
+    # Payment-specific notification for agreed status
+    if new_status == "agreed":
+        notifications.append(
+            Notification(
+                user=project.owner,
+                type="PAYMENT_REQUIRED",
+                title="Төлбөр хийх шаардлагатай",
+                description=(
+                    f"'{project.title or 'Untitled'}' төсөл зөвшөөрөгдлөө. "
+                    f"Ажил эхлүүлэхийн тулд {project.budget:,.0f}₮ төлбөр хийнэ үү."
+                ),
+                metadata={
+                    "project_id": project.id,
+                    "budget": project.budget,
+                },
+            )
         )
-    )
+    else:
+        # Generic status change for owner
+        notifications.append(
+            Notification(
+                user=project.owner,
+                type="STATUS_CHANGE",
+                title=f"Төслийн төлөв шинэчлэгдлээ: {new_status}",
+                description=(
+                    f"Таны '{project.title or 'Untitled'}' төслийн төлөв "
+                    f"'{new_status}' болж өөрчлөгдлөө."
+                ),
+                metadata={
+                    "project_id": project.id,
+                    "new_status": new_status,
+                },
+            )
+        )
 
     # Notify admins if the actor is not the owner (or no actor)
     if actor and actor != project.owner:

@@ -575,6 +575,11 @@ export default function ProjectDetailPage() {
             )}
             {isClientOwner && (
               <div className="mt-6 grid gap-3">
+                {status === "agreed" && (
+                  <button type="button" onClick={() => router.push(withLocale(`/projects/${id}/payment`))} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-5 text-[13px] font-black uppercase tracking-widest font-headline animate-pulse">
+                    💳 Төлбөр хийх — ажил эхлүүлэх
+                  </button>
+                )}
                 {canRelease && (
                   <button type="button" onClick={() => setReleaseConfirmOpen(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-4 text-[12px] font-black uppercase tracking-widest font-headline">
                     Escrow чөлөөлөх ✓
@@ -590,9 +595,11 @@ export default function ProjectDetailPage() {
                     Засах
                   </button>
                 )}
-                <button type="button" onClick={() => router.push(withLocale(`/projects/${id}/payment`))} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-6 py-4 text-[12px] font-black uppercase tracking-widest font-headline">
-                  Төлбөр хийх
-                </button>
+                {status !== "agreed" && (
+                  <button type="button" onClick={() => router.push(withLocale(`/projects/${id}/payment`))} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-6 py-4 text-[12px] font-black uppercase tracking-widest font-headline">
+                    Төлбөр хийх
+                  </button>
+                )}
               </div>
             )}
           </div>
