@@ -16,6 +16,17 @@ class NotificationListView(generics.ListAPIView):
         return Notification.objects.filter(user=self.request.user)
 
 
+class NotificationUnreadCountView(APIView):
+    """Get unread notification count, optionally filtered by type."""
+
+    def get(self, request):
+        qs = Notification.objects.filter(user=request.user, is_read=False)
+        ntype = request.query_params.get("type")
+        if ntype:
+            qs = qs.filter(type=ntype)
+        return Response({"count": qs.count()})
+
+
 class NotificationMarkReadView(APIView):
     """Mark a notification as read"""
 

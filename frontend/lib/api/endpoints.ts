@@ -365,6 +365,11 @@ export const notificationsApi = {
     const res = await apiClient.get("/notifications/");
     return res.data;
   },
+  unreadCount: async (type?: string) => {
+    const params = type ? `?type=${type}` : "";
+    const res = await apiClient.get(`/notifications/unread-count/${params}`);
+    return res.data as { count: number };
+  },
   markAllRead: async () => {
     const res = await apiClient.post("/notifications/mark-all-read/");
     return res.data;

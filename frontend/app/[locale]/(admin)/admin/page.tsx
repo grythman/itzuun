@@ -7,10 +7,11 @@ import { usePathname } from "next/navigation";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
 import { ActionButton, AppCard, StatusPill } from "@/components/ui";
-import { adminApi, toArray } from "@/lib/api/endpoints";
+import { adminApi, notificationsApi, toArray } from "@/lib/api/endpoints";
 import { useAdminSnapshot, useMe, useMutation } from "@/lib/hooks";
 import { useToastStore } from "@/lib/stores/toast-store";
 import type { AdminUserDto, DisputeDto, EscrowDto, LedgerEntryDto } from "@/lib/api/types";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AdminPage() {
   const toast = useToastStore((s) => s.push);
@@ -20,6 +21,10 @@ export default function AdminPage() {
   const withLocale = (href: string) => `/${locale}${href}`;
   const me = useMe();
   const { users, projects, escrow, disputes, commission, ledger } = useAdminSnapshot();
+  const newBriefs = useQuery({
+    queryKey: ["notifications", "unread-count", "NEW_BRIEF"],
+    queryFn: () => notificationsApi.unreadCount("NEW_BRIEF"),
+  });
 
   const userItems = users.data ? toArray<AdminUserDto>(users.data) : [];
   const projectItems = projects.data ? toArray<Record<string, unknown>>(projects.data) : [];
@@ -81,7 +86,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-5">
           <div className="ui-surface p-4">
             <p className="ui-eyebrow">Хэрэглэгч</p>
             <p className="ui-kpi-value mt-2">{userItems.length.toLocaleString()}</p>
@@ -104,6 +109,18 @@ export default function AdminPage() {
             <p className="ui-kpi-value mt-2">{openDisputes.length.toLocaleString()}</p>
             <p className="mt-2 text-[12px] text-on-surface/60">Шийдвэр шаардаж буй эрсдэлийн кейс</p>
           </div>
+          <Link href={withLocale("/admin/projects")} className="ui-surface p-4 hover:ring-2 hover:ring-primary/30 transition-shadow">
+            <p className="ui-eyebrow">Шинэ brief</p>
+            <p className="ui-kpi-value mt-2 flex items-center gap-2">
+              {newBriefs.data?.count ?? 0}
+              {(newBriefs.data?.count ?? 0) > 0 && (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                  шинэ
+                </span>
+              )}
+            </p>
+            <p className="mt-2 text-[12px] text-on-surface/60">Уншаагүй захиалгын мэдэгдэл</p>
+          </Link>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
