@@ -1,11 +1,28 @@
 """Email notification helpers."""
 
 import logging
+import threading
 
 from django.conf import settings
 from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
+
+
+def _send_in_thread(func, *args, **kwargs):
+    """Run email function in a daemon thread to avoid blocking requests."""
+    t = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+    t.start()
+
+
+def _do_send_brief_email(subject, body, emails):
+    try:
+        send_mail(
+            subject, body, settings.DEFAULT_FROM_EMAIL, emails, fail_silently=True
+        )
+        logger.info("Sent brief email to %d admins", len(emails))
+    except Exception:
+        logger.exception("Failed to send brief email")
 
 
 def send_brief_email(project) -> bool:
@@ -30,18 +47,21 @@ def send_brief_email(project) -> bool:
         )
         if not emails:
             return False
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            emails,
-            fail_silently=True,
-        )
-        logger.info("Sent brief email to %d admins", len(emails))
+        _send_in_thread(_do_send_brief_email, subject, body, emails)
         return True
     except Exception:
-        logger.exception("Failed to send brief email")
+        logger.exception("Failed to prepare brief email")
         return False
+
+
+def _do_send_status_email(subject, body, recipient):
+    try:
+        send_mail(
+            subject, body, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=True
+        )
+        logger.info("Sent status email to %s", recipient)
+    except Exception:
+        logger.exception("Failed to send status change email")
 
 
 def send_status_change_email(project, new_status: str) -> bool:
@@ -53,15 +73,8 @@ def send_status_change_email(project, new_status: str) -> bool:
         f"Дэлгэрэнгүй мэдээллийг платформоос харна уу."
     )
     try:
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            [project.owner.email],
-            fail_silently=True,
-        )
-        logger.info("Sent status email to %s", project.owner.email)
+        _send_in_thread(_do_send_status_email, subject, body, project.owner.email)
         return True
     except Exception:
-        logger.exception("Failed to send status change email")
+        logger.exception("Failed to prepare status change email")
         return False
