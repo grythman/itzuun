@@ -1,3 +1,10 @@
+import { ForceLightMode } from "@/components/shared/force-light-mode";
+
 export default function AuthGroupLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <ForceLightMode />
+      {children}
+    </>
+  );
 }
