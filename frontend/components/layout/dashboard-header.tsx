@@ -127,10 +127,10 @@ export function DashboardTopHeader({
     () => [
       { href: profileHref, label: "Профайл", icon: "profile" as const },
       { href: "/support", label: "Дансны эрүүл байдал", icon: "health" as const },
-      { href: membershipHref, label: "Эрхийн төлөвлөгөө", icon: "membership" as const },
+      ...(role !== "admin" ? [{ href: membershipHref, label: "Эрхийн төлөвлөгөө", icon: "membership" as const }] : []),
       { href: connectsHref, label: "Холболт", icon: "connects" as const },
     ],
-    [connectsHref, membershipHref, profileHref],
+    [connectsHref, membershipHref, profileHref, role],
   );
 
   return (
