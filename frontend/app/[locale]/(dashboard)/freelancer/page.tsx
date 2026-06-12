@@ -246,7 +246,24 @@ export default function FreelancerDashboardPage() {
   const pendingProposals = myProposals.filter((item) => (item.status || "pending") === "pending").length;
   const rejectedProposals = myProposals.filter((item) => item.status === "rejected").length;
   const acceptedProposals = myProposals.filter((item) => item.status === "accepted").length;
-  const earnings = activeProjects.reduce((acc, item) => acc + Number(item.budget || 0), 0);
+
+  // Real earnings: completed projects where this freelancer was selected, net of 10% platform fee
+  const completedProjects = projects.data.results.filter(
+    (project) =>
+      project.selected_proposal &&
+      myProposalIds.has(project.selected_proposal) &&
+      project.status === "completed",
+  );
+  const COMMISSION = 0.1;
+  const earnings = completedProjects.reduce(
+    (acc, item) => acc + Math.round(Number(item.budget || 0) * (1 - COMMISSION)),
+    0,
+  );
+  // Pending payout: value held in escrow for active work, net of fee
+  const pendingPayout = activeProjects.reduce(
+    (acc, item) => acc + Math.round(Number(item.budget || 0) * (1 - COMMISSION)),
+    0,
+  );
 
   const rank = (status: string) => {
     if (status === "pending") return 0;
@@ -301,14 +318,6 @@ export default function FreelancerDashboardPage() {
 
   const filteredRecommendations = sortedProposals.filter((proposal) => (proposal.status || "pending") === "pending").slice(0, 2);
   const recentProposals = sortedProposals.slice(0, 4);
-  const availableBalance = Math.max(0, Math.round(earnings * 0.33));
-  const pendingPayout = Math.max(0, earnings - availableBalance);
-  const latestTransactions = activeProjects.slice(0, 2).map((project, index) => ({
-    id: project.id,
-    label: project.title,
-    date: projectStatusMeta(project.status).label,
-    amount: index === 0 ? Number(project.budget || 0) : -Math.round(Number(project.budget || 0) * 0.1),
-  }));
   const freelancerName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Фрилансер";
 
   const inProgressProjectForFreelancer = activeProjects.find((project) => project.status === "in_progress");
@@ -422,7 +431,7 @@ export default function FreelancerDashboardPage() {
                     </div>
                   </div>
                   <span className="text-4xl font-extrabold text-on-surface font-headline tracking-tight">{formatMnt(earnings)}</span>
-                  <p className="mt-4 flex items-center text-[11px] font-bold text-secondary font-headline"><DashboardIcon name="trend" className="mr-1.5 h-3.5 w-3.5" /> +12% Өмнөх сараас</p>
+                  <p className="mt-4 text-[11px] font-bold text-on-surface/55 font-headline tracking-wide uppercase">{completedProjects.length} дууссан төсөл (шимтгэл хассан)</p>
                 </div>
 
                 <div className="primary-gradient rounded-3xl p-8 text-white shadow-ambient transition-all hover:-translate-y-1">
@@ -433,7 +442,7 @@ export default function FreelancerDashboardPage() {
                     </div>
                   </div>
                   <span className="text-4xl font-extrabold text-white font-headline tracking-tight">{formatMnt(pendingPayout)}</span>
-                  <p className="mt-4 text-[11px] font-bold text-white/50 font-headline tracking-wide uppercase">{activeProjects.length} төслийн санхүүжилт</p>
+                  <p className="mt-4 text-[11px] font-bold text-white/50 font-headline tracking-wide uppercase">{activeProjects.length} идэвхтэй төслийн escrow</p>
                 </div>
 
                 <div className="rounded-3xl bg-surface-container-low p-8 transition-all hover:bg-surface-container-lowest hover:shadow-ambient">
@@ -652,20 +661,23 @@ export default function FreelancerDashboardPage() {
                   <div className="rounded-2xl bg-surface-container-low p-6">
                     <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-primary">Сүүлийн үеийн гүйлгээ</h3>
                     <div className="space-y-4">
-                      {latestTransactions.length ? latestTransactions.map((txn) => (
-                        <div key={txn.id} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${txn.amount >= 0 ? "bg-green-100" : "bg-red-100"}`}>
-                              <span className={`text-sm ${txn.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{txn.amount >= 0 ? "↗" : "↙"}</span>
+                      {completedProjects.length ? completedProjects.slice(0, 4).map((project) => {
+                        const net = Math.round(Number(project.budget || 0) * (1 - COMMISSION));
+                        return (
+                          <div key={project.id} className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                                <span className="text-sm text-green-600" aria-hidden>↗</span>
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-bold text-primary">{project.title}</p>
+                                <p className="text-[9px] text-on-surface/45">Дууссан</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-[11px] font-bold text-primary">{txn.label}</p>
-                              <p className="text-[9px] text-on-surface/45">{txn.date}</p>
-                            </div>
+                            <span className="text-xs font-bold text-green-600">+{formatMnt(net)}</span>
                           </div>
-                          <span className={`text-xs font-bold ${txn.amount >= 0 ? "text-green-600" : "text-red-600"}`}>{txn.amount >= 0 ? "+" : "-"}{formatMnt(Math.abs(txn.amount))}</span>
-                        </div>
-                      )) : (
+                        );
+                      }) : (
                         <p className="text-xs text-on-surface/60">Гүйлгээ хараахан бүртгэгдээгүй.</p>
                       )}
                     </div>

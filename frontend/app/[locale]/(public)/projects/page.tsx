@@ -76,7 +76,7 @@ function ProjectCard({ project, locale }: { project: Record<string, any>; locale
   const isHourly = project.project_type === "hourly";
   const tags = extractSkills(project);
   const clientName = project.client_name || project.owner_name || `Client #${project.owner}`;
-  const clientRating = Number(project.owner_rating ?? project.client_rating ?? 4.8);
+  const clientRating = Number(project.owner_rating ?? project.client_rating ?? 0);
   const postedAt = project.created_at || project.posted_at;
   const timelineDays = Number(project.timeline_days || 14);
 
@@ -140,7 +140,7 @@ function ProjectCard({ project, locale }: { project: Record<string, any>; locale
           </div>
           <div>
             <p className="font-headline text-[13px] font-black text-primary">{clientName}</p>
-            <p className="text-[12px] text-on-surface/52">⭐ {clientRating.toFixed(1)} · {timelineDays} өдөр</p>
+            <p className="text-[12px] text-on-surface/52">{clientRating > 0 ? `⭐ ${clientRating.toFixed(1)} · ` : ""}{timelineDays} өдөр</p>
           </div>
         </div>
         <span className="ui-btn-primary min-h-10 px-4 text-[10px]">Дэлгэрэнгүй</span>

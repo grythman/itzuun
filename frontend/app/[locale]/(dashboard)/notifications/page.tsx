@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/components/shared/states";
 import { notificationsApi, toArray } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
+import { useToastStore } from "@/lib/stores/toast-store";
 
 type NotificationKind = "all" | "projects" | "payments" | "system";
 
@@ -111,6 +112,7 @@ const FILTER_TABS: { key: NotificationKind; label: string }[] = [
 
 export default function NotificationsPage() {
   const queryClient = useQueryClient();
+  const toast = useToastStore((s) => s.push);
   const pathname = usePathname();
   const pathParts = (pathname || "").split("/").filter(Boolean);
   const locale = pathParts[0] === "en" || pathParts[0] === "mn" ? pathParts[0] : "mn";
@@ -129,12 +131,17 @@ export default function NotificationsPage() {
 
   const markAllMutation = useMutation({
     mutationFn: () => notificationsApi.markAllRead(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast("success", "Бүгдийг уншсан болголоо");
+    },
+    onError: () => toast("error", "Алдаа гарлаа. Дахин оролдоно уу."),
   });
 
   const markOneMutation = useMutation({
     mutationFn: (id: number) => notificationsApi.markRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    onError: () => toast("error", "Алдаа гарлаа. Дахин оролдоно уу."),
   });
 
   const items = useMemo<NotificationItem[]>(() => {
@@ -379,7 +386,8 @@ export default function NotificationsPage() {
                                 <button
                                   type="button"
                                   onClick={() => markOneMutation.mutate(item.id)}
-                                  className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.16em] text-primary underline underline-offset-4"
+                                  disabled={markOneMutation.isPending}
+                                  className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.16em] text-primary underline underline-offset-4 disabled:opacity-45"
                                 >
                                   Уншсан болгох
                                 </button>
