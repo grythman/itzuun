@@ -20,6 +20,7 @@
   --surface-container-highest: 206 206 210;
   --on-surface: 25 28 30;
   --outline-variant: 197 198 207;
+  --primary: 3 22 54;
 }
 
 :root.dark {
@@ -33,11 +34,12 @@
   --surface-container-highest: 55 74 110;
   --on-surface: 226 232 240;
   --outline-variant: 51 65 85;
+  --primary: 125 180 255;
 }
 
-/* Headings use the dark navy primary on light; flip to light blue in dark mode */
-.dark .text-primary {
-  color: #7db4ff;
+/* Primary stays navy for solid button/badge backgrounds even in dark mode */
+.dark .bg-primary {
+  background-color: #1a2b4c;
 }
 
 /* Pure-white cards become elevated dark surface */
