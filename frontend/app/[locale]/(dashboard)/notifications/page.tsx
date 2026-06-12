@@ -209,7 +209,7 @@ export default function NotificationsPage() {
       <div className="ui-surface p-4 sm:p-5 lg:p-6">
         <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-surface-container-low px-4 py-4 sm:px-5">
           <div>
-            <p className="ui-eyebrow">Notification Center</p>
+            <p className="ui-eyebrow">Мэдэгдлийн төв</p>
             <h1 className="mt-2 font-headline text-[2rem] font-black leading-none tracking-tight text-primary sm:text-[2.25rem]">
               Мэдэгдлүүд
             </h1>
@@ -417,7 +417,7 @@ export default function NotificationsPage() {
           </div>
 
           <aside className="ui-surface-soft h-fit p-4">
-            <p className="ui-eyebrow">Insights</p>
+            <p className="ui-eyebrow">Тойм</p>
             <h2 className="mt-2 font-headline text-[1.35rem] font-black tracking-tight text-primary">
               Шуурхай тойм
             </h2>

@@ -283,7 +283,7 @@ export default function FreelancerDashboardPage() {
     verificationGuidance = {
       tone: "warning",
       title: "Баталгаажуулалт хянагдаж байна",
-      text: "Түр хүлээгээд meanwhile профайлаа сайжруулж, төсөл хайж shortlist бэлд.",
+      text: "Түр хүлээгээд профайлаа сайжруулж, төсөл хайж бэлдээрэй.",
       cta: "Профайл нээх",
       href: withLocale("/freelancer/profile"),
     };

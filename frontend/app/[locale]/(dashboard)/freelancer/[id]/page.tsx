@@ -59,9 +59,9 @@ export default function FreelancerPublicProfilePage({ params }: { params: { id: 
           </div>
           {p.hourly_rate > 0 && (
             <div className="text-right">
-              <p className="text-[11px] uppercase tracking-widest text-surface-500">Hourly Rate</p>
+              <p className="text-[11px] uppercase tracking-widest text-surface-500">Цагийн хөлс</p>
               <p className="text-xl font-semibold text-emerald-600">
-                {p.hourly_rate.toLocaleString()} MNT
+                {p.hourly_rate.toLocaleString()} ₮
               </p>
             </div>
           )}

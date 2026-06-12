@@ -93,7 +93,7 @@ function ProjectCard({ project, locale }: { project: Record<string, any>; locale
                 isHourly ? "bg-secondary-fixed text-secondary" : "bg-primary-fixed text-primary"
               }`}
             >
-              {isHourly ? "Hourly" : "Fixed Price"}
+              {isHourly ? "Цагаар" : "Тогтмол үнэ"}
             </span>
             {postedAt && <span className="text-[12px] font-medium text-on-surface/50">{ago(postedAt)}</span>}
           </div>
@@ -117,7 +117,7 @@ function ProjectCard({ project, locale }: { project: Record<string, any>; locale
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="ui-eyebrow">{isHourly ? "Rate" : "Budget"}</p>
+          <p className="ui-eyebrow">{isHourly ? "Цагийн хөлс" : "Төсөв"}</p>
           {isHourly ? (
             <p className="mt-1 font-headline text-[24px] font-black text-secondary">
               {formatMnt(budget)}
@@ -277,8 +277,8 @@ export default function ProjectsPage() {
 
           <FilterSection title={pt("filterProjectType")}>
             {[
-              { value: "fixed", label: "Fixed Price" },
-              { value: "hourly", label: "Hourly" },
+              { value: "fixed", label: "Тогтмол үнэ" },
+              { value: "hourly", label: "Цагаар" },
             ].map((item) => {
               const active = projectType === item.value;
               return (
@@ -340,7 +340,7 @@ export default function ProjectsPage() {
               {pt("applyFilters")}
             </button>
             <button type="button" onClick={clearFilters} className="ui-btn-ghost w-full">
-              Reset
+              Цэвэрлэх
             </button>
           </div>
         </div>
@@ -390,9 +390,9 @@ export default function ProjectsPage() {
               className="rounded-2xl bg-surface-container-lowest py-3 pl-4 pr-10 text-[13px] font-bold text-primary shadow-sm focus:shadow-ambient"
             >
               <option value="-created_at">{pt("sortNewest")}</option>
-              <option value="created_at">Oldest</option>
-              <option value="budget">Budget ↑</option>
-              <option value="-budget">Budget ↓</option>
+              <option value="created_at">Хуучин нь эхэндээ</option>
+              <option value="budget">Төсөв ↑</option>
+              <option value="-budget">Төсөв ↓</option>
             </select>
           </div>
 
