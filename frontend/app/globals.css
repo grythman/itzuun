@@ -9,107 +9,64 @@
   --app-content-narrow: 1540px;
   --app-gutter: clamp(16px, 2.2vw, 40px);
   --app-section-y: clamp(24px, 3vw, 48px);
+
+  /* Neutral surface tokens (R G B) */
+  --surface: 247 249 251;
+  --surface-variant: 225 227 229;
+  --surface-container-lowest: 255 255 255;
+  --surface-container-low: 236 238 240;
+  --surface-container: 227 229 232;
+  --surface-container-high: 215 217 221;
+  --surface-container-highest: 206 206 210;
+  --on-surface: 25 28 30;
+  --outline-variant: 197 198 207;
 }
 
 :root.dark {
   color-scheme: dark;
+  --surface: 13 18 30;
+  --surface-variant: 45 74 111;
+  --surface-container-lowest: 26 35 53;
+  --surface-container-low: 30 41 60;
+  --surface-container: 36 49 72;
+  --surface-container-high: 45 61 90;
+  --surface-container-highest: 55 74 110;
+  --on-surface: 226 232 240;
+  --outline-variant: 51 65 85;
 }
 
-.dark body {
-  background: #0f1729;
-  color: #e2e8f0;
-}
-
-.dark .ui-surface,
-.dark .ui-surface-soft {
-  background: #1a2744;
-  border-color: #2d3748;
-  color: #e2e8f0;
-}
-
-.dark .bg-surface,
-.dark .bg-surface-container-low,
-.dark .bg-surface-container-lowest,
-.dark .bg-\[rgba\(247\,249\,251\,0\.82\)\] {
-  background: #1a2744 !important;
-}
-
+/* Headings use the dark navy primary on light; flip to light blue in dark mode */
 .dark .text-primary {
   color: #7db4ff;
 }
 
-.dark .text-on-surface {
-  color: #e2e8f0;
-}
-
-.dark .text-on-surface\/60,
-.dark .text-on-surface\/65,
-.dark .text-on-surface\/50,
-.dark .text-on-surface\/70,
-.dark .text-on-surface\/45,
-.dark .text-on-surface\/35 {
-  color: #94a3b8;
-}
-
-.dark .bg-surface-container-low {
-  background: #1e2d4a;
-}
-
-.dark .bg-surface-container-lowest {
-  background: #162035;
-}
-
+/* Pure-white cards become elevated dark surface */
 .dark .bg-white,
-.dark .bg-white\/60 {
-  background: #1e2d4a;
+.dark .bg-white\/60,
+.dark .bg-white\/10 {
+  background-color: rgb(var(--surface-container-lowest));
 }
 
-.dark .border-surface-200 {
-  border-color: #2d4a6f;
+/* Frosted header bar */
+.dark .bg-\[rgba\(247\,249\,251\,0\.82\)\] {
+  background-color: rgba(26, 35, 53, 0.85) !important;
 }
 
 .dark .shadow-ambient,
 .dark .shadow-sm,
-.dark .shadow-card {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+.dark .shadow-card,
+.dark .shadow-modal {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
-.dark input,
-.dark textarea,
-.dark select {
-  background: #162035;
-  color: #e2e8f0;
-  border-color: #2d4a6f;
-}
-
-.dark .ui-eyebrow {
-  color: #64748b;
-}
-
-.dark .ui-kpi-value {
-  color: #e2e8f0;
-}
-
-.dark .rounded-\[28px\] {
-  background: rgba(26, 39, 68, 0.92) !important;
-  backdrop-filter: blur(20px);
-}
-
-.dark .font-headline {
-  color: inherit;
-}
-
-.dark a {
-  color: #94a3b8;
-}
-
-.dark a:hover {
-  color: #7db4ff;
+/* Borders default to subtle in dark */
+.dark .border-surface-200,
+.dark .border {
+  border-color: rgb(var(--outline-variant));
 }
 
 body {
   @apply min-h-screen bg-surface text-on-surface antialiased font-body;
-  background: var(--tw-colors-surface-DEFAULT, #f7f9fb);
 }
 
 /* 

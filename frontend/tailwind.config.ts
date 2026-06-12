@@ -18,18 +18,18 @@ const config: Config = {
           DEFAULT: "#13696a",
         },
         surface: {
-          DEFAULT: "#f7f9fb",
-          variant: "#e1e3e5",
+          DEFAULT: "rgb(var(--surface) / <alpha-value>)",
+          variant: "rgb(var(--surface-variant) / <alpha-value>)",
           container: {
-            lowest: "#ffffff",
-            low: "#eceef0",
-            DEFAULT: "#e3e5e8",
-            high: "#d7d9dd",
-            highest: "#ceced2",
+            lowest: "rgb(var(--surface-container-lowest) / <alpha-value>)",
+            low: "rgb(var(--surface-container-low) / <alpha-value>)",
+            DEFAULT: "rgb(var(--surface-container) / <alpha-value>)",
+            high: "rgb(var(--surface-container-high) / <alpha-value>)",
+            highest: "rgb(var(--surface-container-highest) / <alpha-value>)",
           },
         },
-        "on-surface": "#191c1e",
-        "outline-variant": "#c5c6cf",
+        "on-surface": "rgb(var(--on-surface) / <alpha-value>)",
+        "outline-variant": "rgb(var(--outline-variant) / <alpha-value>)",
         
         brand: {
           50: "#f3f0ff",
