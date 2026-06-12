@@ -102,7 +102,7 @@ export function DashboardTopHeader({
   const homeHref =
     role === "admin" ? `${localePrefix}/admin` : role === "freelancer" ? `${localePrefix}/freelancer` : `${localePrefix}/client`;
   const profileHref = role === "freelancer" ? "/freelancer/profile" : role === "client" ? "/client/profile" : "/admin";
-  const settingsHref = role === "freelancer" ? "/freelancer/settings" : role === "client" ? "/client/settings" : "/admin";
+  const settingsHref = role === "freelancer" ? "/freelancer/settings" : role === "client" ? "/client/settings" : "/admin/settings";
   const membershipHref = role === "freelancer" ? "/pro" : "/support";
   const connectsHref = role === "client" ? "/freelancers" : role === "freelancer" ? "/projects" : "/admin/users";
 
