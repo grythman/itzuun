@@ -11,6 +11,60 @@
   --app-section-y: clamp(24px, 3vw, 48px);
 }
 
+:root.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background: #0f1729;
+  color: #e2e8f0;
+}
+
+.dark .ui-surface,
+.dark .ui-surface-soft {
+  background: #1a2332;
+  border-color: #2d3748;
+}
+
+.dark .bg-surface,
+.dark .bg-surface-container-low,
+.dark .bg-surface-container-lowest {
+  background: #0f1729;
+}
+
+.dark .text-primary {
+  color: #93b4ff;
+}
+
+.dark .text-on-surface,
+.dark .text-on-surface\/60,
+.dark .text-on-surface\/65,
+.dark .text-on-surface\/50 {
+  color: #cbd5e1;
+}
+
+.dark .bg-surface-container-low {
+  background: #1e293b;
+}
+
+.dark .bg-surface-container-lowest {
+  background: #1a2332;
+}
+
+.dark .bg-white,
+.dark .bg-white\/60 {
+  background: #1e293b;
+}
+
+.dark .border-surface-200 {
+  border-color: #334155;
+}
+
+.dark .shadow-ambient,
+.dark .shadow-sm {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 body {
   @apply min-h-screen bg-surface text-on-surface antialiased font-body;
   background: var(--tw-colors-surface-DEFAULT, #f7f9fb);

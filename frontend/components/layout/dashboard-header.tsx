@@ -279,6 +279,11 @@ export function DashboardTopHeader({
 
                       <button
                         type="button"
+                        onClick={() => {
+                          const html = document.documentElement;
+                          const isDark = html.classList.toggle("dark");
+                          localStorage.setItem("theme", isDark ? "dark" : "light");
+                        }}
                         className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left text-[15px] font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white"
                       >
                         <span className="text-white/85">
