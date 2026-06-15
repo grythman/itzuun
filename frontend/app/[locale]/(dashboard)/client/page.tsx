@@ -28,27 +28,6 @@ function formatMntInline(amount: number): string {
   return `₮${new Intl.NumberFormat("mn-MN").format(amount)}`;
 }
 
-function formatRelativeTime(iso?: string): string {
-  if (!iso) return "Шинэчлэлийн мэдээлэл алга";
-  const diffMs = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(diffMs)) return "Шинэчлэлийн мэдээлэл алга";
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "Яг одоо шинэчлэгдсэн";
-  if (diffMin < 60) return `${diffMin} минутын өмнө шинэчлэгдсэн`;
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour} цагийн өмнө шинэчлэгдсэн`;
-  const diffDay = Math.floor(diffHour / 24);
-  return `${diffDay} өдрийн өмнө шинэчлэгдсэн`;
-}
-
-function projectStatusLabel(status: string): string {
-  if (status === "in_progress") return "Ажил явагдаж байна";
-  if (status === "awaiting_client_review") return "Таны шалгалтыг хүлээж байна 🕐";
-  if (status === "completed") return "Бүрэн дууссан";
-  if (status === "disputed") return "Маргаан шийдвэрлэж байна";
-  return "Нээлттэй";
-}
-
 function initials(label: string): string {
   const parts = label.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "IZ";
@@ -76,22 +55,6 @@ function DashboardIcon({ name, className = "h-5 w-5" }: { name: "folder" | "add"
     return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="m21 20-5.6-5.6a7 7 0 1 0-1 1L20 21l1-1ZM5 10a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"/></svg>;
   }
   return <svg viewBox="0 0 24 24" {...common}><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7v4.6L3.7 15A1 1 0 0 0 4.4 17h15.2a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22Z"/></svg>;
-}
-
-function statusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string; escrowLabel: string } {
-  if (status === "in_progress") {
-    return { label: "Эскроу түгжээтэй", tone: "success", nextStep: "Гүйцэтгэлийг хянаад шаардлагатай үед маргаан нээ.", escrowLabel: "Мөнгө найдвартай түгжээтэй байна." };
-  }
-  if (status === "awaiting_client_review") {
-    return { label: "Баталгаажуулалт хүлээгдэж байна", tone: "warning", nextStep: "Ажлыг шалгаад дууссаныг баталгаажуул.", escrowLabel: "Баталгаажуулмагц мөнгө фрилансер руу шилжинэ." };
-  }
-  if (status === "disputed") {
-    return { label: "Маргаантай", tone: "danger", nextStep: "Нотолгоогоо шалгаад админы шийдвэрийг хүлээ.", escrowLabel: "Эскроу маргааны горимд байна." };
-  }
-  if (status === "completed") {
-    return { label: "Шилжүүлсэн", tone: "info", nextStep: "Төсөл дууссан. Үнэлгээ үлдээж болно.", escrowLabel: "Эскроу амжилттай чөлөөлөгдсөн." };
-  }
-  return { label: "Нээлттэй", tone: "info", nextStep: "Саналуудаа харьцуулж фрилансер сонго.", escrowLabel: "Эскроу эхлээгүй байна." };
 }
 
 export default function ClientDashboardPage() {
@@ -123,17 +86,17 @@ export default function ClientDashboardPage() {
     mutationFn: (projectId: number) => projectsApi.confirmCompletion(projectId),
     onSuccess: () => {
       projects.refetch();
-      toast("success", "Эскроу амжилттай чөлөөлөгдлөө.");
+      toast("success", t("escrowReleaseSuccess"));
       setReleaseTarget(null);
     },
     onError: (error: Error) => toast("error", error.message),
   });
 
   const disputeMutation = useMutation({
-    mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: "Клиент самбараас маргаан нээв" }),
+    mutationFn: (projectId: number) => projectsApi.createDispute(projectId, { reason: t("disputeReason") }),
     onSuccess: () => {
       projects.refetch();
-      toast("warning", "Маргаан нээгдлээ.");
+      toast("warning", t("disputeOpenSuccess"));
       setDisputeTarget(null);
     },
     onError: (error: Error) => toast("error", error.message),
@@ -144,7 +107,7 @@ export default function ClientDashboardPage() {
     onSuccess: () => {
       projects.refetch();
       proposals.refetch();
-      toast("success", "Фрилансер сонгогдлоо.");
+      toast("success", t("freelancerSelectedSuccess"));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -152,6 +115,30 @@ export default function ClientDashboardPage() {
   const focusProposalSection = (projectId: number) => {
     setActiveProjectId(projectId);
     setTimeout(() => proposalSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const projectStatusLabel = (status: string): string => {
+    if (status === "in_progress") return t("statusInProgress");
+    if (status === "awaiting_client_review") return t("statusAwaitingReview");
+    if (status === "completed") return t("statusCompleted");
+    if (status === "disputed") return t("statusDisputed");
+    return t("statusOpen");
+  };
+
+  const statusMeta = (status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string; escrowLabel: string } => {
+    if (status === "in_progress") {
+      return { label: t("metaLabelInProgress"), tone: "success", nextStep: t("metaNextInProgress"), escrowLabel: t("metaEscrowInProgress") };
+    }
+    if (status === "awaiting_client_review") {
+      return { label: t("metaLabelAwaitingReview"), tone: "warning", nextStep: t("metaNextAwaitingReview"), escrowLabel: t("metaEscrowAwaitingReview") };
+    }
+    if (status === "disputed") {
+      return { label: t("metaLabelDisputed"), tone: "danger", nextStep: t("metaNextDisputed"), escrowLabel: t("metaEscrowDisputed") };
+    }
+    if (status === "completed") {
+      return { label: t("metaLabelCompleted"), tone: "info", nextStep: t("metaNextCompleted"), escrowLabel: t("metaEscrowCompleted") };
+    }
+    return { label: t("metaLabelOpen"), tone: "info", nextStep: t("metaNextOpen"), escrowLabel: t("metaEscrowOpen") };
   };
 
   const myProjects = (projects.data?.results || []).filter((project) => project.owner === me.data?.id);
@@ -164,15 +151,15 @@ export default function ClientDashboardPage() {
   }, [activeProjectId, openProject]);
 
   if (me.isLoading || projects.isLoading || profile.isLoading) {
-    return <LoadingState label="Хянах самбар ачааллаж байна..." />;
+    return <LoadingState label={t("loading")} />;
   }
   if (me.isError || !me.data) {
     return (
       <ErrorState
-        label="Нэвтэрч орно уу."
+        label={t("loginRequired")}
         action={
           <button className="rounded-lg bg-surface-container-lowest px-3 py-1.5 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
-            Нэвтрэх
+            {t("loginBtn")}
           </button>
         }
       />
@@ -181,10 +168,10 @@ export default function ClientDashboardPage() {
   if (projects.isError || !projects.data) {
     return (
       <ErrorState
-        label="Төслүүд ачааллагдсангүй."
+        label={t("projectsLoadError")}
         action={
           <button className="rounded-lg bg-surface-container-lowest px-3 py-1.5 text-xs font-semibold text-red-700" onClick={retryAll}>
-            Дахин оролдох
+            {t("retry")}
           </button>
         }
       />
@@ -204,7 +191,7 @@ export default function ClientDashboardPage() {
   const pendingEscrow = myProjects
     .filter((project) => project.status === "open")
     .reduce((sum, project) => sum + Number(project.budget || 0), 0);
-  const clientName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Захиалагч";
+  const clientName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || t("defaultClient");
 
   const sortedProposalItems = [...proposalItems].sort((a, b) => {
     const aScore = Number(a.price || 0) + Math.max(1, Number(a.timeline_days || 1)) * 1000;
@@ -220,23 +207,23 @@ export default function ClientDashboardPage() {
   let priorityAction = null;
   if (awaitingReview) {
     priorityAction = {
-      title: "Баталгаажуулалт хүлээгдэж байна 🕐",
-      desc: `"${awaitingReview.title}" төслийн үр дүнг шалгаад Эскроу төлбөрийг чөлөөлнө үү.`,
-      cta: "Шалгах",
+      title: t("priorityAwaitingTitle"),
+      desc: t("priorityAwaitingDesc", { title: awaitingReview.title }),
+      cta: t("priorityAwaitingCta"),
       onClick: () => setReleaseTarget(awaitingReview.id)
     };
   } else if (proposalBadgeCount > 0) {
     priorityAction = {
-      title: `${proposalBadgeCount} шинэ санал шалгана уу ✨`,
-      desc: openProject ? `"${openProject.title}" төсөлд шинэ санал ирсэн байна.` : "Мэргэжилтнүүдийн илгээсэн саналуудтай танилцана уу.",
-      cta: "Саналуудыг харах",
+      title: t("priorityProposalsTitle", { count: proposalBadgeCount }),
+      desc: openProject ? t("priorityProposalsDescProject", { title: openProject.title }) : t("priorityProposalsDescGeneric"),
+      cta: t("priorityProposalsCta"),
       onClick: () => openProject && focusProposalSection(openProject.id)
     };
   } else if (myProjects.length === 0) {
     priorityAction = {
-      title: "Таны анхны төсөл 🚀",
-      desc: "Шилдэг мэргэжилтнүүдтэй хамтрахын тулд яг одоо төслөө нийтлэнэ үү.",
-      cta: "Төсөл нийтлэх",
+      title: t("priorityFirstTitle"),
+      desc: t("priorityFirstDesc"),
+      cta: t("priorityFirstCta"),
       onClick: () => router.push(withLocale("/client/projects/new"))
     };
   }
@@ -253,10 +240,10 @@ export default function ClientDashboardPage() {
               <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
                 <div>
                   <h1 className="font-headline text-3xl font-extrabold tracking-tight text-primary md:text-4xl">
-                    Өдрийн мэнд, {clientName} 👋
+                    {t("greeting", { name: clientName })}
                   </h1>
                   <p className="mt-2 text-sm text-on-surface/60">
-                    Таны төслүүдийн явц болон санхүүгийн тойм энд байна.
+                    {t("overviewSub")}
                   </p>
                   {priorityAction && (
                     <div className="mt-6 rounded-2xl bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
@@ -278,11 +265,11 @@ export default function ClientDashboardPage() {
                 <div className="flex shrink-0 flex-wrap items-center gap-3 xl:justify-end">
                   <Link href={withLocale("/client/projects/new")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-fixed shadow-ambient transition hover:-translate-y-0.5">
                     <DashboardIcon name="add" className="h-[18px] w-[18px]" />
-                    Төсөл оруулах
+                    {t("addProject")}
                   </Link>
                   <Link href={withLocale("/freelancers")} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-secondary px-6 py-3 text-sm font-bold text-white shadow-ambient transition hover:-translate-y-0.5">
                     <DashboardIcon name="search" className="h-[18px] w-[18px]" />
-                    Мэргэжилтэн хайх
+                    {t("searchFreelancer")}
                   </Link>
                 </div>
               </section>
@@ -291,39 +278,39 @@ export default function ClientDashboardPage() {
               <div className="primary-gradient grid gap-4 rounded-[2rem] p-6 text-white shadow-ambient sm:p-8 lg:col-span-7 md:grid-cols-3">
                 <div className="flex flex-col justify-between">
                   <div>
-                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">Нийт зарцуулсан</p>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">{t("totalSpent")}</p>
                     <h3 className="font-headline text-[clamp(1.7rem,2.1vw,2.7rem)] font-bold leading-[1.05] tabular-nums whitespace-nowrap">
                       {formatMntInline(totalEscrow)}
                     </h3>
                   </div>
-                  <span className="mt-4 w-fit rounded bg-white/10 px-2 py-1 text-[10px]">Бүх төсөл</span>
+                  <span className="mt-4 w-fit rounded bg-white/10 px-2 py-1 text-[10px]">{t("allProjects")}</span>
                 </div>
                 <div className="flex flex-col justify-between rounded-xl bg-white/5 px-5 py-4">
                   <div>
-                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-accent-300">Эскроу дансанд</p>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-accent-300">{t("inEscrow")}</p>
                     <h3 className="font-headline text-[clamp(1.7rem,2.1vw,2.7rem)] font-bold leading-[1.05] text-accent-300 tabular-nums whitespace-nowrap">
                       {formatMntInline(securedEscrow)}
                     </h3>
                   </div>
-                  <p className="mt-4 text-[10px] text-white/50">Хамгаалалтай хадгалалажсан</p>
+                  <p className="mt-4 text-[10px] text-white/50">{t("securedSafe")}</p>
                 </div>
                 <div className="flex flex-col justify-between rounded-xl bg-white/5 px-5 py-4">
                   <div>
-                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">Хүлээгдэж буй</p>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">{t("pending")}</p>
                     <h3 className="font-headline text-[clamp(1.7rem,2.1vw,2.7rem)] font-bold leading-[1.05] tabular-nums whitespace-nowrap">
                       {formatMntInline(pendingEscrow)}
                     </h3>
                   </div>
                   <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="mt-4 w-fit text-[10px] font-bold text-accent-300 underline underline-offset-4">
-                    Нэхэмжлэх харах
+                    {t("viewInvoice")}
                   </button>
                 </div>
               </div>
 
               <div className="flex flex-col rounded-[2rem] bg-surface-container-lowest p-6 shadow-sm lg:col-span-5">
                 <div className="mb-6 flex items-center justify-between">
-                  <h4 className="font-headline text-lg font-bold text-on-surface">Шинэ саналууд</h4>
-                  <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-700">{proposalBadgeCount || 0} ШИНЭ</span>
+                  <h4 className="font-headline text-lg font-bold text-on-surface">{t("newProposals")}</h4>
+                  <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-700">{proposalBadgeCount || 0} {t("newBadge")}</span>
                 </div>
                 <div className="space-y-3">
                   {proposalInbox.length > 0 ? proposalInbox.map((proposal) => (
@@ -337,18 +324,18 @@ export default function ClientDashboardPage() {
                         {initials(`F ${proposalFreelancerLabel(proposal.freelancer)}`)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-on-surface font-headline">{(proposal as any).freelancer_name || `Фрилансер #${proposalFreelancerLabel(proposal.freelancer)}`}</p>
-                        <p className="truncate text-[10px] text-on-surface/60">{formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} өдөр</p>
+                        <p className="text-xs font-bold text-on-surface font-headline">{(proposal as any).freelancer_name || `${t("freelancer")} #${proposalFreelancerLabel(proposal.freelancer)}`}</p>
+                        <p className="truncate text-[10px] text-on-surface/60">{formatMnt(Number(proposal.price || 0))} · {proposal.timeline_days} {t("days")}</p>
                       </div>
                       <span className="text-sm text-on-surface/40 transition-colors group-hover:text-primary">→</span>
                     </button>
                   )) : (
-                    <EmptyState label="Шинэ санал алга." action={<button className="rounded-lg bg-surface-container-low px-3 py-1.5 text-xs font-semibold text-primary font-headline" onClick={retryAll}>Сэргээх</button>} />
+                    <EmptyState label={t("noNewProposals")} action={<button className="rounded-lg bg-surface-container-low px-3 py-1.5 text-xs font-semibold text-primary font-headline" onClick={retryAll}>{t("refresh")}</button>} />
                   )}
                 </div>
                 <div className="ui-divider-soft mt-auto" />
                 <button type="button" onClick={() => (openProject ? focusProposalSection(openProject.id) : null)} className="pt-4 text-center text-xs font-bold text-primary font-headline hover:text-primary-container">
-                  Бүх саналыг үзэх
+                  {t("viewAllProposals")}
                 </button>
               </div>
               </section>
@@ -356,11 +343,11 @@ export default function ClientDashboardPage() {
               <section>
               <div className="flex flex-col gap-3 px-6 py-5 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h2 className="font-headline text-2xl font-bold text-primary">Идэвхтэй төслүүд</h2>
-                  <p className="text-sm text-on-surface/60">Статус, төсөв, дараагийн алхамыг нэг харагдацаар удирдана.</p>
+                  <h2 className="font-headline text-2xl font-bold text-primary">{t("activeProjectsTitle")}</h2>
+                  <p className="text-sm text-on-surface/60">{t("activeProjectsSummary")}</p>
                 </div>
                 <Link href={withLocale("/client/projects")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] text-primary hover:bg-surface-container">
-                  Бүх төслийг удирдах
+                  {t("manageAllProjects")}
                 </Link>
               </div>
 
@@ -385,11 +372,11 @@ export default function ClientDashboardPage() {
                     <table className="w-full border-collapse text-left">
                       <thead>
                         <tr className="bg-surface-container-low/50">
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Төслийн нэр</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Эскроу</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Дараагийн алхам</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Төлөв</th>
-                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">Үйлдэл</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">{t("colProjectName")}</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">{t("colEscrow")}</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">{t("colNextStep")}</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">{t("colStatus")}</th>
+                          <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55">{t("colAction")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -400,9 +387,9 @@ export default function ClientDashboardPage() {
                               <td className="px-6 py-5">
                                 <p className="mb-1 text-sm font-bold text-on-surface font-headline">{project.title}</p>
                                 <div className="space-y-1">
-                                  <p className="text-[11px] text-primary">Дараагийн алхам: {meta.nextStep}</p>
+                                  <p className="text-[11px] text-primary">{t("nextStepLabel")} {meta.nextStep}</p>
                                   <p className="text-[11px] text-on-surface/60">
-                                    {project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр
+                                    {project.category ? t("categoryLabel", { category: project.category }) : t("noCategorySelected")} · {project.timeline_days || 0} {t("days")}
                                   </p>
                                 </div>
                               </td>
@@ -420,15 +407,15 @@ export default function ClientDashboardPage() {
                                 <div className="flex flex-wrap gap-2">
                                   {project.status === "open" ? (
                                     <button className="rounded-lg primary-gradient px-3 py-1.5 text-[11px] font-bold text-white transition-transform hover:-translate-y-0.5" onClick={() => focusProposalSection(project.id)}>
-                                      Санал харах
+                                      {t("viewProposalsBtn")}
                                     </button>
                                   ) : project.status === "awaiting_client_review" ? (
                                     <button className="rounded-lg bg-secondary px-3 py-1.5 text-[11px] font-bold text-white shadow-sm hover:opacity-90" onClick={() => setReleaseTarget(project.id)}>
-                                      Төлбөр шилжүүлэх
+                                      {t("releasePayment")}
                                     </button>
                                   ) : (
                                     <button className="rounded-lg bg-surface-container-low px-3 py-1.5 text-[11px] font-bold text-primary hover:bg-outline-variant/20" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
-                                      Дэлгэрэнгүй
+                                      {t("details")}
                                     </button>
                                   )}
                                 </div>
@@ -450,32 +437,32 @@ export default function ClientDashboardPage() {
                             <StatusPill label={projectStatusLabel(project.status)} tone={meta.tone} />
                           </div>
                           <div className="mt-2 grid gap-1 text-xs text-on-surface/60">
-                            <p>Төсөв: {formatMnt(Number(project.budget || 0))}</p>
-                            <p>{project.category ? `Ангилал: ${project.category}` : "Ангилал сонгоогүй"} · {project.timeline_days || 0} өдөр</p>
+                            <p>{t("budget")}: {formatMnt(Number(project.budget || 0))}</p>
+                            <p>{project.category ? t("categoryLabel", { category: project.category }) : t("noCategorySelected")} · {project.timeline_days || 0} {t("days")}</p>
                           </div>
                           <div className="mt-3 rounded-xl bg-surface-container-low px-3 py-2">
-                            <p className="text-[11px] font-semibold text-accent-700">Дараагийн алхам</p>
+                            <p className="text-[11px] font-semibold text-accent-700">{t("nextStepMobile")}</p>
                             <p className="mt-1 text-xs text-on-surface/65">{meta.nextStep}</p>
                           </div>
                           <div className="mt-3 grid grid-cols-2 gap-2">
                             {project.status === "open" ? (
                               <button className="min-h-11 rounded-xl bg-primary px-3 text-xs font-bold text-primary-fixed" onClick={() => focusProposalSection(project.id)}>
-                                Санал харах
+                                {t("viewProposalsBtn")}
                               </button>
                             ) : project.status === "awaiting_client_review" ? (
                               <button className="min-h-11 rounded-xl bg-secondary px-3 text-xs font-bold text-white" onClick={() => setReleaseTarget(project.id)}>
-                                Төлбөр шилжүүлэх
+                                {t("releasePayment")}
                               </button>
                             ) : (
                               <button className="min-h-11 rounded-xl bg-surface-container-lowest px-3 text-xs font-bold text-primary shadow-sm" onClick={() => router.push(withLocale(`/projects/${project.id}`))}>
-                                Дэлгэрэнгүй
+                                {t("details")}
                               </button>
                             )}
                             <button
                               className="min-h-11 rounded-xl bg-surface-container-lowest px-3 text-xs font-bold text-accent-700 shadow-sm"
                               onClick={() => (["in_progress", "awaiting_client_review"].includes(project.status) ? setDisputeTarget(project.id) : router.push(withLocale(`/projects/${project.id}/payment`)))}
                             >
-                              {["in_progress", "awaiting_client_review"].includes(project.status) ? "Маргаан" : "Эскроу"}
+                              {["in_progress", "awaiting_client_review"].includes(project.status) ? t("dispute") : t("escrow")}
                             </button>
                           </div>
                         </li>
@@ -494,8 +481,8 @@ export default function ClientDashboardPage() {
               >
                 <span className="text-4xl">⊕</span>
                 <div>
-                  <h4 className="font-headline text-xl font-bold">Шинэ төсөл үүсгэх</h4>
-                  <p className="mt-2 text-xs text-white/75">Brief-ээ оруулаад шилдэг мэргэжилтнүүдийг уриарай.</p>
+                  <h4 className="font-headline text-xl font-bold">{t("createNewProject")}</h4>
+                  <p className="mt-2 text-xs text-white/75">{t("createNewProjectDesc")}</p>
                 </div>
               </Link>
 
@@ -505,8 +492,8 @@ export default function ClientDashboardPage() {
               >
                 <DashboardIcon name="search" className="h-10 w-10 text-primary" />
                 <div>
-                  <h4 className="font-headline text-xl font-bold text-primary">Мэргэжилтэн хайх</h4>
-                  <p className="mt-2 text-xs text-on-surface/60">Фрилансерүүдийн жагсаалтаас шүүлтүүр ашиглан хайх.</p>
+                  <h4 className="font-headline text-xl font-bold text-primary">{t("searchFreelancerTitle")}</h4>
+                  <p className="mt-2 text-xs text-on-surface/60">{t("searchFreelancerDesc")}</p>
                 </div>
               </Link>
 
@@ -514,12 +501,12 @@ export default function ClientDashboardPage() {
                 <div className="relative z-10">
                   <div className="flex items-center gap-8">
                     <div className="flex-1">
-                      <h4 className="font-headline text-xl font-bold text-primary">Эскроу хамгаалалттай 🛡️</h4>
+                      <h4 className="font-headline text-xl font-bold text-primary">{t("escrowProtectionTitle")}</h4>
                       <p className="mb-4 mt-2 text-xs text-on-surface/60">
-                        Таны бүх төлбөр тооцоо аюулгүй байдлын үүднээс Эскроу системээр дамжина. Ажил 100% баталгаажсаны дараа төлбөрийг чөлөөлөх боломжтой.
+                        {t("escrowProtectionDesc")}
                       </p>
                       <Link href={withLocale(inProgressProject ? `/projects/${inProgressProject.id}/payment` : "/client")} className="text-xs font-bold text-secondary underline underline-offset-4">
-                        Дэлгэрэнгүй унших
+                        {t("readMore")}
                       </Link>
                     </div>
                     <div className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-full bg-surface-container-low lg:flex">
@@ -539,13 +526,13 @@ export default function ClientDashboardPage() {
 
         <ConfirmationDialog
           open={releaseTarget !== null}
-          title="Эскроу чөлөөлөлт баталгаажуулах"
+          title={t("confirmReleaseTitle")}
           message={
             releaseProject
-              ? `${releaseProject.title} төслийг дууссан гэж баталгаажуулбал ${formatMnt(Number(releaseProject.budget || 0))} эскроу дүн фрилансер руу шууд шилжинэ. Буцаах боломжгүй.`
-              : "Та ажил бүрэн дууссан гэдгийг баталгаажуулбал эскроу дүн фрилансер руу шууд шилжинэ. Буцаах боломжгүй тул ажлыг бүрэн шалгаарай."
+              ? t("confirmReleaseMessage", { title: releaseProject.title, amount: formatMnt(Number(releaseProject.budget || 0)) })
+              : t("confirmReleaseGeneric")
           }
-          confirmLabel="Тийм, чөлөөлөх"
+          confirmLabel={t("confirmReleaseBtn")}
           confirmTone="success"
           loading={releaseMutation.isPending}
           onCancel={() => setReleaseTarget(null)}
@@ -558,13 +545,13 @@ export default function ClientDashboardPage() {
 
         <ConfirmationDialog
           open={disputeTarget !== null}
-          title="Маргаан нээх үү?"
+          title={t("confirmDisputeTitle")}
           message={
             disputeProject
-              ? `${disputeProject.title} төсөл дээр маргаан нээгдмэгц ${formatMnt(Number(disputeProject.budget || 0))} эскроу дүн түр түгжигдэж админы шалгалт эхэлнэ.`
-              : "Маргаан нээгдмэгц эскроу дүн түр түгжигдэж админы шалгалт эхэлнэ. Зөвхөн бодит эрсдэлтэй үед энэ үйлдлийг ашигла."
+              ? t("confirmDisputeMessage", { title: disputeProject.title, amount: formatMnt(Number(disputeProject.budget || 0)) })
+              : t("confirmDisputeGeneric")
           }
-          confirmLabel="Маргаан нээх"
+          confirmLabel={t("confirmDisputeBtn")}
           confirmTone="warning"
           loading={disputeMutation.isPending}
           onCancel={() => setDisputeTarget(null)}
