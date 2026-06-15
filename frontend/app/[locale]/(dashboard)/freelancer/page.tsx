@@ -26,31 +26,24 @@ function formatMnt(value: number): string {
   return `${new Intl.NumberFormat("mn-MN").format(value)} ₮`;
 }
 
-function proposalAgeLabel(createdAt?: string): string {
-  if (!createdAt) return "Огноо алга";
+function proposalAgeLabelRaw(createdAt?: string): { key: string; params?: Record<string, unknown> } {
+  if (!createdAt) return { key: "noDateLabel" };
   const diffDays = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)));
-  if (diffDays === 0) return "Өнөөдөр илгээсэн";
-  return `${diffDays} хоног хүлээгдэж байна`;
+  if (diffDays === 0) return { key: "todaySent" };
+  return { key: "daysWaiting", params: { count: diffDays } };
 }
 
-function proposalStatusLabel(status?: string): string {
-  if (status === "accepted") return "Сонгогдсон";
-  if (status === "rejected") return "Татгалзсан";
-  if (status === "withdrawn") return "Цуцалсан";
-  return "Хүлээгдэж байна";
-}
-
-function projectStatusMeta(status: string): { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStep: string } {
+function projectStatusMetaKeys(status: string): { labelKey: string; tone: "neutral" | "success" | "warning" | "danger" | "info"; nextStepKey: string } {
   if (status === "in_progress") {
-    return { label: "Ажил явагдаж байна", tone: "info", nextStep: "Даалгавраа гүйцээгээд үр дүнгээ илгээ." };
+    return { labelKey: "statusInProgress", tone: "info", nextStepKey: "nextStepInProgress" };
   }
   if (status === "awaiting_client_review") {
-    return { label: "Шалгалт хүлээгдэж байна 🕐", tone: "warning", nextStep: "Захиалагчийн баталгаажуулалтыг хүлээж байна." };
+    return { labelKey: "statusAwaitingReview", tone: "warning", nextStepKey: "nextStepAwaitingReview" };
   }
   if (status === "disputed") {
-    return { label: "Маргаан шийдвэрлэгдэж байна", tone: "danger", nextStep: "Нотолгоогоо шинэчилж admin шийдвэрийг хүлээ." };
+    return { labelKey: "statusDisputed", tone: "danger", nextStepKey: "nextStepDisputed" };
   }
-  return { label: status, tone: "neutral", nextStep: "Төслийн явцаа шалга." };
+  return { labelKey: status, tone: "neutral", nextStepKey: "nextStepDefault" };
 }
 
 function DashboardIcon({
@@ -158,7 +151,7 @@ export default function FreelancerDashboardPage() {
     mutationFn: (projectId: number) => projectsApi.submitResult(projectId, { note: "Freelancer submission" }),
     onSuccess: () => {
       projects.refetch();
-      toast("success", "Үр дүн амжилттай илгээгдлээ.");
+      toast("success", t("resultSuccess"));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -173,7 +166,7 @@ export default function FreelancerDashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["project-proposals"] });
       setEditingProposalId(null);
       editForm.reset();
-      toast("success", "Санал шинэчлэгдлээ.");
+      toast("success", t("proposalUpdated"));
     },
     onError: (error: Error) => toast("error", error.message),
   });
@@ -188,16 +181,16 @@ export default function FreelancerDashboardPage() {
   }
 
   if (me.isLoading || proposals.isLoading || projects.isLoading || profile.isLoading) {
-    return <LoadingState label="Хянах самбар ачааллаж байна..." />;
+    return <LoadingState label={t("loading")} />;
   }
 
   if (me.isError || !me.data) {
     return (
       <ErrorState
-        label="Нэвтэрч орно уу."
+        label={t("loginRequired")}
         action={
           <button className="min-h-11 rounded-lg bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-red-700" onClick={() => router.push(withLocale("/auth/login"))}>
-            Нэвтрэх
+            {t("loginBtn")}
           </button>
         }
       />
@@ -207,14 +200,14 @@ export default function FreelancerDashboardPage() {
   if (proposals.isError || !proposals.data || projects.isError || !projects.data) {
     return (
       <ErrorState
-        label="Dashboard мэдээлэл ачааллахад алдаа гарлаа."
+        label={t("loadError")}
         action={
           <div className="flex flex-wrap gap-2">
             <button className="min-h-11 rounded-lg bg-surface-container-lowest px-4 py-2 text-xs font-semibold text-red-700" onClick={retryAll}>
-              Дахин оролдох
+              {t("retry")}
             </button>
             <Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white">
-              Төсөл хайх
+              {t("searchProjects")}
             </Link>
           </div>
         }
@@ -270,25 +263,25 @@ export default function FreelancerDashboardPage() {
   if (me.data.verification_status === "pending") {
     verificationGuidance = {
       tone: "warning",
-      title: "Баталгаажуулалт хянагдаж байна",
-      text: "Түр хүлээгээд профайлаа сайжруулж, төсөл хайж бэлдээрэй.",
-      cta: "Профайл нээх",
+      title: t("verificationPendingTitle"),
+      text: t("verificationPendingText"),
+      cta: t("verificationPendingCta"),
       href: withLocale("/freelancer/profile"),
     };
   } else if (me.data.verification_status === "suspended") {
     verificationGuidance = {
       tone: "danger",
-      title: "Данс түр хаагдсан",
-      text: "Support-т тайлбар илгээж сэргээх хүсэлт гарга. Идэвхтэй ажлаа чат дээр үргэлжлүүлж болно.",
-      cta: "Support",
+      title: t("verificationSuspendedTitle"),
+      text: t("verificationSuspendedText"),
+      cta: t("verificationSuspendedCta"),
       href: withLocale("/support"),
     };
   } else if (me.data.verification_status !== "verified") {
     verificationGuidance = {
       tone: "info",
-      title: "Баталгаажуулалт шаардлагатай",
-      text: "Санал илгээх боломжоо бүрэн нээхийн тулд verification хүсэлтээ одоо илгээ.",
-      cta: "Verification эхлүүлэх",
+      title: t("verificationRequiredTitle"),
+      text: t("verificationRequiredText"),
+      cta: t("verificationRequiredCta"),
       href: withLocale("/freelancer/profile"),
     };
   }
@@ -306,22 +299,22 @@ export default function FreelancerDashboardPage() {
 
   const filteredRecommendations = sortedProposals.filter((proposal) => (proposal.status || "pending") === "pending").slice(0, 2);
   const recentProposals = sortedProposals.slice(0, 4);
-  const freelancerName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Фрилансер";
+  const freelancerName = profile.data?.full_name || me.data.first_name || me.data.email?.split("@")[0] || "Freelancer";
 
   const inProgressProjectForFreelancer = activeProjects.find((project) => project.status === "in_progress");
   let priorityAction = null;
   if (inProgressProjectForFreelancer) {
     priorityAction = {
-      title: "Ажил явагдаж байна ⏳",
-      desc: `"${inProgressProjectForFreelancer.title}" төслийн явцаа шалгаад үр дүнгээ илгээнэ үү.`,
-      cta: "Төсөл рүү орох",
+      title: t("priorityInProgressTitle"),
+      desc: t("priorityInProgressDesc", { title: inProgressProjectForFreelancer.title }),
+      cta: t("priorityInProgressCta"),
       onClick: () => router.push(withLocale(`/projects/${inProgressProjectForFreelancer.id}`))
     };
   } else if (!activeProjects.length && !pendingProposals) {
     priorityAction = {
-      title: "Эхний төслөө ол 🎯",
-      desc: "Шилдэг клиентүүдийн төслүүдтэй танилцаад яг одоо саналаа илгээнэ үү.",
-      cta: "Ажил хайх",
+      title: t("priorityFindWorkTitle"),
+      desc: t("priorityFindWorkDesc"),
+      cta: t("priorityFindWorkCta"),
       onClick: () => router.push(withLocale("/projects"))
     };
   }
@@ -340,10 +333,10 @@ export default function FreelancerDashboardPage() {
               <section className="mb-10">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
-                    <h1 className="mb-2 font-headline text-3xl font-extrabold tracking-tight text-primary">Өдрийн мэнд, {freelancerName} 👋</h1>
-                    <p className="font-medium text-on-surface/70">{pendingProposals} шинэ санал, {activeProjects.length} идэвхтэй төсөл байна.</p>
+                    <h1 className="mb-2 font-headline text-3xl font-extrabold tracking-tight text-primary">{t("greeting", { name: freelancerName })}</h1>
+                    <p className="font-medium text-on-surface/70">{t("summaryLine", { pending: pendingProposals, active: activeProjects.length })}</p>
                     <p className="mt-2 text-[13px] text-on-surface/60">
-                      Хүлээгдэж байна {pendingProposals} • Татгалзсан {rejectedProposals} • Сонгогдсон {acceptedProposals}
+                      {t("proposalStats", { pending: pendingProposals, rejected: rejectedProposals, accepted: acceptedProposals })}
                     </p>
                     {priorityAction && (
                       <div className="mt-8 max-w-3xl rounded-2xl bg-surface-container-low px-6 py-5 shadow-sm transition-all hover:shadow-ambient">
@@ -372,9 +365,9 @@ export default function FreelancerDashboardPage() {
                 <section className="mb-10 rounded-3xl bg-surface-container-low p-6 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="ui-eyebrow">Эхлэх алхам</p>
-                      <h2 className="mt-2 font-headline text-2xl font-black text-primary">Эхний орлого олох checklist</h2>
-                      <p className="mt-2 text-[13px] text-on-surface/60">Энэ 4 алхмыг хийснээр саналын чанар, сонгогдох магадлал шууд өснө.</p>
+                      <p className="ui-eyebrow">{t("onboardingEyebrow")}</p>
+                      <h2 className="mt-2 font-headline text-2xl font-black text-primary">{t("onboardingTitle")}</h2>
+                      <p className="mt-2 text-[13px] text-on-surface/60">{t("onboardingSubtitle")}</p>
                     </div>
                     <button
                       type="button"
@@ -386,25 +379,25 @@ export default function FreelancerDashboardPage() {
                         setHideOnboarding(true);
                       }}
                     >
-                      Дараа сануул
+                      {t("onboardingDismiss")}
                     </button>
                   </div>
                   <ul className="mt-5 grid gap-3 md:grid-cols-2">
                     <li className="rounded-2xl bg-surface-container-lowest p-4">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">1. Профайл</p>
-                      <Link href={withLocale("/freelancer/profile")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Профайлаа бөглөх (100%)</Link>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">{t("onboardingStep1")}</p>
+                      <Link href={withLocale("/freelancer/profile")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">{t("onboardingStep1Link")}</Link>
                     </li>
                     <li className="rounded-2xl bg-surface-container-lowest p-4">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">2. Портфолио</p>
-                      <Link href={withLocale("/freelancer/profile#portfolio")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Портфолио нэмэх</Link>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">{t("onboardingStep2")}</p>
+                      <Link href={withLocale("/freelancer/profile#portfolio")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">{t("onboardingStep2Link")}</Link>
                     </li>
                     <li className="rounded-2xl bg-surface-container-lowest p-4">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">3. Төсөл</p>
-                      <Link href={withLocale("/projects")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Анхны ажлаа хайх</Link>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">{t("onboardingStep3")}</p>
+                      <Link href={withLocale("/projects")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">{t("onboardingStep3Link")}</Link>
                     </li>
                     <li className="rounded-2xl bg-surface-container-lowest p-4">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">4. Санал</p>
-                      <Link href={withLocale("/projects")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">Санал илгээх</Link>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-on-surface/55">{t("onboardingStep4")}</p>
+                      <Link href={withLocale("/projects")} className="mt-2 inline-flex text-[13px] font-semibold text-primary">{t("onboardingStep4Link")}</Link>
                     </li>
                   </ul>
                 </section>
@@ -413,29 +406,29 @@ export default function FreelancerDashboardPage() {
               <section className="mb-12 grid grid-cols-1 gap-6 md:grid-cols-3">
                 <div className="rounded-3xl bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient">
                   <div className="mb-6 flex items-start justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55 font-headline">Нийт орлого</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55 font-headline">{t("totalEarnings")}</span>
                     <div className="rounded-xl bg-surface-container-low p-2 text-primary">
                       <DashboardIcon name="payments" className="h-5 w-5 opacity-40" />
                     </div>
                   </div>
                   <span className="text-4xl font-extrabold text-on-surface font-headline tracking-tight">{formatMnt(earnings)}</span>
-                  <p className="mt-4 text-[11px] font-bold text-on-surface/55 font-headline tracking-wide uppercase">{completedProjects.length} дууссан төсөл (шимтгэл хассан)</p>
+                  <p className="mt-4 text-[11px] font-bold text-on-surface/55 font-headline tracking-wide uppercase">{t("completedProjectsCount", { count: completedProjects.length })}</p>
                 </div>
 
                 <div className="primary-gradient rounded-3xl p-8 text-white shadow-ambient transition-all hover:-translate-y-1">
                   <div className="mb-6 flex items-start justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/60 font-headline">Хүлээгдэж буй</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/60 font-headline">{t("pendingLabel")}</span>
                     <div className="rounded-xl bg-white/10 p-2">
                       <DashboardIcon name="hourglass" className="h-5 w-5 opacity-60" />
                     </div>
                   </div>
                   <span className="text-4xl font-extrabold text-white font-headline tracking-tight">{formatMnt(pendingPayout)}</span>
-                  <p className="mt-4 text-[11px] font-bold text-white/50 font-headline tracking-wide uppercase">{activeProjects.length} идэвхтэй төслийн escrow</p>
+                  <p className="mt-4 text-[11px] font-bold text-white/50 font-headline tracking-wide uppercase">{t("pendingEscrow", { count: activeProjects.length })}</p>
                 </div>
 
                 <div className="rounded-3xl bg-surface-container-low p-8 transition-all hover:bg-surface-container-lowest hover:shadow-ambient">
                   <div className="mb-6 flex items-start justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55 font-headline">Үнэлгээ</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-on-surface/55 font-headline">{t("ratingLabel")}</span>
                     <div className="rounded-xl bg-surface-container-high p-2 text-primary">
                       <DashboardIcon name="star" className="h-5 w-5 opacity-40" />
                     </div>
@@ -444,7 +437,7 @@ export default function FreelancerDashboardPage() {
                     {(rating.data?.average ?? 0).toFixed(1)}
                   </span>
                   <p className="mt-4 text-[11px] font-bold text-on-surface/55 font-headline tracking-wide uppercase">
-                    {rating.data?.total ?? 0} сэтгэгдэл
+                    {t("reviewsCount", { count: rating.data?.total ?? 0 })}
                   </p>
                 </div>
               </section>
@@ -453,13 +446,13 @@ export default function FreelancerDashboardPage() {
                 <div className="space-y-6">
                   <div className="overflow-hidden rounded-[2.5rem] bg-surface-container-lowest shadow-sm">
                     <div className="flex items-center justify-between p-8">
-                      <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">Идэвхтэй төслүүд</h2>
-                      <button type="button" onClick={() => setActiveFilter("all")} className="text-[11px] font-bold uppercase tracking-widest text-secondary hover:underline font-headline">Бүгдийг үзэх</button>
+                      <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">{t("activeProjectsSection")}</h2>
+                      <button type="button" onClick={() => setActiveFilter("all")} className="text-[11px] font-bold uppercase tracking-widest text-secondary hover:underline font-headline">{t("viewAll")}</button>
                     </div>
                     {!filteredActiveProjects.length ? (
                       <div className="p-8">
                         <EmptyState
-                          label={activeFilter === "all" ? t("noActive") : "Энэ төлөвт идэвхтэй ажил алга."}
+                          label={activeFilter === "all" ? t("noActive") : t("noActiveForFilter")}
                           action={<Link href={withLocale("/projects")} className="inline-flex min-h-12 items-center rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient">{t("browseProjects")}</Link>}
                         />
                       </div>
@@ -469,27 +462,27 @@ export default function FreelancerDashboardPage() {
                           <table className="w-full text-left">
                           <thead className="bg-surface-container-low/50">
                             <tr>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Төслийн нэр</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Захиалагч</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Дуусах хугацаа</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Дараагийн алхам</th>
-                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Төлөв</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">{t("colProjectName")}</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">{t("colClient")}</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">{t("colDeadline")}</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">{t("colNextStep")}</th>
+                              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">{t("colStatus")}</th>
                             </tr>
                           </thead>
                           <tbody>
                             {filteredActiveProjects.map((project) => {
-                              const meta = projectStatusMeta(project.status);
+                              const meta = projectStatusMetaKeys(project.status);
                               return (
                                 <tr key={project.id} className="transition-colors hover:bg-surface-container-low/30 odd:bg-surface-container-low/20">
                                   <td className="px-8 py-6">
                                     <p className="text-sm font-bold text-on-surface font-headline">{project.title}</p>
-                                    <p className="mt-0.5 text-[11px] font-bold text-on-surface/45 font-headline">{project.category || "Ерөнхий төсөл"}</p>
+                                    <p className="mt-0.5 text-[11px] font-bold text-on-surface/45 font-headline">{project.category || t("generalProject")}</p>
                                   </td>
-                                  <td className="px-8 py-6 text-sm font-bold text-on-surface font-headline italic opacity-80">Захиалагч #{project.owner}</td>
-                                  <td className="px-8 py-6 text-sm text-on-surface/60 font-medium">{project.timeline_days ? `${project.timeline_days} хоног` : "Тодорхойгүй"}</td>
-                                  <td className="px-8 py-6 text-[13px] text-primary font-medium">{meta.nextStep}</td>
+                                  <td className="px-8 py-6 text-sm font-bold text-on-surface font-headline italic opacity-80">{t("clientLabel", { id: project.owner })}</td>
+                                  <td className="px-8 py-6 text-sm text-on-surface/60 font-medium">{project.timeline_days ? t("daysRemaining", { count: project.timeline_days }) : t("deadlineUnknown")}</td>
+                                  <td className="px-8 py-6 text-[13px] text-primary font-medium">{t(meta.nextStepKey)}</td>
                                   <td className="px-8 py-6">
-                                    <StatusPill label={meta.label} tone={meta.tone} />
+                                    <StatusPill label={t(meta.labelKey)} tone={meta.tone} />
                                   </td>
                                 </tr>
                               );
@@ -500,20 +493,20 @@ export default function FreelancerDashboardPage() {
 
                       <ul className="grid gap-3 p-4 md:hidden">
                         {filteredActiveProjects.map((project) => {
-                          const meta = projectStatusMeta(project.status);
+                          const meta = projectStatusMetaKeys(project.status);
                           return (
                             <li key={project.id} className="rounded-[1.5rem] bg-surface-container-low p-4 shadow-[0_10px_24px_rgba(3,22,54,0.06)]">
                               <div className="flex items-start justify-between gap-3">
                                 <p className="font-semibold text-primary font-headline">{project.title}</p>
-                                <StatusPill label={meta.label} tone={meta.tone} />
+                                <StatusPill label={t(meta.labelKey)} tone={meta.tone} />
                               </div>
                               <div className="mt-2 text-xs text-on-surface/60">
-                                <p>{project.category || "Ерөнхий төсөл"}</p>
-                                <p className="mt-1 italic">Захиалагч #{project.owner} · {project.timeline_days ? `${project.timeline_days} хоног` : "Хугацаа тодорхойгүй"}</p>
+                                <p>{project.category || t("generalProject")}</p>
+                                <p className="mt-1 italic">{t("clientLabel", { id: project.owner })} · {project.timeline_days ? t("daysRemaining", { count: project.timeline_days }) : t("deadlineUnknownMobile")}</p>
                               </div>
                               <div className="mt-3 rounded-xl bg-surface-container-lowest px-3 py-2">
-                                <p className="text-[11px] font-semibold text-primary">Дараагийн алхам</p>
-                                <p className="mt-1 text-xs text-on-surface/65">{meta.nextStep}</p>
+                                <p className="text-[11px] font-semibold text-primary">{t("nextStepLabel")}</p>
+                                <p className="mt-1 text-xs text-on-surface/65">{t(meta.nextStepKey)}</p>
                               </div>
                             </li>
                           );
@@ -525,23 +518,24 @@ export default function FreelancerDashboardPage() {
 
                   <div>
                     <div className="mb-8 flex items-center justify-between">
-                      <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">Танд тохирох шинэ төслүүд</h2>
-                      <Link href={withLocale("/projects")} className="rounded-xl bg-primary px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">Ажил хайх</Link>
+                      <h2 className="text-xl font-extrabold text-primary font-headline tracking-tight">{t("recommendedProjects")}</h2>
+                      <Link href={withLocale("/projects")} className="rounded-xl bg-primary px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">{t("findWork")}</Link>
                     </div>
                     {filteredRecommendations.length ? (
                       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {filteredRecommendations.map((proposal, index) => {
                           const project = projectById.get(Number(proposal.project));
+                          const ageInfo = proposalAgeLabelRaw(proposal.created_at);
                           return (
                             <div key={proposal.id} className="group rounded-3xl bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-ambient">
                               <div className="mb-4 flex items-start justify-between">
                                 <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-headline ${index === 0 ? "bg-secondary text-white" : "bg-primary-fixed text-primary"}`}>
-                                  {index === 0 ? "Төсөв өндөр" : "Түргэн эхлэх"}
+                                  {index === 0 ? t("highBudget") : t("quickStart")}
                                 </span>
-                                <span className="text-[10px] font-bold text-on-surface/45 font-headline uppercase tracking-widest">{proposalAgeLabel(proposal.created_at)}</span>
+                                <span className="text-[10px] font-bold text-on-surface/45 font-headline uppercase tracking-widest">{t(ageInfo.key, ageInfo.params)}</span>
                               </div>
-                              <h3 className="mb-3 text-lg font-bold text-on-surface transition-colors group-hover:text-primary font-headline">{project?.title || `Төсөл #${proposal.project}`}</h3>
-                              <p className="mb-6 line-clamp-2 text-xs leading-relaxed text-on-surface/60">{project?.description || proposal.message || "Саналд тохирох төсөл."}</p>
+                              <h3 className="mb-3 text-lg font-bold text-on-surface transition-colors group-hover:text-primary font-headline">{project?.title || `${t("project")} #${proposal.project}`}</h3>
+                              <p className="mb-6 line-clamp-2 text-xs leading-relaxed text-on-surface/60">{project?.description || proposal.message || t("matchingProposal")}</p>
                               <div className="ui-divider-soft" />
                               <div className="flex items-center justify-between pt-4">
                                 <span className="text-lg font-black text-primary font-headline tracking-tighter">{formatMnt(Number(proposal.price || 0))}</span>
@@ -553,9 +547,9 @@ export default function FreelancerDashboardPage() {
                       </div>
                     ) : (
                       <EmptyState
-                        label="Идэвхтэй төсөл байхгүй байна"
-                        description="Одоогоор идэвхтэй гэрээ байхгүй байна. Ажил хайж санал илгээгээрэй."
-                        action={<Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center gap-2 rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">Ажил хайх</Link>}
+                        label={t("noActiveProjects")}
+                        description={t("noActiveProjectsDesc")}
+                        action={<Link href={withLocale("/projects")} className="inline-flex min-h-11 items-center gap-2 rounded-xl primary-gradient px-6 text-sm font-bold text-primary-fixed shadow-ambient hover:-translate-y-0.5 transition-all">{t("findWork")}</Link>}
                       />
                     )}
                   </div>
@@ -564,30 +558,32 @@ export default function FreelancerDashboardPage() {
                   <aside className="space-y-6">
                   {recentProposals.length ? (
                     <div className="rounded-[2rem] bg-surface-container-lowest p-6 shadow-sm">
-                      <h3 className="font-headline text-lg font-black text-primary">Сүүлийн саналууд</h3>
+                      <h3 className="font-headline text-lg font-black text-primary">{t("recentProposals")}</h3>
                       <ul className="mt-4 space-y-3">
                         {recentProposals.map((proposal) => {
                           const linkedProject = projectById.get(Number(proposal.project));
+                          const ageInfo = proposalAgeLabelRaw(proposal.created_at);
+                          const statusKey = proposal.status === "accepted" ? "proposalStatusAccepted" : proposal.status === "rejected" ? "proposalStatusRejected" : proposal.status === "withdrawn" ? "proposalStatusWithdrawn" : "proposalStatusPending";
                           return (
                             <li key={`proposal-row-${proposal.id}`} className="rounded-xl bg-surface-container-low p-3">
-                              <p className="text-[13px] font-bold text-primary">{linkedProject?.title || `Төсөл #${proposal.project}`}</p>
+                              <p className="text-[13px] font-bold text-primary">{linkedProject?.title || `${t("project")} #${proposal.project}`}</p>
                               <p className="mt-1 text-[11px] text-on-surface/60">
-                                {formatMnt(Number(proposal.price || 0))} • {proposalAgeLabel(proposal.created_at)}
+                                {formatMnt(Number(proposal.price || 0))} • {t(ageInfo.key, ageInfo.params)}
                               </p>
-                              <p className="mt-1 text-[11px] font-semibold text-secondary">{proposalStatusLabel(proposal.status)}</p>
+                              <p className="mt-1 text-[11px] font-semibold text-secondary">{t(statusKey)}</p>
                             </li>
                           );
                         })}
                       </ul>
                       <Link href={withLocale("/freelancer/proposals")} className="mt-4 inline-flex text-[12px] font-bold text-primary underline underline-offset-4">
-                        Бүх санал харах
+                        {t("viewAllProposals")}
                       </Link>
                     </div>
                   ) : null}
 
                   <div className="relative overflow-hidden rounded-[2.5rem] bg-surface-container-lowest p-8 shadow-sm transition-all hover:shadow-ambient">
                     <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
-                    <h2 className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-on-surface/55 font-headline">Профайлын гүйцэтгэл</h2>
+                    <h2 className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-on-surface/55 font-headline">{t("profilePerformance")}</h2>
                     <div className="relative mx-auto mb-8 h-40 w-40">
                       <svg className="h-full w-full -rotate-90">
                         <circle className="text-surface-container-low" cx="80" cy="80" fill="transparent" r="74" stroke="currentColor" strokeWidth="10" />
@@ -606,23 +602,23 @@ export default function FreelancerDashboardPage() {
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-3xl font-black text-primary font-headline">{profileCompleteness}%</span>
-                        <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-on-surface/45 font-headline">Дууссан</span>
+                        <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-on-surface/45 font-headline">{t("completed")}</span>
                       </div>
                     </div>
                     <ul className="mb-8 space-y-4">
-                      <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> Портфолио нэмсэн</li>
-                      <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> И-мэйл баталгаажсан</li>
-                      <li className="flex items-center text-[13px] font-medium text-on-surface/45 font-headline italic opacity-60"><span className="mr-3 text-on-surface/35">○</span> Утас баталгаажуулах</li>
+                      <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> {t("portfolioAdded")}</li>
+                      <li className="flex items-center text-[13px] font-bold text-on-surface font-headline"><span className="mr-3 text-secondary">✦</span> {t("emailVerified")}</li>
+                      <li className="flex items-center text-[13px] font-medium text-on-surface/45 font-headline italic opacity-60"><span className="mr-3 text-on-surface/35">○</span> {t("phoneVerify")}</li>
                     </ul>
                     <div className="flex items-center justify-between rounded-2xl bg-surface-container-low p-6">
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">Үнэлгээ</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface/55 font-headline">{t("ratingLabel")}</p>
                         <div className="mt-2 flex items-center">
                           <span className="mr-3 text-2xl font-black text-primary font-headline">{(rating.data?.average ?? 0).toFixed(1)}</span>
                           <RatingStars value={rating.data?.average ?? 0} />
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-on-surface/45 font-headline uppercase tracking-widest">{rating.data?.total ?? 0} сэтгэгдэл</span>
+                      <span className="text-[10px] font-bold text-on-surface/45 font-headline uppercase tracking-widest">{t("reviewsCount", { count: rating.data?.total ?? 0 })}</span>
                     </div>
                   </div>
 
@@ -632,7 +628,7 @@ export default function FreelancerDashboardPage() {
                       <p className="mt-2 text-xs text-on-surface/70">{verificationGuidance.text}</p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         <Link href={verificationGuidance.href} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-white">{verificationGuidance.cta}</Link>
-                        <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 text-[13px] font-semibold text-on-surface/75">Тусламж</Link>
+                        <Link href={withLocale("/support?topic=verification")} className="inline-flex min-h-11 items-center rounded-xl bg-surface-container-low px-4 text-[13px] font-semibold text-on-surface/75">{t("helpLabel")}</Link>
                       </div>
                     </div>
                   ) : null}
@@ -640,14 +636,14 @@ export default function FreelancerDashboardPage() {
                   {premiumMe.data && !premiumMe.data.is_premium ? (
                     <div className="group relative overflow-hidden rounded-2xl bg-primary-container p-6 text-white">
                       <div className="absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_20%_20%,white_1px,transparent_1px)] [background-size:10px_10px]" />
-                      <h3 className="relative z-10 mb-2 text-sm font-bold">ITZuun Premium</h3>
-                      <p className="relative z-10 mb-6 text-xs text-primary-fixed">Төслүүдэд түрүүлж санал өгөх болон шимтгэлийн хөнгөлөлт эдлээрэй.</p>
-                      <Link href={withLocale("/pro")} className="relative z-10 flex min-h-11 w-full items-center justify-center rounded-lg bg-surface-container-lowest py-2 text-xs font-bold text-primary transition-all hover:bg-secondary hover:text-white">Шинэчлэх</Link>
+                      <h3 className="relative z-10 mb-2 text-sm font-bold">{t("premiumTitle")}</h3>
+                      <p className="relative z-10 mb-6 text-xs text-primary-fixed">{t("premiumDesc")}</p>
+                      <Link href={withLocale("/pro")} className="relative z-10 flex min-h-11 w-full items-center justify-center rounded-lg bg-surface-container-lowest py-2 text-xs font-bold text-primary transition-all hover:bg-secondary hover:text-white">{t("premiumCta")}</Link>
                     </div>
                   ) : null}
 
                   <div className="rounded-2xl bg-surface-container-low p-6">
-                    <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-primary">Сүүлийн үеийн гүйлгээ</h3>
+                    <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-primary">{t("recentTransactions")}</h3>
                     <div className="space-y-4">
                       {completedProjects.length ? completedProjects.slice(0, 4).map((project) => {
                         const net = Math.round(Number(project.budget || 0) * (1 - COMMISSION));
@@ -659,14 +655,14 @@ export default function FreelancerDashboardPage() {
                               </div>
                               <div>
                                 <p className="text-[11px] font-bold text-primary">{project.title}</p>
-                                <p className="text-[9px] text-on-surface/45">Дууссан</p>
+                                <p className="text-[9px] text-on-surface/45">{t("transactionCompleted")}</p>
                               </div>
                             </div>
                             <span className="text-xs font-bold text-green-600">+{formatMnt(net)}</span>
                           </div>
                         );
                       }) : (
-                        <p className="text-xs text-on-surface/60">Гүйлгээ хараахан бүртгэгдээгүй.</p>
+                        <p className="text-xs text-on-surface/60">{t("noTransactions")}</p>
                       )}
                     </div>
                   </div>
@@ -716,13 +712,13 @@ export default function FreelancerDashboardPage() {
 
         <ConfirmationDialog
           open={submitTarget !== null}
-          title="Үр дүн илгээхийг баталгаажуулах"
+          title={t("confirmSubmitTitle")}
           message={
             submitProject
-              ? `${submitProject.title} төсөл дээр үр дүн илгээхэд client review эхэлнэ. Шалгах жагсаалт: 1) Deliverable файл хавсаргасан 2) Тайлбар тодорхой 3) Scope бүрэн биелсэн.`
-              : "Үр дүн илгээхэд client review эхэлнэ."
+              ? t("confirmSubmitMessage", { title: submitProject.title })
+              : t("confirmSubmitGeneric")
           }
-          confirmLabel="Тийм, илгээе"
+          confirmLabel={t("confirmSubmitBtn")}
           confirmTone="success"
           loading={submitMutation.isPending}
           onCancel={() => setSubmitTarget(null)}
