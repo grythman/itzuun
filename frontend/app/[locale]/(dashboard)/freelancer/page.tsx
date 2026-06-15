@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { EmptyState, ErrorState } from "@/components/shared/states";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
 import { ConfirmationDialog, RatingStars, StatusPill, VerifiedBadge } from "@/components/ui";
 import { VerificationBanner } from "@/components/shared/verification-banner";
@@ -119,7 +119,7 @@ export default function FreelancerDashboardPage() {
   const withLocale = useCallback((href: string) => `/${locale}${href}`, [locale]);
   const me = useMe();
   const proposals = useMyProposals();
-  const projects = useProjects(1);
+  const projects = useProjects(1, { page_size: 100 });
   const premiumMe = usePremiumMe({ enabled: !!me.data });
   const profile = useMyProfile();
   const queryClient = useQueryClient();
@@ -188,19 +188,7 @@ export default function FreelancerDashboardPage() {
   }
 
   if (me.isLoading || proposals.isLoading || projects.isLoading || profile.isLoading) {
-    return (
-      <section className="space-y-4 pb-20" aria-busy="true" aria-live="polite">
-        <div className="h-36 animate-pulse rounded-3xl bg-surface-container-low" />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-        </div>
-        <div className="h-60 animate-pulse rounded-2xl bg-surface-container-lowest" />
-        <p className="text-sm text-on-surface/60">Хянах самбар ачааллаж байна. Түр хүлээнэ үү...</p>
-      </section>
-    );
+    return <LoadingState label="Хянах самбар ачааллаж байна..." />;
   }
 
   if (me.isError || !me.data) {

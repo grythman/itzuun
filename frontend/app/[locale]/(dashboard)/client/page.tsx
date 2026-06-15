@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { EmptyState, ErrorState } from "@/components/shared/states";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/states";
 import { RoleGuard } from "@/components/shared/role-guard";
 import { ConfirmationDialog, StatusPill } from "@/components/ui";
 import { VerificationBanner } from "@/components/shared/verification-banner";
@@ -104,7 +104,7 @@ export default function ClientDashboardPage() {
 
   const me = useMe();
   const profile = useMyProfile();
-  const projects = useProjects(1);
+  const projects = useProjects(1, { page_size: 100 });
   const toast = useToastStore((s) => s.push);
   const proposalSectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -164,17 +164,7 @@ export default function ClientDashboardPage() {
   }, [activeProjectId, openProject]);
 
   if (me.isLoading || projects.isLoading || profile.isLoading) {
-    return (
-      <section className="space-y-4 pb-20">
-        <div className="h-40 animate-pulse rounded-3xl bg-surface-container-low" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface-container-low" />
-        </div>
-        <div className="h-64 animate-pulse rounded-2xl bg-surface-container-lowest" />
-      </section>
-    );
+    return <LoadingState label="Хянах самбар ачааллаж байна..." />;
   }
   if (me.isError || !me.data) {
     return (
