@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useTranslations } from "next-intl";
+
 import { ErrorState, LoadingState } from "@/components/shared/states";
 import { notificationsApi, toArray } from "@/lib/api/endpoints";
 import { useMe } from "@/lib/hooks";
@@ -45,7 +47,7 @@ function normalizeKind(rawType: string): NotificationItem["kind"] {
 function normalizeAction(metadata?: Record<string, unknown>) {
   const action = (metadata?.action || null) as { label?: unknown; href?: unknown } | null;
   if (!action || typeof action.href !== "string") return undefined;
-  const label = typeof action.label === "string" && action.label.trim() ? action.label : "Нээх";
+  const label = typeof action.label === "string" && action.label.trim() ? action.label : "";
   return { label, href: action.href };
 }
 
@@ -53,7 +55,7 @@ function toTimeLabel(createdAt: string) {
   const current = new Date();
   const parsed = new Date(createdAt);
   if (Number.isNaN(parsed.getTime())) {
-    return { dayBucket: "earlier" as const, timeLabel: "" };
+    return { dayBucket: "earlier" as const, timeLabel: "", timeParts: { prefix: "earlier" as const, hhmm: "" } };
   }
 
   const today = new Date(current.getFullYear(), current.getMonth(), current.getDate());
@@ -61,9 +63,9 @@ function toTimeLabel(createdAt: string) {
   const diff = Math.round((today.getTime() - target.getTime()) / 86400000);
   const hhmm = parsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  if (diff === 0) return { dayBucket: "today" as const, timeLabel: `Өнөөдөр ${hhmm}` };
-  if (diff === 1) return { dayBucket: "yesterday" as const, timeLabel: `Өчигдөр ${hhmm}` };
-  return { dayBucket: "earlier" as const, timeLabel: `${parsed.toLocaleDateString()} ${hhmm}` };
+  if (diff === 0) return { dayBucket: "today" as const, timeLabel: "", timeParts: { prefix: "today" as const, hhmm } };
+  if (diff === 1) return { dayBucket: "yesterday" as const, timeLabel: "", timeParts: { prefix: "yesterday" as const, hhmm } };
+  return { dayBucket: "earlier" as const, timeLabel: `${parsed.toLocaleDateString()} ${hhmm}`, timeParts: { prefix: "earlier" as const, hhmm } };
 }
 
 function NotifIcon({ kind }: { kind: NotificationItem["kind"] }) {
@@ -103,14 +105,15 @@ function kindColor(kind: NotificationItem["kind"]) {
   return "bg-surface-container-low text-on-surface/60";
 }
 
-const FILTER_TABS: { key: NotificationKind; label: string }[] = [
-  { key: "all", label: "Бүгд" },
-  { key: "projects", label: "Төслүүд" },
-  { key: "payments", label: "Төлбөр" },
-  { key: "system", label: "Систем" },
+const FILTER_TABS: { key: NotificationKind; labelKey: string }[] = [
+  { key: "all", labelKey: "tabAll" },
+  { key: "projects", labelKey: "tabProjects" },
+  { key: "payments", labelKey: "tabPayments" },
+  { key: "system", labelKey: "tabSystem" },
 ];
 
 export default function NotificationsPage() {
+  const t = useTranslations("Notifications");
   const queryClient = useQueryClient();
   const toast = useToastStore((s) => s.push);
   const pathname = usePathname();
@@ -133,42 +136,47 @@ export default function NotificationsPage() {
     mutationFn: () => notificationsApi.markAllRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast("success", "Бүгдийг уншсан болголоо");
+      toast("success", t("markAllReadSuccess"));
     },
-    onError: () => toast("error", "Алдаа гарлаа. Дахин оролдоно уу."),
+    onError: () => toast("error", t("errorGeneric")),
   });
 
   const markOneMutation = useMutation({
     mutationFn: (id: number) => notificationsApi.markRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
-    onError: () => toast("error", "Алдаа гарлаа. Дахин оролдоно уу."),
+    onError: () => toast("error", t("errorGeneric")),
   });
 
   const items = useMemo<NotificationItem[]>(() => {
     const rows = toArray<NotificationApi>(notifQuery.data as NotificationApi[]);
     return rows.map((row) => {
       const time = toTimeLabel(row.created_at);
+      const timeLabel = time.timeParts.prefix === "today"
+        ? `${t("timeToday")} ${time.timeParts.hhmm}`
+        : time.timeParts.prefix === "yesterday"
+          ? `${t("timeYesterday")} ${time.timeParts.hhmm}`
+          : time.timeLabel;
       return {
         id: row.id,
         kind: normalizeKind(row.type),
         title: row.title,
         body: row.description,
         read: row.is_read,
-        timeLabel: time.timeLabel,
+        timeLabel,
         dayBucket: time.dayBucket,
         action: normalizeAction(row.metadata),
       };
     });
-  }, [notifQuery.data]);
+  }, [notifQuery.data, t]);
 
-  if (me.isLoading) return <LoadingState label="Мэдэгдлүүд ачааллаж байна..." />;
+  if (me.isLoading) return <LoadingState label={t("loading")} />;
   if (me.isError || !me.data) {
     return (
       <ErrorState
-        label="Мэдэгдлүүдийг харахын тулд нэвтэрнэ үү."
+        label={t("signinRequired")}
         action={
           <Link href={withLocale("/auth?tab=signin")} className="ui-btn-primary">
-            Нэвтрэх
+            {t("signinBtn")}
           </Link>
         }
       />
@@ -189,12 +197,12 @@ export default function NotificationsPage() {
   const unreadProjects = items.filter((item) => !item.read && (item.kind === "project" || item.kind === "proposal")).length;
   const unreadPayments = items.filter((item) => !item.read && item.kind === "payment").length;
   const unreadSystem = items.filter((item) => !item.read && item.kind === "system").length;
-  const latestEventLabel = items[0]?.timeLabel || "Шинэ мэдэгдэлгүй";
+  const latestEventLabel = items[0]?.timeLabel || t("noNewNotifications");
 
   const groups = [
-    { label: "Шинэ", bucket: "today" as const, items: filteredItems.filter((item) => item.dayBucket === "today") },
-    { label: "Өчигдөр", bucket: "yesterday" as const, items: filteredItems.filter((item) => item.dayBucket === "yesterday") },
-    { label: "Эрт үе", bucket: "earlier" as const, items: filteredItems.filter((item) => item.dayBucket === "earlier") },
+    { label: t("groupToday"), bucket: "today" as const, items: filteredItems.filter((item) => item.dayBucket === "today") },
+    { label: t("groupYesterday"), bucket: "yesterday" as const, items: filteredItems.filter((item) => item.dayBucket === "yesterday") },
+    { label: t("groupEarlier"), bucket: "earlier" as const, items: filteredItems.filter((item) => item.dayBucket === "earlier") },
   ].filter((group) => group.items.length > 0);
 
   const resolveHref = (href: string) => {
@@ -209,21 +217,21 @@ export default function NotificationsPage() {
       <div className="ui-surface p-4 sm:p-5 lg:p-6">
         <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-surface-container-low px-4 py-4 sm:px-5">
           <div>
-            <p className="ui-eyebrow">Мэдэгдлийн төв</p>
+            <p className="ui-eyebrow">{t("eyebrow")}</p>
             <h1 className="mt-2 font-headline text-[2rem] font-black leading-none tracking-tight text-primary sm:text-[2.25rem]">
-              Мэдэгдлүүд
+              {t("title")}
             </h1>
             <p className="mt-2 text-sm font-medium text-on-surface/60">
-              Шинэ update-уудаа эрэмбэлж, дараагийн алхмаа хурдан тодорхойлно.
+              {t("subtitle")}
             </p>
             <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-on-surface/45">
-              {filteredItems.length} үр дүн
+              {t("resultsCount", { count: filteredItems.length })}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <span className="inline-flex h-8 items-center rounded-full bg-red-100 px-3 text-xs font-black uppercase tracking-[0.16em] text-red-600">
-                {unreadCount} шинэ
+                {t("newBadge", { count: unreadCount })}
               </span>
             )}
             <button
@@ -232,7 +240,7 @@ export default function NotificationsPage() {
               disabled={unreadCount === 0 || markAllMutation.isPending}
               className="ui-btn-ghost disabled:opacity-45"
             >
-              Бүгдийг уншсан болгох
+              {t("markAllRead")}
             </button>
           </div>
         </div>
@@ -248,9 +256,9 @@ export default function NotificationsPage() {
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Гарчиг эсвэл агуулгаар хайх..."
+                placeholder={t("searchPlaceholder")}
                 className="w-full bg-transparent px-0 py-0 text-sm text-on-surface placeholder:text-on-surface/45 focus:ring-0"
-                aria-label="Мэдэгдэл хайх"
+                aria-label={t("searchAriaLabel")}
               />
             </div>
 
@@ -279,7 +287,7 @@ export default function NotificationsPage() {
                         : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
                     ].join(" ")}
                   >
-                    <span>{tab.label}</span>
+                    <span>{t(tab.labelKey)}</span>
                     {count > 0 && (
                       <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${active ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
                         {count}
@@ -298,17 +306,17 @@ export default function NotificationsPage() {
                     : "bg-surface-container-low text-on-surface/65 hover:bg-surface-container",
                 ].join(" ")}
               >
-                Уншаагүй л
+                {t("unreadOnly")}
               </button>
             </div>
 
-            {notifQuery.isLoading && <LoadingState label="Мэдэгдэл ачааллаж байна..." />}
+            {notifQuery.isLoading && <LoadingState label={t("loadingNotifs")} />}
 
             {notifQuery.isError && (
               <div className="mt-4 rounded-2xl bg-surface-container-low p-5 text-center">
-                <p className="text-sm font-semibold text-primary">Мэдэгдлийн мэдээлэл дуудаж чадсангүй.</p>
+                <p className="text-sm font-semibold text-primary">{t("loadError")}</p>
                 <button type="button" onClick={() => notifQuery.refetch()} className="mt-3 ui-btn-ghost">
-                  Дахин оролдох
+                  {t("retry")}
                 </button>
               </div>
             )}
@@ -321,19 +329,19 @@ export default function NotificationsPage() {
                   </svg>
                 </div>
                 <p className="mt-5 text-lg font-black text-primary">
-                  {search.trim() || unreadOnly ? "Тохирох мэдэгдэл олдсонгүй" : "Мэдэгдэл алга байна"}
+                  {search.trim() || unreadOnly ? t("emptyFiltered") : t("emptyDefault")}
                 </p>
                 <p className="mt-2 text-sm text-on-surface/60">
                   {search.trim() || unreadOnly
-                    ? "Хайлтын үг эсвэл шүүлтүүрээ суллаад дахин оролдоно уу."
-                    : "Шинэ үйл явдал гарахад энд автоматаар нэмэгдэнэ."}
+                    ? t("emptyFilteredHint")
+                    : t("emptyDefaultHint")}
                 </p>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                   <Link
                     href={withLocale(me.data.role === "client" ? "/client/projects" : "/projects")}
                     className="ui-btn-secondary"
                   >
-                    {me.data.role === "client" ? "Миний төслүүд" : "Ажил хайх"}
+                    {me.data.role === "client" ? t("myProjects") : t("findWork")}
                   </Link>
                   {(search.trim() || unreadOnly || filter !== "all") && (
                     <button
@@ -345,7 +353,7 @@ export default function NotificationsPage() {
                       }}
                       className="ui-btn-ghost"
                     >
-                      Шүүлтүүр цэвэрлэх
+                      {t("clearFilters")}
                     </button>
                   )}
                 </div>
@@ -389,7 +397,7 @@ export default function NotificationsPage() {
                                   disabled={markOneMutation.isPending}
                                   className="mt-3 inline-flex text-[10px] font-black uppercase tracking-[0.16em] text-primary underline underline-offset-4 disabled:opacity-45"
                                 >
-                                  Уншсан болгох
+                                  {t("markRead")}
                                 </button>
                               )}
                               {item.action && (
@@ -399,7 +407,7 @@ export default function NotificationsPage() {
                                   rel={/^https?:\/\//i.test(item.action.href) ? "noopener noreferrer" : undefined}
                                   className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-secondary underline underline-offset-4"
                                 >
-                                  {item.action.label}
+                                  {item.action.label || t("defaultActionLabel")}
                                   <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
                                     <path d="M5 12h14M13 5l7 7-7 7" />
                                   </svg>
@@ -417,42 +425,42 @@ export default function NotificationsPage() {
           </div>
 
           <aside className="ui-surface-soft h-fit p-4">
-            <p className="ui-eyebrow">Тойм</p>
+            <p className="ui-eyebrow">{t("sidebarEyebrow")}</p>
             <h2 className="mt-2 font-headline text-[1.35rem] font-black tracking-tight text-primary">
-              Шуурхай тойм
+              {t("sidebarTitle")}
             </h2>
             <p className="mt-2 text-xs font-medium text-on-surface/60">
-              Сүүлд шинэчлэгдсэн: {latestEventLabel}
+              {t("sidebarLastUpdated", { time: latestEventLabel })}
             </p>
 
             <div className="mt-4 space-y-2">
               <div className="rounded-xl bg-surface-container-low px-3 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Төсөл / санал</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("sidebarProjects")}</p>
                 <p className="mt-1 text-2xl font-black tracking-tight text-primary">{unreadProjects}</p>
               </div>
               <div className="rounded-xl bg-surface-container-low px-3 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Төлбөр / escrow</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("sidebarPayments")}</p>
                 <p className="mt-1 text-2xl font-black tracking-tight text-primary">{unreadPayments}</p>
               </div>
               <div className="rounded-xl bg-surface-container-low px-3 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">Систем</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">{t("sidebarSystem")}</p>
                 <p className="mt-1 text-2xl font-black tracking-tight text-primary">{unreadSystem}</p>
               </div>
             </div>
 
             <div className="mt-4 rounded-xl bg-surface-container-low p-3">
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface/45">
-                Дараагийн алхам
+                {t("sidebarNextSteps")}
               </p>
               <div className="mt-3 flex flex-col gap-2">
                 <Link href={withLocale("/messages")} className="ui-btn-ghost">
-                  Мессеж рүү очих
+                  {t("goToMessages")}
                 </Link>
                 <Link href={withLocale("/projects")} className="ui-btn-ghost">
-                  Төсөл шалгах
+                  {t("checkProjects")}
                 </Link>
                 <Link href={withLocale("/support")} className="ui-btn-ghost">
-                  Тусламж
+                  {t("help")}
                 </Link>
               </div>
             </div>
